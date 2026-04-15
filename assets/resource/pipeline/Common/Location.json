@@ -1,0 +1,226 @@
+{
+    "EnterHall": {
+        "next": [
+            "ClickBell",
+            "[JumpBack]ClickHomeButton",
+            "[JumpBack]SkipPlot",
+            "[JumpBack]CloseSale"
+        ]
+    },
+    "EnterArk": {
+        "next": [
+            "ArkInsideFlag",
+            "ClickArk",
+            "[JumpBack]EnterHall"
+        ]
+    },
+    "ArkInsideFlag": {
+        "desc": "方舟内部标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    17,
+                    16,
+                    50,
+                    20
+                ],
+                "expected": [
+                    "方舟"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "ClickArk": {
+        "desc": "点大厅的方舟",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    896,
+                    471,
+                    54,
+                    36
+                ],
+                "expected": [
+                    "方舟"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "ArkInsideFlag"
+        ]
+    },
+    "Confirm": {
+        "desc": "确认",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    617,
+                    390,
+                    122,
+                    121
+                ],
+                "template": [
+                    "ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "CloseSale": {
+        "desc": "关闭推销",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    601,
+                    660,
+                    66,
+                    17
+                ],
+                "expected": [
+                    "点击关闭画面"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "Confirm"
+        ]
+    },
+    "SkipPlot": {
+        "desc": "跳过剧情",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1218,
+                    9,
+                    40,
+                    16
+                ],
+                "expected": [
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "CloseNotion": {
+        "desc": "关闭公告",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    785,
+                    52,
+                    42,
+                    43
+                ],
+                "template": [
+                    "CloseButton.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "NotionFlag": {
+        "desc": "公告文本检测",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    634,
+                    63,
+                    39,
+                    25
+                ],
+                "expected": [
+                    "公告"
+                ]
+            }
+        },
+        "next": [
+            "CloseNotion"
+        ]
+    },
+    "ClickBell": {
+        "desc": "点击铃铛",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BellFlag"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "NotionFlag"
+        ]
+    },
+    "BellFlag": {
+        "desc": "右上角铃铛标识",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1174,
+                    8,
+                    37,
+                    35
+                ],
+                "template": [
+                    "Bell.png"
+                ]
+            }
+        }
+    },
+    "ClickHomeButton": {
+        "desc": "点击左下角的按钮直到返回大厅",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    91,
+                    664,
+                    39,
+                    32
+                ],
+                "template": [
+                    "HomeButton.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    }
+}
