@@ -1,0 +1,14 @@
+{
+    "task": [
+        {
+            "name": "Login",
+            "label": "$task.Login.label",
+            "entry": "Login",
+            "description": "$task.Login.description",
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {}
+}
