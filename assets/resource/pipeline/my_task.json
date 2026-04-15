@@ -1,12 +1,19 @@
 {
-    "MyTask1": {},
-    "MyTask2": {},
-    "MyTask3": {},
-    "MyTask4": {
-        "recognition": "Custom",
-        "custom_recognition": "my_reco_222",
-        "action": "Custom",
-        "custom_action": "my_action_111"
-    },
-    "OcrTask": {}
+    "MyTask1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    896,
+                    471,
+                    54,
+                    36
+                ],
+                "expected": [
+                    "方舟"
+                ]
+            }
+        },
+        "action": "Click" // 执行点击操作
+    }
 }
