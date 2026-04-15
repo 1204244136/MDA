@@ -1,10 +1,11 @@
 {
     "EnterHall": {
+        "anchor": "NeedCheck",
         "next": [
-            "ClickBell",
             "[JumpBack]ClickHomeButton",
             "[JumpBack]SkipPlot",
-            "[JumpBack]CloseSale"
+            "[JumpBack]CloseSale",
+            "ActiveCheck"
         ]
     },
     "EnterArk": {
@@ -125,26 +126,25 @@
             "param": {}
         }
     },
-    "CloseNotion": {
-        "desc": "关闭公告",
+    "ActiveCheck": {
+        "desc": "检测是否处于自由状态",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "And",
             "param": {
-                "roi": [
-                    785,
-                    52,
-                    42,
-                    43
-                ],
-                "template": [
-                    "CloseButton.png"
+                "all_of": [
+                    "BellFlag"
                 ]
             }
         },
+        "pre_wait_freezes": 500,
         "action": {
             "type": "Click",
             "param": {}
-        }
+        },
+        "next": [
+            "NotionFlag",
+            "[Anchor]NeedCheck"
+        ]
     },
     "NotionFlag": {
         "desc": "公告文本检测",
@@ -166,24 +166,26 @@
             "CloseNotion"
         ]
     },
-    "ClickBell": {
-        "desc": "点击铃铛",
+    "CloseNotion": {
+        "desc": "关闭公告",
         "recognition": {
-            "type": "And",
+            "type": "TemplateMatch",
             "param": {
-                "all_of": [
-                    "BellFlag"
+                "roi": [
+                    785,
+                    52,
+                    42,
+                    43
+                ],
+                "template": [
+                    "CloseButton.png"
                 ]
             }
         },
-        "pre_wait_freezes": 500,
         "action": {
             "type": "Click",
             "param": {}
-        },
-        "next": [
-            "NotionFlag"
-        ]
+        }
     },
     "BellFlag": {
         "desc": "右上角铃铛标识",

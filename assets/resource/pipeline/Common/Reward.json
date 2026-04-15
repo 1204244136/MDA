@@ -1,0 +1,23 @@
+{
+    "RewardConfirm": {
+        "desc": "奖励确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    553,
+                    400,
+                    176,
+                    125
+                ],
+                "expected": [
+                    "点击领取奖励"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    }
+}
