@@ -1,4 +1,6 @@
 {
     "task.Login.label": "登录",
-    "task.Login.description": "登录游戏，同时还会领取登录奖励"
+    "task.Login.description": "登录游戏，同时还会领取登录奖励",
+    "task.CashShop.label": "付费商店",
+    "task.CashShop.description": "进入付费商店界面，领取商店奖励"
 }

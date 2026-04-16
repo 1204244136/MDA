@@ -1,4 +1,6 @@
 {
     "task.Login.label": "Login",
-    "task.Login.description": "Log in to the game, and also receive the login rewards"
+    "task.Login.description": "Log in to the game, and also receive the login rewards",
+    "task.CashShop.label": "Cash Shop",
+    "task.CashShop.description": "Enter the cash shop interface and claim shop rewards"
 }

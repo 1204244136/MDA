@@ -1,0 +1,84 @@
+{
+    "CashShop": {
+        "next": [
+            "EnterCashShop",
+            "[JumpBack]EnterHall"
+        ]
+    },
+    "EnterCashShop": {
+        "desc": "进入付费商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    358,
+                    441,
+                    59,
+                    21
+                ],
+                "expected": [
+                    "付费商店"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "ChooseOrdinaryPackage"
+        ]
+    },
+    "ChooseOrdinaryPackage": {
+        "desc": "选择普通礼包",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1,
+                    138,
+                    543,
+                    44
+                ],
+                "template": [
+                    "CashShop/OrdinaryPackage.png"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "[JumpBack]ClickRedDot",
+            "EnterHall"
+        ]
+    },
+    "ClickRedDot": {
+        "desc": "点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    9,
+                    187,
+                    509,
+                    91
+                ],
+                "template": [
+                    "RedDot.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "RewardConfirm"
+        ]
+    }
+}

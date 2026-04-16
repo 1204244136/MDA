@@ -1,0 +1,14 @@
+{
+    "task": [
+        {
+            "name": "CashShop",
+            "label": "$task.CashShop.label",
+            "entry": "CashShop",
+            "description": "$task.CashShop.description",
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {}
+}
