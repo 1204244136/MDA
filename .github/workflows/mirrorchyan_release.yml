@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        default: ''
+        default: ""
         required: false
 #   release:
 #     types: [released]
@@ -30,14 +30,14 @@ jobs:
       - uses: MirrorChyan/uploading-action@v1
         with:
           filetype: latest-release
-          filename: ${{ format('MaaXXX-{0}-{1}-*', matrix.os, matrix.arch) }}
-          mirrorchyan_rid: MaaXXX
+          filename: ${{ format('MDA-{0}-{1}-*', matrix.os, matrix.arch) }}
+          mirrorchyan_rid: MDA
           tag: ${{ inputs.tag }}
 
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
 
           owner: MaaXYZ
-          repo: MaaXXX
+          repo: MDA
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}

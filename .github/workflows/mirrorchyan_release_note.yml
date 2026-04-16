@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        default: ''
+        default: ""
         required: false
   release:
     types: [edited]
@@ -26,10 +26,10 @@ jobs:
       - id: uploading
         uses: MirrorChyan/release-note-action@v1
         with:
-          mirrorchyan_rid: MaaXXX
+          mirrorchyan_rid: MDA
           version_name: ${{ inputs.tag }}
 
           owner: MaaXYZ
-          repo: MaaXXX
+          repo: MDA
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}

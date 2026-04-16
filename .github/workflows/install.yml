@@ -116,7 +116,7 @@ jobs:
         shell: bash
         run: |
           rm -rf MFA/runtimes
-      
+
       - name: Install
         shell: bash
         run: |
@@ -140,7 +140,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MaaXXX-${{ matrix.os }}-${{ matrix.arch }}
+          name: MDA-${{ matrix.os }}-${{ matrix.arch }}
           path: "install"
 
   changelog:
@@ -183,7 +183,7 @@ jobs:
           for f in *; do
             (cd $f && zip -r ../$f-${{ needs.meta.outputs.tag }}.zip .)
           done
-          
+
       - uses: softprops/action-gh-release@v2
         with:
           files: assets/*
