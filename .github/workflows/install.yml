@@ -6,6 +6,7 @@ env:
   # - 设置 VERSION 为具体版本号时（如 v1.2.3），下载指定版本
   MAAFW_VERSION: ""
   MFAA_VERSION: ""
+  MXU_VERSION: ""
 
 on:
   push:
@@ -117,6 +118,26 @@ jobs:
         run: |
           rm -rf MFA/runtimes
 
+      - name: Download MXU
+        if: matrix.os != 'android'
+        id: download_mxu
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: MistEO/MXU
+          fileName: "MXU-${{ (matrix.os == 'win' && 'win') || (matrix.os == 'macos' && 'osx') || (matrix.os == 'linux' && 'linux') }}-${{ (matrix.arch == 'x86_64' && 'x64') || (matrix.arch == 'aarch64' && 'arm64') }}*"
+          latest: ${{ env.MXU_VERSION == '' }}
+          tag: ${{ env.MXU_VERSION }}
+          out-file-path: "MXU"
+          extract: true
+
+      - name: Clean up MXU archive
+        if: matrix.os != 'android'
+        shell: bash
+        run: |
+          ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
+          rm -f "${ARCHIVE_FILE_PATH}"
+          echo "Archive cleanup command executed for MXU."
+
       - name: Install
         shell: bash
         run: |
@@ -138,10 +159,44 @@ jobs:
           python ./install.py ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
           cd ..
 
+      - name: Create MXU version
+        if: matrix.os != 'android'
+        shell: bash
+        run: |
+          if [ -d "MXU" ]; then
+            echo "Creating MXU version..."
+            mkdir -p install-mxu
+            # Copy MXU executable
+            if [[ "${{ matrix.os }}" == "win" ]]; then
+              if [ -f "MXU/mxu.exe" ]; then
+                cp MXU/mxu.exe install-mxu/
+              fi
+            else
+              if [ -f "MXU/mxu" ]; then
+                cp MXU/mxu install-mxu/
+              fi
+            fi
+            # Copy other necessary files from MXU
+            for dir in $(find MXU -maxdepth 1 -type d ! -name "." ! -name ".." | head -20); do
+              if [ -d "$dir" ] && [ $(basename "$dir") != "MXU" ]; then
+                cp -r "$dir" install-mxu/
+              fi
+            done
+            echo "MXU version created successfully."
+          else
+            echo "MXU directory not found, skipping MXU version creation."
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
-          name: MDA-${{ matrix.os }}-${{ matrix.arch }}
+          name: MDA-${{ matrix.os }}-${{ matrix.arch }}-MFAA
           path: "install"
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.os != 'android'
+        with:
+          name: MDA-${{ matrix.os }}-${{ matrix.arch }}-MXU
+          path: "install-mxu"
 
   changelog:
     name: Generate changelog
