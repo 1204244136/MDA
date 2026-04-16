@@ -2,6 +2,7 @@
     "Login": {
         "anchor": "NeedCheck",
         "timeout": 120000,
+        "rate_limit": 2000,
         "next": [
             "[JumpBack]LoginReward",
             "[JumpBack]CloseNotion",
