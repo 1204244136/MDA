@@ -1,5 +1,6 @@
 {
     "EnterHall": {
+        "desc": "进入大厅",
         "anchor": "NeedCheck",
         "next": [
             "[JumpBack]ClickHomeButton",
@@ -9,6 +10,7 @@
         ]
     },
     "EnterArk": {
+        "desc": "进入方舟",
         "next": [
             "ArkInsideFlag",
             "ClickArk",
