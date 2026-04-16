@@ -119,19 +119,19 @@ jobs:
           rm -rf MFA/runtimes
 
       - name: Download MXU
-        if: matrix.os != 'android'
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         id: download_mxu
         uses: robinraju/release-downloader@v1
         with:
           repository: MistEO/MXU
-          fileName: "MXU-${{ (matrix.os == 'win' && 'win') || (matrix.os == 'macos' && 'osx') || (matrix.os == 'linux' && 'linux') }}-${{ (matrix.arch == 'x86_64' && 'x64') || (matrix.arch == 'aarch64' && 'arm64') }}*"
+          fileName: "*${{ matrix.os }}-${{ matrix.arch }}*"
           latest: ${{ env.MXU_VERSION == '' }}
           tag: ${{ env.MXU_VERSION }}
           out-file-path: "MXU"
           extract: true
 
       - name: Clean up MXU archive
-        if: matrix.os != 'android'
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         shell: bash
         run: |
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
@@ -160,7 +160,7 @@ jobs:
           cd ..
 
       - name: Create MXU version
-        if: matrix.os != 'android'
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         shell: bash
         run: |
           if [ -d "MXU" ]; then
@@ -193,7 +193,7 @@ jobs:
           path: "install"
 
       - uses: actions/upload-artifact@v4
-        if: matrix.os != 'android'
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         with:
           name: MDA-${{ matrix.os }}-${{ matrix.arch }}-MXU
           path: "install-mxu"
