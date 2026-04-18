@@ -52,6 +52,7 @@
         },
         "next": [
             "[JumpBack]ClickRedDot",
+            "[JumpBack]RewardConfirm",
             "EnterHall"
         ]
     },
@@ -73,12 +74,12 @@
                 "index": -1
             }
         },
+        "pre_wait_freezes": 500,
         "action": {
             "type": "Click",
             "param": {}
         },
-        "next": [
-            "RewardConfirm"
-        ]
+        "post_wait_freezes": 500,
+        "next": []
     }
 }
