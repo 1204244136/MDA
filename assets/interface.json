@@ -13,6 +13,7 @@
     "controller": [
         {
             "name": "Win32-Front",
+            "label": "$controller.Win32-Front.label",
             "type": "Win32",
             "win32": {
                 "class_regex": "UnityWndClass",
@@ -25,6 +26,7 @@
         },
         {
             "name": "Win32-Window-Background",
+            "label": "$controller.Win32-Window-Background.label",
             "type": "Win32",
             "win32": {
                 "class_regex": "UnityWndClass",
@@ -55,7 +57,6 @@
             "label": "独立任务"
         }
     ],
-    "option": {},
     "import": [
         "tasks/Login.json",
         "tasks/CashShop.json",

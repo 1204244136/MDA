@@ -1,4 +1,6 @@
 {
+    "controller.Win32-Front.label": "PC - Front",
+    "controller.Win32-Window-Background.label": "PC - Background",
     "task.Login.label": "Login",
     "task.Login.description": "Log in to the game, and also receive the login rewards",
     "task.CashShop.label": "Cash Shop",
