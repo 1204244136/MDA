@@ -73,8 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [win, macos, linux, android]
-        arch: [aarch64, x86_64]
+        os: [ win, macos, linux ]
+        arch: [ aarch64, x86_64 ]
       fail-fast: false
 
     steps:
@@ -98,7 +98,10 @@ jobs:
         uses: robinraju/release-downloader@v1
         with:
           repository: SweetSmellFox/MFAAvalonia
-          fileName: "MFAAvalonia-*-${{ (matrix.os == 'win' && 'win') || (matrix.os == 'macos' && 'osx') || (matrix.os == 'linux' && 'linux') }}-${{ (matrix.arch == 'x86_64' && 'x64') || (matrix.arch == 'aarch64' && 'arm64') }}*"
+          fileName: "MFAAvalonia-*-${{ (matrix.os == 'win' && 'win') || (matrix.os ==
+            'macos' && 'osx') || (matrix.os == 'linux' && 'linux') }}-${{
+            (matrix.arch == 'x86_64' && 'x64') || (matrix.arch == 'aarch64' &&
+            'arm64') }}*"
           latest: ${{ env.MFAA_VERSION == '' }}
           tag: ${{ env.MFAA_VERSION }}
           out-file-path: "MFA"
@@ -119,7 +122,8 @@ jobs:
           rm -rf MFA/runtimes
 
       - name: Download MXU
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
+          'aarch64') }}
         id: download_mxu
         uses: robinraju/release-downloader@v1
         with:
@@ -131,7 +135,8 @@ jobs:
           extract: true
 
       - name: Clean up MXU archive
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
+          'aarch64') }}
         shell: bash
         run: |
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
@@ -160,7 +165,8 @@ jobs:
           cd ..
 
       - name: Create MXU version
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
+          'aarch64') }}
         shell: bash
         run: |
           if [ -d "MXU" ]; then
@@ -193,7 +199,8 @@ jobs:
           path: "install"
 
       - uses: actions/upload-artifact@v4
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
+          'aarch64') }}
         with:
           name: MDA-${{ matrix.os }}-${{ matrix.arch }}-MXU
           path: "install-mxu"
@@ -218,15 +225,15 @@ jobs:
           # 正式版：使用 tag-pattern 只匹配正式版标签，包含所有从上一个正式版以来的提交
           # 预发布版：正常生成，只包含从上一个标签以来的提交
           args: >-
-            -vv --latest --strip header
-            ${{ needs.meta.outputs.is_prerelease == 'false' && '--tag-pattern "^v[0-9]+\\.[0-9]+\\.[0-9]+$"' || '' }}
+            -vv --latest --strip header ${{ needs.meta.outputs.is_prerelease ==
+            'false' && '--tag-pattern "^v[0-9]+\\.[0-9]+\\.[0-9]+$"' || '' }}
         env:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
 
   release:
     if: ${{ needs.meta.outputs.is_release == 'true' }}
-    needs: [meta, install, changelog]
+    needs: [ meta, install, changelog ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -246,7 +253,6 @@ jobs:
           body: ${{ needs.changelog.outputs.release_body }}
           draft: false
           prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
-
         # Mirror酱为第三方分发服务，新项目默认关闭
         # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
         # https://mirrorchyan.com/
