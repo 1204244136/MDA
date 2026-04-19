@@ -5,10 +5,36 @@
             "label": "$task.CashShop.label",
             "entry": "CashShop",
             "description": "$task.CashShop.description",
+            "option": [
+                "FreePackage"
+            ],
             "group": [
                 "daily"
             ]
         }
     ],
-    "option": {}
+    "option": {
+        "FreePackage": {
+            "type": "switch",
+            "label": "$option.FreePackage.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "ChooseOrdinaryPackage": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "ChooseOrdinaryPackage": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
 }
