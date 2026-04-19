@@ -1,8 +1,13 @@
 {
     "EnterHall": {
         "desc": "进入大厅",
+        "timeout": 120000,
         "anchor": "NeedCheck",
         "next": [
+            "[JumpBack]CloseNotion",
+            "[JumpBack]ServerConfirm",
+            "[JumpBack]DownloadConfirm",
+            "[JumpBack]LoginConfirm",
             "[JumpBack]ClickHomeButton",
             "[JumpBack]SkipPlot",
             "[JumpBack]CloseSale",
@@ -226,6 +231,157 @@
         "action": {
             "type": "Click",
             "param": {}
+        }
+    },
+    "LoginConfirm": {
+        "desc": "确认已经完全加载",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    176,
+                    91,
+                    116
+                ],
+                "template": [
+                    "ServerChoose.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    100,
+                    100,
+                    0,
+                    0
+                ]
+            }
+        }
+    },
+    "ServerConfirm": {
+        "desc": "服务器确认",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    567,
+                    506,
+                    148,
+                    37
+                ],
+                "template": [
+                    "Confirm.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "DownloadConfirm": {
+        "desc": "下载内容确认",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    645,
+                    439,
+                    115,
+                    40
+                ],
+                "template": [
+                    "Confirm.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "LoginReward": {
+        "desc": "登录奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    665,
+                    611,
+                    163,
+                    80
+                ],
+                "expected": [
+                    "全部领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "LoginRewardClaimed",
+            "[JumpBack]RewardConfirm"
+        ]
+    },
+    "LoginRewardClaimed": {
+        "desc": "确认按钮变灰",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    665,
+                    611,
+                    163,
+                    80
+                ],
+                "lower": [
+                    100,
+                    100,
+                    100
+                ],
+                "upper": [
+                    180,
+                    180,
+                    180
+                ],
+                "count": 2500
+            }
+        },
+        "next": [
+            "LoginRewardClose"
+        ]
+    },
+    "LoginRewardClose": {
+        "desc": "关闭登录奖励页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    665,
+                    611,
+                    163,
+                    80
+                ],
+                "expected": [
+                    "全部领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    200,
+                    0,
+                    0,
+                    0
+                ]
+            }
         }
     }
 }

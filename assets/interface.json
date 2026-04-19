@@ -58,7 +58,6 @@
         }
     ],
     "import": [
-        "tasks/Login.json",
         "tasks/CashShop.json",
         "tasks/Shop.json"
     ]
