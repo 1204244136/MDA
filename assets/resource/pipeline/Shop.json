@@ -1,0 +1,167 @@
+{
+    "Shop": {
+        "next": [
+            "EnterShop",
+            "[JumpBack]EnterHall"
+        ]
+    },
+    "EnterShop": {
+        "desc": "进入商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    372,
+                    483,
+                    41,
+                    23
+                ],
+                "expected": [
+                    "商店"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInShop",
+            "EnterShop"
+        ]
+    },
+    "FlagInShop": {
+        "desc": "处于百货商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "百货商店"
+                ]
+            }
+        },
+        "next": [
+            "FreeGoods"
+        ]
+    },
+    "FreeGoods": {
+        "desc": "购买免费商品",
+        "timeout": 10000,
+        "next": [
+            "[JumpBack]EnterCommonShop",
+            "[JumpBack]FreeGoodsPurchase",
+            "[JumpBack]FreeReset",
+            "EndTask"
+        ]
+    },
+    "FreeGoodsPurchase": {
+        "desc": "购买免费商品",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    159,
+                    351,
+                    26,
+                    26
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "[JumpBack]ActionConfirm",
+            "RewardConfirm"
+        ]
+    },
+    "FreeReset": {
+        "desc": "免费刷新",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    217,
+                    304,
+                    56,
+                    27
+                ],
+                "template": [
+                    "Shop/FreeReset.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "ActionConfirm",
+            "FreeReset"
+        ]
+    },
+    "EnterCommonShop": {
+        "desc": "进入普通商店",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    255,
+                    55,
+                    390
+                ],
+                "template": [
+                    "Shop/CommonShopSelected.png",
+                    "Shop/CommonShopNotSelected.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInCommonShop",
+            "EnterCommonShop"
+        ]
+    },
+    "FlagInCommonShop": {
+        "desc": "处于普通商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    68,
+                    264,
+                    119,
+                    20
+                ],
+                "expected": [
+                    "普通商店"
+                ]
+            }
+        }
+    },
+    "EndTask": {
+        "desc": "空节点，用于结束流程"
+    }
+}

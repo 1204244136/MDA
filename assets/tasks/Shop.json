@@ -1,0 +1,40 @@
+{
+    "task": [
+        {
+            "name": "Shop",
+            "label": "$task.Shop.label",
+            "entry": "Shop",
+            "description": "$task.Shop.description",
+            "option": [
+                "FreeGoods"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "FreeGoods": {
+            "type": "switch",
+            "label": "$option.FreeGoods.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "FreeGoods": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "FreeGoods": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
