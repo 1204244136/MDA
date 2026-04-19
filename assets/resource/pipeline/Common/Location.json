@@ -17,13 +17,13 @@
     "EnterArk": {
         "desc": "进入方舟",
         "next": [
-            "ArkInsideFlag",
+            "FlagInArk",
             "ClickArk",
             "[JumpBack]EnterHall"
         ]
     },
-    "ArkInsideFlag": {
-        "desc": "方舟内部标识",
+    "FlagInArk": {
+        "desc": "处于方舟内部",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -64,7 +64,7 @@
             "param": {}
         },
         "next": [
-            "ArkInsideFlag"
+            "FlagInArk"
         ]
     },
     "Confirm": {
