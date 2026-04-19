@@ -74,12 +74,11 @@
                 "index": -1
             }
         },
-        "pre_wait_freezes": 500,
         "action": {
             "type": "Click",
             "param": {}
         },
-        "post_wait_freezes": 500,
+        "post_wait_freezes": 1500,
         "next": []
     }
 }
