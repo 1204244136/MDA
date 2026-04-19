@@ -26,6 +26,27 @@
             "param": {}
         },
         "next": [
+            "FlagInCashShop",
+            "EnterCashShop"
+        ]
+    },
+    "FlagInCashShop": {
+        "desc": "处于付费商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "付费商店"
+                ]
+            }
+        },
+        "next": [
             "ChooseOrdinaryPackage"
         ]
     },
