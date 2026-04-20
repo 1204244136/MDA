@@ -73,7 +73,7 @@ jobs:
     strategy:
       matrix:
         os: [ win, macos, linux ]
-        arch: [ aarch64, x86_64 ]
+        arch: [ x86_64 ]
       fail-fast: false
 
     steps:
@@ -92,8 +92,7 @@ jobs:
           extract: true
 
       - name: Download MXU
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
-          'aarch64') }}
+        if: ${{ matrix.os != 'android' }}
         id: download_mxu
         uses: robinraju/release-downloader@v1
         with:
@@ -105,8 +104,7 @@ jobs:
           extract: true
 
       - name: Clean up MXU archive
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
-          'aarch64') }}
+        if: ${{ matrix.os != 'android' }}
         shell: bash
         run: |
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
@@ -122,8 +120,7 @@ jobs:
           cd ..
 
       - name: Create MXU version
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
-          'aarch64') }}
+        if: ${{ matrix.os != 'android' }}
         shell: bash
         run: |
           if [ -d "MXU" ]; then
@@ -154,13 +151,14 @@ jobs:
         with:
           name: MDA-${{ matrix.os }}-${{ matrix.arch }}
           path: "install"
+          retention-days: 1
 
       - uses: actions/upload-artifact@v4
-        if: ${{ matrix.os != 'android' && !(matrix.os == 'linux' && matrix.arch ==
-          'aarch64') }}
+        if: ${{ matrix.os != 'android' }}
         with:
           name: MDA-${{ matrix.os }}-${{ matrix.arch }}-MXU
           path: "install-mxu"
+          retention-days: 1
 
   changelog:
     name: Generate changelog
