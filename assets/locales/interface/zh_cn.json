@@ -3,8 +3,8 @@
     "controller.Win32-Window-Background.label": "电脑端-后台",
     "task.CashShop.label": "付费商店",
     "task.CashShop.description": "进入付费商店界面，领取商店奖励",
-    "option.FreePackage.label": "领取免费礼包",
+    "option.CashShopFreePackage.label": "领取免费礼包",
     "task.Shop.label": "商店",
     "task.Shop.description": "进入商店界面，购买商品",
-    "option.FreeGoods.label": "购买免费商品并使用免费刷新次数"
+    "option.CommonShopFreeGoods.label": "普通商店购买免费商品并使用免费刷新次数"
 }

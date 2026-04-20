@@ -3,8 +3,8 @@
     "controller.Win32-Window-Background.label": "PC - Background",
     "task.CashShop.label": "Cash Shop",
     "task.CashShop.description": "Enter the cash shop interface and claim shop rewards",
-    "option.FreePackage.label": "Claim Free Package",
+    "option.CashShopFreePackage.label": "Claim Free Package",
     "task.Shop.label": "Shop",
     "task.Shop.description": "Enter the shop interface and purchase items",
-    "option.FreeGoods.label": "Purchase free goods and reset Products"
+    "option.CommonShopFreeGoods.label": "Purchase free items in common shop and use free reset"
 }

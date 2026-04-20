@@ -6,7 +6,7 @@
             "entry": "CashShop",
             "description": "$task.CashShop.description",
             "option": [
-                "FreePackage"
+                "CashShopFreePackage"
             ],
             "group": [
                 "daily"
@@ -14,9 +14,9 @@
         }
     ],
     "option": {
-        "FreePackage": {
+        "CashShopFreePackage": {
             "type": "switch",
-            "label": "$option.FreePackage.label",
+            "label": "$option.CashShopFreePackage.label",
             "cases": [
                 {
                     "name": "Yes",

@@ -47,10 +47,10 @@
             }
         },
         "next": [
-            "FreeGoods"
+            "CommonShopFreeGoods"
         ]
     },
-    "FreeGoods": {
+    "CommonShopFreeGoods": {
         "desc": "购买免费商品",
         "timeout": 10000,
         "next": [
@@ -61,7 +61,7 @@
         ]
     },
     "FreeGoodsPurchase": {
-        "desc": "购买免费商品",
+        "desc": "点击免费商品",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
