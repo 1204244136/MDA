@@ -1,0 +1,56 @@
+{
+    "Shop": {
+        "next": [
+            "EnterShop",
+            "[JumpBack]EnterHall"
+        ]
+    },
+    "EnterShop": {
+        "desc": "进入商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    372,
+                    483,
+                    41,
+                    23
+                ],
+                "expected": [
+                    "商店"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInShop",
+            "EnterShop"
+        ]
+    },
+    "FlagInShop": {
+        "desc": "处于百货商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "百货商店"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]CommonShopFreeGoods",
+            "[JumpBack]CommonShopCoreDustCase",
+            "[JumpBack]ArenaShop",
+            "EndTask"
+        ]
+    }
+}

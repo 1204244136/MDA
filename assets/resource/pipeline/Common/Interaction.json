@@ -62,5 +62,8 @@
             "type": "Click",
             "param": {}
         }
+    },
+    "EndTask": {
+        "desc": "空节点，用于结束流程"
     }
 }
