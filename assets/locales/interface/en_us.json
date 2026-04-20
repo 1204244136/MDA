@@ -14,5 +14,12 @@
     "option.ArenaShopItemList.ArenaShopWindCodeManual": "Wind Attribute Code Manual",
     "option.ArenaShopItemList.ArenaShopElecCodeManual": "Electric Attribute Code Manual",
     "option.ArenaShopItemList.ArenaShopIronCodeManual": "Iron Attribute Code Manual",
-    "option.ArenaShopItemList.ArenaShopCodeManualSelectionBox": "Code Manual Selection Box"
+    "option.ArenaShopItemList.ArenaShopCodeManualSelectionBox": "Code Manual Selection Box",
+    "option.RecyclingShopList.label": "Purchase item list in recycling shop",
+    "option.RecyclingShopList.GoodTeamworkBox": "Good Teamwork Box",
+    "option.RecyclingShopList.MaintenanceKitBox": "Maintenance Kit Box",
+    "option.RecyclingShopList.CuratedManufacturerArms": "Curated Manufacturer Arms",
+    "option.RecyclingShopList.Gem": "Gem",
+    "option.RecyclingShopList.Voucher": "Voucher",
+    "option.RecyclingShopList.UpgradeMaterials": "Upgrade Materials"
 }

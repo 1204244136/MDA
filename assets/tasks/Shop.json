@@ -8,7 +8,8 @@
             "option": [
                 "CommonShopFreeGoods",
                 "CommonShopCoreDustCase",
-                "ArenaShopItemList"
+                "ArenaShopItemList",
+                "RecyclingShopList"
             ],
             "group": [
                 "daily"
@@ -114,6 +115,66 @@
                     "label": "$option.ArenaShopItemList.ArenaShopCodeManualSelectionBox",
                     "pipeline_override": {
                         "CodeManualSelectionBoxPurchase": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
+        },
+        "RecyclingShopList": {
+            "type": "checkbox",
+            "label": "$option.RecyclingShopList.label",
+            "cases": [
+                {
+                    "name": "GoodTeamworkBoxPurchase",
+                    "label": "$option.RecyclingShopList.GoodTeamworkBox",
+                    "pipeline_override": {
+                        "GoodTeamworkBoxPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "RecyclingShopWaterCodeManual",
+                    "label": "$option.RecyclingShopList.MaintenanceKitBox",
+                    "pipeline_override": {
+                        "MaintenanceKitBoxPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "CuratedManufacturerArmsPurchase",
+                    "label": "$option.RecyclingShopList.CuratedManufacturerArms",
+                    "pipeline_override": {
+                        "CuratedManufacturerArmsPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "GemPurchase",
+                    "label": "$option.RecyclingShopList.Gem",
+                    "pipeline_override": {
+                        "GemPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "VoucherPurchase",
+                    "label": "$option.RecyclingShopList.Voucher",
+                    "pipeline_override": {
+                        "VoucherPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "UpgradeMaterialsPurchase",
+                    "label": "$option.RecyclingShopList.UpgradeMaterials",
+                    "pipeline_override": {
+                        "UpgradeMaterialsPurchase": {
                             "enabled": true
                         }
                     }

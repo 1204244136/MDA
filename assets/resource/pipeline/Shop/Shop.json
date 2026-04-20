@@ -49,6 +49,7 @@
         "next": [
             "[JumpBack]CommonShop",
             "[JumpBack]ArenaShop",
+            "[JumpBack]RecyclingShop",
             "EndTask"
         ]
     }

@@ -14,5 +14,12 @@
     "option.ArenaShopItemList.ArenaShopWindCodeManual": "风压属性代码手册",
     "option.ArenaShopItemList.ArenaShopElecCodeManual": "电击属性代码手册",
     "option.ArenaShopItemList.ArenaShopIronCodeManual": "铁甲属性代码手册",
-    "option.ArenaShopItemList.ArenaShopCodeManualSelectionBox": "代码手册选择宝箱"
+    "option.ArenaShopItemList.ArenaShopCodeManualSelectionBox": "代码手册选择宝箱",
+    "option.RecyclingShopList.label": "废铁商店购买商品列表",
+    "option.RecyclingShopList.GoodTeamworkBox": "优秀团队合作宝箱",
+    "option.RecyclingShopList.MaintenanceKitBox": "保养工具箱",
+    "option.RecyclingShopList.CuratedManufacturerArms": "企业精选武装",
+    "option.RecyclingShopList.Gem": "珠宝",
+    "option.RecyclingShopList.Voucher": "礼物券",
+    "option.RecyclingShopList.UpgradeMaterials": "养成材料"
 }

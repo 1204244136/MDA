@@ -1,0 +1,180 @@
+{
+    "RecyclingShop": {
+        "desc": "废铁商店",
+        "next": [
+            "[JumpBack]EnterRecyclingShop",
+            "[JumpBack]RecyclingShopPurchase",
+            "[JumpBack]ScrollUp",
+            "EndTask"
+        ]
+    },
+    "RecyclingShopPurchase": {
+        "desc": "购买废铁商店商品",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "GoodTeamworkBoxPurchase",
+                    "MaintenanceKitBoxPurchase",
+                    "CuratedManufacturerArmsPurchase",
+                    "GemPurchase",
+                    "VoucherPurchase",
+                    "UpgradeMaterialsPurchase"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "[JumpBack]ActionConfirm",
+            "RewardConfirm"
+        ]
+    },
+    "EnterRecyclingShop": {
+        "desc": "进入废铁商店",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    255,
+                    55,
+                    390
+                ],
+                "template": [
+                    "Shop/RecyclingShop.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInRecyclingShop",
+            "EnterRecyclingShop"
+        ]
+    },
+    "FlagInRecyclingShop": {
+        "desc": "处于废铁商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    68,
+                    264,
+                    119,
+                    20
+                ],
+                "expected": [
+                    "废铁商店"
+                ]
+            }
+        }
+    },
+    "GoodTeamworkBoxPurchase": {
+        "desc": "购买优秀团队合作宝箱",
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/GoodTeamworkBox.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "MaintenanceKitBoxPurchase": {
+        "desc": "购买保养工具箱",
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/MaintenanceKitBox.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "CuratedManufacturerArmsPurchase": {
+        "desc": "购买企业精选武装",
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/CuratedManufacturerArms.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "GemPurchase": {
+        "desc": "购买珠宝",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "",
+                "threshold": 0.9
+            }
+        }
+    },
+    "VoucherPurchase": {
+        "desc": "购买所有礼物券",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/Voucher.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "UpgradeMaterialsPurchase": {
+        "desc": "购买所有养成材料",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": [
+                    "Shop/TimeFlag.png",
+                    "Shop/Credit.png"
+                ],
+                "threshold": 0.8
+            }
+        }
+    }
+}

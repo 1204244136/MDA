@@ -1,8 +1,8 @@
 {
     "EnterHall": {
         "desc": "进入大厅",
-        "timeout": 120000,
         "anchor": "NeedCheck",
+        "timeout": 120000,
         "next": [
             "[JumpBack]PageClose",
             "[JumpBack]ServerConfirm",
@@ -362,5 +362,19 @@
                 ]
             }
         }
+    },
+    "ScrollUp": {
+        "desc": "向上滑动",
+        "action": "Swipe",
+        "begin": [
+            627,
+            528
+        ],
+        "end": [
+            627,
+            238
+        ],
+        "end_hold": 300,
+        "post_wait_freezes": 20
     }
 }
