@@ -74,5 +74,101 @@
                 ]
             }
         }
+    },
+    "FireCodeManualPurchase": {
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/FireCodeManual.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "WaterCodeManualPurchase": {
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/WaterCodeManual.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "WindCodeManualPurchase": {
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/WindCodeManual.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "ElecCodeManualPurchase": {
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/ElecCodeManual.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "IronCodeManualPurchase": {
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/IronCodeManual.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "CodeManualSelectionBoxPurchase": {
+        "enabled": false,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/CodeManualSelectionBox.png",
+                "threshold": 0.9
+            }
+        }
     }
 }

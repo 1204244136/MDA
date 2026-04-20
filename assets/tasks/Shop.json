@@ -23,7 +23,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "CommonShopFreeGoods": {
+                        "FreeGoodsPurchase": {
                             "enabled": true
                         }
                     }
@@ -31,7 +31,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "CommonShopFreeGoods": {
+                        "FreeGoodsPurchase": {
                             "enabled": false
                         }
                     }
@@ -45,7 +45,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "CommonShopCoreDustCase": {
+                        "CoreDustCasePurchase": {
                             "enabled": true
                         }
                     }
@@ -53,7 +53,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "CommonShopCoreDustCase": {
+                        "CoreDustCasePurchase": {
                             "enabled": false
                         }
                     }

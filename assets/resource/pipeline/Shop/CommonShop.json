@@ -1,21 +1,32 @@
 {
-    "CommonShopFreeGoods": {
-        "desc": "购买免费商品",
-        "max_hit": 1,
+    "CommonShop": {
+        "desc": "普通商店",
         "next": [
             "[JumpBack]EnterCommonShop",
-            "[JumpBack]FreeGoodsPurchase",
+            "[JumpBack]CommonShopPurchase",
             "[JumpBack]FreeReset",
             "EndTask"
         ]
     },
-    "CommonShopCoreDustCase": {
-        "desc": "使用信用点购买尘芯盒",
-        "max_hit": 1,
+    "CommonShopPurchase": {
+        "desc": "购买普通商店商品",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "FreeGoodsPurchase",
+                    "CoreDustCasePurchase"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
         "next": [
-            "[JumpBack]EnterCommonShop",
-            "[JumpBack]CoreDustCasePurchase",
-            "EndTask"
+            "PurchaseCheck",
+            "[JumpBack]ActionConfirm",
+            "RewardConfirm"
         ]
     },
     "EnterCommonShop": {
@@ -62,57 +73,6 @@
             }
         }
     },
-    "CoreDustCasePurchase": {
-        "desc": "点击尘芯盒",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    182,
-                    352,
-                    109,
-                    164
-                ],
-                "template": [
-                    "Shop/CoreDustCase.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": [
-            "GemCheck",
-            "[JumpBack]ActionConfirm",
-            "RewardConfirm"
-        ]
-    },
-    "FreeGoodsPurchase": {
-        "desc": "点击免费商品",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    159,
-                    351,
-                    26,
-                    26
-                ],
-                "template": [
-                    "RedDot.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": [
-            "[JumpBack]ActionConfirm",
-            "RewardConfirm"
-        ]
-    },
     "FreeReset": {
         "desc": "免费刷新",
         "recognition": {
@@ -145,8 +105,25 @@
             "FreeReset"
         ]
     },
+    "PurchaseCheck": {
+        "desc": "当货品为芯尘盒且货币为宝珠时不购买转而关闭页面",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "GemCheck",
+                    "GoodsCheck"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]PageClose",
+            "FreeReset",
+            "EndTask"
+        ]
+    },
     "GemCheck": {
-        "desc": "宝珠检查，有则退出",
+        "desc": "宝珠检查",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -160,9 +137,56 @@
                     "Shop/Gem.png"
                 ]
             }
-        },
-        "next": [
-            "PageClose"
-        ]
+        }
+    },
+    "GoodsCheck": {
+        "desc": "商品检查",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    610,
+                    166,
+                    60,
+                    30
+                ],
+                "expected": "芯尘盒"
+            }
+        }
+    },
+    "FreeGoodsPurchase": {
+        "desc": "购买免费商品",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    159,
+                    351,
+                    26,
+                    26
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    },
+    "CoreDustCasePurchase": {
+        "desc": "购买芯尘盒",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    182,
+                    352,
+                    109,
+                    164
+                ],
+                "template": [
+                    "Shop/CoreDustCase.png"
+                ],
+                "threshold": 0.9
+            }
+        }
     }
 }

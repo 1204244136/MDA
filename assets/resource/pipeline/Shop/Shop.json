@@ -47,8 +47,7 @@
             }
         },
         "next": [
-            "[JumpBack]CommonShopFreeGoods",
-            "[JumpBack]CommonShopCoreDustCase",
+            "[JumpBack]CommonShop",
             "[JumpBack]ArenaShop",
             "EndTask"
         ]
