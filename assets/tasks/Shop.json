@@ -7,7 +7,8 @@
             "description": "$task.Shop.description",
             "option": [
                 "CommonShopFreeGoods",
-                "CommonShopCoreDustCase"
+                "CommonShopCoreDustCase",
+                "ArenaShopItemList"
             ],
             "group": [
                 "daily"
@@ -54,6 +55,66 @@
                     "pipeline_override": {
                         "CommonShopCoreDustCase": {
                             "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "ArenaShopItemList": {
+            "type": "checkbox",
+            "label": "$option.ArenaShopItemList.label",
+            "cases": [
+                {
+                    "name": "ArenaShopFireCodeManual",
+                    "label": "$option.ArenaShopItemList.ArenaShopFireCodeManual",
+                    "pipeline_override": {
+                        "FireCodeManualPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ArenaShopWaterCodeManual",
+                    "label": "$option.ArenaShopItemList.ArenaShopWaterCodeManual",
+                    "pipeline_override": {
+                        "WaterCodeManualPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ArenaShopWindCodeManual",
+                    "label": "$option.ArenaShopItemList.ArenaShopWindCodeManual",
+                    "pipeline_override": {
+                        "WindCodeManualPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ArenaShopElecCodeManual",
+                    "label": "$option.ArenaShopItemList.ArenaShopElecCodeManual",
+                    "pipeline_override": {
+                        "ElecCodeManualPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ArenaShopIronCodeManual",
+                    "label": "$option.ArenaShopItemList.ArenaShopIronCodeManual",
+                    "pipeline_override": {
+                        "IronCodeManualPurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ArenaShopCodeManualSelectionBox",
+                    "label": "$option.ArenaShopItemList.ArenaShopCodeManualSelectionBox",
+                    "pipeline_override": {
+                        "CodeManualSelectionBoxPurchase": {
+                            "enabled": true
                         }
                     }
                 }

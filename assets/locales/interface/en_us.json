@@ -7,5 +7,12 @@
     "task.Shop.label": "Shop",
     "task.Shop.description": "Enter the shop interface and purchase items",
     "option.CommonShopFreeGoods.label": "Purchase free items in common shop and use free reset",
-    "option.CommonShopCoreDustCase.label": "Use credit points to purchase Core Dust Case in common shop"
+    "option.CommonShopCoreDustCase.label": "Use credit points to purchase Core Dust Case in common shop",
+    "option.ArenaShopItemList.label": "Purchase item list in arena shop",
+    "option.ArenaShopItemList.ArenaShopFireCodeManual": "Fire Attribute Code Manual",
+    "option.ArenaShopItemList.ArenaShopWaterCodeManual": "Water Attribute Code Manual",
+    "option.ArenaShopItemList.ArenaShopWindCodeManual": "Wind Attribute Code Manual",
+    "option.ArenaShopItemList.ArenaShopElecCodeManual": "Electric Attribute Code Manual",
+    "option.ArenaShopItemList.ArenaShopIronCodeManual": "Iron Attribute Code Manual",
+    "option.ArenaShopItemList.ArenaShopCodeManualSelectionBox": "Code Manual Selection Box"
 }

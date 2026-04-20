@@ -49,6 +49,7 @@
         "next": [
             "[JumpBack]CommonShopFreeGoods",
             "[JumpBack]CommonShopCoreDustCase",
+            "[JumpBack]ArenaShop",
             "EndTask"
         ]
     },
@@ -69,6 +70,39 @@
             "[JumpBack]EnterCommonShop",
             "[JumpBack]CoreDustCasePurchase",
             "EndTask"
+        ]
+    },
+    "ArenaShop": {
+        "desc": "竞技场商店",
+        "max_hit": 1,
+        "next": [
+            "[JumpBack]EnterArenaShop",
+            "[JumpBack]ArenaShopPurchase",
+            "EndTask"
+        ]
+    },
+    "ArenaShopPurchase": {
+        "desc": "购买竞技场商店商品",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "FireCodeManualPurchase",
+                    "WaterCodeManualPurchase",
+                    "WindCodeManualPurchase",
+                    "ElecCodeManualPurchase",
+                    "IronCodeManualPurchase",
+                    "CodeManualSelectionBoxPurchase"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "[JumpBack]ActionConfirm",
+            "RewardConfirm"
         ]
     },
     "CoreDustCasePurchase": {
@@ -220,5 +254,48 @@
     },
     "EndTask": {
         "desc": "空节点，用于结束流程"
+    },
+    "EnterArenaShop": {
+        "desc": "进入竞技场商店",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    255,
+                    55,
+                    390
+                ],
+                "template": [
+                    "Shop/ArenaShop.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInArenaShop",
+            "EnterArenaShop"
+        ]
+    },
+    "FlagInArenaShop": {
+        "desc": "处于竞技场商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    68,
+                    264,
+                    119,
+                    20
+                ],
+                "expected": [
+                    "竞技场商店"
+                ]
+            }
+        }
     }
 }

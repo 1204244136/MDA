@@ -7,5 +7,12 @@
     "task.Shop.label": "商店",
     "task.Shop.description": "进入商店界面，购买商品",
     "option.CommonShopFreeGoods.label": "普通商店购买免费商品并使用免费刷新次数",
-    "option.CommonShopCoreDustCase.label": "普通商店使用信用点购买尘芯盒"
+    "option.CommonShopCoreDustCase.label": "普通商店使用信用点购买尘芯盒",
+    "option.ArenaShopItemList.label": "竞技商店购买商品列表",
+    "option.ArenaShopItemList.ArenaShopFireCodeManual": "燃烧属性代码手册",
+    "option.ArenaShopItemList.ArenaShopWaterCodeManual": "水冷属性代码手册",
+    "option.ArenaShopItemList.ArenaShopWindCodeManual": "风压属性代码手册",
+    "option.ArenaShopItemList.ArenaShopElecCodeManual": "电击属性代码手册",
+    "option.ArenaShopItemList.ArenaShopIronCodeManual": "铁甲属性代码手册",
+    "option.ArenaShopItemList.ArenaShopCodeManualSelectionBox": "代码手册选择宝箱"
 }
