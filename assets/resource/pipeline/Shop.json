@@ -47,17 +47,54 @@
             }
         },
         "next": [
-            "CommonShopFreeGoods"
+            "[JumpBack]CommonShopFreeGoods",
+            "[JumpBack]CommonShopCoreDustCase",
+            "EndTask"
         ]
     },
     "CommonShopFreeGoods": {
         "desc": "购买免费商品",
-        "timeout": 10000,
+        "max_hit": 1,
         "next": [
             "[JumpBack]EnterCommonShop",
             "[JumpBack]FreeGoodsPurchase",
             "[JumpBack]FreeReset",
             "EndTask"
+        ]
+    },
+    "CommonShopCoreDustCase": {
+        "desc": "使用信用点购买尘芯盒",
+        "max_hit": 1,
+        "next": [
+            "[JumpBack]EnterCommonShop",
+            "[JumpBack]CoreDustCasePurchase",
+            "EndTask"
+        ]
+    },
+    "CoreDustCasePurchase": {
+        "desc": "点击尘芯盒",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    182,
+                    352,
+                    109,
+                    164
+                ],
+                "template": [
+                    "Shop/CoreDustCase.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "GemCheck",
+            "[JumpBack]ActionConfirm",
+            "RewardConfirm"
         ]
     },
     "FreeGoodsPurchase": {
@@ -115,6 +152,26 @@
         "next": [
             "ActionConfirm",
             "FreeReset"
+        ]
+    },
+    "GemCheck": {
+        "desc": "宝珠检查，有则退出",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    585,
+                    516,
+                    113,
+                    34
+                ],
+                "template": [
+                    "Shop/Gem.png"
+                ]
+            }
+        },
+        "next": [
+            "PageClose"
         ]
     },
     "EnterCommonShop": {

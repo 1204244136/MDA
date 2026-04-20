@@ -6,7 +6,8 @@
             "entry": "Shop",
             "description": "$task.Shop.description",
             "option": [
-                "CommonShopFreeGoods"
+                "CommonShopFreeGoods",
+                "CommonShopCoreDustCase"
             ],
             "group": [
                 "daily"
@@ -30,6 +31,28 @@
                     "name": "No",
                     "pipeline_override": {
                         "CommonShopFreeGoods": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "CommonShopCoreDustCase": {
+            "type": "switch",
+            "label": "$option.CommonShopCoreDustCase.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CommonShopCoreDustCase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CommonShopCoreDustCase": {
                             "enabled": false
                         }
                     }

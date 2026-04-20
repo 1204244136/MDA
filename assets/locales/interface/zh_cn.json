@@ -6,5 +6,6 @@
     "option.CashShopFreePackage.label": "领取免费礼包",
     "task.Shop.label": "商店",
     "task.Shop.description": "进入商店界面，购买商品",
-    "option.CommonShopFreeGoods.label": "普通商店购买免费商品并使用免费刷新次数"
+    "option.CommonShopFreeGoods.label": "普通商店购买免费商品并使用免费刷新次数",
+    "option.CommonShopCoreDustCase.label": "普通商店使用信用点购买尘芯盒"
 }

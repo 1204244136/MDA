@@ -6,5 +6,6 @@
     "option.CashShopFreePackage.label": "Claim Free Package",
     "task.Shop.label": "Shop",
     "task.Shop.description": "Enter the shop interface and purchase items",
-    "option.CommonShopFreeGoods.label": "Purchase free items in common shop and use free reset"
+    "option.CommonShopFreeGoods.label": "Purchase free items in common shop and use free reset",
+    "option.CommonShopCoreDustCase.label": "Use credit points to purchase Core Dust Case in common shop"
 }
