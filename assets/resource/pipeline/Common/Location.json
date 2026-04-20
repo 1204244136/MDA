@@ -4,7 +4,7 @@
         "timeout": 120000,
         "anchor": "NeedCheck",
         "next": [
-            "[JumpBack]CloseNotion",
+            "[JumpBack]PageClose",
             "[JumpBack]ServerConfirm",
             "[JumpBack]DownloadConfirm",
             "[JumpBack]LoginConfirm",
@@ -171,29 +171,8 @@
             }
         },
         "next": [
-            "CloseNotion"
+            "PageClose"
         ]
-    },
-    "CloseNotion": {
-        "desc": "关闭公告",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    785,
-                    52,
-                    42,
-                    121
-                ],
-                "template": [
-                    "CloseButton.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
-        }
     },
     "BellFlag": {
         "desc": "右上角铃铛标识",

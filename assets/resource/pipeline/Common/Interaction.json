@@ -41,5 +41,26 @@
             "param": {}
         },
         "post_wait_freezes": 1000
+    },
+    "PageClose": {
+        "desc": "关闭页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    785,
+                    52,
+                    42,
+                    121
+                ],
+                "template": [
+                    "CloseButton.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
     }
 }
