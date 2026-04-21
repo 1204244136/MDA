@@ -44,18 +44,18 @@
             "label": "$option.CommonShopCoreDustCase.label",
             "cases": [
                 {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "CoreDustCasePurchase": {
-                            "enabled": true
-                        }
-                    }
-                },
-                {
                     "name": "No",
                     "pipeline_override": {
                         "CoreDustCasePurchase": {
                             "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CoreDustCasePurchase": {
+                            "enabled": true
                         }
                     }
                 }
