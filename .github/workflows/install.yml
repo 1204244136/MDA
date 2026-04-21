@@ -92,7 +92,7 @@ jobs:
           extract: true
 
       - name: Download MXU
-        if: ${{ matrix.os != 'android' }}
+        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         id: download_mxu
         uses: robinraju/release-downloader@v1
         with:
@@ -104,12 +104,18 @@ jobs:
           extract: true
 
       - name: Clean up MXU archive
-        if: ${{ matrix.os != 'android' }}
+        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         shell: bash
         run: |
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MXU."
+
+      - name: Clean install directory
+        shell: bash
+        run: |
+          rm -rf install/
+          echo "Install directory cleaned."
 
       - name: Install
         shell: bash
@@ -120,7 +126,7 @@ jobs:
           cd ..
 
       - name: Integrate MXU into install directory
-        if: ${{ matrix.os != 'android' }}
+        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         shell: bash
         run: |
           if [ -d "MXU" ]; then
@@ -144,6 +150,18 @@ jobs:
             echo "MXU integration completed."
           else
             echo "MXU directory not found, skipping MXU integration."
+          fi
+
+      - name: Verify install contents
+        shell: bash
+        run: |
+          echo "Checking install directory contents..."
+          ls -la install/ | head -20
+          if [ -f "install/interface.json" ]; then
+            echo "✅ interface.json found"
+          else
+            echo "❌ interface.json NOT found"
+            exit 1
           fi
 
       - uses: actions/upload-artifact@v4
