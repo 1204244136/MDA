@@ -52,5 +52,28 @@
             "[JumpBack]RecyclingShop",
             "EndTask"
         ]
+    },
+    "Purchase": {
+        "desc": "购买商品",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    594,
+                    429,
+                    220,
+                    250
+                ],
+                "template": [
+                    "ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "next": [
+            "PurchaseCheck",
+            "[JumpBack]ClickMax",
+            "[JumpBack]ActionConfirm",
+            "RewardConfirm"
+        ]
     }
 }

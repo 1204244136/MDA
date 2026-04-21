@@ -4,33 +4,15 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]EnterRecyclingShop",
-            "[JumpBack]RecyclingShopPurchase",
+            "[JumpBack]Purchase",
+            "[JumpBack]GoodTeamworkBoxPurchase",
+            "[JumpBack]MaintenanceKitBoxPurchase",
+            "[JumpBack]CuratedManufacturerArmsPurchase",
+            "[JumpBack]GemPurchase",
+            "[JumpBack]VoucherPurchase",
+            "[JumpBack]UpgradeMaterialsPurchase",
             "[JumpBack]ScrollUp",
             "EndTask"
-        ]
-    },
-    "RecyclingShopPurchase": {
-        "desc": "购买废铁商店商品",
-        "recognition": {
-            "type": "Or",
-            "param": {
-                "any_of": [
-                    "GoodTeamworkBoxPurchase",
-                    "MaintenanceKitBoxPurchase",
-                    "CuratedManufacturerArmsPurchase",
-                    "GemPurchase",
-                    "VoucherPurchase",
-                    "UpgradeMaterialsPurchase"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": [
-            "[JumpBack]ActionConfirm",
-            "RewardConfirm"
         ]
     },
     "EnterRecyclingShop": {
@@ -91,6 +73,10 @@
                 "template": "Shop/GoodTeamworkBox.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "MaintenanceKitBoxPurchase": {
@@ -108,6 +94,10 @@
                 "template": "Shop/MaintenanceKitBox.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "CuratedManufacturerArmsPurchase": {
@@ -125,10 +115,15 @@
                 "template": "Shop/CuratedManufacturerArms.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "GemPurchase": {
         "desc": "购买珠宝",
+        "enabled": false,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -138,13 +133,18 @@
                     1222,
                     325
                 ],
-                "template": "",
+                "template": "Shop/Gem.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "VoucherPurchase": {
         "desc": "购买所有礼物券",
+        "enabled": false,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -157,10 +157,15 @@
                 "template": "Shop/Voucher.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "UpgradeMaterialsPurchase": {
         "desc": "购买所有养成材料",
+        "enabled": false,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -171,11 +176,17 @@
                     325
                 ],
                 "template": [
-                    "Shop/TimeFlag.png",
+                    "Shop/CreditCase.png",
+                    "Shop/BattleDataSetCase.png",
+                    "Shop/CoreDustCase.png",
                     "Shop/Credit.png"
                 ],
                 "threshold": 0.8
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     }
 }

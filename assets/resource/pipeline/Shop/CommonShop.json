@@ -4,30 +4,11 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]EnterCommonShop",
-            "[JumpBack]CommonShopPurchase",
+            "[JumpBack]Purchase",
+            "[JumpBack]FreeGoodsPurchase",
+            "[JumpBack]CoreDustCasePurchase",
             "[JumpBack]FreeReset",
             "EndTask"
-        ]
-    },
-    "CommonShopPurchase": {
-        "desc": "购买普通商店商品",
-        "recognition": {
-            "type": "Or",
-            "param": {
-                "any_of": [
-                    "FreeGoodsPurchase",
-                    "CoreDustCasePurchase"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": [
-            "PurchaseCheck",
-            "[JumpBack]ActionConfirm",
-            "RewardConfirm"
         ]
     },
     "EnterCommonShop": {
@@ -135,7 +116,7 @@
                     34
                 ],
                 "template": [
-                    "Shop/Gem.png"
+                    "Shop/GemCheck.png"
                 ]
             }
         }
@@ -170,6 +151,10 @@
                     "RedDot.png"
                 ]
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "CoreDustCasePurchase": {
@@ -188,6 +173,10 @@
                 ],
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     }
 }

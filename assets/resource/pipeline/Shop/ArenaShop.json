@@ -4,32 +4,14 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]EnterArenaShop",
-            "[JumpBack]ArenaShopPurchase",
+            "[JumpBack]Purchase",
+            "[JumpBack]FireCodeManualPurchase",
+            "[JumpBack]WaterCodeManualPurchase",
+            "[JumpBack]WindCodeManualPurchase",
+            "[JumpBack]ElecCodeManualPurchase",
+            "[JumpBack]IronCodeManualPurchase",
+            "[JumpBack]CodeManualSelectionBoxPurchase",
             "EndTask"
-        ]
-    },
-    "ArenaShopPurchase": {
-        "desc": "购买竞技场商店商品",
-        "recognition": {
-            "type": "Or",
-            "param": {
-                "any_of": [
-                    "FireCodeManualPurchase",
-                    "WaterCodeManualPurchase",
-                    "WindCodeManualPurchase",
-                    "ElecCodeManualPurchase",
-                    "IronCodeManualPurchase",
-                    "CodeManualSelectionBoxPurchase"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": [
-            "[JumpBack]ActionConfirm",
-            "RewardConfirm"
         ]
     },
     "EnterArenaShop": {
@@ -90,6 +72,10 @@
                 "template": "Shop/FireCodeManual.png",
                 "threshold": 0.95
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "WaterCodeManualPurchase": {
@@ -107,6 +93,10 @@
                 "template": "Shop/WaterCodeManual.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "WindCodeManualPurchase": {
@@ -124,6 +114,10 @@
                 "template": "Shop/WindCodeManual.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "ElecCodeManualPurchase": {
@@ -141,6 +135,10 @@
                 "template": "Shop/ElecCodeManual.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "IronCodeManualPurchase": {
@@ -158,6 +156,10 @@
                 "template": "Shop/IronCodeManual.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     },
     "CodeManualSelectionBoxPurchase": {
@@ -175,6 +177,10 @@
                 "template": "Shop/CodeManualSelectionBox.png",
                 "threshold": 0.9
             }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
         }
     }
 }

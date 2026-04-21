@@ -365,16 +365,21 @@
     },
     "ScrollUp": {
         "desc": "向上滑动",
-        "action": "Swipe",
-        "begin": [
-            627,
-            528
-        ],
-        "end": [
-            627,
-            238
-        ],
-        "end_hold": 300,
+        "max_hit": 1,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    528
+                ],
+                "end": [
+                    627,
+                    238
+                ],
+                "end_hold": 300
+            }
+        },
         "post_wait_freezes": 20
     }
 }

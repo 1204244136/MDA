@@ -64,6 +64,27 @@
             "param": {}
         }
     },
+    "ClickMax": {
+        "desc": "点击MAX",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    708,
+                    380,
+                    138,
+                    125
+                ],
+                "template": [
+                    "MAX.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
     "EndTask": {
         "desc": "空节点，用于结束流程"
     }
