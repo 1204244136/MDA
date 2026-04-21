@@ -63,6 +63,7 @@
         },
         "ArenaShopItemList": {
             "type": "checkbox",
+            "default_case": [],
             "label": "$option.ArenaShopItemList.label",
             "cases": [
                 {
@@ -123,6 +124,9 @@
         },
         "RecyclingShopList": {
             "type": "checkbox",
+            "default_case": [
+                "Gem"
+            ],
             "label": "$option.RecyclingShopList.label",
             "cases": [
                 {
