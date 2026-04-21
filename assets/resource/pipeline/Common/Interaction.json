@@ -15,6 +15,7 @@
                 ]
             }
         },
+        "pre_wait_freezes": 500,
         "action": {
             "type": "Click",
             "param": {}
@@ -40,7 +41,7 @@
             "type": "Click",
             "param": {}
         },
-        "post_wait_freezes": 1000
+        "post_wait_freezes": 500
     },
     "PageClose": {
         "desc": "关闭页面",
