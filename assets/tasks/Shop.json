@@ -126,7 +126,7 @@
             "label": "$option.RecyclingShopList.label",
             "cases": [
                 {
-                    "name": "GoodTeamworkBoxPurchase",
+                    "name": "GoodTeamworkBox",
                     "label": "$option.RecyclingShopList.GoodTeamworkBox",
                     "pipeline_override": {
                         "GoodTeamworkBoxPurchase": {
@@ -135,7 +135,7 @@
                     }
                 },
                 {
-                    "name": "RecyclingShopWaterCodeManual",
+                    "name": "MaintenanceKitBox",
                     "label": "$option.RecyclingShopList.MaintenanceKitBox",
                     "pipeline_override": {
                         "MaintenanceKitBoxPurchase": {
@@ -144,7 +144,7 @@
                     }
                 },
                 {
-                    "name": "CuratedManufacturerArmsPurchase",
+                    "name": "CuratedManufacturerArms",
                     "label": "$option.RecyclingShopList.CuratedManufacturerArms",
                     "pipeline_override": {
                         "CuratedManufacturerArmsPurchase": {
@@ -153,7 +153,7 @@
                     }
                 },
                 {
-                    "name": "GemPurchase",
+                    "name": "Gem",
                     "label": "$option.RecyclingShopList.Gem",
                     "pipeline_override": {
                         "GemPurchase": {
@@ -162,7 +162,7 @@
                     }
                 },
                 {
-                    "name": "VoucherPurchase",
+                    "name": "Voucher",
                     "label": "$option.RecyclingShopList.Voucher",
                     "pipeline_override": {
                         "VoucherPurchase": {
@@ -171,7 +171,7 @@
                     }
                 },
                 {
-                    "name": "UpgradeMaterialsPurchase",
+                    "name": "UpgradeMaterials",
                     "label": "$option.RecyclingShopList.UpgradeMaterials",
                     "pipeline_override": {
                         "UpgradeMaterialsPurchase": {
