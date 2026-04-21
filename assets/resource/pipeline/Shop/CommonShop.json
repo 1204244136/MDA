@@ -1,6 +1,7 @@
 {
     "CommonShop": {
         "desc": "普通商店",
+        "max_hit": 1,
         "next": [
             "[JumpBack]EnterCommonShop",
             "[JumpBack]CommonShopPurchase",
