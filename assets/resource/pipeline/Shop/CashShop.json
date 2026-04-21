@@ -74,7 +74,7 @@
         "next": [
             "[JumpBack]ClickRedDot",
             "[JumpBack]RewardConfirm",
-            "EnterHall"
+            "EndTask"
         ]
     },
     "ClickRedDot": {
