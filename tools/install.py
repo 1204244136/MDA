@@ -98,7 +98,6 @@ def install_deps():
         )
 
 
-
 def install_resource():
 
     configure_ocr_model()
@@ -106,6 +105,11 @@ def install_resource():
     shutil.copytree(
         working_dir / "assets" / "resource",
         install_path / "resource",
+        dirs_exist_ok=True,
+    )
+    shutil.copytree(
+        working_dir / "assets" / "tasks",
+        install_path / "tasks",
         dirs_exist_ok=True,
     )
     shutil.copy2(
