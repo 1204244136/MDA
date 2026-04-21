@@ -1,0 +1,89 @@
+{
+    "task": [
+        {
+            "name": "SimulationRoom",
+            "label": "$task.SimulationRoom.label",
+            "entry": "SimulationRoom",
+            "description": "$task.SimulationRoom.description",
+            "option": [
+                "BeginSimulation",
+                "StartOverlock"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "BeginSimulation": {
+            "type": "switch",
+            "label": "$option.BeginSimulation.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "BeginSimulation": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BeginSimulation": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "StartOverlock": {
+            "type": "switch",
+            "label": "$option.StartOverlock.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "StartOverlock": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "AutoBIOSSetting"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "StartOverlock": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "AutoBIOSSetting": {
+            "type": "switch",
+            "label": "$option.AutoBIOSSetting.label",
+            "description": "$task.AutoBIOSSetting.Description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "BIOSSetting": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BIOSSetting": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -21,5 +21,11 @@
     "option.RecyclingShopList.CuratedManufacturerArms": "Curated Manufacturer Arms",
     "option.RecyclingShopList.Gem": "Gem",
     "option.RecyclingShopList.Voucher": "Voucher",
-    "option.RecyclingShopList.UpgradeMaterials": "Upgrade Materials"
+    "option.RecyclingShopList.UpgradeMaterials": "Upgrade Materials",
+    "task.SimulationRoom.label": "Simulation Room",
+    "task.SimulationRoom.description": "Enter the simulation room interface and complete related tasks",
+    "option.BeginSimulation.label": "Start regular simulation room tasks",
+    "option.StartOverlock.label": "Start overlock simulation room tasks",
+    "option.AutoBIOSSetting.label": "Auto BIOS Setting",
+    "task.AutoBIOSSetting.Description": "If enabled, the difficulty will be automatically set to 25 before battle (skip if already set). If disabled, the battle will be fought at the difficulty selected last time before battle."
 }

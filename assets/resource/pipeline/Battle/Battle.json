@@ -1,0 +1,94 @@
+{
+    "StartBattle": {
+        "desc": "进入战斗",
+        "timeout": 180000,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    671,
+                    641,
+                    157,
+                    44
+                ],
+                "expected": [
+                    "进入战斗"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CheckAutoBurst",
+            "[JumpBack]CheckAutoShoot",
+            "BattleSettlement"
+        ]
+    },
+    "BattleSettlement": {
+        "desc": "战斗结算",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    567,
+                    610,
+                    160,
+                    52
+                ],
+                "expected": [
+                    "ESC"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CheckAutoBurst": {
+        "desc": "检查自动爆裂",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    100,
+                    40
+                ],
+                "template": [
+                    "Battle/AutoBurst.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": []
+    },
+    "CheckAutoShoot": {
+        "desc": "检查自动射击",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    100,
+                    40
+                ],
+                "template": [
+                    "Battle/AutoShoot.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": []
+    }
+}

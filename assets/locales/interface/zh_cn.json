@@ -21,5 +21,11 @@
     "option.RecyclingShopList.CuratedManufacturerArms": "企业精选武装",
     "option.RecyclingShopList.Gem": "珠宝",
     "option.RecyclingShopList.Voucher": "礼物券",
-    "option.RecyclingShopList.UpgradeMaterials": "养成材料"
+    "option.RecyclingShopList.UpgradeMaterials": "养成材料",
+    "task.SimulationRoom.label": "模拟室",
+    "task.SimulationRoom.description": "进入模拟室界面，完成相关任务",
+    "option.BeginSimulation.label": "普通模拟室",
+    "option.StartOverlock.label": "超频模拟室",
+    "option.AutoBIOSSetting.label": "自动难度设置",
+    "task.AutoBIOSSetting.Description": "开启后战斗前会将自动设置难度为25（已设置则跳过），关闭后战斗前会按上次选择的难度战斗"
 }

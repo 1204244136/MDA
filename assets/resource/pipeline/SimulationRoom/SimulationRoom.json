@@ -1,0 +1,76 @@
+{
+    "SimulationRoom": {
+        "next": [
+            "EnterSimulationRoom",
+            "[JumpBack]EnterArk"
+        ]
+    },
+    "EnterSimulationRoom": {
+        "desc": "进入模拟室",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    476,
+                    393,
+                    85,
+                    21
+                ],
+                "expected": [
+                    "模拟室"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "[JumpBack]BIOSUpdate",
+            "FlagInSimulationRoom",
+            "EnterSimulationRoom"
+        ]
+    },
+    "FlagInSimulationRoom": {
+        "desc": "处于模拟室",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "模拟室"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]BeginSimulation"
+        ]
+    },
+    "BIOSUpdate": {
+        "desc": "模拟室超频更新",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    532,
+                    334,
+                    227,
+                    149
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": []
+    }
+}

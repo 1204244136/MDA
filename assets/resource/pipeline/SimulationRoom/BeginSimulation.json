@@ -1,0 +1,122 @@
+{
+    "BeginSimulation": {
+        "desc": "开始模拟",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "_BeginSimulation1",
+                    "_BeginSimulation2"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "[JumpBack]ClaimImmediately",
+            "QuickSimulation"
+        ]
+    },
+    "_BeginSimulation1": {
+        "desc": "开始模拟的红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    679,
+                    393,
+                    44,
+                    33
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    },
+    "_BeginSimulation2": {
+        "desc": "开始模拟的文本",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    574,
+                    406,
+                    133,
+                    40
+                ],
+                "expected": [
+                    "开始模拟"
+                ]
+            }
+        }
+    },
+    "ClaimImmediately": {
+        "desc": "快速模拟将立即完成",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    551,
+                    505,
+                    144,
+                    124
+                ],
+                "template": [
+                    "SimulationRoom/ClaimImmediately.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "QuickSimulation": {
+        "desc": "快速模拟",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    645,
+                    596,
+                    181,
+                    39
+                ],
+                "expected": [
+                    "快速模拟"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "EndSimulation"
+        ]
+    },
+    "EndSimulation": {
+        "desc": "模拟结束",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    561,
+                    499,
+                    158,
+                    82
+                ],
+                "expected": [
+                    "模拟结束"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    }
+}
