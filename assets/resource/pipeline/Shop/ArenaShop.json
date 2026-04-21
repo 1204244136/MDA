@@ -88,7 +88,7 @@
                     325
                 ],
                 "template": "Shop/FireCodeManual.png",
-                "threshold": 0.9
+                "threshold": 0.95
             }
         }
     },
