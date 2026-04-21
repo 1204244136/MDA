@@ -73,7 +73,7 @@ jobs:
     strategy:
       matrix:
         os: [ win, macos, linux ]
-        arch: [ x86_64 ]
+        arch: [ x86_64, aarch64 ]
       fail-fast: false
 
     steps:
@@ -119,45 +119,37 @@ jobs:
           python ./install.py ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
           cd ..
 
-      - name: Create MXU version
+      - name: Integrate MXU into install directory
         if: ${{ matrix.os != 'android' }}
         shell: bash
         run: |
           if [ -d "MXU" ]; then
-            echo "Creating MXU version..."
-            mkdir -p install-mxu
-            # Copy MXU executable
+            echo "Integrating MXU into install directory..."
+            # Copy MXU executable to install directory
             if [[ "${{ matrix.os }}" == "win" ]]; then
               if [ -f "MXU/mxu.exe" ]; then
-                cp MXU/mxu.exe install-mxu/
+                cp MXU/mxu.exe install/
               fi
             else
               if [ -f "MXU/mxu" ]; then
-                cp MXU/mxu install-mxu/
+                cp MXU/mxu install/
               fi
             fi
             # Copy other necessary files from MXU
             for dir in $(find MXU -maxdepth 1 -type d ! -name "." ! -name ".." | head -20); do
               if [ -d "$dir" ] && [ $(basename "$dir") != "MXU" ]; then
-                cp -r "$dir" install-mxu/
+                cp -r "$dir" install/
               fi
             done
-            echo "MXU version created successfully."
+            echo "MXU integration completed."
           else
-            echo "MXU directory not found, skipping MXU version creation."
+            echo "MXU directory not found, skipping MXU integration."
           fi
 
       - uses: actions/upload-artifact@v4
         with:
           name: MDA-${{ matrix.os }}-${{ matrix.arch }}
           path: "install"
-          retention-days: 1
-
-      - uses: actions/upload-artifact@v4
-        if: ${{ matrix.os != 'android' }}
-        with:
-          name: MDA-${{ matrix.os }}-${{ matrix.arch }}-MXU
-          path: "install-mxu"
           retention-days: 1
 
   changelog:
