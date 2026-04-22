@@ -378,5 +378,27 @@
             }
         },
         "post_wait_freezes": 20
+    },
+    "GoBack": {
+        "desc": "返回",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    36,
+                    669,
+                    44,
+                    23
+                ],
+                "expected": [
+                    "返回"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "post_wait_freezes": 2000
     }
 }
