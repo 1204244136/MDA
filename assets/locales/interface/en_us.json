@@ -32,5 +32,13 @@
     "task.Arena.description": "Enter the arena interface and complete related tasks",
     "option.EnterRookieArena.label": "Enter Rookie Arena",
     "option.EnterSpecialArena.label": "Enter Special Arena",
-    "option.EnterChampionArena.label": "Enter Champion Arena"
+    "option.EnterChampionArena.label": "Enter Champion Arena",
+    "task.TribeTower.label": "Tribe Tower",
+    "task.TribeTower.description": "Enter the tribe tower interface and complete related tasks",
+    "option.EnterCommonTower.label": "Enter Common Tribe Tower",
+    "task.EnterCommonTower.Description": "Will keep fighting until you lose",
+    "option.EnterElysionTower.label": "Enter Elysion Tribe Tower",
+    "option.EnterMissilisTower.label": "Enter Missilis Tribe Tower",
+    "option.EnterTetraTower.label": "Enter Tetra Tribe Tower",
+    "option.EnterPilgrimTower.label": "Enter Pilgrim Tribe Tower"
 }

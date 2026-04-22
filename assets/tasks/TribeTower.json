@@ -1,0 +1,133 @@
+{
+    "task": [
+        {
+            "name": "TribeTower",
+            "label": "$task.TribeTower.label",
+            "entry": "TribeTower",
+            "description": "$task.TribeTower.description",
+            "option": [
+                "EnterCommonTower",
+                "EnterElysionTower",
+                "EnterMissilisTower",
+                "EnterTetraTower",
+                "EnterPilgrimTower"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "EnterCommonTower": {
+            "type": "switch",
+            "label": "$option.EnterCommonTower.label",
+            "description": "$task.EnterCommonTower.Description",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterCommonTower": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterCommonTower": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
+        },
+        "EnterElysionTower": {
+            "type": "switch",
+            "label": "$option.EnterElysionTower.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterElysionTower": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterElysionTower": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EnterMissilisTower": {
+            "type": "switch",
+            "label": "$option.EnterMissilisTower.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterMissilisTower": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterMissilisTower": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EnterTetraTower": {
+            "type": "switch",
+            "label": "$option.EnterTetraTower.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterTetraTower": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterTetraTower": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EnterPilgrimTower": {
+            "type": "switch",
+            "label": "$option.EnterPilgrimTower.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterPilgrimTower": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterPilgrimTower": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

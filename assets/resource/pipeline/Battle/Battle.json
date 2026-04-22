@@ -1,7 +1,60 @@
 {
     "StartBattle": {
         "desc": "进入战斗",
-        "timeout": 180000,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleFlag"
+                ]
+            }
+        },
+        "next": [
+            "CanBattle",
+            "CloseBattle"
+        ]
+    },
+    "CanBattle": {
+        "desc": "战斗可行性检测",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleFlag",
+                    "CanBattleFlag"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "InBattle"
+        ]
+    },
+    "CloseBattle": {
+        "desc": "退出战斗",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    815,
+                    358,
+                    35,
+                    31
+                ],
+                "template": [
+                    "Battle/BattleCloseButton.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": []
+    },
+    "BattleFlag": {
+        "desc": "战斗的标识",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -20,11 +73,64 @@
             "type": "Click"
         },
         "next": [
+            "InBattle"
+        ]
+    },
+    "CanBattleFlag": {
+        "desc": "可以战斗的标识",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "BattleFlag",
+                "lower": [
+                    200,
+                    200,
+                    200
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 200
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "InBattle"
+        ]
+    },
+    "InBattle": {
+        "desc": "战斗中",
+        "timeout": 180000,
+        "next": [
             "[JumpBack]CheckAutoBurst",
             "[JumpBack]CheckAutoShoot",
-            "[JumpBack]BattleSettlement",
-            "EndTask"
+            "[JumpBack]NextState",
+            "BattleSettlement"
         ]
+    },
+    "NextState": {
+        "desc": "下一关卡",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1140,
+                    659,
+                    122,
+                    37
+                ],
+                "expected": [
+                    "下一关卡"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "BattleSettlement": {
         "desc": "战斗结算",
@@ -44,7 +150,31 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "next": [
+            "BattleSettlement",
+            "EndTask"
+        ]
+    },
+    "OperationFailed": {
+        "desc": "任务失败",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1097,
+                    656,
+                    37,
+                    23
+                ],
+                "expected": [
+                    "编队"
+                ]
+            }
+        },
+        "next": [
+            "GoBack"
+        ]
     },
     "CheckAutoBurst": {
         "desc": "检查自动爆裂",

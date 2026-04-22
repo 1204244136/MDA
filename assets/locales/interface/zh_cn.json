@@ -32,5 +32,13 @@
     "task.Arena.description": "进入竞技场界面，完成相关任务",
     "option.EnterRookieArena.label": "新人竞技场",
     "option.EnterSpecialArena.label": "特殊竞技场",
-    "option.EnterChampionArena.label": "冠军竞技场"
+    "option.EnterChampionArena.label": "冠军竞技场",
+    "task.TribeTower.label": "无限之塔",
+    "task.TribeTower.description": "进入无限之塔界面，完成相关任务",
+    "option.EnterCommonTower.label": "普通无限之塔",
+    "task.EnterCommonTower.Description": "会一直打直到输掉，不建议日常开启",
+    "option.EnterElysionTower.label": "极乐净土之塔",
+    "option.EnterMissilisTower.label": "米西里斯之塔",
+    "option.EnterTetraTower.label": "泰特拉之塔",
+    "option.EnterPilgrimTower.label": "朝圣者之塔"
 }

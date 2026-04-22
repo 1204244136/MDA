@@ -1,0 +1,300 @@
+{
+    "TribeTower": {
+        "next": [
+            "EnterTribeTower",
+            "[JumpBack]EnterArk"
+        ]
+    },
+    "EnterTribeTower": {
+        "desc": "进入无限之塔",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    687,
+                    269,
+                    87,
+                    23
+                ],
+                "expected": [
+                    "无限之塔"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 2000,
+        "next": [
+            "FlagInTribeTower",
+            "EnterTribeTower"
+        ]
+    },
+    "FlagInTribeTower": {
+        "desc": "处于无限之塔",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "^无限之塔$"
+                ]
+            }
+        },
+        "next": [
+            "TowerTask"
+        ]
+    },
+    "FlagInTower": {
+        "desc": "处于塔",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "^塔$"
+                ]
+            }
+        },
+        "next": [
+            "TowerTask"
+        ]
+    },
+    "TowerTask": {
+        "desc": "无限之塔的任务",
+        "next": [
+            "EnterCommonTower",
+            "EnterElysionTower",
+            "EnterMissilisTower",
+            "EnterTetraTower",
+            "EnterPilgrimTower",
+            "EndTask"
+        ]
+    },
+    "EnterCommonTower": {
+        "desc": "进入普通无限之塔",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    710,
+                    293,
+                    51,
+                    21
+                ],
+                "expected": [
+                    "^无限之塔$"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "TowerBattle"
+        ]
+    },
+    "EnterElysionTower": {
+        "desc": "进入极乐净土之塔",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    455,
+                    377,
+                    92,
+                    23
+                ],
+                "expected": [
+                    "OPEN"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "TowerBattle"
+        ]
+    },
+    "EnterMissilisTower": {
+        "desc": "进入米西利斯之塔",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    548,
+                    376,
+                    92,
+                    23
+                ],
+                "expected": [
+                    "OPEN"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "TowerBattle"
+        ]
+    },
+    "EnterTetraTower": {
+        "desc": "进入泰特拉之塔",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    641,
+                    377,
+                    92,
+                    23
+                ],
+                "expected": [
+                    "OPEN"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "TowerBattle"
+        ]
+    },
+    "EnterPilgrimTower": {
+        "desc": "进入朝圣者之塔",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    733,
+                    376,
+                    92,
+                    23
+                ],
+                "expected": [
+                    "OPEN"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "TowerBattle"
+        ]
+    },
+    "TowerBattle": {
+        "desc": "阶段1",
+        "next": [
+            "[JumpBack]ChooseStage",
+            "TowerBattleExec"
+        ]
+    },
+    "TowerBattleExec": {
+        "desc": "阶段2",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "^无限之塔$"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]StartBattle",
+            "FlagInTower",
+            "[JumpBack]GoBack"
+        ]
+    },
+    "ChooseStage": {
+        "desc": "选择关卡",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    544,
+                    292,
+                    33,
+                    17
+                ],
+                "expected": [
+                    "STAGE"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    100,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "EndTask"
+        ]
+    }
+}
