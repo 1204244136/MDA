@@ -37,10 +37,6 @@
                     "方舟"
                 ]
             }
-        },
-        "action": {
-            "type": "Click",
-            "param": {}
         }
     },
     "ClickArk": {
@@ -64,7 +60,8 @@
             "param": {}
         },
         "next": [
-            "FlagInArk"
+            "FlagInArk",
+            "ClickArk"
         ]
     },
     "Confirm": {
