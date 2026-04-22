@@ -7,9 +7,9 @@
             "param": {
                 "roi": [
                     671,
-                    641,
+                    571,
                     157,
-                    44
+                    114
                 ],
                 "expected": [
                     "进入战斗"
@@ -22,7 +22,8 @@
         "next": [
             "[JumpBack]CheckAutoBurst",
             "[JumpBack]CheckAutoShoot",
-            "BattleSettlement"
+            "[JumpBack]BattleSettlement",
+            "EndTask"
         ]
     },
     "BattleSettlement": {
