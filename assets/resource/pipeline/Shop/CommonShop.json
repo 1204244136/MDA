@@ -83,7 +83,7 @@
             }
         },
         "next": [
-            "ActionConfirm",
+            "ResetConfirm",
             "FreeReset"
         ]
     },
@@ -178,5 +178,27 @@
             "type": "Click",
             "param": {}
         }
+    },
+    "ResetConfirm": {
+        "desc": "确认刷新",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    594,
+                    429,
+                    220,
+                    250
+                ],
+                "template": [
+                    "ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "post_wait_freezes": 1000
     }
 }
