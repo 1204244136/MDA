@@ -1,0 +1,77 @@
+{
+    "EnterSpecialArena": {
+        "max_hit": 5,
+        "desc": "进入特殊竞技场",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SpecialArena",
+                    "SpecialArenaRedDot"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInSpecialArena"
+        ]
+    },
+    "SpecialArenaRedDot": {
+        "desc": "特殊竞技场的红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    799,
+                    315,
+                    28,
+                    27
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    },
+    "SpecialArena": {
+        "desc": "特殊竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    657,
+                    365,
+                    67,
+                    26
+                ],
+                "expected": [
+                    "SPECIAL"
+                ]
+            }
+        }
+    },
+    "FlagInSpecialArena": {
+        "desc": "处于特殊竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "特殊竞技场"
+                ]
+            }
+        },
+        "next": [
+            "FlagInArena",
+            "[JumpBack]GoBack"
+        ]
+    }
+}

@@ -1,0 +1,86 @@
+{
+    "task": [
+        {
+            "name": "Arena",
+            "label": "$task.Arena.label",
+            "entry": "Arena",
+            "description": "$task.Arena.description",
+            "option": [
+                "EnterRookieArena",
+                "EnterSpecialArena",
+                "EnterChampionArena"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "EnterRookieArena": {
+            "type": "switch",
+            "label": "$option.EnterRookieArena.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterRookieArena": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterRookieArena": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EnterSpecialArena": {
+            "type": "switch",
+            "label": "$option.EnterSpecialArena.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterSpecialArena": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterSpecialArena": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EnterChampionArena": {
+            "type": "switch",
+            "label": "$option.EnterChampionArena.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterChampionArena": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterChampionArena": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

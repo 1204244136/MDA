@@ -1,0 +1,102 @@
+{
+    "EnterChampionArena": {
+        "max_hit": 5,
+        "desc": "进入冠军竞技场",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "ChampionArena",
+                    "ChampionArenaRedDot"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInChampionArena"
+        ]
+    },
+    "ChampionArenaRedDot": {
+        "desc": "冠军竞技场的红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    799,
+                    448,
+                    26,
+                    23
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    },
+    "ChampionArena": {
+        "desc": "冠军竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    552,
+                    507,
+                    102,
+                    31
+                ],
+                "expected": [
+                    "CHAMPION"
+                ]
+            }
+        }
+    },
+    "FlagInChampionArena": {
+        "desc": "处于冠军竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "冠军竞技场"
+                ]
+            }
+        },
+        "next": [
+            "ResultConfirmation",
+            "FlagInArena",
+            "[JumpBack]GoBack"
+        ]
+    },
+    "ResultConfirmation": {
+        "desc": "结果确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    736,
+                    523,
+                    73,
+                    29
+                ],
+                "expected": [
+                    "结果确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "EnterHall"
+        ]
+    }
+}

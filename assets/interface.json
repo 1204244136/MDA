@@ -60,6 +60,7 @@
     "import": [
         "tasks/CashShop.json",
         "tasks/Shop.json",
-        "tasks/SimulationRoom.json"
+        "tasks/SimulationRoom.json",
+        "tasks/Arena.json"
     ]
 }

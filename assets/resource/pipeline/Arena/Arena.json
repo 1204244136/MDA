@@ -1,0 +1,57 @@
+{
+    "Arena": {
+        "next": [
+            "EnterArena",
+            "[JumpBack]EnterArk"
+        ]
+    },
+    "EnterArena": {
+        "desc": "进入竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    710,
+                    461,
+                    85,
+                    21
+                ],
+                "expected": [
+                    "竞技场"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "post_wait_freezes": 2000,
+        "next": [
+            "FlagInArena",
+            "EnterArena"
+        ]
+    },
+    "FlagInArena": {
+        "desc": "处于竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "^竞技场$"
+                ]
+            }
+        },
+        "next": [
+            "EnterRookieArena",
+            "EnterSpecialArena",
+            "EnterChampionArena",
+            "EndTask"
+        ]
+    }
+}

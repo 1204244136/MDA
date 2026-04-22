@@ -1,0 +1,128 @@
+{
+    "EnterRookieArena": {
+        "max_hit": 5,
+        "desc": "进入新人竞技场",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RookieArena",
+                    "RookieArenaRedDot"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "FlagInRookieArena"
+        ]
+    },
+    "RookieArenaRedDot": {
+        "desc": "新人竞技场的红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    615,
+                    313,
+                    27,
+                    25
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    },
+    "RookieArena": {
+        "desc": "新人竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    468,
+                    356,
+                    84,
+                    35
+                ],
+                "expected": [
+                    "ROOKIE"
+                ]
+            }
+        }
+    },
+    "FlagInRookieArena": {
+        "desc": "处于新人竞技场",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "新人竞技场"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]FreeBattle",
+            "FlagInArena",
+            "[JumpBack]GoBack"
+        ]
+    },
+    "FreeBattle": {
+        "desc": "免费战斗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    749,
+                    579,
+                    54,
+                    17
+                ],
+                "expected": [
+                    "免费"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "FreeBattle",
+            "[JumpBack]QuickBattleCheck",
+            "[JumpBack]StartBattle",
+            "FlagInRookieArena"
+        ]
+    },
+    "QuickBattleCheck": {
+        "desc": "快速战斗检查",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    502,
+                    587,
+                    108,
+                    29
+                ],
+                "expected": [
+                    "OFF"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": []
+    }
+}
