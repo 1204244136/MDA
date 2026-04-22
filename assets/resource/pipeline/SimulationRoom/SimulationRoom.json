@@ -48,7 +48,8 @@
             }
         },
         "next": [
-            "[JumpBack]BeginSimulation"
+            "[JumpBack]BeginSimulation",
+            "EndTask"
         ]
     },
     "BIOSUpdate": {
