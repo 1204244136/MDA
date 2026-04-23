@@ -70,6 +70,7 @@
             }
         },
         "next": [
+            "[JumpBack]FreeBattle",
             "FlagInArena",
             "[JumpBack]GoBack"
         ]
