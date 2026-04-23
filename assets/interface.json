@@ -62,6 +62,7 @@
         "tasks/Shop.json",
         "tasks/SimulationRoom.json",
         "tasks/Arena.json",
-        "tasks/TribeTower.json"
+        "tasks/TribeTower.json",
+        "tasks/Interception.json"
     ]
 }

@@ -1,0 +1,192 @@
+{
+    "AnomalyInterception": {
+        "desc": "异常个体拦截战",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    741,
+                    686,
+                    97,
+                    22
+                ],
+                "expected": [
+                    "异常个体拦截战"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AnomalyKraken",
+            "AnomalyMirrorContainer",
+            "AnomalyIndivilia",
+            "AnomalyHarvester",
+            "AnomalyUltra",
+            "[JumpBack]NextAnomaly"
+        ]
+    },
+    "Challenge": {
+        "desc": "挑战",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    569,
+                    51,
+                    22
+                ],
+                "expected": [
+                    "挑战"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "StartBattle"
+        ]
+    },
+    "NextAnomaly": {
+        "desc": "切换异常个体",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    741,
+                    523,
+                    43,
+                    37
+                ],
+                "template": [
+                    "Interception/NextAnomaly1.png",
+                    "Interception/NextAnomaly2.png",
+                    "Interception/NextAnomaly3.png",
+                    "Interception/NextAnomaly4.png",
+                    "Interception/NextAnomaly5.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        }
+    },
+    "AnomalyKraken": {
+        "desc": "克拉肯",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    531,
+                    522,
+                    224,
+                    36
+                ],
+                "expected": [
+                    "克拉肯"
+                ]
+            }
+        },
+        "next": [
+            "Challenge"
+        ]
+    },
+    "AnomalyMirrorContainer": {
+        "desc": "镜像容器",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    531,
+                    522,
+                    224,
+                    36
+                ],
+                "expected": [
+                    "镜像容器"
+                ]
+            }
+        },
+        "next": [
+            "Challenge"
+        ]
+    },
+    "AnomalyIndivilia": {
+        "desc": "茵迪维利亚",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    531,
+                    522,
+                    224,
+                    36
+                ],
+                "expected": [
+                    "茵迪维利亚"
+                ]
+            }
+        },
+        "next": [
+            "Challenge"
+        ]
+    },
+    "AnomalyUltra": {
+        "desc": "过激派",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    531,
+                    522,
+                    224,
+                    36
+                ],
+                "expected": [
+                    "过激派"
+                ]
+            }
+        },
+        "next": [
+            "Challenge"
+        ]
+    },
+    "AnomalyHarvester": {
+        "desc": "死神",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    531,
+                    522,
+                    224,
+                    36
+                ],
+                "expected": [
+                    "死神"
+                ]
+            }
+        },
+        "next": [
+            "Challenge"
+        ]
+    }
+}

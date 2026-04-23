@@ -1,0 +1,76 @@
+{
+    "Interception": {
+        "next": [
+            "EnterInterception",
+            "[JumpBack]EnterArk"
+        ]
+    },
+    "EnterInterception": {
+        "desc": "进入拦截战",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    512,
+                    585,
+                    85,
+                    23
+                ],
+                "expected": [
+                    "拦截战"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "FlagInInterception",
+            "EnterInterception"
+        ]
+    },
+    "FlagInInterception": {
+        "desc": "处于拦截战",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    24,
+                    61,
+                    70,
+                    22
+                ],
+                "expected": [
+                    "剩余拦截次数"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "NormalyInterception",
+            "AnomalyInterception",
+            "EndTask"
+        ]
+    },
+    "ManualInterceptionBattle": {
+        "desc": "手动拦截战",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    708,
+                    620,
+                    43,
+                    17
+                ],
+                "expected": [
+                    "达成阶段"
+                ]
+            }
+        }
+    }
+}

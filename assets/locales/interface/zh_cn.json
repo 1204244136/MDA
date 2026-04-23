@@ -41,5 +41,22 @@
     "option.EnterElysionTower.label": "极乐净土之塔",
     "option.EnterMissilisTower.label": "米西里斯之塔",
     "option.EnterTetraTower.label": "泰特拉之塔",
-    "option.EnterPilgrimTower.label": "朝圣者之塔"
+    "option.EnterPilgrimTower.label": "朝圣者之塔",
+    "task.Interception.label": "拦截战",
+    "task.Interception.description": "进入拦截战界面，完成相关任务",
+    "option.InterceptionType.label": "拦截类型",
+    "option.NormalyInterception.label": "普通拦截",
+    "option.AnomalyInterception.label": "异常拦截",
+    "option.NormalyInterceptionLevel.label": "普通拦截等级",
+    "option.LevelD.label": "D级",
+    "option.LevelS.label": "S级",
+    "option.InterceptionEX.label": "EX级",
+    "option.AnomalyInterceptionTarget.label": "异常拦截目标",
+    "option.AnomalyKraken.label": "克拉肯",
+    "option.AnomalyMirrorContainer.label": "镜面容器",
+    "option.AnomalyIndivilia.label": "因迪维利亚",
+    "option.AnomalyUltra.label": "过激派",
+    "option.AnomalyHarvester.label": "死神",
+    "option.ManualInterceptionBattle.label": "手动拦截战",
+    "task.ManualInterceptionBattle.description": "只会尝试快速战斗，请在每周二刷新后先手动打一把"
 }

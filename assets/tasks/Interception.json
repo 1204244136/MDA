@@ -1,0 +1,165 @@
+{
+    "task": [
+        {
+            "name": "Interception",
+            "label": "$task.Interception.label",
+            "entry": "Interception",
+            "description": "$task.Interception.description",
+            "option": [
+                "InterceptionType",
+                "ManualInterceptionBattle"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "InterceptionType": {
+            "type": "select",
+            "label": "$option.InterceptionType.label",
+            "cases": [
+                {
+                    "name": "NormalyInterception",
+                    "label": "$option.NormalyInterception.label",
+                    "pipeline_override": {
+                        "NormalyInterception": {
+                            "enabled": true
+                        },
+                        "AnomalyInterception": {
+                            "enabled": false
+                        }
+                    },
+                    "option": [
+                        "NormalyInterceptionLevel"
+                    ]
+                },
+                {
+                    "name": "AnomalyInterception",
+                    "label": "$option.AnomalyInterception.label",
+                    "pipeline_override": {
+                        "NormalyInterception": {
+                            "enabled": false
+                        },
+                        "AnomalyInterception": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "AnomalyInterceptionTarget"
+                    ]
+                }
+            ],
+            "default_case": "AnomalyInterception"
+        },
+        "NormalyInterceptionLevel": {
+            "type": "select",
+            "label": "$option.NormalyInterceptionLevel.label",
+            "cases": [
+                {
+                    "name": "LevelD",
+                    "label": "$option.LevelD.label",
+                    "pipeline_override": {
+                        "LevelD": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "LevelS",
+                    "label": "$option.LevelS.label",
+                    "pipeline_override": {
+                        "LevelS": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "InterceptionEX",
+                    "label": "$option.InterceptionEX.label",
+                    "pipeline_override": {
+                        "InterceptionEX": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "default_case": "InterceptionEX"
+        },
+        "AnomalyInterceptionTarget": {
+            "type": "select",
+            "label": "$option.AnomalyInterceptionTarget.label",
+            "cases": [
+                {
+                    "name": "AnomalyKraken",
+                    "label": "$option.AnomalyKraken.label",
+                    "pipeline_override": {
+                        "AnomalyKraken": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "AnomalyMirrorContainer",
+                    "label": "$option.AnomalyMirrorContainer.label",
+                    "pipeline_override": {
+                        "AnomalyMirrorContainer": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "AnomalyIndivilia",
+                    "label": "$option.AnomalyIndivilia.label",
+                    "pipeline_override": {
+                        "AnomalyIndivilia": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "AnomalyUltra",
+                    "label": "$option.AnomalyUltra.label",
+                    "pipeline_override": {
+                        "AnomalyUltra": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "AnomalyHarvester",
+                    "label": "$option.AnomalyHarvester.label",
+                    "pipeline_override": {
+                        "AnomalyHarvester": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "default_case": "AnomalyKraken"
+        },
+        "ManualInterceptionBattle": {
+            "type": "switch",
+            "label": "$option.ManualInterceptionBattle.label",
+            "description": "$task.ManualInterceptionBattle.description",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "ManualInterceptionBattle": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "ManualInterceptionBattle": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

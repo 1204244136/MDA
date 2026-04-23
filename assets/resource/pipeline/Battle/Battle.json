@@ -10,8 +10,28 @@
             }
         },
         "next": [
+            "ManualInterceptionBattle",
+            "CanQuickBattle",
             "CanBattle",
             "CloseBattle"
+        ]
+    },
+    "CanQuickBattle": {
+        "desc": "快速战斗可行性检测",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "QuickBattleFlag",
+                    "CanQuickBattleFlag"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "InBattle"
         ]
     },
     "CanBattle": {
@@ -53,6 +73,43 @@
         },
         "next": []
     },
+    "QuickBattleFlag": {
+        "desc": "快速战斗的标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    671,
+                    571,
+                    157,
+                    114
+                ],
+                "expected": [
+                    ".*快速战斗.*"
+                ]
+            }
+        }
+    },
+    "CanQuickBattleFlag": {
+        "desc": "可以战斗的标识",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "QuickBattleFlag",
+                "lower": [
+                    200,
+                    200,
+                    200
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 200
+            }
+        }
+    },
     "BattleFlag": {
         "desc": "战斗的标识",
         "recognition": {
@@ -68,13 +125,7 @@
                     "进入战斗"
                 ]
             }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "InBattle"
-        ]
+        }
     },
     "CanBattleFlag": {
         "desc": "可以战斗的标识",
@@ -94,13 +145,7 @@
                 ],
                 "count": 200
             }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "InBattle"
-        ]
+        }
     },
     "InBattle": {
         "desc": "战斗中",

@@ -41,5 +41,22 @@
     "option.EnterElysionTower.label": "Enter Elysion Tribe Tower",
     "option.EnterMissilisTower.label": "Enter Missilis Tribe Tower",
     "option.EnterTetraTower.label": "Enter Tetra Tribe Tower",
-    "option.EnterPilgrimTower.label": "Enter Pilgrim Tribe Tower"
+    "option.EnterPilgrimTower.label": "Enter Pilgrim Tribe Tower",
+    "task.Interception.label": "Interception",
+    "task.Interception.description": "Enter the interception interface and complete related tasks",
+    "option.InterceptionType.label": "Interception Type",
+    "option.NormalyInterception.label": "Normal Interception",
+    "option.AnomalyInterception.label": "Anomaly Interception",
+    "option.NormalyInterceptionLevel.label": "Normal Interception Level",
+    "option.LevelD.label": "Level D",
+    "option.LevelS.label": "Level S",
+    "option.InterceptionEX.label": "Level EX",
+    "option.AnomalyInterceptionTarget.label": "Anomaly Interception Target",
+    "option.AnomalyKraken.label": "Kraken",
+    "option.AnomalyMirrorContainer.label": "Mirror Container",
+    "option.AnomalyIndivilia.label": "Indivilia",
+    "option.AnomalyUltra.label": "Ultra",
+    "option.AnomalyHarvester.label": "Harvester",
+    "option.ManualInterceptionBattle.label": "Manual Interception Battle",
+    "task.ManualInterceptionBattle.description": "Will only try to quick battle, please battle Manually on Tuesday"
 }
