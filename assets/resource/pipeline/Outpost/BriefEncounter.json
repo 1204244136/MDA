@@ -1,0 +1,83 @@
+{
+    "BriefEncounter": {
+        "desc": "突发活动",
+        "max_hit": 1,
+        "next": [
+            "EnterBriefEncounter"
+        ]
+    },
+    "EnterBriefEncounter": {
+        "desc": "进入突发活动",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    3,
+                    50,
+                    36,
+                    39
+                ],
+                "template": [
+                    "Outpost/BriefEncounter.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "DailyLives",
+            "EndTask"
+        ]
+    },
+    "DailyLives": {
+        "desc": "日常状态",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    3,
+                    86,
+                    183,
+                    52
+                ],
+                "template": [
+                    "Outpost/DailyLives.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EnterDailyEvent"
+        ]
+    },
+    "EnterDailyEvent": {
+        "desc": "进入活动",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    756,
+                    566,
+                    41,
+                    38
+                ],
+                "template": [
+                    "Outpost/Event.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ActionConfirm",
+            "[JumpBack]SkipStory",
+            "[JumpBack]RewardConfirm",
+            "EnterBriefEncounter"
+        ]
+    }
+}

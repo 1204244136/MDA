@@ -1,0 +1,67 @@
+{
+    "Outpost": {
+        "next": [
+            "EnterOutpost",
+            "[JumpBack]EnterHall"
+        ]
+    },
+    "EnterOutpost": {
+        "desc": "进入前哨基地",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    362,
+                    542,
+                    82,
+                    33
+                ],
+                "expected": [
+                    "前哨基地"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "OutpostTask",
+            "EnterOutpost"
+        ]
+    },
+    "OutpostTask": {
+        "desc": "前哨基地任务枢纽",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "FlagInOutpost"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]DefenseRewards",
+            "[JumpBack]BulletinBoard",
+            "[JumpBack]BriefEncounter",
+            "EndTask"
+        ]
+    },
+    "FlagInOutpost": {
+        "desc": "前哨基地的标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    616,
+                    630,
+                    47,
+                    18
+                ],
+                "expected": [
+                    "指挥中心"
+                ]
+            }
+        }
+    }
+}

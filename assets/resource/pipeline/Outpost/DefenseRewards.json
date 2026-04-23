@@ -1,0 +1,153 @@
+{
+    "DefenseRewards": {
+        "desc": "防御奖励",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1176,
+                    659,
+                    47,
+                    32
+                ],
+                "expected": [
+                    "%$"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "DefenseRewardsFlag"
+        ]
+    },
+    "DefenseRewardsFlag": {
+        "desc": "防御奖励标志",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    487,
+                    77,
+                    144,
+                    32
+                ],
+                "expected": [
+                    "防御前哨基地"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]ClaimDefenseRewards",
+            "[JumpBack]WipeOut",
+            "FlagInOutpost",
+            "[JumpBack]GoBack"
+        ]
+    },
+    "ClaimDefenseRewards": {
+        "desc": "领取防御奖励",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    603,
+                    68,
+                    24
+                ],
+                "expected": [
+                    "获得奖励"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "[JumpBack]RewardConfirm",
+            "EndTask"
+        ]
+    },
+    "WipeOut": {
+        "desc": "一举歼灭",
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "WipeOutFlag",
+                    "WipeOutRedDot"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "WipeOutConfirm"
+        ]
+    },
+    "WipeOutConfirm": {
+        "desc": "确认一举歼灭",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    665,
+                    540,
+                    70,
+                    24
+                ],
+                "expected": [
+                    "进行歼灭"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "[JumpBack]RewardConfirm",
+            "EndTask"
+        ]
+    },
+    "WipeOutFlag": {
+        "desc": "一举歼灭的文本",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    539,
+                    601,
+                    67,
+                    26
+                ],
+                "expected": [
+                    ".*歼灭.*"
+                ]
+            }
+        }
+    },
+    "WipeOutRedDot": {
+        "desc": "一举歼灭的红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    624,
+                    586,
+                    21,
+                    21
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    }
+}

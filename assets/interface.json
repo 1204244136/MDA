@@ -63,6 +63,7 @@
         "tasks/SimulationRoom.json",
         "tasks/Arena.json",
         "tasks/TribeTower.json",
-        "tasks/Interception.json"
+        "tasks/Interception.json",
+        "tasks/Output.json"
     ]
 }

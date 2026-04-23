@@ -1,0 +1,129 @@
+{
+    "BulletinBoard": {
+        "desc": "派遣公告栏",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    642,
+                    698,
+                    52,
+                    16
+                ],
+                "expected": [
+                    ".*公告.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "BulletinBoardFlag"
+        ]
+    },
+    "BulletinBoardFlag": {
+        "desc": "派遣公告栏标志",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    482,
+                    99,
+                    112,
+                    28
+                ],
+                "expected": [
+                    "派遣公告栏"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]BulletinBoardClaim",
+            "[JumpBack]BulletinBoardDispatch",
+            "FlagInOutpost",
+            "[JumpBack]GoBack"
+        ]
+    },
+    "BulletinBoardClaim": {
+        "desc": "全部领取",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    736,
+                    592,
+                    64,
+                    26
+                ],
+                "expected": [
+                    "全部领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "[JumpBack]RewardConfirm",
+            "EndTask"
+        ]
+    },
+    "BulletinBoardDispatch": {
+        "desc": "全部派遣",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    620,
+                    593,
+                    62,
+                    24
+                ],
+                "expected": [
+                    "全部派遣"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "BulletinBoardDispatchConfirm",
+            "EndTask"
+        ]
+    },
+    "BulletinBoardDispatchConfirm": {
+        "desc": "全部派遣",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    645,
+                    587,
+                    106,
+                    40
+                ],
+                "expected": [
+                    "派遣"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

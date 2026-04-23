@@ -1,0 +1,89 @@
+{
+    "task": [
+        {
+            "name": "Output",
+            "label": "$task.Output.label",
+            "entry": "Outpost",
+            "description": "$task.Output.description",
+            "option": [
+                "DefenseRewards",
+                "BulletinBoard",
+                "BriefEncounter"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "DefenseRewards": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.DefenseRewards.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "DefenseRewards": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "DefenseRewards": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "BulletinBoard": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.BulletinBoard.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "BulletinBoard": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BulletinBoard": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "BriefEncounter": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.BriefEncounter.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "BriefEncounter": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BriefEncounter": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
