@@ -1,0 +1,2 @@
+# PNG optimization script has no external Python dependencies
+# oxipng is installed via cargo-install in the workflow
