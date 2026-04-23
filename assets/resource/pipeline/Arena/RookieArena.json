@@ -98,6 +98,26 @@
         "post_wait_freezes": 1000,
         "next": [
             "FreeBattle",
+            "FreeBattleFlag"
+        ]
+    },
+    "FreeBattleFlag": {
+        "desc": "检测免费战斗的页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    526,
+                    566,
+                    59,
+                    22
+                ],
+                "expected": [
+                    "快速战斗"
+                ]
+            }
+        },
+        "next": [
             "[JumpBack]QuickBattleCheck",
             "[JumpBack]StartBattle",
             "FlagInRookieArena"
