@@ -24,54 +24,56 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 2000,
+        "post_wait_freezes": 1000,
         "next": [
-            "FlagInTribeTower",
+            "TowerTask",
             "EnterTribeTower"
         ]
     },
-    "FlagInTribeTower": {
-        "desc": "处于无限之塔",
+    "FlagInTower1": {
+        "desc": "处于无限之塔1级页面",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    0,
-                    15,
-                    70,
-                    25
+                    710,
+                    293,
+                    51,
+                    21
                 ],
                 "expected": [
                     "^无限之塔$"
                 ]
             }
-        },
-        "next": [
-            "TowerTask"
-        ]
+        }
     },
-    "FlagInTower": {
-        "desc": "处于塔",
+    "FlagInTower2": {
+        "desc": "处于无限之塔2级页面",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    0,
-                    15,
-                    70,
-                    25
+                    556,
+                    600,
+                    183,
+                    27
                 ],
                 "expected": [
-                    "^塔$"
+                    ".*TOWER.*"
                 ]
             }
-        },
-        "next": [
-            "TowerTask"
-        ]
+        }
     },
     "TowerTask": {
         "desc": "无限之塔的任务",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "FlagInTower1"
+                ]
+            }
+        },
         "next": [
             "EnterCommonTower",
             "EnterElysionTower",
@@ -102,7 +104,7 @@
             "type": "Click"
         },
         "next": [
-            "TowerBattle"
+            "TowerBattle1"
         ]
     },
     "EnterElysionTower": {
@@ -135,7 +137,7 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "TowerBattle"
+            "TowerBattle1"
         ]
     },
     "EnterMissilisTower": {
@@ -168,7 +170,7 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "TowerBattle"
+            "TowerBattle1"
         ]
     },
     "EnterTetraTower": {
@@ -201,7 +203,7 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "TowerBattle"
+            "TowerBattle1"
         ]
     },
     "EnterPilgrimTower": {
@@ -234,35 +236,21 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "TowerBattle"
+            "TowerBattle1"
         ]
     },
-    "TowerBattle": {
-        "desc": "阶段1",
+    "TowerBattle1": {
+        "desc": "无限之塔战斗流程1",
         "next": [
             "[JumpBack]ChooseStage",
-            "TowerBattleExec"
+            "TowerBattle2"
         ]
     },
-    "TowerBattleExec": {
-        "desc": "阶段2",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    0,
-                    15,
-                    70,
-                    25
-                ],
-                "expected": [
-                    "^无限之塔$"
-                ]
-            }
-        },
+    "TowerBattle2": {
+        "desc": "无限之塔战斗流程2",
         "next": [
             "[JumpBack]StartBattle",
-            "FlagInTower",
+            "TowerTask",
             "[JumpBack]GoBack"
         ]
     },
@@ -292,9 +280,6 @@
                     0
                 ]
             }
-        },
-        "next": [
-            "EndTask"
-        ]
+        }
     }
 }
