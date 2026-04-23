@@ -11,9 +11,10 @@
         },
         "next": [
             "ManualInterceptionBattle",
-            "CanQuickBattle",
-            "CanBattle",
-            "CloseBattle"
+            "[JumpBack]CanQuickBattle",
+            "[JumpBack]CanBattle",
+            "[JumpBack]CloseBattle",
+            "EndTask"
         ]
     },
     "CanQuickBattle": {
