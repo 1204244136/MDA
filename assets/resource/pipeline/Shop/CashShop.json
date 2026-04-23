@@ -47,7 +47,33 @@
             }
         },
         "next": [
+            "[JumpBack]StepUpPackagePurchase",
             "ChooseOrdinaryPackage"
+        ]
+    },
+    "StepUpPackagePurchase": {
+        "desc": "购买StepUp礼包",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    783,
+                    389,
+                    49,
+                    28
+                ],
+                "expected": [
+                    "免费"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {}
+        },
+        "next": [
+            "RewardConfirm"
         ]
     },
     "ChooseOrdinaryPackage": {

@@ -4,6 +4,7 @@
     "task.CashShop.label": "付费商店",
     "task.CashShop.description": "进入付费商店界面，领取商店奖励",
     "option.CashShopFreePackage.label": "领取免费礼包",
+    "option.StepUpPackage.label": "领取StepUp礼包",
     "task.Shop.label": "商店",
     "task.Shop.description": "进入商店界面，购买商品",
     "option.CommonShopFreeGoods.label": "普通商店购买免费商品并使用免费刷新次数",

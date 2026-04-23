@@ -4,6 +4,7 @@
     "task.CashShop.label": "Cash Shop",
     "task.CashShop.description": "Enter the cash shop interface and claim shop rewards",
     "option.CashShopFreePackage.label": "Claim Free Package",
+    "option.StepUpPackage.label": "Claim StepUp Package",
     "task.Shop.label": "Shop",
     "task.Shop.description": "Enter the shop interface and purchase items",
     "option.CommonShopFreeGoods.label": "Purchase free items in common shop and use free reset",

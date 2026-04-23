@@ -6,7 +6,8 @@
             "entry": "CashShop",
             "description": "$task.CashShop.description",
             "option": [
-                "CashShopFreePackage"
+                "CashShopFreePackage",
+                "StepUpPackage"
             ],
             "group": [
                 "daily"
@@ -30,6 +31,28 @@
                     "name": "No",
                     "pipeline_override": {
                         "ChooseOrdinaryPackage": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "StepUpPackage": {
+            "type": "switch",
+            "label": "$option.StepUpPackage.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "StepUpPackagePurchase": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "StepUpPackagePurchase": {
                             "enabled": false
                         }
                     }
