@@ -25,7 +25,7 @@
             "type": "Click",
             "param": {}
         },
-        "post_wait_freezes": 2000,
+        "post_wait_freezes": 1000,
         "next": [
             "FlagInArena",
             "EnterArena"
