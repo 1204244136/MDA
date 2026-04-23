@@ -1,0 +1,22 @@
+{
+    "SkipStory": {
+        "desc": "跳过剧情",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1218,
+                    9,
+                    39,
+                    16
+                ],
+                "expected": [
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
