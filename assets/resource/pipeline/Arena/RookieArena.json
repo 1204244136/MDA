@@ -97,7 +97,6 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "FreeBattle",
             "FreeBattleFlag"
         ]
     },
@@ -119,8 +118,7 @@
         },
         "next": [
             "[JumpBack]QuickBattleCheck",
-            "[JumpBack]StartBattle",
-            "FlagInRookieArena"
+            "StartBattle"
         ]
     },
     "QuickBattleCheck": {
