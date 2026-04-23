@@ -1,0 +1,44 @@
+name: format
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: "0 16,22 * * *" # UTC+8 0:00, 06:00
+
+permissions:
+    contents: write
+
+jobs:
+    format:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  show-progress: false
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run format
+              run: npx prettier --write .
+
+            - name: Commit and push changes
+              uses: actions-js/push@master
+              with:
+                  rebase: true
+                  branch: ${{ github.ref }}
+                  message: "style: auto format code
+
+                      https://github.com/${{ github.repository
+                      }}/actions/runs/${{ github.run_id }}
+
+                      [skip changelog]"
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
