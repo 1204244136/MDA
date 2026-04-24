@@ -58,7 +58,7 @@
     "option.AnomalyUltra.label": "Ultra",
     "option.AnomalyHarvester.label": "Harvester",
     "option.ManualInterceptionBattle.label": "Manual Interception Battle",
-    "task.ManualInterceptionBattle.description": "Will only try to quick battle, please battle Manually on Tuesday",
+    "task.ManualInterceptionBattle.description": "Only try to fight quickly, please manually fight once after the weekly refresh",
     "task.Output.label": "Outpost",
     "task.Output.description": "Enter the outpost interface and complete related tasks",
     "option.DefenseRewards.label": "Claim Defense Rewards and wipeout",
