@@ -33,8 +33,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "FlagInRecyclingShop",
@@ -75,8 +74,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "MaintenanceKitBoxPurchase": {
@@ -96,8 +94,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "CuratedManufacturerArmsPurchase": {
@@ -117,8 +114,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "GemPurchase": {
@@ -138,8 +134,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "VoucherPurchase": {
@@ -159,8 +154,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "UpgradeMaterialsPurchase": {
@@ -185,8 +179,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     }
 }

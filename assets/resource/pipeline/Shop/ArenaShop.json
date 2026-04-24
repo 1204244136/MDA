@@ -32,8 +32,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "FlagInArenaShop",
@@ -74,8 +73,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "WaterCodeManualPurchase": {
@@ -95,8 +93,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "WindCodeManualPurchase": {
@@ -116,8 +113,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "ElecCodeManualPurchase": {
@@ -137,8 +133,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "IronCodeManualPurchase": {
@@ -158,8 +153,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "CodeManualSelectionBoxPurchase": {
@@ -179,8 +173,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     }
 }

@@ -28,7 +28,7 @@ jobs:
         run: npm ci
 
       - name: Run format
-        run: npx prettier --write .
+        run: npm run format
 
       - name: Commit and push changes
         uses: actions-js/push@master

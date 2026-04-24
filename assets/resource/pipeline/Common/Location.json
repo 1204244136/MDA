@@ -56,8 +56,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "FlagInArk",
@@ -81,8 +80,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "CloseSale": {
@@ -102,8 +100,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "Confirm"
@@ -126,8 +123,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "ActiveCheck": {
@@ -142,8 +138,7 @@
         },
         "pre_wait_freezes": 500,
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "NotionFlag",
@@ -205,8 +200,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "LoginConfirm": {
@@ -254,8 +248,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "DownloadConfirm": {
@@ -275,8 +268,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "LoginReward": {
@@ -296,8 +288,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "LoginRewardClaimed",
@@ -396,8 +387,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "post_wait_freezes": 2000
     }

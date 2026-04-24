@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "format": "prettier --write ."
+        "format": "node scripts/clean-empty-pipeline-fields.mjs && prettier --write ."
     },
     "devDependencies": {
         "@nekosu/maa-tools": "1.0.23",

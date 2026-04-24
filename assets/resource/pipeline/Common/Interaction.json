@@ -17,8 +17,7 @@
         },
         "pre_wait_freezes": 500,
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "ActionConfirm": {
@@ -38,8 +37,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "post_wait_freezes": 500
     },
@@ -60,8 +58,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "ClickMax": {
@@ -81,8 +78,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         }
     },
     "EndTask": {

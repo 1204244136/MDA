@@ -22,8 +22,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "[JumpBack]BIOSUpdate",
@@ -70,9 +69,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": []
+            "type": "Click"
+        }
     }
 }

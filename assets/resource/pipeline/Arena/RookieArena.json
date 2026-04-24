@@ -12,8 +12,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "FlagInRookieArena"
@@ -92,8 +91,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "post_wait_freezes": 1000,
         "next": [
@@ -138,9 +136,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
-        },
-        "next": []
+            "type": "Click"
+        }
     }
 }

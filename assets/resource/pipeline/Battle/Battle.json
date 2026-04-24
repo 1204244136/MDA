@@ -71,8 +71,7 @@
         },
         "action": {
             "type": "Click"
-        },
-        "next": []
+        }
     },
     "QuickBattleFlag": {
         "desc": "快速战斗的标识",
@@ -242,8 +241,7 @@
         },
         "action": {
             "type": "Click"
-        },
-        "next": []
+        }
     },
     "CheckAutoShoot": {
         "desc": "检查自动射击",
@@ -265,7 +263,6 @@
         },
         "action": {
             "type": "Click"
-        },
-        "next": []
+        }
     }
 }

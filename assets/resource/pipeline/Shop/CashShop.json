@@ -22,8 +22,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "FlagInCashShop",
@@ -69,8 +68,7 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "RewardConfirm"
@@ -94,8 +92,7 @@
         },
         "pre_wait_freezes": 500,
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
         "next": [
             "[JumpBack]ClickRedDot",
@@ -122,10 +119,8 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {}
+            "type": "Click"
         },
-        "post_wait_freezes": 1500,
-        "next": []
+        "post_wait_freezes": 1500
     }
 }
