@@ -113,8 +113,29 @@
         "post_wait_freezes": 1000,
         "next": [
             "[JumpBack]RewardConfirm",
+            "[JumpBack]CancelWipeOut",
             "EndTask"
         ]
+    },
+    "CancelWipeOut": {
+        "desc": "取消一举歼灭",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    477,
+                    532,
+                    109,
+                    39
+                ],
+                "expected": [
+                    "取消"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "WipeOutFlag": {
         "desc": "一举歼灭的文本",
