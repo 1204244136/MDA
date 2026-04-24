@@ -15,7 +15,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  token: ${{ secrets.WORKFLOW_TOKEN }}
                   show-progress: false
 
             - name: Setup Node.js
@@ -41,4 +41,4 @@ jobs:
                       }}/actions/runs/${{ github.run_id }}
 
                       [skip changelog]"
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  github_token: ${{ secrets.WORKFLOW_TOKEN }}
