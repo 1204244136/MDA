@@ -6,6 +6,7 @@
             "entry": "Arena",
             "description": "$task.Arena.description",
             "option": [
+                "SpecialReward",
                 "EnterRookieArena",
                 "EnterSpecialArena",
                 "EnterChampionArena"
@@ -16,6 +17,28 @@
         }
     ],
     "option": {
+        "SpecialReward": {
+            "type": "switch",
+            "label": "$option.SpecialReward.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "SpecialReward": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "SpecialReward": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
         "EnterRookieArena": {
             "type": "switch",
             "label": "$option.EnterRookieArena.label",

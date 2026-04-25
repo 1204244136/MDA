@@ -31,6 +31,7 @@
     "task.AutoBIOSSetting.Description": "开启后战斗前会将自动设置难度为25（已设置则跳过），关闭后战斗前会按上次选择的难度战斗",
     "task.Arena.label": "竞技场",
     "task.Arena.description": "进入竞技场界面，完成相关任务",
+    "option.SpecialReward.label": "领取竞技场累积奖励",
     "option.EnterRookieArena.label": "新人竞技场",
     "option.EnterSpecialArena.label": "特殊竞技场",
     "option.EnterChampionArena.label": "冠军竞技场",

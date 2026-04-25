@@ -1,8 +1,34 @@
 {
     "Arena": {
         "next": [
+            "[JumpBack]SpecialReward",
             "EnterArena",
             "[JumpBack]EnterArk"
+        ]
+    },
+    "SpecialReward": {
+        "desc": "累积奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    785,
+                    318,
+                    26,
+                    25
+                ],
+                "expected": [
+                    "^[0-9]"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ActionConfirm",
+            "[JumpBack]RewardConfirm",
+            "EndTask"
         ]
     },
     "EnterArena": {

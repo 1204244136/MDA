@@ -31,6 +31,7 @@
     "task.AutoBIOSSetting.Description": "If enabled, the difficulty will be automatically set to 25 before battle (skip if already set). If disabled, the battle will be fought at the difficulty selected last time before battle.",
     "task.Arena.label": "Arena",
     "task.Arena.description": "Enter the arena interface and complete related tasks",
+    "option.SpecialReward.label": "Claim Total Rewards",
     "option.EnterRookieArena.label": "Enter Rookie Arena",
     "option.EnterSpecialArena.label": "Enter Special Arena",
     "option.EnterChampionArena.label": "Enter Champion Arena",
