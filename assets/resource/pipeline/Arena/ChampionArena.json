@@ -41,9 +41,9 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    552,
+                    490,
                     507,
-                    102,
+                    95,
                     31
                 ],
                 "expected": [
@@ -68,25 +68,26 @@
                 ]
             }
         },
+        "post_wait_freezes": 500,
         "next": [
-            "ResultConfirmation",
+            "EnterCheer",
             "FlagInArena",
             "[JumpBack]GoBack"
         ]
     },
-    "ResultConfirmation": {
-        "desc": "结果确认",
+    "EnterCheer": {
+        "desc": "进入应援",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    736,
+                    477,
                     523,
-                    73,
-                    29
+                    332,
+                    39
                 ],
                 "expected": [
-                    "结果确认"
+                    ".*小时.*"
                 ]
             }
         },
@@ -94,7 +95,120 @@
             "type": "Click"
         },
         "next": [
-            "EnterHall"
+            "MatchFlag"
+        ]
+    },
+    "MatchFlag": {
+        "desc": "比赛的标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "小组循环赛",
+                    "晋级赛",
+                    "冠军争霸赛"
+                ]
+            }
+        },
+        "next": [
+            "CheerUp"
+        ]
+    },
+    "CheerUp": {
+        "desc": "应援",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    571,
+                    630,
+                    141,
+                    32
+                ],
+                "expected": [
+                    "应援"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "CheerUpCheck",
+            "CheerUpRight"
+        ]
+    },
+    "CheerUpCheck": {
+        "desc": "应援检测",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    487,
+                    322,
+                    51,
+                    19
+                ],
+                "expected": [
+                    "^[5-9]"
+                ]
+            }
+        },
+        "next": [
+            "CheerUpLeft"
+        ]
+    },
+    "CheerUpLeft": {
+        "desc": "应援左边",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    352,
+                    62,
+                    25
+                ],
+                "expected": [
+                    "选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ActionConfirm"
+        ]
+    },
+    "CheerUpRight": {
+        "desc": "应援右边",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    708,
+                    351,
+                    63,
+                    26
+                ],
+                "expected": [
+                    "选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ActionConfirm"
         ]
     }
 }
