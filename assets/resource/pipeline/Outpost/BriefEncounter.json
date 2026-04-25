@@ -23,10 +23,19 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -100,
+                    0,
+                    0,
+                    0
+                ]
+            }
         },
         "post_wait_freezes": 500,
         "next": [
+            "EnterBriefEncounter",
             "DailyLives",
             "EndTask"
         ]
@@ -70,6 +79,7 @@
                 ]
             }
         },
+        "pre_wait_freezes": 500,
         "action": {
             "type": "Click"
         },
