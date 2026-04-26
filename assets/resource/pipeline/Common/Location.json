@@ -11,6 +11,7 @@
             "[JumpBack]ClickHomeButton",
             "[JumpBack]SkipPlot",
             "[JumpBack]CloseSale",
+            "[JumpBack]RewardConfirm",
             "ActiveCheck"
         ]
     },
