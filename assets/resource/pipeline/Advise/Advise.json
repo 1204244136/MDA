@@ -202,9 +202,67 @@
             "type": "Click"
         },
         "next": [
+            "[JumpBack]RemoveFavorites",
             "[JumpBack]Confirm",
             "NextAdvise"
         ]
+    },
+    "RemoveFavorites": {
+        "desc": "移除收藏",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "Favorited",
+                    "Maxed"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Favorited": {
+        "desc": "已收藏",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    463,
+                    369,
+                    32,
+                    31
+                ],
+                "lower": [
+                    180,
+                    0,
+                    0
+                ],
+                "upper": [
+                    255,
+                    80,
+                    80
+                ],
+                "count": 500
+            }
+        }
+    },
+    "Maxed": {
+        "desc": "已max",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    695,
+                    461,
+                    32,
+                    17
+                ],
+                "expected": [
+                    "MAX"
+                ]
+            }
+        }
     },
     "NormalAdvise": {
         "desc": "普通咨询",
