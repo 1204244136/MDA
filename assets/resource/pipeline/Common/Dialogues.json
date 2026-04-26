@@ -1,11 +1,18 @@
 {
     "AdviseStory": {
         "desc": "咨询剧情",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "DialogueFlag"
+                ]
+            }
+        },
         "next": [
             "[JumpBack]SkipStory",
             "[JumpBack]ClickContinue",
             "[JumpBack]ClickOption",
-            "[JumpBack]DialogueFlag",
             "EndTask"
         ]
     },
