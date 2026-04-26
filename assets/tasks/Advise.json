@@ -25,12 +25,37 @@
                         "EnterAdvise": {
                             "enabled": true
                         }
-                    }
+                    },
+                    "option": [
+                        "EpisodeReward"
+                    ]
                 },
                 {
                     "name": "No",
                     "pipeline_override": {
                         "EnterAdvise": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EpisodeReward": {
+            "type": "switch",
+            "label": "$option.EpisodeReward.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EpisodeReward": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EpisodeReward": {
                             "enabled": false
                         }
                     }

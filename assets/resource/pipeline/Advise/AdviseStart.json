@@ -1,0 +1,217 @@
+{
+    "AdviseStart": {
+        "desc": "开始咨询",
+        "next": [
+            "AttemptsExhausted",
+            "AdviseCollectionCompleted",
+            "AdviseCollectionNotCompleted"
+        ]
+    },
+    "AttemptsExhausted": {
+        "desc": "次数耗尽",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    647,
+                    567,
+                    155,
+                    53
+                ],
+                "lower": [
+                    100,
+                    100,
+                    100
+                ],
+                "upper": [
+                    180,
+                    180,
+                    180
+                ],
+                "count": 500
+            }
+        }
+    },
+    "AdviseCollectionCompleted": {
+        "desc": "已收集完咨询日志",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    786,
+                    468,
+                    42,
+                    23
+                ],
+                "template": [
+                    "Advise/20.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "next": [
+            "QuickAdvise"
+        ]
+    },
+    "AdviseCollectionNotCompleted": {
+        "desc": "未收集完咨询日志",
+        "next": [
+            "NormalAdvise"
+        ]
+    },
+    "QuickAdvise": {
+        "desc": "快速咨询",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    702,
+                    533,
+                    66,
+                    26
+                ],
+                "expected": [
+                    "快速咨询"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]RemoveFavorites",
+            "[JumpBack]Confirm",
+            "[JumpBack]RankIncreaseConfirm",
+            "[JumpBack]EpisodeReward",
+            "NextAdvise"
+        ]
+    },
+    "RemoveFavorites": {
+        "desc": "移除收藏",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "Favorited",
+                    "Maxed"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Favorited": {
+        "desc": "已收藏",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    463,
+                    369,
+                    32,
+                    31
+                ],
+                "lower": [
+                    180,
+                    0,
+                    0
+                ],
+                "upper": [
+                    255,
+                    80,
+                    80
+                ],
+                "count": 500
+            }
+        }
+    },
+    "Maxed": {
+        "desc": "已max",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    695,
+                    461,
+                    32,
+                    17
+                ],
+                "expected": [
+                    "MAX"
+                ]
+            }
+        }
+    },
+    "NormalAdvise": {
+        "desc": "普通咨询",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    697,
+                    573,
+                    52,
+                    24
+                ],
+                "expected": [
+                    "咨询"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Confirm",
+            "[JumpBack]AdviseStory",
+            "[JumpBack]RankIncreaseConfirm",
+            "[JumpBack]EpisodeReward",
+            "NextAdvise"
+        ]
+    },
+    "NextAdvise": {
+        "desc": "下一个咨询",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1199,
+                    247,
+                    81,
+                    134
+                ],
+                "template": [
+                    "Advise/NextAdvise.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "AdviseStart"
+        ]
+    },
+    "RankIncreaseConfirm": {
+        "desc": "提升好感等级确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    412,
+                    73,
+                    23
+                ],
+                "expected": [
+                    "追加能力值"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

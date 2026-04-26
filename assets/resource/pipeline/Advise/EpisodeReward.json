@@ -1,0 +1,108 @@
+{
+    "EpisodeReward": {
+        "desc": "花絮奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    818,
+                    344,
+                    25,
+                    23
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -30,
+                    30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "EpisodeClick",
+            "[JumpBack]EpisodeRewardScrollDown",
+            "[JumpBack]EpisodeRedDot",
+            "PageClose"
+        ]
+    },
+    "EpisodeRedDot": {
+        "desc": "花絮奖励的红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    614,
+                    89,
+                    35,
+                    28
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        }
+    },
+    "EpisodeClick": {
+        "desc": "点击花絮",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    793,
+                    285,
+                    28,
+                    365
+                ],
+                "template": [
+                    "RedDot.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -30,
+                    30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 1500,
+        "next": [
+            "[JumpBack]AdviseStory",
+            "[JumpBack]RewardConfirm",
+            "PageClose"
+        ]
+    },
+    "EpisodeRewardScrollDown": {
+        "desc": "向上滑动",
+        "max_hit": 1,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    600
+                ],
+                "end": [
+                    627,
+                    400
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": 20
+    }
+}

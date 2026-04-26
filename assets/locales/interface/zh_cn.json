@@ -68,5 +68,6 @@
     "task.Advise.label": "咨询",
     "task.Advise.description": "进入咨询界面，完成咨询任务",
     "option.NikkeAdvise.label": "NIKKE咨询",
-    "task.NikkeAdvise.description": "会始终对前10个妮姬进行咨询，可以通过收藏来提升优先级，好感度满了会自动取消收藏"
+    "task.NikkeAdvise.description": "会始终对前10个妮姬进行咨询，可以通过收藏来提升优先级，好感度满了会自动取消收藏",
+    "option.EpisodeReward.label": "领取花絮奖励"
 }
