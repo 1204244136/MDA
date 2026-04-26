@@ -250,6 +250,7 @@
         "desc": "无限之塔战斗流程2",
         "next": [
             "[JumpBack]StartBattle",
+            "[JumpBack]CloseSale",
             "TowerTask",
             "[JumpBack]GoBack"
         ]
