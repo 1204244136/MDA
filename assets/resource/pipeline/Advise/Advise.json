@@ -252,7 +252,28 @@
         },
         "post_wait_freezes": 500,
         "next": [
+            "[JumpBack]RankIncreaseConfirm",
             "AdviseStart"
         ]
+    },
+    "RankIncreaseConfirm": {
+        "desc": "提升好感等级确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    412,
+                    73,
+                    23
+                ],
+                "expected": [
+                    "追加能力值"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     }
 }
