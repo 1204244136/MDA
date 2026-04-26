@@ -58,6 +58,7 @@
     "ManualInterceptionBattle": {
         "desc": "手动拦截战",
         "enabled": false,
+        "inverse": true,
         "recognition": {
             "type": "OCR",
             "param": {
