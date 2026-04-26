@@ -8,11 +8,11 @@ Detailed guide for analyzing pipeline nodes and selecting the correct option typ
 
 Scan all pipeline nodes for the `enabled` property:
 
-| `enabled` value | Meaning | Option behavior |
-| --- | --- | --- |
-| `false` | Node is OFF by default | Option lets user turn it ON |
-| `true` | Node is ON by default | Option lets user turn it OFF |
-| absent | Not a switchable node | Skip (unless it's a routing node for select) |
+| `enabled` value | Meaning                | Option behavior                              |
+| --------------- | ---------------------- | -------------------------------------------- |
+| `false`         | Node is OFF by default | Option lets user turn it ON                  |
+| `true`          | Node is ON by default  | Option lets user turn it OFF                 |
+| absent          | Not a switchable node  | Skip (unless it's a routing node for select) |
 
 Nodes with `enabled` are your primary candidates for options.
 
@@ -53,15 +53,15 @@ For each sibling group, determine if they are **mutually exclusive** or **indepe
         {
             "name": "OptionA",
             "pipeline_override": {
-                "NodeA": { "enabled": true },
-                "NodeB": { "enabled": false }
+                "NodeA": {"enabled": true},
+                "NodeB": {"enabled": false}
             }
         },
         {
             "name": "OptionB",
             "pipeline_override": {
-                "NodeA": { "enabled": false },
-                "NodeB": { "enabled": true }
+                "NodeA": {"enabled": false},
+                "NodeB": {"enabled": true}
             }
         }
     ],
@@ -86,11 +86,11 @@ For each sibling group, determine if they are **mutually exclusive** or **indepe
     "cases": [
         {
             "name": "ItemA",
-            "pipeline_override": { "NodeA": { "enabled": true } }
+            "pipeline_override": {"NodeA": {"enabled": true}}
         },
         {
             "name": "ItemB",
-            "pipeline_override": { "NodeB": { "enabled": true } }
+            "pipeline_override": {"NodeB": {"enabled": true}}
         }
     ]
 }
@@ -112,8 +112,8 @@ For each sibling group, determine if they are **mutually exclusive** or **indepe
 {
     "type": "switch",
     "cases": [
-        { "name": "Yes", "pipeline_override": { "Node": { "enabled": true } } },
-        { "name": "No", "pipeline_override": { "Node": { "enabled": false } } }
+        {"name": "Yes", "pipeline_override": {"Node": {"enabled": true}}},
+        {"name": "No", "pipeline_override": {"Node": {"enabled": false}}}
     ]
 }
 ```
@@ -135,7 +135,7 @@ After determining a case's pipeline_override target, check if that target node's
 ```json
 {
     "name": "Yes",
-    "pipeline_override": { "NodeA": { "enabled": true } },
+    "pipeline_override": {"NodeA": {"enabled": true}},
     "option": ["SubOptionName"]
 }
 ```
@@ -157,7 +157,7 @@ Rare in current codebase but supported by schema. Use when a pipeline node accep
         }
     ],
     "pipeline_override": {
-        "NodeName": { "property": "「FieldName」" }
+        "NodeName": {"property": "「FieldName」"}
     }
 }
 ```
@@ -166,18 +166,18 @@ The `「名称」` format references the input field's value at runtime.
 
 ## Real Examples from This Project
 
-| Task File | Option | Type | Why |
-| --- | --- | --- | --- |
-| Arena.json | SpecialReward | switch | Single toggle (claim reward or not) |
-| Arena.json | EnterRookieArena | switch | Single toggle (enter this arena or not) |
-| Interception.json | InterceptionType | select | Mutual exclusion: Normal OR Anomaly |
-| Interception.json | NormalyInterceptionLevel | select (nested) | Sub-select: which difficulty level |
-| Interception.json | AnomalyInterceptionTarget | select (nested) | Sub-select: which anomaly boss |
-| Interception.json | ManualInterceptionBattle | switch | Single toggle |
-| Shop.json | ArenaShopItemList | checkbox | Multiple independent shop items |
-| Shop.json | RecyclingShopList | checkbox | Multiple independent recyclable items, default: ["Gem"] |
-| Shop.json | CommonShopFreeGoods | switch | Single toggle |
-| SimulationRoom.json | StartOverlock | switch | Single toggle, Yes case nests AutoBIOSSetting |
-| SimulationRoom.json | AutoBIOSSetting | switch (nested) | Sub-switch: automatic difficulty |
-| Output.json | DefenseRewards | switch | Default ON (default_case: "Yes") |
-| TribeTower.json | EnterCommonTower | switch | Default OFF, No before Yes in cases |
+| Task File           | Option                    | Type            | Why                                                     |
+| ------------------- | ------------------------- | --------------- | ------------------------------------------------------- |
+| Arena.json          | SpecialReward             | switch          | Single toggle (claim reward or not)                     |
+| Arena.json          | EnterRookieArena          | switch          | Single toggle (enter this arena or not)                 |
+| Interception.json   | InterceptionType          | select          | Mutual exclusion: Normal OR Anomaly                     |
+| Interception.json   | NormalyInterceptionLevel  | select (nested) | Sub-select: which difficulty level                      |
+| Interception.json   | AnomalyInterceptionTarget | select (nested) | Sub-select: which anomaly boss                          |
+| Interception.json   | ManualInterceptionBattle  | switch          | Single toggle                                           |
+| Shop.json           | ArenaShopItemList         | checkbox        | Multiple independent shop items                         |
+| Shop.json           | RecyclingShopList         | checkbox        | Multiple independent recyclable items, default: ["Gem"] |
+| Shop.json           | CommonShopFreeGoods       | switch          | Single toggle                                           |
+| SimulationRoom.json | StartOverlock             | switch          | Single toggle, Yes case nests AutoBIOSSetting           |
+| SimulationRoom.json | AutoBIOSSetting           | switch (nested) | Sub-switch: automatic difficulty                        |
+| Output.json         | DefenseRewards            | switch          | Default ON (default_case: "Yes")                        |
+| TribeTower.json     | EnterCommonTower          | switch          | Default OFF, No before Yes in cases                     |

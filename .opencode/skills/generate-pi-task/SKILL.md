@@ -3,8 +3,8 @@ name: generate-pi-task
 description: Generate or update MaaFramework Project Interface task JSON files based on pipeline definitions and interface specs. Use when creating, editing, or extending task files under assets/tasks/ that map pipeline nodes to user-facing options (switch/select/checkbox) with pipeline_override bindings.
 compatibility: opencode
 metadata:
-  version: "1.0"
-  project: MDA
+    version: "1.0"
+    project: MDA
 ---
 
 ## What I do
@@ -17,6 +17,7 @@ metadata:
 ## When to use me
 
 Use this skill when:
+
 - You need to create a new task file for a pipeline
 - You need to add options to an existing task file
 - A user mentions "generate task", "PI task", "pipeline option", or "interface task"
@@ -27,6 +28,7 @@ Use this skill when:
 ### Step 1: Read Specifications
 
 Read these files from `deps/tools/`:
+
 1. **`interface_import.schema.json`** — THE schema for task files (top-level: `task[]`, `option{}`, `preset[]`)
 2. **`interface.schema.json`** — Main PI schema (for understanding import/group/controller/resource context)
 3. **`pipeline.schema.json`** — Pipeline node schema (for understanding `enabled`, `next`, recognition fields)
@@ -55,6 +57,7 @@ Read these files from `deps/tools/`:
 This is the core decision logic. See [Option Type Decision Reference](references/option-types.md) for details.
 
 Quick rules:
+
 - Single node with `enabled` → **switch** (Yes/No toggle)
 - Sibling `enabled` nodes from same parent that are exclusive → **select** (each case enables self, disables siblings)
 - Independent items where multiple can be active → **checkbox**
@@ -82,8 +85,8 @@ Follow `interface_import.schema.json` exactly. Template:
             "type": "switch",
             "label": "$option.OptionKey1.label",
             "cases": [
-                { "name": "Yes", "pipeline_override": { "TargetNode": { "enabled": true } } },
-                { "name": "No", "pipeline_override": { "TargetNode": { "enabled": false } } }
+                {"name": "Yes", "pipeline_override": {"TargetNode": {"enabled": true}}},
+                {"name": "No", "pipeline_override": {"TargetNode": {"enabled": false}}}
             ]
         }
     }
@@ -93,6 +96,7 @@ Follow `interface_import.schema.json` exactly. Template:
 ### Step 7: Update Locale Files
 
 Add i18n keys to `assets/locales/interface/zh_cn.json` and `en_us.json`:
+
 - `task.{Name}.label` / `task.{Name}.description`
 - `option.{OptionKey}.label`
 - `option.{OptionKey}.{CaseName}` (for checkbox/select cases)
