@@ -123,7 +123,7 @@ jobs:
             # 去除末尾空格
             changed_files=$(echo "$changed_files" | xargs)
 
-            git commit -m "chore: update $changed_files schema files from MaaFramework" -m "Triggered by ${{github.sha}}" -m "[skip changelog]"
+            git commit -m "chore: 同步 $changed_files schema 文件 from MaaFramework" -m "Triggered by ${{github.sha}}" -m "[skip changelog]"
             git pull origin $(git rev-parse --abbrev-ref HEAD) --unshallow --rebase
             git push
             echo "have_commits=True" >> $GITHUB_OUTPUT

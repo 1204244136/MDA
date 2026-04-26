@@ -35,7 +35,7 @@ jobs:
         with:
           rebase: true
           branch: ${{ github.ref }}
-          message: "style: auto format code
+          message: "style: 自动格式化代码
 
             https://github.com/${{ github.repository
             }}/actions/runs/${{ github.run_id }}
