@@ -1,4 +1,34 @@
 {
+    "AdviseStory": {
+        "desc": "咨询剧情",
+        "next": [
+            "[JumpBack]SkipStory",
+            "[JumpBack]ClickContinue",
+            "[JumpBack]ClickOption",
+            "[JumpBack]DialogueFlag",
+            "EndTask"
+        ]
+    },
+    "DialogueFlag": {
+        "desc": "剧情的标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    953,
+                    0,
+                    327,
+                    75
+                ],
+                "expected": [
+                    ".*HIDE.*",
+                    ".*AUTO.*",
+                    ".*LOG.*",
+                    ".*SKIP.*"
+                ]
+            }
+        }
+    },
     "SkipStory": {
         "desc": "跳过剧情",
         "recognition": {
@@ -12,6 +42,47 @@
                 ],
                 "expected": [
                     "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ClickContinue": {
+        "desc": "点继续",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    880,
+                    662,
+                    78,
+                    54
+                ],
+                "template": [
+                    "Dialogues/Continue.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ClickOption": {
+        "desc": "点选项",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    452,
+                    383,
+                    56,
+                    324
+                ],
+                "expected": [
+                    "[0-9]",
+                    "[①②③④⑤⑥⑦⑧⑨]"
                 ]
             }
         },

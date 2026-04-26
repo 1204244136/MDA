@@ -1,0 +1,258 @@
+{
+    "Advise": {
+        "next": [
+            "EnterNikke",
+            "[JumpBack]EnterHall"
+        ]
+    },
+    "EnterNikke": {
+        "desc": "进入妮姬界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    501,
+                    632,
+                    28,
+                    23
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -30,
+                    30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "EnterAdvise",
+            "[JumpBack]FlagInNikke",
+            "EnterNikke"
+        ]
+    },
+    "FlagInNikke": {
+        "desc": "进入妮姬界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "妮姬"
+                ]
+            }
+        }
+    },
+    "EnterAdvise": {
+        "desc": "进入咨询界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1082,
+                    74,
+                    58,
+                    24
+                ],
+                "expected": [
+                    "咨询"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "ChooseNikke",
+            "[JumpBack]FlagInAdvise",
+            "EnterAdvise"
+        ]
+    },
+    "FlagInAdvise": {
+        "desc": "咨询界面的标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "咨询"
+                ]
+            }
+        }
+    },
+    "ChooseNikke": {
+        "desc": "选择Nikke",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    152,
+                    238,
+                    56,
+                    16
+                ],
+                "expected": [
+                    "RANK"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AdviseStart"
+        ]
+    },
+    "AdviseStart": {
+        "desc": "开始咨询",
+        "next": [
+            "AttemptsExhausted",
+            "AdviseCollectionCompleted",
+            "AdviseCollectionNotCompleted"
+        ]
+    },
+    "AttemptsExhausted": {
+        "desc": "次数耗尽",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    647,
+                    567,
+                    155,
+                    53
+                ],
+                "lower": [
+                    100,
+                    100,
+                    100
+                ],
+                "upper": [
+                    180,
+                    180,
+                    180
+                ],
+                "count": 500
+            }
+        }
+    },
+    "AdviseCollectionCompleted": {
+        "desc": "已收集完咨询日志",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    786,
+                    468,
+                    42,
+                    23
+                ],
+                "template": [
+                    "Advise/20.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "next": [
+            "QuickAdvise"
+        ]
+    },
+    "AdviseCollectionNotCompleted": {
+        "desc": "未收集完咨询日志",
+        "next": [
+            "NormalAdvise"
+        ]
+    },
+    "QuickAdvise": {
+        "desc": "快速咨询",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    702,
+                    533,
+                    66,
+                    26
+                ],
+                "expected": [
+                    "快速咨询"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Confirm",
+            "NextAdvise"
+        ]
+    },
+    "NormalAdvise": {
+        "desc": "普通咨询",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    697,
+                    573,
+                    52,
+                    24
+                ],
+                "expected": [
+                    "咨询"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Confirm",
+            "[JumpBack]AdviseStory",
+            "NextAdvise"
+        ]
+    },
+    "NextAdvise": {
+        "desc": "下一个咨询",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1199,
+                    247,
+                    81,
+                    134
+                ],
+                "template": [
+                    "Advise/NextAdvise.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "AdviseStart"
+        ]
+    }
+}

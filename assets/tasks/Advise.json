@@ -1,0 +1,41 @@
+{
+    "task": [
+        {
+            "name": "Advise",
+            "label": "$task.Advise.label",
+            "entry": "Advise",
+            "description": "$task.Advise.description",
+            "option": [
+                "NikkeAdvise"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "NikkeAdvise": {
+            "type": "switch",
+            "label": "$option.NikkeAdvise.label",
+            "description": "$task.NikkeAdvise.description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterAdvise": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterAdvise": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+    }
+}

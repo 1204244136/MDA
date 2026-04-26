@@ -64,6 +64,7 @@
         "tasks/Arena.json",
         "tasks/TribeTower.json",
         "tasks/Interception.json",
-        "tasks/Output.json"
+        "tasks/Output.json",
+        "tasks/Advise.json"
     ]
 }
