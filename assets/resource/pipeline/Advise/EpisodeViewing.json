@@ -1,0 +1,112 @@
+{
+    "EpisodeViewing": {
+        "desc": "花絮鉴赏会",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1250,
+                    648,
+                    27,
+                    27
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "EpisodeViewingRedDot"
+        ]
+    },
+    "EpisodeViewingRedDot": {
+        "desc": "点红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    788,
+                    397,
+                    25,
+                    227
+                ],
+                "template": [
+                    "RedDot.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -30,
+                    30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]AdviseStory",
+            "[JumpBack]PlayEpisode",
+            "[JumpBack]EpisodeViewingReward",
+            "PageClose2"
+        ]
+    },
+    "PlayEpisode": {
+        "desc": "播放花絮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    645,
+                    374,
+                    169,
+                    41
+                ],
+                "expected": [
+                    "播放花絮"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "EpisodeViewingReward": {
+        "desc": "花絮鉴赏会奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    719,
+                    647,
+                    83,
+                    36
+                ],
+                "expected": [
+                    "领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]RewardConfirm",
+            "PageClose"
+        ]
+    }
+}

@@ -69,5 +69,6 @@
     "task.Advise.description": "Enter the advise interface and complete advise tasks",
     "option.NikkeAdvise.label": "NIKKE Advise",
     "task.NikkeAdvise.description": "Will always advise the first 10 Nikke, you can increase priority by marking, and if it is enough, the mark will be cancelled automatically",
-    "option.EpisodeReward.label": "Claim Episode Reward"
+    "option.EpisodeReward.label": "Claim Episode Reward",
+    "option.EpisodeViewingReward.label": "Claim Episode Viewing Reward"
 }

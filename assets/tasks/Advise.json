@@ -6,7 +6,8 @@
             "entry": "Advise",
             "description": "$task.Advise.description",
             "option": [
-                "NikkeAdvise"
+                "NikkeAdvise",
+                "EpisodeViewingReward"
             ],
             "group": [
                 "daily"
@@ -56,6 +57,28 @@
                     "name": "No",
                     "pipeline_override": {
                         "EpisodeReward": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "EpisodeViewingReward": {
+            "type": "switch",
+            "label": "$option.EpisodeViewingReward.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EpisodeViewing": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EpisodeViewing": {
                             "enabled": false
                         }
                     }

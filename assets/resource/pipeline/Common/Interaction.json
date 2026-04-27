@@ -61,6 +61,26 @@
             "type": "Click"
         }
     },
+    "PageClose2": {
+        "desc": "关闭页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    744,
+                    270,
+                    114,
+                    114
+                ],
+                "template": [
+                    "CloseButton2.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
     "ClickMax": {
         "desc": "点击MAX",
         "recognition": {
