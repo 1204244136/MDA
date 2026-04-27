@@ -70,5 +70,9 @@
     "option.NikkeAdvise.label": "NIKKE咨询",
     "task.NikkeAdvise.description": "会始终对前10个妮姬进行咨询，可以通过收藏来提升优先级，好感度满了会自动取消收藏",
     "option.EpisodeReward.label": "领取花絮奖励",
-    "option.EpisodeViewingReward.label": "领取花絮鉴赏会奖励"
+    "option.EpisodeViewingReward.label": "领取花絮鉴赏会奖励",
+    "task.DailyRewards.label": "每日奖励",
+    "task.DailyRewards.description": "领取友情点、邮箱等每日奖励",
+    "option.FriendPoints.label": "友情点收发",
+    "option.Email.label": "邮箱领取"
 }

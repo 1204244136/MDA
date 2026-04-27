@@ -1,0 +1,10 @@
+{
+    "DailyRewards": {
+        "desc": "每日奖励",
+        "next": [
+            "[JumpBack]FriendPoints",
+            "[JumpBack]Email",
+            "EndTask"
+        ]
+    }
+}

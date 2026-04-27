@@ -1,0 +1,63 @@
+{
+    "task": [
+        {
+            "name": "DailyRewards",
+            "label": "$task.DailyRewards.label",
+            "entry": "DailyRewards",
+            "description": "$task.DailyRewards.description",
+            "option": [
+                "FriendPoints",
+                "Email"
+            ],
+            "group": [
+                "daily"
+            ]
+        }
+    ],
+    "option": {
+        "FriendPoints": {
+            "type": "switch",
+            "label": "$option.FriendPoints.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "FriendPoints": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "FriendPoints": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "Email": {
+            "type": "switch",
+            "label": "$option.Email.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Email": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Email": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

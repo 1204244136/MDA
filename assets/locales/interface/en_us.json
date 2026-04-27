@@ -70,5 +70,9 @@
     "option.NikkeAdvise.label": "NIKKE Advise",
     "task.NikkeAdvise.description": "Will always advise the first 10 Nikke, you can increase priority by marking, and if it is enough, the mark will be cancelled automatically",
     "option.EpisodeReward.label": "Claim Episode Reward",
-    "option.EpisodeViewingReward.label": "Claim Episode Viewing Reward"
+    "option.EpisodeViewingReward.label": "Claim Episode Viewing Reward",
+    "task.DailyRewards.label": "Daily Rewards",
+    "task.DailyRewards.description": "Claim daily rewards such as friend points and email",
+    "option.FriendPoints.label": "Send & Receive Friend Points",
+    "option.Email.label": "Claim Email Rewards"
 }

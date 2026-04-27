@@ -1,0 +1,79 @@
+{
+    "Email": {
+        "desc": "邮箱",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1226,
+                    9,
+                    20,
+                    19
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "EmailFlag"
+        ]
+    },
+    "EmailFlag": {
+        "desc": "邮箱的标志",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    637,
+                    87,
+                    44,
+                    24
+                ],
+                "expected": [
+                    "邮箱"
+                ]
+            }
+        },
+        "next": [
+            "EmailClaim",
+            "Email"
+        ]
+    },
+    "EmailClaim": {
+        "desc": "邮箱收取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    706,
+                    596,
+                    77,
+                    28
+                ],
+                "expected": [
+                    "全部领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1500,
+        "next": [
+            "[JumpBack]RewardConfirm",
+            "PageClose"
+        ]
+    }
+}

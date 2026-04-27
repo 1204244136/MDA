@@ -1,0 +1,86 @@
+{
+    "FriendPoints": {
+        "desc": "友情点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1244,
+                    144,
+                    32,
+                    32
+                ],
+                "template": [
+                    "RedDot.png",
+                    "New.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "SendAndReceive"
+        ]
+    },
+    "SendAndReceive": {
+        "desc": "友情点收发",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    799,
+                    588,
+                    21,
+                    19
+                ],
+                "template": [
+                    "RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "ReceiveConfirm"
+        ]
+    },
+    "ReceiveConfirm": {
+        "desc": "操作确认",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    574,
+                    434,
+                    36,
+                    33
+                ],
+                "template": [
+                    "ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    }
+}
