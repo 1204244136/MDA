@@ -1,17 +1,9 @@
 name: PNG Image Optimization
 
 on:
-  push:
-    branches:
-      - "**"
-    paths:
-      - "**/*.png"
   workflow_dispatch:
-    inputs:
-      commit_message:
-        description: "Commit Message"
-        type: string
-        required: false
+  schedule:
+    - cron: "0 16,22 * * *" # UTC+8 0:00, 06:00
 
 permissions:
   contents: write
@@ -54,9 +46,9 @@ jobs:
         with:
           rebase: true
           branch: ${{ github.ref }}
-          message: "${{ github.event.inputs.commit_message || 'chore: 自动优化图片模板' }}
+          message: "chore: 自动优化图片模板
 
-            Triggered by ${{ github.sha }}
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             [skip changelog]"
           github_token: ${{ secrets.GITHUB_TOKEN }}
