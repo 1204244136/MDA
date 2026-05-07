@@ -1,0 +1,99 @@
+{
+    "LargeEventStarAnisMerchBagClick": {
+        "max_hit": 1,
+        "desc": "点击周边包包",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1208,
+                    130,
+                    63,
+                    21
+                ],
+                "expected": [
+                    "周边包包"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LargeEventStarAnisMerchLotteryClick",
+            "LargeEventStarAnisMerchGachaClick"
+        ]
+    },
+    "LargeEventStarAnisMerchLotteryClick": {
+        "max_hit": 1,
+        "desc": "点击抽取刮刮乐周边",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    681,
+                    417,
+                    106,
+                    102
+                ],
+                "expected": [
+                    "抽取刮刮乐周边"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LargeEventStarAnisPlayMerchLotteryClick"
+        ]
+    },
+    "LargeEventStarAnisMerchGachaClick": {
+        "max_hit": 1,
+        "desc": "点击抽取周边",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1212,
+                    166,
+                    58,
+                    21
+                ],
+                "expected": [
+                    "抽取周边"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LargeEventStarAnisPlayMerchLotteryClick"
+        ]
+    },
+    "LargeEventStarAnisPlayMerchLotteryClick": {
+        "max_hit": 1,
+        "desc": "点击画面进行抽取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    589,
+                    515,
+                    101,
+                    29
+                ],
+                "expected": [
+                    ".*抽取.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LargeEventStarAnisMerchLotteryClick"
+        ]
+    }
+}
