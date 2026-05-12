@@ -26,6 +26,9 @@
                     "pipeline_override": {
                         "ShopFreeGoodsPurchase": {
                             "enabled": true
+                        },
+                        "ShopFreeReset": {
+                            "enabled": true
                         }
                     }
                 },
@@ -33,6 +36,9 @@
                     "name": "No",
                     "pipeline_override": {
                         "ShopFreeGoodsPurchase": {
+                            "enabled": false
+                        },
+                        "ShopFreeReset": {
                             "enabled": false
                         }
                     }
