@@ -1,0 +1,25 @@
+{
+    "RedDotClearMain": {
+        "desc": "红点清除入口",
+        "next": [
+            "RedDotClearStart",
+            "[JumpBack]NavigationEnterHall"
+        ]
+    },
+    "RedDotClearStart": {
+        "desc": "红点清除",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "NavigationArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]RedDotClearCashShop",
+            "[JumpBack]RedDotClearNotice",
+            "CommonEndTask"
+        ]
+    }
+}

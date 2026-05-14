@@ -1,0 +1,82 @@
+{
+    "RedDotClearCashShop": {
+        "desc": "清除付费商店红点",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    418,
+                    423,
+                    22,
+                    20
+                ],
+                "template": [
+                    "Common/New.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCashShopFlow"
+        ]
+    },
+    "RedDotClearCashShopFlow": {
+        "desc": "付费商店流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CashShopMainPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCashShopNewClick"
+        ]
+    },
+    "RedDotClearCashShopNewClick": {
+        "desc": "付费商店点击new",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    3,
+                    140,
+                    883,
+                    89
+                ],
+                "template": [
+                    "Common/New.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCashShopNewClick",
+            "CommonEndTask"
+        ]
+    }
+}

@@ -1,0 +1,151 @@
+{
+    "RedDotClearNotice": {
+        "desc": "清除公告红点",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1191,
+                    10,
+                    16,
+                    16
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearNoticeFlow"
+        ]
+    },
+    "RedDotClearNoticeFlow": {
+        "desc": "公告流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "NavigationNoticeVisible"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]RedDotClearNoticeRedDotClickBottom",
+            "[JumpBack]RedDotClearNoticeRedDotClickTop",
+            "[JumpBack]RedDotClearScrollUp",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearNoticeRedDotClickBottom": {
+        "desc": "公告底部点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    775,
+                    133,
+                    46,
+                    507
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                464,
+                34,
+                353,
+                625
+            ]
+        },
+        "next": [
+            "CommonClickBlank"
+        ]
+    },
+    "RedDotClearNoticeRedDotClickTop": {
+        "desc": "公告顶部点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    84,
+                    362,
+                    50
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        }
+    },
+    "RedDotClearScrollUp": {
+        "desc": "向上滑动",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    84,
+                    362,
+                    50
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    528
+                ],
+                "end": [
+                    627,
+                    238
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": 20
+    }
+}
