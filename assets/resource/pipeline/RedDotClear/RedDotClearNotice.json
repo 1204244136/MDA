@@ -44,7 +44,6 @@
         "next": [
             "[JumpBack]RedDotClearNoticeRedDotClickBottom",
             "[JumpBack]RedDotClearNoticeRedDotClickTop",
-            "[JumpBack]RedDotClearScrollUp",
             "CommonEndTask"
         ]
     },
@@ -61,7 +60,8 @@
                 ],
                 "template": [
                     "Common/RedDot.png"
-                ]
+                ],
+                "threshold": 0.8
             }
         },
         "action": {
@@ -85,7 +85,7 @@
             ]
         },
         "next": [
-            "CommonClickBlank"
+            "RedDotClearNoticenClickBlank"
         ]
     },
     "RedDotClearNoticeRedDotClickTop": {
@@ -114,6 +114,30 @@
                     0
                 ]
             }
+        },
+        "next": [
+            "RedDotClearScrollUp"
+        ]
+    },
+    "RedDotClearNoticenClickBlank": {
+        "desc": "公告点击空白",
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    150,
+                    650
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                464,
+                134,
+                353,
+                464
+            ]
         }
     },
     "RedDotClearScrollUp": {
