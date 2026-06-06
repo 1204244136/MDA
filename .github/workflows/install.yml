@@ -210,6 +210,28 @@ jobs:
             exit 1
           fi
 
+      - name: Stage go-service binary
+        shell: bash
+        run: |
+          mkdir -p agent-artifact
+          if [[ "${{ matrix.os }}" == "win" ]]; then
+            BIN="install/agent/go-service.exe"
+          else
+            BIN="install/agent/go-service"
+          fi
+          if [ ! -f "$BIN" ]; then
+            echo "❌ Agent binary not found: $BIN"
+            exit 1
+          fi
+          cp "$BIN" agent-artifact/
+          ls -la agent-artifact/
+          
+      - uses: actions/upload-artifact@v6
+        with:
+          name: go-service-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}
+          path: agent-artifact
+          retention-days: 7
+
       - uses: actions/upload-artifact@v6
         with:
           name: MDA-${{ matrix.os }}-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}
