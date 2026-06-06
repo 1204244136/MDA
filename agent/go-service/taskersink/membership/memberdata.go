@@ -167,14 +167,17 @@ func checkMembership() *MembershipStatus {
 	cachedDeviceCode = deviceCode
 
 	defaultStatus := &MembershipStatus{
-		Tier:                "Orange Free",
-		TierCode:            "orange_free",
-		TierName:            "Orange Free",
-		PlanName:            "Orange Free",
-		DailyRuntimeMinutes: 10,
-		AllFeaturesUnlocked: true,
-		IsMember:            false,
-		DeviceCode:          deviceCode,
+			Tier:                "Debug",
+			TierCode:            "debug",
+			TierName:            "Debug",
+			PlanCode:            "debug",
+			PlanName:            "Debug",
+			StartsOn:            "00000000",
+			ExpiresOn:           "99991231",
+			RemainingDays:       9999,
+			AllFeaturesUnlocked: true,
+			UnlimitedRuntime:    true,
+			IsMember:            true,
 	}
 
 	log.Info().
