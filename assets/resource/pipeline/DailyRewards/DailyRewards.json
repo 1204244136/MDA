@@ -9,7 +9,7 @@
         },
         "next": [
             "DailyRewardsEntryFlow",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "DailyRewardsEntryFlow": {
@@ -18,7 +18,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },

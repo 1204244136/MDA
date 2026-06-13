@@ -15,7 +15,8 @@
             "type": "Click"
         },
         "next": [
-            "SpecialArenaCornerFlow"
+            "SpecialArenaCornerFlow",
+            "ArenaEnterSpecialArena" //兜底
         ]
     },
     "SpecialArenaMainPageEntered": {
@@ -30,7 +31,7 @@
                     25
                 ],
                 "expected": [
-                    "特殊竞技场"
+                    ".*特殊.*" //特殊竞技场
                 ]
             }
         }
@@ -46,7 +47,7 @@
             }
         },
         "next": [
-            "[JumpBack]ArenaFreeBattle",
+            "[JumpBack]ArenaClickFreeBattle",
             "ArenaCornerFlow",
             "[JumpBack]CommonGoBack"
         ]

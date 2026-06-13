@@ -1,0 +1,257 @@
+{
+    "AccountNurturingRecycleRoomUpgrade": {
+        "desc": "循环室升级",
+        "max_hit": 1,
+        "next": [
+            "AccountNurturingRecycleRoomUpgradeEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "AccountNurturingRecycleRoomUpgradeEnterHall": {
+        "desc": "循环室升级进入流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingRecycleRoomUpgradeEnterFlow",
+            "[JumpBack]CommonEnterOutpost"
+        ]
+    },
+    "AccountNurturingRecycleRoomUpgradeEnterFlow": {
+        "desc": "进入循环室升级流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "OutpostMainPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "RecycleRoomUpgradeClickRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "RecycleRoomUpgradeClickRedDot": {
+        "desc": "点击循环室红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    740,
+                    579,
+                    21,
+                    19
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RecycleRoomUpgradeEnterRecycleRoomUpgrade"
+        ]
+    },
+    "RecycleRoomUpgradeEnterRecycleRoomUpgrade": {
+        "desc": "进入循环室",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    719,
+                    667,
+                    47,
+                    32
+                ],
+                "expected": [
+                    ".*进入.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "RecycleRoomUpgradeFlow"
+        ]
+    },
+    "RecycleRoomUpgradeFlow": {
+        "desc": "循环室升级流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RecycleRoomEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]RecycleRoomClickRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "RecycleRoomEntered": {
+        "desc": "处于循环室界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    ".*循环室.*"
+                ]
+            }
+        }
+    },
+    "RecycleRoomClickRedDot": {
+        "desc": "点击循环室升级红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    477,
+                    1,
+                    398,
+                    718
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    90,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 200,
+        "next": [
+            "[JumpBack]RecycleRoomClickMax",
+            "RecycleRoomClickUpgrade"
+        ]
+    },
+    "RecycleRoomClickMax": {
+        "desc": "点击升级max",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RecycleRoomClickMaxVisible",
+                    "RecycleRoomClickMaxAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RecycleRoomClickMaxVisible": {
+        "desc": "升级max可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    732,
+                    492,
+                    49,
+                    33
+                ],
+                "template": [
+                    "Common/MAX.png"
+                ]
+            }
+        }
+    },
+    "RecycleRoomClickMaxAvailable": {
+        "desc": "升级max可点击",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "RecycleRoomClickMaxVisible",
+                "lower": [
+                    140,
+                    140,
+                    140
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 50
+            }
+        }
+    },
+    "RecycleRoomClickUpgrade": {
+        "desc": "点击升级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    657,
+                    571,
+                    65,
+                    34
+                ],
+                "expected": [
+                    "升级"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "[JumpBack]RecycleRoomUpgradeConfirm",
+            "CommonClosePage"
+        ]
+    },
+    "RecycleRoomUpgradeConfirm": {
+        "desc": "升级结果确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    592,
+                    474,
+                    96,
+                    24
+                ],
+                "expected": [
+                    ".*点击.*" //点击进行下一步
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 200
+    }
+}

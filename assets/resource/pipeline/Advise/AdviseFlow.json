@@ -3,6 +3,7 @@
         "desc": "开始咨询流程",
         "next": [
             "AdviseAttemptsExhausted",
+            "AdviseCurrentTargetCompletedFlow",
             "AdviseCollectionCompletedFlow",
             "AdviseCollectionNotCompletedFlow"
         ]
@@ -44,6 +45,31 @@
             }
         }
     },
+    "AdviseQuickAdviseGrayButtonVisible": {
+        "desc": "快速咨询按钮变灰",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    647,
+                    527,
+                    155,
+                    35
+                ],
+                "lower": [
+                    100,
+                    100,
+                    100
+                ],
+                "upper": [
+                    180,
+                    180,
+                    180
+                ],
+                "count": 500
+            }
+        }
+    },
     "Advise0AttemptsVisible": {
         "desc": "次数变0",
         "recognition": {
@@ -56,9 +82,9 @@
                     14
                 ],
                 "expected": [
-                    "0",
-                    "O",
-                    "o"
+                    "^0$",
+                    "^O$",
+                    "^o$"
                 ],
                 "threshold": 0.2
             }
@@ -67,17 +93,25 @@
     "AdviseCollectionCompletedVisible": {
         "desc": "已收集完咨询日志",
         "recognition": {
-            "type": "OCR",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    790,
-                    469,
-                    19,
-                    20
+                    815,
+                    483,
+                    8,
+                    13
                 ],
-                "expected": [
-                    ".*20.*"
-                ]
+                "lower": [
+                    200,
+                    40,
+                    30
+                ],
+                "upper": [
+                    255,
+                    80,
+                    80
+                ],
+                "count": 10
             }
         }
     },
@@ -92,10 +126,25 @@
             }
         },
         "next": [
-            "AdviseQuickAdvise"
+            "AdviseClickQuickAdvise"
         ]
     },
-    "AdviseNormalAdvise": {
+    "AdviseCurrentTargetCompletedFlow": {
+        "desc": "当前咨询对象已完成",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "AdviseQuickAdviseGrayButtonVisible",
+                    "AdviseGrayButtonVisible"
+                ]
+            }
+        },
+        "next": [
+            "AdviseClickNextAdvise"
+        ]
+    },
+    "AdviseClickNormalAdvise": {
         "desc": "普通咨询",
         "recognition": {
             "type": "OCR",
@@ -120,7 +169,7 @@
             "AdviseSettlementFlow"
         ]
     },
-    "AdviseQuickAdvise": {
+    "AdviseClickQuickAdvise": {
         "desc": "快速咨询",
         "recognition": {
             "type": "OCR",
@@ -146,6 +195,16 @@
     },
     "AdviseSettlementFlow": {
         "desc": "咨询结算",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "AdviseCornerVisible",
+                    "AdviseConfirmRankIncrease",
+                    "AdviseBondIncreasedVisible"
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -159,9 +218,26 @@
             "[JumpBack]AdviseRemoveFavorites",
             "[JumpBack]AdviseConfirmRankIncrease",
             "[JumpBack]AdviseBondIncreasedVisible",
-            "[JumpBack]AdviseEpisodeReward",
-            "AdviseNextAdvise"
+            "[JumpBack]AdviseEpisodeRewardEntry",
+            "AdviseClickNextAdvise"
         ]
+    },
+    "AdviseCornerVisible": {
+        "desc": "左上角的咨询文本",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "咨询"
+                ]
+            }
+        }
     },
     "AdviseRemoveFavorites": {
         "desc": "移除收藏",
@@ -219,7 +295,15 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                742,
+                351,
+                80,
+                142
+            ]
+        }
     },
     "AdviseBondIncreasedVisible": {
         "desc": "好感度提升的标识",
@@ -238,7 +322,7 @@
             }
         }
     },
-    "AdviseNextAdvise": {
+    "AdviseClickNextAdvise": {
         "desc": "下一个咨询",
         "recognition": {
             "type": "TemplateMatch",
@@ -265,7 +349,7 @@
     "AdviseCollectionNotCompletedFlow": {
         "desc": "未收集完咨询日志",
         "next": [
-            "AdviseNormalAdvise"
+            "AdviseClickNormalAdvise"
         ]
     },
     "AdviseFavoriteSelected": {
@@ -296,16 +380,16 @@
     "AdviseMaxLevelVisible": {
         "desc": "已max",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    695,
-                    461,
-                    32,
-                    17
+                    687,
+                    457,
+                    45,
+                    21
                 ],
-                "expected": [
-                    "MAX"
+                "template": [
+                    "Advise/MAX.png"
                 ]
             }
         }

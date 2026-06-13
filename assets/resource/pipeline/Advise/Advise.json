@@ -10,7 +10,7 @@
         },
         "next": [
             "AdviseEntryFlow",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "AdviseEntryFlow": {
@@ -19,7 +19,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },
@@ -84,7 +84,7 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "[JumpBack]AdviseEpisodeViewing",
+            "[JumpBack]AdviseEpisodeViewingEntry",
             "AdviseChooseNikke",
             "[JumpBack]AdviseMainPageEntered",
             "AdviseEnterAdvisePage"

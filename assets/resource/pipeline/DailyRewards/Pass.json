@@ -3,12 +3,12 @@
         "desc": "Pass入口",
         "max_hit": 1,
         "next": [
-            "[JumpBack]DailyRewardsPassChangeClick",
+            "[JumpBack]DailyRewardsPassClickChange",
             "DailyRewardsPassFlow",
             "CommonEndTask"
         ]
     },
-    "DailyRewardsPassChangeClick": {
+    "DailyRewardsPassClickChange": {
         "desc": "点击更换pass", //确保其一定时间内不会再次更换，防止出现在更换途中识别导致失败的情况
         "max_hit": 1,
         "recognition": {
@@ -53,7 +53,7 @@
             "[JumpBack]DailyRewardsClickPassRedDot",
             "DailyRewardsPassFlow",
             "[JumpBack]CommonClosePage",
-            "CommonEndTask"
+            "CommonClickBlank"
         ]
     },
     "DailyRewardsClickPassRedDot": {
@@ -128,7 +128,8 @@
                 "template": [
                     "Common/RedDot.png"
                 ],
-                "threshold": 0.9
+                "threshold": 0.75,
+                "index": -1
             }
         },
         "action": {
@@ -211,11 +212,7 @@
                     ".*全部.*"
                 ]
             }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500
+        }
     },
     "DailyRewardsPassAvailable": {
         "desc": "Pass可用",

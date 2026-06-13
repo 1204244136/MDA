@@ -4,10 +4,10 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]ShopEnterCommonShop",
-            "[JumpBack]ShopConfirmPurchase",
-            "[JumpBack]ShopFreeGoodsPurchase",
-            "[JumpBack]ShopCoreDustCasePurchase",
-            "[JumpBack]ShopFreeReset",
+            "[JumpBack]ShopPurchaseFlow",
+            "[JumpBack]ShopPurchaseFreeGoods",
+            "[JumpBack]ShopPurchaseCoreDustCase",
+            "[JumpBack]ShopClickFreeReset",
             "CommonEndTask"
         ]
     },
@@ -54,7 +54,7 @@
             }
         }
     },
-    "ShopFreeGoodsPurchase": {
+    "ShopPurchaseFreeGoods": {
         "desc": "购买免费商品",
         "recognition": {
             "type": "TemplateMatch",
@@ -74,7 +74,7 @@
             "type": "Click"
         }
     },
-    "ShopCoreDustCasePurchase": {
+    "ShopPurchaseCoreDustCase": {
         "desc": "购买芯尘盒",
         "max_hit": 2,
         "recognition": {
@@ -83,7 +83,7 @@
                 "roi": [
                     182,
                     352,
-                    109,
+                    217,
                     164
                 ],
                 "template": [
@@ -96,7 +96,7 @@
             "type": "Click"
         }
     },
-    "ShopFreeReset": {
+    "ShopClickFreeReset": {
         "desc": "免费刷新",
         "recognition": {
             "type": "TemplateMatch",
@@ -125,7 +125,7 @@
         },
         "next": [
             "ShopConfirmReset",
-            "ShopFreeReset"
+            "ShopClickFreeReset"
         ]
     },
     "ShopConfirmReset": {

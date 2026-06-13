@@ -1,0 +1,299 @@
+{
+    "RedDotClearCostumeGacha": {
+        "desc": "清除时装抽取红点",
+        "max_hit": 1,
+        "next": [
+            "RedDotClearCostumeGachaEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearCostumeGachaEnterHall": {
+        "desc": "时装抽取入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCostumeGachaClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearCostumeGachaClickEntry": {
+        "desc": "点击时装抽取红点",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CostumeGachaVisible",
+                    "CostumeGachaNewOrReddot"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                588,
+                57,
+                74,
+                19
+            ]
+        },
+        "next": [
+            "RedDotClearCostumeGachaFlow"
+        ]
+    },
+    "CostumeGachaVisible": {
+        "desc": "时装抽取可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    120,
+                    200,
+                    260
+                ],
+                "template": [
+                    "RedDotClear/CostumeGacha.png"
+                ],
+                "threshold": 0.8
+            }
+        }
+    },
+    "CostumeGachaNewOrReddot": {
+        "desc": "时装抽取有New的图标或红点",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "CostumeGachaNew",
+                    "CostumeGachaReddot"
+                ]
+            }
+        }
+    },
+    "CostumeGachaNew": {
+        "desc": "时装抽取有New的图标",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "CostumeGachaVisible",
+                "roi_offset": [
+                    10,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/New.png"
+                ]
+            }
+        }
+    },
+    "CostumeGachaReddot": {
+        "desc": "时装抽取有红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "CostumeGachaVisible",
+                "roi_offset": [
+                    10,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearCostumeGachaFlow": {
+        "desc": "时装抽取流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CostumeGachaEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]CostumeGachaEnterTicketShop",
+            "CostumeGachaClickGacha"
+        ]
+    },
+    "CostumeGachaEntered": {
+        "desc": "处于时装抽取界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "时装抽取"
+                ]
+            }
+        }
+    },
+    "CostumeGachaEnterTicketShop": {
+        "desc": "进入时装抽取票券商店",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    538,
+                    55,
+                    179,
+                    23
+                ],
+                "expected": [
+                    ".*票券商店.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CostumeGachaPurchaseFreeTicketFlow"
+        ]
+    },
+    "CostumeGachaPurchaseFreeTicketFlow": {
+        "desc": "购买免费票券流程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "票券商店"
+                ]
+            }
+        },
+        "post_wait_freezes": 200,
+        "next": [
+            "CostumeGachaPurchaseFreeTicket",
+            "CostumeGachaReturnGachaPage"
+        ]
+    },
+    "CostumeGachaPurchaseFreeTicket": {
+        "desc": "购买免费票券",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    7,
+                    263,
+                    641,
+                    182
+                ],
+                "expected": [
+                    ".*免费.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "[JumpBack]CommonConfirmAction",
+            "[JumpBack]CommonConfirmReward",
+            "[JumpBack]CostumeGachaReturnGachaPage",
+            "CommonEndTask"
+        ]
+    },
+    "CostumeGachaReturnGachaPage": {
+        "desc": "返回时装抽取页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "票券商店"
+                ]
+            }
+        },
+        "next": [
+            "CommonGoBack"
+        ]
+    },
+    "CostumeGachaClickGacha": {
+        "desc": "点击抽取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    607,
+                    100,
+                    33
+                ],
+                "expected": [
+                    "抽取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "CommonConfirmAction",
+            "[JumpBack]CommonSkipPlot",
+            "[JumpBack]CommonConfirmReward",
+            "RedDotClearCostumeGachaFlow"
+        ]
+    },
+    "CostumeGachaConfirmTicket": {
+        "desc": "确认票券不足",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    566,
+                    429,
+                    248,
+                    250
+                ],
+                "template": [
+                    "Common/ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click"
+        }
+    }
+}

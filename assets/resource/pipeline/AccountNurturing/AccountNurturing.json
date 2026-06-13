@@ -1,0 +1,33 @@
+{
+    "AccountNurturingMain": {
+        "desc": "账号养成入口",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "RuntimeQuotaCheck"
+            }
+        },
+        "next": [
+            "AccountNurturingEntryFlow",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "AccountNurturingEntryFlow": {
+        "desc": "账号养成流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]AccountNurturingCharacterBreakthrough",
+            "[JumpBack]AccountNurturingSynchroDeviceEnhance",
+            "[JumpBack]AccountNurturingCubeEnhancement",
+            "[JumpBack]AccountNurturingRecycleRoomUpgrade",
+            "CommonEndTask"
+        ]
+    }
+}

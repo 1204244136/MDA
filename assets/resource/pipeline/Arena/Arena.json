@@ -7,14 +7,13 @@
             }
         },
         "next": [
-            "[JumpBack]ArenaSpecialRewardClaim",
+            "[JumpBack]ArenaClaimSpecialReward",
             "ArkEnterArena",
-            "[JumpBack]NavigationEnterArkFlow"
+            "[JumpBack]CommonEnterArk"
         ]
     },
-    "ArenaSpecialRewardClaim": {
+    "ArenaClaimSpecialReward": {
         "desc": "领取累积奖励",
-        "max_hit": 1,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -36,7 +35,7 @@
         "next": [
             "[JumpBack]CommonConfirmAction",
             "[JumpBack]CommonConfirmReward",
-            "ArenaSpecialRewardClaim",
+            "ArenaClaimSpecialReward",
             "CommonEndTask"
         ]
     },
@@ -95,8 +94,8 @@
             "CommonEndTask"
         ]
     },
-    "ArenaFreeBattle": {
-        "desc": "免费战斗",
+    "ArenaClickFreeBattle": {
+        "desc": "点击免费战斗",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -114,10 +113,10 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1000,
+        "post_wait_freezes": 500, //再低会出现双击从而跳过流程
         "next": [
             "ArenaFreeBattleFlow",
-            "ArenaFreeBattle"
+            "ArenaClickFreeBattle"
         ]
     },
     "ArenaFreeBattleVisible": {

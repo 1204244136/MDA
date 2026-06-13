@@ -10,7 +10,7 @@
         },
         "next": [
             "CoordinatedOperationsEntryFlow",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "CoordinatedOperationsEntryFlow": {
@@ -19,17 +19,17 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },
         "next": [
-            "CoordinatedOperationsSearch",
+            "CoordinatedOperationsClickEntry",
             "[JumpBack]CoordinatedOperationsSlideBanner",
             "CommonEndTask"
         ]
     },
-    "CoordinatedOperationsSearch": {
+    "CoordinatedOperationsClickEntry": {
         "desc": "寻找协同作战",
         "recognition": {
             "type": "TemplateMatch",
@@ -51,7 +51,7 @@
         },
         "next": [
             "CoordinatedOperationsFlow",
-            "CoordinatedOperationsSearch"
+            "CoordinatedOperationsClickEntry"
         ]
     },
     "CoordinatedOperationsFlow": {
@@ -97,11 +97,11 @@
         },
         "post_wait_freezes": 200,
         "next": [
-            "CoordinatedOperationsDifficultySelect",
+            "CoordinatedOperationsSelectDifficulty",
             "CommonEndTask"
         ]
     },
-    "CoordinatedOperationsDifficultySelect": {
+    "CoordinatedOperationsSelectDifficulty": {
         "desc": "协同作战难度选择",
         "recognition": {
             "type": "OCR",
@@ -121,10 +121,10 @@
             "type": "Click"
         },
         "next": [
-            "CoordinatedOperationsDifficultyConfirm"
+            "CoordinatedOperationsConfirmDifficulty"
         ]
     },
-    "CoordinatedOperationsDifficultyConfirm": {
+    "CoordinatedOperationsConfirmDifficulty": {
         "desc": "协同作战难度确认",
         "recognition": {
             "type": "OCR",
@@ -145,10 +145,10 @@
         },
         "timeout": 60000,
         "next": [
-            "CoordinatedOperationsMatchConfirm"
+            "CoordinatedOperationsConfirmMatch"
         ]
     },
-    "CoordinatedOperationsMatchConfirm": {
+    "CoordinatedOperationsConfirmMatch": {
         "desc": "协同作战匹配确认",
         "recognition": {
             "type": "TemplateMatch",
@@ -169,12 +169,12 @@
         },
         "timeout": 60000,
         "next": [
-            "CoordinatedOperationsReady",
-            "CoordinatedOperationsMatchConfirm",
+            "CoordinatedOperationsClickReady",
+            "CoordinatedOperationsConfirmMatch",
             "CoordinatedOperationsConfirmConnectionInterrupted"
         ]
     },
-    "CoordinatedOperationsReady": {
+    "CoordinatedOperationsClickReady": {
         "desc": "协同作战准备就绪",
         "recognition": {
             "type": "OCR",

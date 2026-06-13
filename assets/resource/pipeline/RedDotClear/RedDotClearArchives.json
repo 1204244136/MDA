@@ -1,0 +1,268 @@
+{
+    "RedDotClearArchives": {
+        "desc": "清除档案馆红点",
+        "max_hit": 1,
+        "next": [
+            "RedDotClearArchivesEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearArchivesEnterHall": {
+        "desc": "档案馆入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearArchivesClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearArchivesClickEntry": {
+        "desc": "点击档案馆红点",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "ArchivesVisible",
+                    "ArchivesNew"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "RedDotClearArchivesFlow"
+        ]
+    },
+    "ArchivesVisible": {
+        "desc": "档案馆可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    120,
+                    200,
+                    260
+                ],
+                "template": [
+                    "RedDotClear/Archives.png"
+                ]
+            }
+        }
+    },
+    "ArchivesNew": {
+        "desc": "档案馆有New的图标",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ArchivesVisible",
+                "roi_offset": [
+                    20,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/New.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearArchivesFlow": {
+        "desc": "档案馆流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "ArchivesEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]ArchivesRedDotClickBottom",
+            "[JumpBack]ArchivesRedDotClickTop",
+            "CommonClosePage",
+            "CommonEndTask"
+        ]
+    },
+    "ArchivesEntered": {
+        "desc": "处于档案馆界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    ".*回忆.*"
+                ]
+            }
+        }
+    },
+    "ArchivesRedDotClickBottom": {
+        "desc": "档案馆底部点击红点", //实际上点的是活动奖励文本，因为红点在大面积下容易误判
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    461,
+                    103,
+                    358,
+                    613
+                ],
+                "expected": [
+                    ".*活动奖励.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "ArchivesClickUnlock"
+        ]
+    },
+    "ArchivesRedDotLeft": {
+        "desc": "档案馆左侧红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    476,
+                    146,
+                    18,
+                    578
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "ArchivesRedDotRight": {
+        "desc": "档案馆右侧红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    784,
+                    146,
+                    21,
+                    578
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "ArchivesClickUnlock": {
+        "desc": "档案馆点击解锁",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    623,
+                    556,
+                    69,
+                    35
+                ],
+                "expected": [
+                    ".*解锁.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward",
+            "[JumpBack]CommonConfirmAction",
+            "[JumpBack]DialoguesSkipStory",
+            "CommonClosePage",
+            "[JumpBack]CommonGoBack",
+            "[JumpBack]CommonTouchToContinue"
+        ]
+    },
+    "ArchivesRedDotClickTop": {
+        "desc": "档案馆顶部点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    467,
+                    118,
+                    264,
+                    33
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearArchivesScrollUp"
+        ]
+    },
+    "RedDotClearArchivesScrollUp": {
+        "desc": "向上滑动",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    84,
+                    362,
+                    50
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    528
+                ],
+                "end": [
+                    627,
+                    238
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": 20
+    }
+}

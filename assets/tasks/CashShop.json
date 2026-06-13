@@ -44,7 +44,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "ShopStepUpPackagePurchase": {
+                        "ShopPurchaseStepUpPackage": {
                             "enabled": true
                         }
                     }
@@ -52,7 +52,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "ShopStepUpPackagePurchase": {
+                        "ShopPurchaseStepUpPackage": {
                             "enabled": false
                         }
                     }

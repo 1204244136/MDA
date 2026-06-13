@@ -1,5 +1,5 @@
 {
-    "SmallEventMission": {
+    "SmallEventEnterMission": {
         "desc": "小活动任务",
         "enabled": false,
         "max_hit": 1,

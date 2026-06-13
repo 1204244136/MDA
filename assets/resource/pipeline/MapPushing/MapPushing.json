@@ -9,23 +9,32 @@
         },
         "next": [
             "[JumpBack]BattleEntryFlow",
-            "[JumpBack]MapPushingMonsterClick",
-            "[JumpBack]MapPushingplateClick"
+            "[JumpBack]CommonSkipPlot",
+            "[JumpBack]MapPushingClickMonster",
+            "[JumpBack]MapPushingClickPlate"
         ]
     },
-    "MapPushingMonsterClick": {
-        "desc": "推图点击怪物",
+    "MapPushingClickMonsterRaw": {
+        "desc": "推图怪物原始识别",
         "recognition": {
             "type": "NeuralNetworkDetect",
             "param": {
-                "expected": [
-                    0
-                ],
                 "model": "MapPushing.onnx",
                 "labels": [
                     "monster"
-                ],
-                "order_by": "Area"
+                ]
+            }
+        }
+    },
+    "MapPushingClickMonster": {
+        "desc": "推图点击怪物",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CenterPriorityRecognition",
+                "custom_recognition_param": {
+                    "entry": "MapPushingClickMonsterRaw"
+                }
             }
         },
         "action": {
@@ -41,19 +50,27 @@
             ]
         }
     },
-    "MapPushingplateClick": {
-        "desc": "推图点击机关",
+    "MapPushingClickPlateRaw": {
+        "desc": "推图机关原始识别",
         "recognition": {
             "type": "NeuralNetworkDetect",
             "param": {
-                "expected": [
-                    0
-                ],
                 "model": "MapPushing.onnx",
                 "labels": [
                     "plate0"
-                ],
-                "order_by": "Area"
+                ]
+            }
+        }
+    },
+    "MapPushingClickPlate": {
+        "desc": "推图点击机关",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CenterPriorityRecognition",
+                "custom_recognition_param": {
+                    "entry": "MapPushingClickPlateRaw"
+                }
             }
         },
         "action": {

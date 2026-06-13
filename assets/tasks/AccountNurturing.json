@@ -1,0 +1,164 @@
+{
+    "task": [
+        {
+            "name": "AccountNurturing",
+            "label": "$task.AccountNurturing.label",
+            "entry": "AccountNurturingMain",
+            "description": "$task.AccountNurturing.description",
+            "option": [
+                "AccountNurturingCharacterBreakthrough",
+                "AccountNurturingSynchroDeviceEnhance",
+                "AccountNurturingCubeEnhancement",
+                "AccountNurturingRecycleRoomUpgrade"
+            ],
+            "group": [
+                "utility"
+            ]
+        }
+    ],
+    "option": {
+        "AccountNurturingCharacterBreakthrough": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.AccountNurturingCharacterBreakthrough.label",
+            "description": "$option.AccountNurturingCharacterBreakthrough.description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AccountNurturingCharacterBreakthrough": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AccountNurturingCharacterBreakthrough": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "AccountNurturingSynchroDeviceEnhance": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.AccountNurturingSynchroDeviceEnhance.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AccountNurturingSynchroDeviceEnhance": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "AutoAllocation",
+                        "UseConsumables"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AccountNurturingSynchroDeviceEnhance": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "AccountNurturingCubeEnhancement": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.AccountNurturingCubeEnhancement.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AccountNurturingCubeEnhancement": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AccountNurturingCubeEnhancement": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "AccountNurturingRecycleRoomUpgrade": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.AccountNurturingRecycleRoomUpgrade.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AccountNurturingRecycleRoomUpgrade": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AccountNurturingRecycleRoomUpgrade": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "AutoAllocation": {
+            "type": "switch",
+            "default_case": "No",
+            "label": "$option.AutoAllocation.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "SynchroDeviceClickAutoAllocation": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "SynchroDeviceClickAutoAllocation": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "UseConsumables": {
+            "type": "switch",
+            "default_case": "No",
+            "label": "$option.UseConsumables.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "SynchroDeviceUseConsumables": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "SynchroDeviceUseConsumables": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

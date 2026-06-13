@@ -2,6 +2,28 @@
     "RedDotClearProfilePage": {
         "desc": "清除个人资料页红点",
         "max_hit": 1,
+        "next": [
+            "RedDotClearProfilePageEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearProfilePageEnterHall": {
+        "desc": "个人资料页入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearProfilePageClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearProfilePageClickEntry": {
+        "desc": "点击个人资料页红点",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -43,10 +65,11 @@
             }
         },
         "next": [
-            "[JumpBack]RedDotClearProfileDecorationClick",
-            "[JumpBack]RedDotClearProfileTitleClick",
-            "[JumpBack]RedDotClearManageProfileClick",
-            "CommonClosePage"
+            "[JumpBack]RedDotClearClickProfileDecoration",
+            "[JumpBack]RedDotClearClickProfileTitle",
+            "[JumpBack]RedDotClearClickManageProfile",
+            "CommonClosePage",
+            "CommonEndTask" //关不了页面也结束任务
         ]
     },
     "ProfilePageVisible": {
@@ -66,7 +89,7 @@
             }
         }
     },
-    "RedDotClearProfileDecorationClick": {
+    "RedDotClearClickProfileDecoration": {
         "desc": "点击装饰个人简介",
         "recognition": {
             "type": "TemplateMatch",
@@ -94,10 +117,10 @@
             }
         },
         "next": [
-            "RedDotClearProfileDecorationNewClick"
+            "RedDotClearClickProfileDecorationNew"
         ]
     },
-    "RedDotClearProfileDecorationNewClick": {
+    "RedDotClearClickProfileDecorationNew": {
         "desc": "点击装饰个人简介的New",
         "recognition": {
             "type": "TemplateMatch",
@@ -128,7 +151,7 @@
             "CommonGoBack"
         ]
     },
-    "RedDotClearProfileTitleClick": {
+    "RedDotClearClickProfileTitle": {
         "desc": "点击称号",
         "recognition": {
             "type": "TemplateMatch",
@@ -185,7 +208,7 @@
             "CommonClosePage"
         ]
     },
-    "RedDotClearManageProfileClick": {
+    "RedDotClearClickManageProfile": {
         "desc": "点击简介管理",
         "recognition": {
             "type": "TemplateMatch",
@@ -207,10 +230,10 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "RedDotClearManageProfileNewClick"
+            "RedDotClearClickManageProfileNew"
         ]
     },
-    "RedDotClearManageProfileNewClick": {
+    "RedDotClearClickManageProfileNew": {
         "desc": "点击简介管理的New",
         "recognition": {
             "type": "TemplateMatch",

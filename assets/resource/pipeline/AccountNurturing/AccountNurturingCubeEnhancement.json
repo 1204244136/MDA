@@ -1,0 +1,302 @@
+{
+    "AccountNurturingCubeEnhancement": {
+        "desc": "魔方强化",
+        "max_hit": 1,
+        "next": [
+            "AccountNurturingCubeEnhancementEnterFlow",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "AccountNurturingCubeEnhancementEnterFlow": {
+        "desc": "魔方强化进入流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCubeEnhancementEnterArk",
+            "CommonEndTask"
+        ]
+    },
+    "AccountNurturingCubeEnhancementEnterArk": {
+        "desc": "魔方强化进入方舟",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible",
+                    "CommonArkRedDotVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCubeEnhancementArkflow",
+            "AccountNurturingCubeEnhancementEnterArk" //兜底
+        ]
+    },
+    "AccountNurturingCubeEnhancementArkflow": {
+        "desc": "魔方强化方舟流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkCornerVisible"
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCubeEnhancementEnterLostSector",
+            "CommonEndTask"
+        ]
+    },
+    "AccountNurturingCubeEnhancementEnterLostSector": {
+        "desc": "魔方强化进入迷失地区",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    609,
+                    75,
+                    21,
+                    24
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCubeEnhancementLostSectorflow"
+        ]
+    },
+    "AccountNurturingCubeEnhancementLostSectorflow": {
+        "desc": "魔方强化迷失地区流程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    4,
+                    16,
+                    63,
+                    20
+                ],
+                "expected": [
+                    ".*迷失地区.*"
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCubeEnhancementEnterHarmonyCubePage",
+            "CommonEndTask"
+        ]
+    },
+    "AccountNurturingCubeEnhancementEnterHarmonyCubePage": {
+        "desc": "魔方强化进入调和魔方页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1252,
+                    651,
+                    25,
+                    22
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCubeEnhancementEnterHarmonyCubeflow"
+        ]
+    },
+    "AccountNurturingCubeEnhancementEnterHarmonyCubeflow": {
+        "desc": "魔方强化调和魔方流程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    4,
+                    16,
+                    63,
+                    20
+                ],
+                "expected": [
+                    ".*调和魔方.*"
+                ]
+            }
+        },
+        "next": [
+            "CubeEnhancementClickRedDot",
+            "[JumpBack]CubeEnhancementSwipeUp",
+            "CommonEndTask"
+        ]
+    },
+    "CubeEnhancementSwipeUp": {
+        "desc": "向上滑动",
+        "max_hit": 10,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    528
+                ],
+                "end": [
+                    627,
+                    238
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": 20
+    },
+    "CubeEnhancementClickRedDot": {
+        "desc": "魔方强化点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    452,
+                    177,
+                    377,
+                    495
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "CubeEnhancementClickEnhancement"
+        ]
+    },
+    "CubeEnhancementClickEnhancement": {
+        "desc": "魔方强化点击强化",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    614,
+                    104,
+                    35
+                ],
+                "expected": [
+                    ".*强化.*" //强化魔方
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CubeEnhancementClickEnhancementRedDot"
+        ]
+    },
+    "CubeEnhancementClickEnhancementRedDot": {
+        "desc": "魔方强化点击强化红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    768,
+                    543,
+                    26,
+                    27
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "CubeEnhancementClickConfirm"
+        ]
+    },
+    "CubeEnhancementClickConfirm": {
+        "desc": "魔方强化点击确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    616,
+                    656,
+                    88,
+                    34
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "pre_wait_freezes": 200,
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "CommonGoBack",
+            "CubeEnhancementClickConfirm" //兜底
+        ]
+    }
+}

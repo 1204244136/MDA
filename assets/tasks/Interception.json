@@ -23,10 +23,10 @@
                     "name": "NormalInterception",
                     "label": "$option.NormalInterception.label",
                     "pipeline_override": {
-                        "NormalInterception": {
+                        "InterceptionEnterNormalInterception": {
                             "enabled": true
                         },
-                        "AnomalyInterception": {
+                        "InterceptionEnterAnomalyInterception": {
                             "enabled": false
                         }
                     },
@@ -38,10 +38,10 @@
                     "name": "AnomalyInterception",
                     "label": "$option.AnomalyInterception.label",
                     "pipeline_override": {
-                        "NormalInterception": {
+                        "InterceptionEnterNormalInterception": {
                             "enabled": false
                         },
-                        "AnomalyInterception": {
+                        "InterceptionEnterAnomalyInterception": {
                             "enabled": true
                         }
                     },
@@ -60,7 +60,7 @@
                     "name": "LevelDChoose",
                     "label": "$option.LevelDChoose.label",
                     "pipeline_override": {
-                        "LevelDChoose": {
+                        "InterceptionChooseLevelD": {
                             "enabled": true
                         }
                     }
@@ -69,7 +69,7 @@
                     "name": "LevelSChoose",
                     "label": "$option.LevelSChoose.label",
                     "pipeline_override": {
-                        "LevelSChoose": {
+                        "InterceptionChooseLevelS": {
                             "enabled": true
                         }
                     }
@@ -78,7 +78,7 @@
                     "name": "InterceptionEXChoose",
                     "label": "$option.InterceptionEXChoose.label",
                     "pipeline_override": {
-                        "InterceptionEXChoose": {
+                        "InterceptionChooseEX": {
                             "enabled": true
                         }
                     }

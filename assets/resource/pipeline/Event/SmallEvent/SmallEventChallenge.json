@@ -1,5 +1,5 @@
 {
-    "SmallEventChallenge": {
+    "SmallEventEnterChallenge": {
         "desc": "小活动挑战",
         "enabled": false,
         "max_hit": 1,
@@ -36,7 +36,7 @@
     "SmallEventChallengeFlow": {
         "max_hit": 1,
         "next": [
-            "EventChallenge"
+            "EventChallengeMain"
         ]
     }
 }

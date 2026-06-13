@@ -140,7 +140,7 @@
                         "DailyRewardsDailyLogin": {
                             "enabled": true
                         },
-                        "DailyLoginSearch": {
+                        "DailyLoginClickEntry": {
                             "recognition": {
                                 "param": {
                                     "template": [

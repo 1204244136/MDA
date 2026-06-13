@@ -1,5 +1,5 @@
 {
-    "AdviseEpisodeReward": {
+    "AdviseEpisodeRewardEntry": {
         "desc": "花絮奖励",
         "recognition": {
             "type": "TemplateMatch",
@@ -29,11 +29,11 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "AdviseClickEpisode",
-            "[JumpBack]AdviseEpisodeRewardScrollDown",
+            "[JumpBack]AdviseClickEpisode",
             "[JumpBack]AdviseEpisodeRedDotVisible",
-            "AdviseClickAdviceCollection",
-            "CommonClosePage"
+            "[JumpBack]AdviseClickAdviceCollection",
+            "CommonClosePage",
+            "CommonEndTask"
         ]
     },
     "AdviseClickEpisode": {
@@ -139,8 +139,7 @@
         ]
     },
     "AdviseEpisodeRewardScrollDown": {
-        "desc": "花絮奖励向下滑动",
-        "max_hit": 1,
+        "desc": "花絮奖励滑动",
         "action": {
             "type": "Swipe",
             "param": {
@@ -172,6 +171,21 @@
                     "Common/RedDot.png"
                 ]
             }
-        }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -30,
+                    30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 200,
+        "next": [
+            "AdviseEpisodeRewardScrollDown"
+        ]
     }
 }

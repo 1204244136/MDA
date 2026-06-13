@@ -10,7 +10,7 @@
         },
         "next": [
             "SoloRaidEntry",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "SoloRaidEntry": {
@@ -19,25 +19,25 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },
         "next": [
-            "SoloRaidClick",
+            "SoloRaidClickEntry",
             "CommonEndTask"
         ]
     },
-    "SoloRaidClick": {
+    "SoloRaidClickEntry": {
         "desc": "点击单人突击",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    7,
+                    0,
                     120,
-                    197,
-                    256
+                    200,
+                    260
                 ],
                 "template": [
                     "SoloRaid/SoloRaid.png"
@@ -48,7 +48,9 @@
             "type": "Click"
         },
         "next": [
-            "SoloRaidFlow"
+            "SoloRaidFlow",
+            "SoloRaidConfirmResult",
+            "SoloRaidClickEntry" //兜底
         ]
     },
     "SoloRaidFlow": {
@@ -68,12 +70,47 @@
             }
         },
         "next": [
+            "SoloRaidBattleLocked",
             "BattleStartButtonBlocked",
             "[JumpBack]CommonConfirmAction",
-            "[JumpBack]SoloRaidLevelSelect"
+            "[JumpBack]SoloRaidSelectLevel"
         ]
     },
-    "SoloRaidLevelSelect": {
+    "SoloRaidBattleLocked": {
+        "desc": "单人突击结算中",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    629,
+                    274,
+                    22,
+                    22
+                ],
+                "template": [
+                    "SoloRaid/SoloRaidBattleLocked.png"
+                ]
+            }
+        }
+    },
+    "SoloRaidConfirmResult": {
+        "desc": "单人突击确认结果",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    519,
+                    483,
+                    115,
+                    38
+                ],
+                "expected": [
+                    "奖励内容"
+                ]
+            }
+        }
+    },
+    "SoloRaidSelectLevel": {
         "desc": "单人突击选择关卡",
         "recognition": {
             "type": "TemplateMatch",

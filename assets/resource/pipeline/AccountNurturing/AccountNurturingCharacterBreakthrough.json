@@ -1,0 +1,269 @@
+{
+    "AccountNurturingCharacterBreakthrough": {
+        "desc": "角色突破",
+        "max_hit": 1,
+        "next": [
+            "AccountNurturingCharacterBreakthroughEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "AccountNurturingCharacterBreakthroughEnterHall": {
+        "desc": "角色突破入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCharacterBreakthroughClickRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "AccountNurturingCharacterBreakthroughClickRedDot": {
+        "desc": "点击角色突破红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    505,
+                    634,
+                    21,
+                    19
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingCharacterBreakthroughFlow"
+        ]
+    },
+    "AccountNurturingCharacterBreakthroughFlow": {
+        "desc": "角色突破流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "AdviseNikkeMainPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "CharacterBreakthroughClickHollowDot"
+        ]
+    },
+    "CharacterBreakthroughClickHollowDot": {
+        "desc": "点击空心圆点", //筛选出可以突破的角色
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    664,
+                    131,
+                    35,
+                    30
+                ],
+                "template": [
+                    "AccountNurturing/HollowDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                40,
+                199,
+                1209,
+                424
+            ]
+        },
+        "next": [
+            "[JumpBack]CharacterBreakthroughClickCharacterRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "CharacterBreakthroughClickCharacterRedDot": {
+        "desc": "点击角色红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    127,
+                    201,
+                    22,
+                    24
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "CharacterBreakthroughClickBreakthroughRedDot"
+        ]
+    },
+    "CharacterBreakthroughClickBreakthroughRedDot": {
+        "desc": "点击突破红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1229,
+                    346,
+                    17,
+                    15
+                ],
+                "template": [
+                    "Common/RedDotPerspective.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]CharacterBreakthroughClickMax",
+            "CharacterBreakthroughClickLimitBreak",
+            "CharacterBreakthroughClickBreakthroughRedDot" //兜底
+        ]
+    },
+    "CharacterBreakthroughClickMax": {
+        "desc": "点击突破max",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CharacterBreakthroughClickMaxVisible",
+                    "CharacterBreakthroughClickMaxAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CharacterBreakthroughClickMaxVisible": {
+        "desc": "突破max可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    765,
+                    502,
+                    44,
+                    31
+                ],
+                "template": [
+                    "Common/MAX.png"
+                ]
+            }
+        }
+    },
+    "CharacterBreakthroughClickMaxAvailable": {
+        "desc": "突破max可点击",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "CharacterBreakthroughClickMaxVisible",
+                "lower": [
+                    140,
+                    140,
+                    140
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 50
+            }
+        }
+    },
+    "CharacterBreakthroughClickLimitBreak": {
+        "desc": "点击极限突破/核心强化",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    478,
+                    572,
+                    324,
+                    46
+                ],
+                "expected": [
+                    ".*极限突破.*",
+                    ".*核心强化.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CommonConfirmAction",
+            "CharacterBreakthroughConfirmLimitBreak"
+        ]
+    },
+    "CharacterBreakthroughConfirmLimitBreak": {
+        "desc": "极限突破/核心强化确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    598,
+                    494,
+                    113,
+                    28
+                ],
+                "expected": [
+                    ".*能力值成长.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "CommonGoBack",
+            "CharacterBreakthroughConfirmLimitBreak" //兜底
+        ]
+    }
+}

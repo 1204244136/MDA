@@ -4,7 +4,7 @@
         "max_hit": 1,
         "next": [
             "DailyRewardsFreeRecruitEntry",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "DailyRewardsFreeRecruitEntry": {
@@ -13,7 +13,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },
@@ -38,7 +38,7 @@
         "post_wait_freezes": 1000,
         "next": [
             "[JumpBack]DailyRewardsFreeRecruitFlow",
-            "NavigationReturnHallFlow"
+            "CommonReturnHall"
         ]
     },
     "DailyRewardsFreeRecruitAvailable": {
@@ -64,7 +64,7 @@
         },
         "next": [
             "DailyRewardsClickFreeRecruit",
-            "DailyRewardsFreeRecruitNextRecruitClick"
+            "DailyRewardsFreeRecruitClickNextRecruit"
         ]
     },
     "DailyRewardsClickFreeRecruit": {
@@ -87,7 +87,7 @@
             "type": "Click"
         },
         "next": [
-            "[JumpBack]NavigationSkipPlot",
+            "[JumpBack]CommonSkipPlot",
             "DailyRewardsConfirmRecruit",
             "[JumpBack]CommonClickBlank"
         ]
@@ -130,7 +130,7 @@
             }
         }
     },
-    "DailyRewardsFreeRecruitNextRecruitClick": {
+    "DailyRewardsFreeRecruitClickNextRecruit": {
         "desc": "下一个招募",
         "recognition": {
             "type": "TemplateMatch",

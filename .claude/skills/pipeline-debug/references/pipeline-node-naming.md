@@ -6,17 +6,15 @@ Pipeline 节点名是 JSON 根对象中的 key，会被 `next`、`on_error`、`t
 
 ## 总体原则
 
-节点名必须使用 PascalCase，推荐格式为：
+节点名必须使用 PascalCase。推荐基础格式为：
 
 ```text
-<Domain><ActionOrObject><Role>
+<Domain><SemanticPart><Role>
 ```
 
-| 部分             | 含义                                       | 示例                                              |
-| ---------------- | ------------------------------------------ | ------------------------------------------------- |
-| `Domain`         | 所属业务域、模块或共享域                   | `Common`、`Navigation`、`Shop`、`Battle`          |
-| `ActionOrObject` | 节点处理的动作、页面、对象、状态或业务目标 | `EnterPage`、`RewardDialog`、`QuickBattle`        |
-| `Role`           | 节点在流程中的功能角色                     | `Main`、`Flow`、`Visible`、`Available`、`Confirm` |
+- `Domain`：所属业务域、模块或共享域，例如 `Common`、`Navigation`、`Shop`、`Battle`。
+- `SemanticPart`：节点处理的动作、页面、对象、状态或业务目标，例如 `EnterExchangePage`、`RewardDialog`、`QuickBattle`。
+- `Role`：节点在流程中的功能角色；动作节点可省略独立后缀，例如 `Main`、`Flow`、`Visible`、`Available`、`Claimed`、`Button`。
 
 推荐示例：
 
@@ -26,7 +24,17 @@ ShopOnExchangePage
 BattleQuickBattleAvailable
 DailyTaskClaimMissionReward
 CommonConfirmReward
+DailyRewardsRewardVisible
 ```
+
+### 语序原则
+
+不要在全项目无脑统一为“动宾”或“宾动”；先判断节点角色，再决定语序：
+
+1. **动作节点使用动宾**：节点命中后会执行点击、选择、领取、购买、确认、关闭等动作时，使用 `<Domain><Verb><Object><OptionalRole>`，例如 `CommonConfirmReward`、`DailyTaskClaimMissionReward`、`ShopPurchaseGem`、`BattleClosePage`。不要使用 `RewardConfirm`、`RewardClaim`、`GemPurchase`、`PageClose` 这类宾动写法表达动作。
+2. **状态 / 对象 / 纯检测节点使用宾 + 状态或角色后缀**：节点只判断 UI、页面或业务状态时，使用 `<Domain><Object><StateRole>`，例如 `ShopGemVisible`、`BattleStartButtonBlocked`、`DailyRewardsRewardClaimed`。不要为了动宾写成 `VisibleGem`、`BlockedStartButton`。
+3. **按钮、弹窗、文本模板看语义**：`ConfirmButton` 可以表示“确认按钮”这个对象；但如果节点执行“确认购买/确认奖励”动作，应命名为 `ConfirmBuy` / `ConfirmReward`。同理，`PurchaseDialogVisible` 是状态节点，`ConfirmPurchase` 是动作节点。
+4. **流程节点按目标语义命名**：流程只编排不动作时使用 `<Domain><Subtask>Flow`；若流程目标本身是动作，也可使用动宾目标，例如 `DailyRewardsClaimRewardFlow`、`ShopPurchaseItemFlow`。
 
 ## 禁止事项
 

@@ -1,5 +1,5 @@
 {
-    "SmallEventStory": {
+    "SmallEventEnterStory": {
         "desc": "小活动剧情",
         "enabled": false,
         "max_hit": 1,
@@ -71,15 +71,37 @@
             ]
         },
         "next": [
+            "[JumpBack]SmallEventUnlockStage",
             "SmallEventEventStageBattleFlow"
         ]
+    },
+    "SmallEventUnlockStage": {
+        "desc": "小活动关卡解锁",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    601,
+                    441,
+                    74,
+                    28
+                ],
+                "expected": [
+                    ".*点击继续.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
     },
     "SmallEventEventStageBattleFlow": {
         "desc": "小活动活动关卡页面战斗流程",
         "next": [
             "SmallEventEventStageBattlePage",
-            "[JumpBack]SmallEventStageNormalClick",
-            "[JumpBack]SmallEventStageHardClick",
+            "[JumpBack]SmallEventClickStageNormal",
+            "[JumpBack]SmallEventClickStageHard",
             "SmallEventEventStageQuickBattleFlow"
         ]
     },
@@ -88,8 +110,8 @@
         "next": [
             "SmallEventBattleBlocked",
             "SmallEventEventStageBattlePage",
-            "[JumpBack]SmallEventStageNormalRepeatableClick",
-            "[JumpBack]SmallEventStageHardRepeatableClick"
+            "[JumpBack]SmallEventClickStageNormalRepeatable",
+            "[JumpBack]SmallEventClickStageHardRepeatable"
         ]
     },
     "SmallEventEventStageBattlePage": {
@@ -105,8 +127,7 @@
         "next": [
             "[JumpBack]BattleEntryFlow",
             "SmallEventEventStagePageFlow",
-            "[JumpBack]DialoguesSkipStory",
-            "SmallEventGoBack"
+            "[JumpBack]DialoguesSkipStory"
         ]
     },
     "SmallEventStoryVisible": {
@@ -126,7 +147,7 @@
             }
         }
     },
-    "SmallEventStageNormalClick": {
+    "SmallEventClickStageNormal": {
         "desc": "小活动普通关卡点击",
         "max_hit": 1,
         "recognition": {
@@ -150,7 +171,7 @@
         },
         "post_wait_freezes": 500
     },
-    "SmallEventStageHardClick": {
+    "SmallEventClickStageHard": {
         "desc": "小活动困难关卡点击",
         "max_hit": 1,
         "recognition": {
@@ -174,7 +195,7 @@
         },
         "post_wait_freezes": 500
     },
-    "SmallEventStageNormalRepeatableClick": {
+    "SmallEventClickStageNormalRepeatable": {
         "desc": "小活动普通关卡可扫荡点击",
         "recognition": {
             "type": "TemplateMatch",
@@ -197,7 +218,7 @@
         },
         "post_wait_freezes": 500
     },
-    "SmallEventStageHardRepeatableClick": {
+    "SmallEventClickStageHardRepeatable": {
         "desc": "小活动困难关卡可扫荡点击",
         "recognition": {
             "type": "TemplateMatch",

@@ -110,12 +110,12 @@
             "[JumpBack]CommonConfirmAction",
             "[JumpBack]DialoguesSkipStory",
             "[JumpBack]CommonConfirmReward",
-            "[JumpBack]OutpostDailyEventPageClose",
+            "[JumpBack]OutpostCloseDailyEventPage",
             "BriefEncounterRepeatFlow",
             "OutpostEnterDailyEvent"
         ]
     },
-    "OutpostDailyEventPageClose": {
+    "OutpostCloseDailyEventPage": {
         "desc": "关闭已完成的活动页面",
         "recognition": {
             "type": "OCR",

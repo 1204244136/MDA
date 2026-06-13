@@ -1,5 +1,5 @@
 {
-    "DefenseRewards": {
+    "OutpostEnterDefenseRewards": {
         "desc": "防御奖励",
         "max_hit": 1,
         "recognition": {
@@ -52,7 +52,7 @@
         },
         "next": [
             "[JumpBack]OutpostClaimDefenseRewards",
-            "[JumpBack]OutpostWipeOut",
+            "[JumpBack]OutpostClickWipeOut",
             "[JumpBack]CommonConfirmReward",
             "OutpostMainPageEntered",
             "[JumpBack]CommonClosePage",
@@ -81,7 +81,7 @@
         },
         "post_wait_freezes": 1000
     },
-    "OutpostWipeOut": {
+    "OutpostClickWipeOut": {
         "desc": "一举歼灭",
         "max_hit": 1,
         "recognition": {

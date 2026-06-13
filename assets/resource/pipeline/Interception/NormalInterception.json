@@ -1,5 +1,5 @@
 {
-    "NormalInterception": {
+    "InterceptionEnterNormalInterception": {
         "desc": "普通拦截战",
         "recognition": {
             "type": "OCR",
@@ -33,13 +33,13 @@
             }
         },
         "next": [
-            "[JumpBack]LevelDChoose",
-            "[JumpBack]LevelSChoose",
-            "[JumpBack]InterceptionEXChoose",
+            "[JumpBack]InterceptionChooseLevelD",
+            "[JumpBack]InterceptionChooseLevelS",
+            "[JumpBack]InterceptionChooseEX",
             "InterceptionNormalBattleFlow"
         ]
     },
-    "LevelDChoose": {
+    "InterceptionChooseLevelD": {
         "desc": "LevelD",
         "enabled": false,
         "recognition": {
@@ -60,7 +60,7 @@
             "type": "Click"
         }
     },
-    "LevelSChoose": {
+    "InterceptionChooseLevelS": {
         "desc": "LevelS",
         "enabled": false,
         "recognition": {
@@ -81,7 +81,7 @@
             "type": "Click"
         }
     },
-    "InterceptionEXChoose": {
+    "InterceptionChooseEX": {
         "desc": "特殊目标拦截战",
         "enabled": false,
         "recognition": {

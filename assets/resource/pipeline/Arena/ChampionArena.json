@@ -15,7 +15,8 @@
             "type": "Click"
         },
         "next": [
-            "ChampionArenaCornerFlow"
+            "ChampionArenaCornerFlow",
+            "ArenaEnterChampionArena" //兜底
         ]
     },
     "ChampionArenaMainPageEntered": {
@@ -30,7 +31,7 @@
                     25
                 ],
                 "expected": [
-                    "冠军竞技场"
+                    ".*冠军.*" //冠军竞技场
                 ]
             }
         },

@@ -8,7 +8,7 @@
         },
         "next": [
             "ArkEnterInterception",
-            "[JumpBack]NavigationEnterArkFlow"
+            "[JumpBack]CommonEnterArk"
         ]
     },
     "ArkEnterInterception": {
@@ -71,8 +71,8 @@
             }
         },
         "next": [
-            "NormalInterception",
-            "AnomalyInterception",
+            "InterceptionEnterNormalInterception",
+            "InterceptionEnterAnomalyInterception",
             "CommonEndTask"
         ]
     },

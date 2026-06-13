@@ -1,7 +1,6 @@
 package membership
 
 import (
-	"strings"
 	"sync"
 	"time"
 
@@ -17,6 +16,7 @@ type RuntimeTracker struct {
 	entry          string
 	last           time.Time
 	multiplier     quotaMultiplier
+	route          quotaRoute
 	realNs         int64
 	chargedSeconds int64
 	stopCh         chan struct{}
@@ -44,33 +44,6 @@ func (t *RuntimeTracker) OnTaskerTask(tasker *maa.Tasker, event maa.EventStatus,
 	}
 }
 
-func (t *RuntimeTracker) applyExtraMultiplier(taskID int64, extraPermille int64, reason string) {
-	if extraPermille <= 0 {
-		extraPermille = multiplierScale
-	}
-
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	if !t.active || t.taskID != uint64(taskID) {
-		return
-	}
-	if reason != "" && strings.Contains(t.multiplier.Reason, reason) {
-		return
-	}
-	if t.multiplier.ExtraPermille <= 0 {
-		t.multiplier.ExtraPermille = multiplierScale
-	}
-	t.multiplier.ExtraPermille = t.multiplier.ExtraPermille * extraPermille / multiplierScale
-	if reason == "" {
-		return
-	}
-	if t.multiplier.Reason == "" || t.multiplier.Reason == "default" {
-		t.multiplier.Reason = reason
-		return
-	}
-	t.multiplier.Reason += "," + reason
-}
-
 func (t *RuntimeTracker) consumeBillableSeconds(delta time.Duration, flush bool) int64 {
 	if delta < 0 {
 		delta = 0
@@ -93,10 +66,6 @@ func (t *RuntimeTracker) consumeBillableSeconds(delta time.Duration, flush bool)
 }
 
 func (t *RuntimeTracker) OnNodePipelineNode(ctx *maa.Context, event maa.EventStatus, detail maa.NodePipelineNodeDetail) {
-	if event != maa.EventStatusStarting || detail.Name != "DailyRewardsDailyLogin" {
-		return
-	}
-	t.applyExtraMultiplier(int64(detail.TaskID), 1500, "daily_login_enabled")
 }
 
 func (t *RuntimeTracker) OnNodeRecognitionNode(ctx *maa.Context, event maa.EventStatus, detail maa.NodeRecognitionNodeDetail) {
@@ -118,7 +87,8 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.finish()
 
 	status := GetMembershipStatus()
-	snapshot, ok, err := EnsureQuotaAvailable(status)
+	route := quotaRouteForEntry(detail.Entry)
+	snapshot, ok, err := EnsureQuotaRouteAvailable(status, route)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to check quota at task start")
 	}
@@ -138,6 +108,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.entry = detail.Entry
 	t.last = now
 	t.multiplier = multiplier
+	t.route = route
 	t.realNs = 0
 	t.chargedSeconds = 0
 	t.stopCh = make(chan struct{})
@@ -148,6 +119,8 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	log.Info().
 		Uint64("task_id", detail.TaskID).
 		Str("entry", detail.Entry).
+		Str("quota_route", string(route)).
+		Str("quota_pool", string(snapshot.Pool)).
 		Int64("remaining_seconds", snapshot.RemainingSeconds).
 		Int64("base_multiplier_permille", multiplier.BasePermille).
 		Int64("extra_multiplier_permille", multiplier.ExtraPermille).
@@ -160,7 +133,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		return
 	}
 
-	go t.tick(tasker, status, snapshot.RemainingSeconds, stopCh)
+	go t.tick(tasker, status, route, snapshot.RemainingSeconds, stopCh)
 }
 
 func (t *RuntimeTracker) finish() {
@@ -171,6 +144,7 @@ func (t *RuntimeTracker) finish() {
 	}
 	last := t.last
 	multiplier := t.multiplier
+	route := t.route
 	stopCh := t.stopCh
 	t.active = false
 	t.stopCh = nil
@@ -180,12 +154,13 @@ func (t *RuntimeTracker) finish() {
 	status := GetMembershipStatus()
 	realDelta := time.Since(last)
 	billableSeconds := t.consumeBillableSeconds(realDelta, true)
-	if _, err := AddQuotaUsageSeconds(status, billableSeconds); err != nil {
+	if _, err := AddQuotaRouteUsageSeconds(status, route, billableSeconds); err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to flush final quota usage")
 	}
 	log.Debug().
 		Int64("real_seconds", int64(realDelta/time.Second)).
 		Int64("billable_seconds", billableSeconds).
+		Str("quota_route", string(route)).
 		Int64("base_multiplier_permille", multiplier.BasePermille).
 		Int64("extra_multiplier_permille", multiplier.ExtraPermille).
 		Int64("total_multiplier_permille", multiplier.totalPermille()).
@@ -193,12 +168,12 @@ func (t *RuntimeTracker) finish() {
 		Msg("RuntimeTracker: final quota usage flushed")
 }
 
-func (t *RuntimeTracker) tick(tasker *maa.Tasker, status *MembershipStatus, remainingSeconds int64, stopCh <-chan struct{}) {
+func (t *RuntimeTracker) tick(tasker *maa.Tasker, status *MembershipStatus, route quotaRoute, remainingSeconds int64, stopCh <-chan struct{}) {
 	for {
 		timer := time.NewTimer(nextQuotaTickInterval(remainingSeconds))
 		select {
 		case <-timer.C:
-			snapshot, done := t.consumeTick(tasker, status)
+			snapshot, done := t.consumeTick(tasker, status, route)
 			if done {
 				return
 			}
@@ -229,7 +204,7 @@ func nextQuotaTickInterval(remainingSeconds int64) time.Duration {
 	return interval
 }
 
-func (t *RuntimeTracker) consumeTick(tasker *maa.Tasker, status *MembershipStatus) (QuotaSnapshot, bool) {
+func (t *RuntimeTracker) consumeTick(tasker *maa.Tasker, status *MembershipStatus, route quotaRoute) (QuotaSnapshot, bool) {
 	now := time.Now()
 	t.mu.Lock()
 	if !t.active {
@@ -245,7 +220,7 @@ func (t *RuntimeTracker) consumeTick(tasker *maa.Tasker, status *MembershipStatu
 	t.mu.Unlock()
 
 	billableSeconds := t.consumeBillableSeconds(delta, false)
-	snapshot, err := AddQuotaUsageSeconds(status, billableSeconds)
+	snapshot, err := AddQuotaRouteUsageSeconds(status, route, billableSeconds)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to record quota usage")
 		return QuotaSnapshot{}, false
@@ -254,12 +229,16 @@ func (t *RuntimeTracker) consumeTick(tasker *maa.Tasker, status *MembershipStatu
 	log.Debug().
 		Uint64("task_id", taskID).
 		Str("entry", entry).
+		Str("quota_route", string(route)).
+		Str("quota_pool", string(snapshot.Pool)).
 		Int64("real_seconds", int64(delta/time.Second)).
 		Int64("billable_seconds", billableSeconds).
 		Int64("base_multiplier_permille", multiplier.BasePermille).
 		Int64("extra_multiplier_permille", multiplier.ExtraPermille).
 		Int64("total_multiplier_permille", multiplier.totalPermille()).
 		Str("multiplier_reason", multiplier.Reason).
+		Int64("special_remaining_seconds", snapshot.SpecialRemainingSeconds).
+		Int64("regular_remaining_seconds", snapshot.RegularRemainingSeconds).
 		Int64("used_seconds", snapshot.UsedSeconds).
 		Int64("remaining_seconds", snapshot.RemainingSeconds).
 		Msg("RuntimeTracker: quota usage recorded")

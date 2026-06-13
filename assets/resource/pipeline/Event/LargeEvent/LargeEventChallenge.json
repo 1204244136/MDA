@@ -1,5 +1,5 @@
 {
-    "LargeEventChallenge": {
+    "LargeEventEnterChallenge": {
         "desc": "大活动挑战",
         "enabled": false,
         "max_hit": 1,
@@ -36,7 +36,7 @@
     "LargeEventChallengeFlow": {
         "max_hit": 1,
         "next": [
-            "EventChallenge"
+            "EventChallengeMain"
         ]
     }
 }

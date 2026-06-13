@@ -9,7 +9,7 @@
         },
         "next": [
             "SmallEventHallFlow",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "SmallEventHallFlow": {
@@ -18,7 +18,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },
@@ -97,9 +97,9 @@
             ]
         },
         "next": [
-            "[JumpBack]SmallEventChallenge",
-            "[JumpBack]SmallEventStory",
-            "[JumpBack]SmallEventMission",
+            "[JumpBack]SmallEventEnterChallenge",
+            "[JumpBack]SmallEventEnterStory",
+            "[JumpBack]SmallEventEnterMission",
             "CommonEndTask"
         ]
     },

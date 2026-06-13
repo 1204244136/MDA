@@ -61,7 +61,7 @@
                     "option": {
                         "InterceptionType": "AnomalyInterception",
                         "AnomalyInterceptionTarget": "InterceptionAnomalyKraken",
-                        "ManualInterceptionBattle": "Yes"
+                        "ManualInterceptionBattle": "No"
                     }
                 },
                 {

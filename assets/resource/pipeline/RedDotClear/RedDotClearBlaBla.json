@@ -1,0 +1,349 @@
+{
+    "RedDotClearBlaBla": {
+        "desc": "清除BlaBla红点",
+        "max_hit": 1,
+        "next": [
+            "RedDotClearBlaBlaEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearBlaBlaEnterHall": {
+        "desc": "BlaBla入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearBlaBlaClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearBlaBlaClickEntry": {
+        "desc": "点击BlaBla红点",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BlaBlaVisible",
+                    "BlaBlaNew"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                578,
+                297,
+                124,
+                117
+            ]
+        },
+        "next": [
+            "RedDotClearBlaBlaFlow",
+            "RedDotClearBlaBlaClickEntry" //兜底
+        ]
+    },
+    "BlaBlaVisible": {
+        "desc": "BlaBla可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    120,
+                    200,
+                    260
+                ],
+                "template": [
+                    "RedDotClear/BlaBla.png"
+                ]
+            }
+        }
+    },
+    "BlaBlaNew": {
+        "desc": "BlaBla有New的图标",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "BlaBlaVisible",
+                "roi_offset": [
+                    20,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/New.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearBlaBlaFlow": {
+        "desc": "BlaBla流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BlaBlaEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]BlaBlaRedDotClickTop",
+            "CommonEndTask"
+        ]
+    },
+    "BlaBlaEntered": {
+        "desc": "处于BlaBla界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    493,
+                    140,
+                    63,
+                    29
+                ],
+                "expected": [
+                    ".*任务.*"
+                ]
+            }
+        }
+    },
+    "BlaBlaRedDotClickTop": {
+        "desc": "BlaBla顶部点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    576,
+                    118,
+                    234,
+                    55
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaRedDot.png",
+                    "RedDotClear/BlaBlaNew.png"
+                ],
+                "threshold": [
+                    0.8
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -5,
+                    5,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "BlaBlaRedDotClickBottom"
+        ]
+    },
+    "BlaBlaRedDotClickBottom": {
+        "desc": "BlaBla底部点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    760,
+                    206,
+                    60,
+                    438
+                ],
+                "template": [
+                    "Common/RedDot.png",
+                    "Common/New.png"
+                ],
+                "threshold": [
+                    0.6
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "BlaBlaDialogueFlow",
+            "BlaBlaRedDotClickBottom" //兜底
+        ]
+    },
+    "BlaBlaDialogueFlow": {
+        "desc": "BlaBla对话流程",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    473,
+                    101,
+                    23,
+                    27
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaGoBack.png"
+                ]
+            }
+        },
+        "next": [
+            "BlaBlaDialogueEnd",
+            "[JumpBack]BlaBlaDialogueClickThought",
+            "[JumpBack]BlaBlaDialogueClickContinue",
+            "[JumpBack]BlaBlaDialogueClickResponse",
+            "CommonConfirmReward"
+        ]
+    },
+    "BlaBlaDialogueEnd": {
+        "desc": "BlaBla对话结束",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    621,
+                    592,
+                    35,
+                    27
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaDialogueEnd.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "[JumpBack]CommonConfirmReward",
+            "BlaBlaDialoguGoBack"
+        ]
+    },
+    "BlaBlaDialoguGoBack": {
+        "desc": "BlaBla返回",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    473,
+                    101,
+                    23,
+                    27
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaGoBack.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 200
+    },
+    "BlaBlaDialogueClickContinue": {
+        "desc": "BlaBla对话点击继续",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    147,
+                    361,
+                    513
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaContinue.png"
+                ],
+                "threshold": [
+                    0.85
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 200
+    },
+    "BlaBlaDialogueClickResponse": {
+        "desc": "BlaBla对话点击回复",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    147,
+                    361,
+                    513
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaDialogueResponse.png",
+                    "RedDotClear/BlaBlaDialogueOtherResponse.png"
+                ],
+                "threshold": [
+                    0.9
+                ],
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -15,
+                    -15,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 200
+    },
+    "BlaBlaDialogueClickThought": {
+        "desc": "BlaBla对话点击想法",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    147,
+                    361,
+                    513
+                ],
+                "template": [
+                    "RedDotClear/BlaBlaDialogueThought.png"
+                ],
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -15,
+                    -15,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 200
+    }
+}

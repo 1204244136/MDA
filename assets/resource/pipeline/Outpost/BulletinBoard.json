@@ -1,5 +1,5 @@
 {
-    "BulletinBoard": {
+    "OutpostEnterBulletinBoard": {
         "desc": "派遣公告栏",
         "max_hit": 1,
         "recognition": {
@@ -59,13 +59,13 @@
             }
         },
         "next": [
-            "[JumpBack]OutpostBulletinBoardClaim",
-            "[JumpBack]OutpostBulletinBoardDispatch",
+            "[JumpBack]OutpostClaimBulletinBoardRewards",
+            "[JumpBack]OutpostBulletinBoardDispatchAll",
             "OutpostMainPageEntered",
             "[JumpBack]CommonGoBack"
         ]
     },
-    "OutpostBulletinBoardClaim": {
+    "OutpostClaimBulletinBoardRewards": {
         "desc": "全部领取",
         "max_hit": 1,
         "recognition": {
@@ -91,7 +91,7 @@
             "CommonEndTask"
         ]
     },
-    "OutpostBulletinBoardDispatch": {
+    "OutpostBulletinBoardDispatchAll": {
         "desc": "全部派遣",
         "max_hit": 1,
         "recognition": {

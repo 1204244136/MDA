@@ -4,14 +4,14 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]ShopEnterRecyclingShop",
-            "[JumpBack]ShopConfirmPurchase",
-            "[JumpBack]ShopGoodTeamworkBoxPurchase",
-            "[JumpBack]ShopMaintenanceKitBoxPurchase",
-            "[JumpBack]ShopCuratedManufacturerArmsPurchase",
-            "[JumpBack]ShopGemPurchase",
-            "[JumpBack]ShopVoucherPurchase",
-            "[JumpBack]ShopUpgradeMaterialsPurchase",
-            "[JumpBack]CommonScrollUp",
+            "[JumpBack]ShopPurchaseFlow",
+            "[JumpBack]ShopPurchaseGoodTeamworkBox",
+            "[JumpBack]ShopPurchaseMaintenanceKitBox",
+            "[JumpBack]ShopPurchaseCuratedManufacturerArms",
+            "[JumpBack]ShopPurchaseGem",
+            "[JumpBack]ShopPurchaseVoucher",
+            "[JumpBack]ShopPurchaseUpgradeMaterials",
+            "[JumpBack]CommonSwipeUp",
             "CommonEndTask"
         ]
     },
@@ -57,7 +57,7 @@
             }
         }
     },
-    "ShopGoodTeamworkBoxPurchase": {
+    "ShopPurchaseGoodTeamworkBox": {
         "desc": "购买优秀团队合作宝箱",
         "enabled": false,
         "max_hit": 1,
@@ -78,7 +78,7 @@
             "type": "Click"
         }
     },
-    "ShopMaintenanceKitBoxPurchase": {
+    "ShopPurchaseMaintenanceKitBox": {
         "desc": "购买保养工具箱",
         "enabled": false,
         "max_hit": 1,
@@ -99,7 +99,7 @@
             "type": "Click"
         }
     },
-    "ShopCuratedManufacturerArmsPurchase": {
+    "ShopPurchaseCuratedManufacturerArms": {
         "desc": "购买企业精选武装",
         "enabled": false,
         "max_hit": 1,
@@ -120,7 +120,7 @@
             "type": "Click"
         }
     },
-    "ShopGemPurchase": {
+    "ShopPurchaseGem": {
         "desc": "购买珠宝",
         "enabled": false,
         "max_hit": 1,
@@ -141,7 +141,7 @@
             "type": "Click"
         }
     },
-    "ShopVoucherPurchase": {
+    "ShopPurchaseVoucher": {
         "desc": "购买所有礼物券",
         "enabled": false,
         "max_hit": 6,
@@ -169,7 +169,7 @@
             "type": "Click"
         }
     },
-    "ShopUpgradeMaterialsPurchase": {
+    "ShopPurchaseUpgradeMaterials": {
         "desc": "购买所有养成材料",
         "enabled": false,
         "max_hit": 7,

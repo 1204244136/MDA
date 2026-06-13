@@ -2,6 +2,28 @@
     "RedDotClearCashShop": {
         "desc": "清除付费商店红点",
         "max_hit": 1,
+        "next": [
+            "RedDotClearCashShopEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearCashShopEnterHall": {
+        "desc": "付费商店入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCashShopClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearCashShopClickEntry": {
+        "desc": "点击付费商店红点",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -42,10 +64,10 @@
             }
         },
         "next": [
-            "RedDotClearCashShopNewClick"
+            "RedDotClearClickCashShopNew"
         ]
     },
-    "RedDotClearCashShopNewClick": {
+    "RedDotClearClickCashShopNew": {
         "desc": "付费商店点击new",
         "recognition": {
             "type": "TemplateMatch",
@@ -75,7 +97,7 @@
             }
         },
         "next": [
-            "RedDotClearCashShopNewClick",
+            "RedDotClearClickCashShopNew",
             "CommonEndTask"
         ]
     }

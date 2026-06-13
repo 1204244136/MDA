@@ -1,5 +1,5 @@
 {
-    "AdviseEpisodeViewing": {
+    "AdviseEpisodeViewingEntry": {
         "desc": "花絮鉴赏会",
         "recognition": {
             "type": "TemplateMatch",
@@ -53,8 +53,7 @@
         "next": [
             "[JumpBack]AdviseStoryFlow",
             "[JumpBack]AdvisePlayEpisode",
-            "[JumpBack]AdviseEpisodeViewingReward",
-            "CommonClosePage"
+            "AdviseEpisodeViewingClaimReward"
         ]
     },
     "AdvisePlayEpisode": {
@@ -78,7 +77,7 @@
         },
         "post_wait_freezes": 1000
     },
-    "AdviseEpisodeViewingReward": {
+    "AdviseEpisodeViewingClaimReward": {
         "desc": "花絮鉴赏会奖励",
         "recognition": {
             "type": "OCR",
@@ -99,7 +98,8 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "CommonConfirmReward"
+            "[JumpBack]CommonConfirmReward",
+            "CommonClosePage"
         ]
     }
 }

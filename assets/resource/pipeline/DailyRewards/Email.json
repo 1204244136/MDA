@@ -68,6 +68,7 @@
             }
         },
         "next": [
+            "DailyRewardsEmailClaimUnable",
             "[JumpBack]DailyRewardsEmailRedDotFlow",
             "[JumpBack]CommonConfirmReward",
             "CommonClosePage"
@@ -102,10 +103,10 @@
         },
         "next": [
             "DailyRewardsEmailClaimUnable",
-            "DailyRewardsEmailClaim"
+            "DailyRewardsClaimEmail"
         ]
     },
-    "DailyRewardsEmailClaim": {
+    "DailyRewardsClaimEmail": {
         "desc": "邮箱收取",
         "recognition": {
             "type": "OCR",

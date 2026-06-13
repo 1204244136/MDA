@@ -8,7 +8,7 @@
         ]
     },
     "DailyRewardsEnterFriendPoints": {
-        "desc": "友情点",
+        "desc": "进入友情点收发界面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -35,12 +35,14 @@
                 ]
             }
         },
+        "post_wait_freezes": 500,
         "next": [
-            "DailyRewardsSendAndReceive",
-            "CommonClosePage"
+            "DailyRewardsClickSendAndReceiveButton",
+            "CommonClosePage",
+            "DailyRewardsEnterFriendPoints" //兜底
         ]
     },
-    "DailyRewardsSendAndReceive": {
+    "DailyRewardsClickSendAndReceiveButton": {
         "desc": "友情点收发",
         "recognition": {
             "type": "TemplateMatch",
@@ -69,7 +71,7 @@
         },
         "next": [
             "DailyRewardsConfirmReceive",
-            "DailyRewardsSendAndReceive",
+            "DailyRewardsClickSendAndReceiveButton",
             "CommonEndTask"
         ]
     },
@@ -92,7 +94,6 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1000,
         "next": [
             "CommonClosePage"
         ]

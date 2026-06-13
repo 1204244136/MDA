@@ -1,0 +1,257 @@
+{
+    "AccountNurturingSynchroDeviceEnhance": {
+        "desc": "同步器增强",
+        "max_hit": 1,
+        "next": [
+            "AccountNurturingSynchroDeviceEnhanceEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "AccountNurturingSynchroDeviceEnhanceEnterHall": {
+        "desc": "同步器增强入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "AccountNurturingSynchroDeviceEnhanceEnterFlow",
+            "[JumpBack]CommonEnterOutpost"
+        ]
+    },
+    "AccountNurturingSynchroDeviceEnhanceEnterFlow": {
+        "desc": "进入同步器流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "OutpostMainPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "SynchroDeviceClickRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "SynchroDeviceClickRedDot": {
+        "desc": "点击同步器红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    567,
+                    580,
+                    18,
+                    17
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "SynchroDeviceEnterDevice"
+        ]
+    },
+    "SynchroDeviceEnterDevice": {
+        "desc": "进入同步器",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    719,
+                    667,
+                    47,
+                    32
+                ],
+                "expected": [
+                    ".*进入.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SynchroDeviceEnhanceFlow"
+        ]
+    },
+    "SynchroDeviceEnhanceFlow": {
+        "desc": "同步器增强流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SynchroDeviceEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]SynchroDeviceClickAutoAllocation",
+            "SynchroDeviceEnterEnhancePage"
+        ]
+    },
+    "SynchroDeviceClickAutoAllocation": {
+        "desc": "自动配置",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    541,
+                    300,
+                    87,
+                    22
+                ],
+                "expected": [
+                    ".*自动.*" //自动配置
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SynchroDeviceEnterEnhancePage": {
+        "desc": "进入同步器增强页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    609,
+                    143,
+                    60,
+                    35
+                ],
+                "expected": [
+                    ".*增强.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]SynchroDeviceUseConsumables",
+            "SynchroDeviceClickAutoSelectButton"
+        ]
+    },
+    "SynchroDeviceUseConsumables": {
+        "desc": "使用消耗道具",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    767,
+                    433,
+                    44,
+                    28
+                ],
+                "template": [
+                    "AccountNurturing/ConsumablesOFF.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SynchroDeviceClickAutoSelectButton": {
+        "desc": "点击自动选择",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    565,
+                    581,
+                    79,
+                    37
+                ],
+                "expected": [
+                    ".*自动选择.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SynchroDeviceClickEnhance"
+        ]
+    },
+    "SynchroDeviceClickEnhance": {
+        "desc": "点击增强",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    565,
+                    581,
+                    79,
+                    37
+                ],
+                "expected": [
+                    ".*增强.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SynchroDeviceConfirmEnhance"
+        ]
+    },
+    "SynchroDeviceConfirmEnhance": {
+        "desc": "增强确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    608,
+                    441,
+                    64,
+                    32
+                ],
+                "expected": [
+                    ".*确认.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SynchroDeviceEntered": {
+        "desc": "处于同步器界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    ".*同步器.*"
+                ]
+            }
+        }
+    }
+}

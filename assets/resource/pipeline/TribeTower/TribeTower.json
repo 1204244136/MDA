@@ -8,7 +8,7 @@
         },
         "next": [
             "ArkEnterTribeTower",
-            "[JumpBack]NavigationEnterArkFlow"
+            "[JumpBack]CommonEnterArk"
         ]
     },
     "ArkEnterTribeTower": {
@@ -266,7 +266,7 @@
                     21
                 ],
                 "expected": [
-                    "^无限之塔$"
+                    ".*无限.*" //无限之塔
                 ]
             }
         }

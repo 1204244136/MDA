@@ -105,6 +105,7 @@
         "tasks/TribeTower.json",
         "tasks/Interception.json",
         "tasks/Outpost.json",
+        "tasks/AccountNurturing.json",
         "tasks/Advise.json",
         "tasks/CoordinatedOperations.json",
         "tasks/SoloRaid.json",

@@ -13,17 +13,17 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible"
+                    "CommonArkVisible"
                 ]
             }
         },
         "next": [
-            "DailyLoginSearch",
+            "DailyLoginClickEntry",
             "[JumpBack]CoordinatedOperationsSlideBanner",
             "CommonEndTask"
         ]
     },
-    "DailyLoginSearch": {
+    "DailyLoginClickEntry": {
         "desc": "寻找每日登录奖励图标",
         "recognition": {
             "type": "TemplateMatch",
@@ -43,12 +43,12 @@
             "type": "Click"
         },
         "next": [
-            "[JumpBack]DailyLoginRewardsClaim",
+            "[JumpBack]DailyLoginClaimRewards",
             "[JumpBack]CommonConfirmReward",
             "CommonClosePage"
         ]
     },
-    "DailyLoginRewardsClaim": {
+    "DailyLoginClaimRewards": {
         "desc": "领取每日登录奖励",
         "recognition": {
             "type": "And",
@@ -79,11 +79,7 @@
                     ".*全部.*"
                 ]
             }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500
+        }
     },
     "DailyLoginRewardsAvailable": {
         "desc": "登录奖励可用",

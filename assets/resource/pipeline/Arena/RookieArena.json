@@ -15,7 +15,8 @@
             "type": "Click"
         },
         "next": [
-            "RookieArenaCornerFlow"
+            "RookieArenaCornerFlow",
+            "ArenaEnterRookieArena" //兜底
         ]
     },
     "RookieArenaMainPageEntered": {
@@ -30,7 +31,7 @@
                     25
                 ],
                 "expected": [
-                    "新人竞技场"
+                    ".*新人.*" //新人竞技场
                 ]
             }
         }
@@ -46,7 +47,7 @@
             }
         },
         "next": [
-            "[JumpBack]ArenaFreeBattle",
+            "[JumpBack]ArenaClickFreeBattle",
             "ArenaCornerFlow",
             "[JumpBack]CommonGoBack"
         ]

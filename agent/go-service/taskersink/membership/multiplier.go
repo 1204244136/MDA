@@ -18,12 +18,6 @@ func multiplierForEntry(entry string) quotaMultiplier {
 	}
 
 	switch entry {
-	case "SmallEventMain":
-		m.BasePermille = 2 * multiplierScale
-		m.Reason = "small_event"
-	case "LargeEventMain":
-		m.BasePermille = 3 * multiplierScale
-		m.Reason = "large_event"
 	case "MapPushingFlow":
 		m.BasePermille = 5 * multiplierScale
 		m.Reason = "map_pushing"

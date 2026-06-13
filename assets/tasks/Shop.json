@@ -50,10 +50,10 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "ShopFreeGoodsPurchase": {
+                        "ShopPurchaseFreeGoods": {
                             "enabled": true
                         },
-                        "ShopFreeReset": {
+                        "ShopClickFreeReset": {
                             "enabled": true
                         }
                     }
@@ -61,10 +61,10 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "ShopFreeGoodsPurchase": {
+                        "ShopPurchaseFreeGoods": {
                             "enabled": false
                         },
-                        "ShopFreeReset": {
+                        "ShopClickFreeReset": {
                             "enabled": false
                         }
                     }
@@ -78,7 +78,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "ShopCoreDustCasePurchase": {
+                        "ShopPurchaseCoreDustCase": {
                             "enabled": false
                         }
                     }
@@ -86,7 +86,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "ShopCoreDustCasePurchase": {
+                        "ShopPurchaseCoreDustCase": {
                             "enabled": true
                         }
                     }
@@ -128,7 +128,7 @@
                     "name": "ArenaShopFireCodeManual",
                     "label": "$option.ArenaShopItemList.ArenaShopFireCodeManual",
                     "pipeline_override": {
-                        "ShopFireCodeManualPurchase": {
+                        "ShopPurchaseFireCodeManual": {
                             "enabled": true
                         }
                     }
@@ -137,7 +137,7 @@
                     "name": "ArenaShopWaterCodeManual",
                     "label": "$option.ArenaShopItemList.ArenaShopWaterCodeManual",
                     "pipeline_override": {
-                        "ShopWaterCodeManualPurchase": {
+                        "ShopPurchaseWaterCodeManual": {
                             "enabled": true
                         }
                     }
@@ -146,7 +146,7 @@
                     "name": "ArenaShopWindCodeManual",
                     "label": "$option.ArenaShopItemList.ArenaShopWindCodeManual",
                     "pipeline_override": {
-                        "ShopWindCodeManualPurchase": {
+                        "ShopPurchaseWindCodeManual": {
                             "enabled": true
                         }
                     }
@@ -155,7 +155,7 @@
                     "name": "ArenaShopElectricCodeManual",
                     "label": "$option.ArenaShopItemList.ArenaShopElectricCodeManual",
                     "pipeline_override": {
-                        "ShopElectricCodeManualPurchase": {
+                        "ShopPurchaseElectricCodeManual": {
                             "enabled": true
                         }
                     }
@@ -164,7 +164,7 @@
                     "name": "ArenaShopIronCodeManual",
                     "label": "$option.ArenaShopItemList.ArenaShopIronCodeManual",
                     "pipeline_override": {
-                        "ShopIronCodeManualPurchase": {
+                        "ShopPurchaseIronCodeManual": {
                             "enabled": true
                         }
                     }
@@ -173,7 +173,7 @@
                     "name": "ArenaShopCodeManualSelectionBox",
                     "label": "$option.ArenaShopItemList.ArenaShopCodeManualSelectionBox",
                     "pipeline_override": {
-                        "ShopCodeManualSelectionBoxPurchase": {
+                        "ShopPurchaseCodeManualSelectionBox": {
                             "enabled": true
                         }
                     }
@@ -217,7 +217,7 @@
                     "name": "GoodTeamworkBox",
                     "label": "$option.RecyclingShopList.GoodTeamworkBox",
                     "pipeline_override": {
-                        "ShopGoodTeamworkBoxPurchase": {
+                        "ShopPurchaseGoodTeamworkBox": {
                             "enabled": true
                         }
                     }
@@ -226,7 +226,7 @@
                     "name": "MaintenanceKitBox",
                     "label": "$option.RecyclingShopList.MaintenanceKitBox",
                     "pipeline_override": {
-                        "ShopMaintenanceKitBoxPurchase": {
+                        "ShopPurchaseMaintenanceKitBox": {
                             "enabled": true
                         }
                     }
@@ -235,7 +235,7 @@
                     "name": "CuratedManufacturerArms",
                     "label": "$option.RecyclingShopList.CuratedManufacturerArms",
                     "pipeline_override": {
-                        "ShopCuratedManufacturerArmsPurchase": {
+                        "ShopPurchaseCuratedManufacturerArms": {
                             "enabled": true
                         }
                     }
@@ -244,7 +244,7 @@
                     "name": "Gem",
                     "label": "$option.RecyclingShopList.Gem",
                     "pipeline_override": {
-                        "ShopGemPurchase": {
+                        "ShopPurchaseGem": {
                             "enabled": true
                         }
                     }
@@ -253,7 +253,7 @@
                     "name": "Voucher",
                     "label": "$option.RecyclingShopList.Voucher",
                     "pipeline_override": {
-                        "ShopVoucherPurchase": {
+                        "ShopPurchaseVoucher": {
                             "enabled": true
                         }
                     }
@@ -262,7 +262,7 @@
                     "name": "UpgradeMaterials",
                     "label": "$option.RecyclingShopList.UpgradeMaterials",
                     "pipeline_override": {
-                        "ShopUpgradeMaterialsPurchase": {
+                        "ShopPurchaseUpgradeMaterials": {
                             "enabled": true
                         }
                     }

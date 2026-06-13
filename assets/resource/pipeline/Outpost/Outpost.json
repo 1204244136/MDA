@@ -8,11 +8,11 @@
         },
         "next": [
             "HallEnterOutpost",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "HallEnterOutpost": {
-        "desc": "进入前哨基地",
+        "desc": "进入前哨基地并执行后续任务",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -46,8 +46,8 @@
             }
         },
         "next": [
-            "[JumpBack]DefenseRewards",
-            "[JumpBack]BulletinBoard",
+            "[JumpBack]OutpostEnterDefenseRewards",
+            "[JumpBack]OutpostEnterBulletinBoard",
             "[JumpBack]BriefEncounter",
             "CommonEndTask"
         ]

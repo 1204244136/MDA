@@ -1,5 +1,5 @@
 {
-    "LargeEventStarAnisMerchBagClick": {
+    "LargeEventStarAnisClickMerchBag": {
         "desc": "点击周边包包",
         "recognition": {
             "type": "OCR",
@@ -20,11 +20,11 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "LargeEventStarAnisMerchLotteryClick",
-            "LargeEventStarAnisMerchGachaClick"
+            "LargeEventStarAnisClickMerchLottery",
+            "LargeEventStarAnisClickMerchGacha"
         ]
     },
-    "LargeEventStarAnisMerchLotteryClick": {
+    "LargeEventStarAnisClickMerchLottery": {
         "desc": "点击抽取刮刮乐周边",
         "recognition": {
             "type": "OCR",
@@ -45,11 +45,11 @@
         },
         "next": [
             "LargeEventStarAnisLotteryExhaustedFlow",
-            "LargeEventStarAnisPlayMerchLotteryClick",
-            "LargeEventStarAnisMerchLotteryClick"
+            "LargeEventStarAnisClickPlayMerchLottery",
+            "LargeEventStarAnisClickMerchLottery"
         ]
     },
-    "LargeEventStarAnisMerchGachaClick": {
+    "LargeEventStarAnisClickMerchGacha": {
         "desc": "点击抽取周边",
         "recognition": {
             "type": "OCR",
@@ -71,11 +71,11 @@
         "post_wait_freezes": 500,
         "next": [
             "LargeEventStarAnisLotteryGrayButtonVisible",
-            "LargeEventStarAnisPlayMerchLotteryClick",
+            "LargeEventStarAnisClickPlayMerchLottery",
             "LargeEventGoBack"
         ]
     },
-    "LargeEventStarAnisPlayMerchLotteryClick": {
+    "LargeEventStarAnisClickPlayMerchLottery": {
         "desc": "点击画面进行抽取",
         "recognition": {
             "type": "OCR",
@@ -98,8 +98,8 @@
         "repeat_delay": 500,
         "next": [
             "LargeEventStarAnisLotteryExhaustedFlow",
-            "LargeEventStarAnisMerchLotteryClick",
-            "LargeEventStarAnisPlayMerchLotteryClick"
+            "LargeEventStarAnisClickMerchLottery",
+            "LargeEventStarAnisClickPlayMerchLottery"
         ]
     },
     "LargeEventStarAnisLotteryExhaustedFlow": {
@@ -114,11 +114,11 @@
             }
         },
         "next": [
-            "LargeEventStarAnisLotteryConfirmClick",
+            "LargeEventStarAnisConfirmLottery",
             "LargeEventGoBack"
         ]
     },
-    "LargeEventStarAnisLotteryConfirmClick": {
+    "LargeEventStarAnisConfirmLottery": {
         "desc": "确认抽取结果",
         "recognition": {
             "type": "TemplateMatch",

@@ -1,5 +1,5 @@
 {
-    "LargeEventLoginStamp": {
+    "LargeEventEnterLoginStamp": {
         "desc": "大活动签到",
         "enabled": false,
         "max_hit": 1,
@@ -22,10 +22,10 @@
         },
         "timeout": 60000,
         "next": [
-            "LargeEventLoginStampClaim"
+            "LargeEventClaimLoginStamp"
         ]
     },
-    "LargeEventLoginStampClaim": {
+    "LargeEventClaimLoginStamp": {
         "desc": "大活动签到奖励领取",
         "recognition": {
             "type": "OCR",

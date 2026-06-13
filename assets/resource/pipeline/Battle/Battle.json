@@ -10,15 +10,195 @@
             }
         },
         "next": [
-            "ManualInterceptionBattleRequired",
-            "[JumpBack]BattleCanQuickBattle",
-            "[JumpBack]BattleCanBattle",
+            "[JumpBack]BattleEnterCharacterPage",
+            "[JumpBack]BattleFieldChanged",
+            "[JumpBack]BattleEnterQuickBattle",
+            "[JumpBack]BattleEnterNormalBattle",
             "[JumpBack]BattleClosePage",
             "CommonEndTask"
         ]
     },
-    "BattleCanQuickBattle": {
-        "desc": "快速战斗可行性检测",
+    "BattleEnterCharacterPage": {
+        "desc": "战斗进入角色选择页面",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    457,
+                    518,
+                    63,
+                    65
+                ],
+                "template": [
+                    "Battle/SelectCharacter.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BattleSelectCharacterFlow"
+        ]
+    },
+    "BattleSelectCharacterFlow": {
+        "desc": "战斗选择角色流程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "编队"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]SelectFirstCharacter",
+            "[JumpBack]SelectSecondCharacter",
+            "[JumpBack]SelectThirdCharacter",
+            "[JumpBack]SelectFourthCharacter",
+            "[JumpBack]SelectFifthCharacter",
+            "ConfirmSelection"
+        ]
+    },
+    "SelectFirstCharacter": {
+        "desc": "选择第一个角色",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    34,
+                    352,
+                    744,
+                    18
+                ],
+                "template": [
+                    "Battle/BonusFlag.png"
+                ],
+                "index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SelectSecondCharacter": {
+        "desc": "选择第二个角色",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    34,
+                    352,
+                    744,
+                    18
+                ],
+                "template": [
+                    "Battle/BonusFlag.png"
+                ],
+                "index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SelectThirdCharacter": {
+        "desc": "选择第三个角色",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    34,
+                    352,
+                    744,
+                    18
+                ],
+                "template": [
+                    "Battle/BonusFlag.png"
+                ],
+                "index": 2
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SelectFourthCharacter": {
+        "desc": "选择第四个角色",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    34,
+                    352,
+                    744,
+                    18
+                ],
+                "template": [
+                    "Battle/BonusFlag.png"
+                ],
+                "index": 3
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SelectFifthCharacter": {
+        "desc": "选择第五个角色",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    34,
+                    352,
+                    744,
+                    18
+                ],
+                "template": [
+                    "Battle/BonusFlag.png"
+                ],
+                "index": 4
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ConfirmSelection": {
+        "desc": "确认选择",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1174,
+                    660,
+                    100,
+                    36
+                ],
+                "template": [
+                    "Common/ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "BattleEnterQuickBattle": {
+        "desc": "进入快速战斗",
         "recognition": {
             "type": "And",
             "param": {
@@ -35,7 +215,7 @@
         "next": [
             "MultipleBattleDialogFlow",
             "MultipleBattleClickStartBattle",
-            "BattleOperationComplete"
+            "BattleConfirmOperationComplete"
         ]
     },
     "MultipleBattleDialogFlow": {
@@ -145,8 +325,8 @@
             "[JumpBack]BattleClickAutoBurst",
             "[JumpBack]BattleClickAutoShoot",
             "[JumpBack]DialoguesSkipStory",
-            "[JumpBack]BattleNextState",
-            "BattleOperationComplete",
+            "[JumpBack]BattleClickNextStage",
+            "BattleConfirmOperationComplete",
             "BattleOperationFailed"
         ]
     },
@@ -194,7 +374,7 @@
             "type": "Click"
         }
     },
-    "BattleNextState": {
+    "BattleClickNextStage": {
         "desc": "下一关卡",
         "recognition": {
             "type": "And",
@@ -247,7 +427,7 @@
             }
         }
     },
-    "BattleOperationComplete": {
+    "BattleConfirmOperationComplete": {
         "desc": "战斗胜利结算",
         "recognition": {
             "type": "Or",
@@ -260,8 +440,9 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": 500,
         "next": [
-            "BattleOperationComplete",
+            "BattleConfirmOperationComplete",
             "CommonEndTask"
         ]
     },
@@ -309,13 +490,14 @@
                     30
                 ],
                 "expected": [
-                    "战败"
+                    "战败",
+                    "逾时"
                 ]
             }
         }
     },
-    "BattleCanBattle": {
-        "desc": "战斗可行性检测",
+    "BattleEnterNormalBattle": {
+        "desc": "进入普通战斗",
         "recognition": {
             "type": "And",
             "param": {
@@ -330,6 +512,7 @@
         },
         "next": [
             "[JumpBack]CommonConfirmAction",
+            "BattleEnterNormalBattle", //兜底
             "BattleInBattleFlow"
         ]
     },
@@ -459,5 +642,25 @@
                 "count": 100
             }
         }
+    },
+    "BattleFieldChanged": {
+        "desc": "战斗流程中区域变化",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    357,
+                    226,
+                    562,
+                    243
+                ],
+                "expected": [
+                    ".*前往区域.*"
+                ]
+            }
+        },
+        "next": [
+            "CommonClickBlank"
+        ]
     }
 }

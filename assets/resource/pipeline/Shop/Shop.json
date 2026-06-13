@@ -8,7 +8,7 @@
         },
         "next": [
             "HallEnterShop",
-            "[JumpBack]NavigationReturnHallFlow"
+            "[JumpBack]CommonReturnHall"
         ]
     },
     "HallEnterShop": {
@@ -69,7 +69,7 @@
             "CommonEndTask"
         ]
     },
-    "ShopConfirmPurchase": {
+    "ShopPurchaseFlow": {
         "desc": "购买商品",
         "recognition": {
             "type": "TemplateMatch",

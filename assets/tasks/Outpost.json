@@ -24,7 +24,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "DefenseRewards": {
+                        "OutpostEnterDefenseRewards": {
                             "enabled": true
                         }
                     }
@@ -32,7 +32,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "DefenseRewards": {
+                        "OutpostEnterDefenseRewards": {
                             "enabled": false
                         }
                     }
@@ -47,7 +47,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "BulletinBoard": {
+                        "OutpostEnterBulletinBoard": {
                             "enabled": true
                         }
                     }
@@ -55,7 +55,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "BulletinBoard": {
+                        "OutpostEnterBulletinBoard": {
                             "enabled": false
                         }
                     }

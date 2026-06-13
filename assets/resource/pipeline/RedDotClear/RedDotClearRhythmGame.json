@@ -1,0 +1,194 @@
+{
+    "RedDotClearRhythmGame": {
+        "desc": "清除音游红点",
+        "max_hit": 1,
+        "next": [
+            "RedDotClearRhythmGameEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearRhythmGameEnterHall": {
+        "desc": "音游入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearRhythmGameClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearRhythmGameClickEntry": {
+        "desc": "点击音游红点",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RhythmGameVisible",
+                    "RhythmGameNew"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "RedDotClearRhythmGameFlow",
+            "[JumpBack]CommonClickBlank"
+        ]
+    },
+    "RhythmGameVisible": {
+        "desc": "音游可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    120,
+                    200,
+                    260
+                ],
+                "template": [
+                    "RedDotClear/RhythmGame.png"
+                ]
+            }
+        }
+    },
+    "RhythmGameNew": {
+        "desc": "音游有New的图标",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "RhythmGameVisible",
+                "roi_offset": [
+                    20,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/New.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearRhythmGameClickBlank": {
+        "desc": "音游流点击空白",
+        "max_hit": 10,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    150,
+                    650
+                ]
+            }
+        }
+    },
+    "RedDotClearRhythmGameFlow": {
+        "desc": "音游流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RhythmGameEntered"
+                ]
+            }
+        },
+        "next": [
+            "CommonConfirmAction",
+            "[JumpBack]RhythmGameClickLargeNEW",
+            "[JumpBack]RhythmGameClickSmallNEW",
+            "[JumpBack]RhythmGameSwipeUp",
+            "[JumpBack]CommonGoBack"
+        ]
+    },
+    "RhythmGameEntered": {
+        "desc": "处于音游界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1175,
+                    665,
+                    105,
+                    29
+                ],
+                "expected": [
+                    ".*SORT.*"
+                ]
+            }
+        }
+    },
+    "RhythmGameClickSmallNEW": {
+        "desc": "音游点击小型NEW",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    375,
+                    4,
+                    529,
+                    717
+                ],
+                "template": [
+                    "RedDotClear/RhythmGameSmallNEW.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "CommonGoBack"
+        ]
+    },
+    "RhythmGameClickLargeNEW": {
+        "desc": "音游点击大型NEW",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    375,
+                    4,
+                    529,
+                    717
+                ],
+                "template": [
+                    "RedDotClear/RhythmGameLargeNEW.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "CommonGoBack"
+        ]
+    },
+    "RhythmGameSwipeUp": {
+        "desc": "向上滑动",
+        "max_hit": 10,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    528
+                ],
+                "end": [
+                    627,
+                    238
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": 20
+    }
+}

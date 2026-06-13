@@ -13,8 +13,8 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "NavigationArkVisible",
-                    "NavigationArkRedDotVisible"
+                    "CommonArkVisible",
+                    "CommonArkRedDotVisible"
                 ]
             }
         },
@@ -26,36 +26,19 @@
             "DailyRewardsEnterRankingRewards"
         ]
     },
-    "DailyRewardsRankingRewardVisible": {
-        "desc": "排名奖励可见",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    17,
-                    16,
-                    50,
-                    20
-                ],
-                "expected": [
-                    "方舟"
-                ]
-            }
-        }
-    },
     "DailyRewardsRankingRewardFlow": {
         "desc": "排名奖励流程",
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "DailyRewardsRankingRewardVisible"
+                    "CommonArkCornerVisible"
                 ]
             }
         },
         "next": [
             "DailyRewardsClickRankingRewardRedDot",
-            "NavigationReturnHallFlow"
+            "CommonReturnHall"
         ]
     },
     "DailyRewardsClickRankingRewardRedDot": {
@@ -87,11 +70,11 @@
         },
         "post_wait_freezes": 2000,
         "next": [
-            "DailyRewardsRankingRewardClaim",
+            "DailyRewardsClaimRankingReward",
             "DailyRewardsClickRankingRewardRedDot"
         ]
     },
-    "DailyRewardsRankingRewardClaim": {
+    "DailyRewardsClaimRankingReward": {
         "desc": "排名奖励领取",
         "recognition": {
             "type": "OCR",
@@ -111,7 +94,7 @@
             "type": "Click"
         },
         "next": [
-            "NavigationReturnHallFlow"
+            "CommonReturnHall"
         ]
     }
 }

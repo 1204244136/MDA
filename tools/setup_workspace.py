@@ -225,6 +225,25 @@ def write_versions_file(path: Path, versions: dict[str, str]) -> None:
         print(Console.warn(t("wrn_write_version_failed", error=e)))
 
 
+def _retry_on_permission(operation, *, error_key: str = "", **fmt_args) -> bool:
+    """执行 operation()，遇 PermissionError 提示重试/退出。
+
+    Returns True 表示成功，False 表示用户选择退出。
+    非 PermissionError 异常直接上抛。
+    """
+    while True:
+        try:
+            operation()
+            return True
+        except PermissionError as e:
+            print(Console.err(t("err_permission_denied", error=e)))
+            if error_key:
+                print(Console.err(t(error_key, **fmt_args)))
+            cmd = input(t("prompt_retry_or_quit")).strip().lower()
+            if cmd == "q":
+                return False
+
+
 def parse_semver(version: str) -> tuple[list[int], list[str]]:
     if not version:
         return [], []
@@ -547,20 +566,15 @@ def install_maafw(
             print(Console.ok(t("inf_link_already_exists", path=maafw_dest)))
         elif maafw_dest.exists():
             if maafw_dest.is_dir():
-                while True:
-                    try:
-                        print(Console.info(t("inf_delete_old_dir", path=maafw_dest)))
-                        shutil.rmtree(maafw_dest)
-                        break
-                    except PermissionError as e:
-                        print(Console.err(t("err_permission_denied", error=e)))
-                        print(Console.err(t("err_cannot_delete_maafw", path=maafw_dest)))
-                        cmd = input(t("prompt_retry_or_quit")).strip().lower()
-                        if cmd == "q":
-                            return False, local_version, False
-                    except Exception as e:
-                        print(Console.err(t("err_unknown_error_delete", error=e)))
+                def _delete_maafw_dest():
+                    print(Console.info(t("inf_delete_old_dir", path=maafw_dest)))
+                    shutil.rmtree(maafw_dest)
+                try:
+                    if not _retry_on_permission(_delete_maafw_dest, error_key="err_cannot_delete_maafw", path=maafw_dest):
                         return False, local_version, False
+                except Exception as e:
+                    print(Console.err(t("err_unknown_error_delete", error=e)))
+                    return False, local_version, False
             else:
                 maafw_dest.unlink(missing_ok=True)
 
@@ -582,9 +596,12 @@ def install_maafw(
                 return False, local_version, False
 
             print(Console.info(t("inf_copying_sdk", dest=maafw_deps)))
-            if maafw_deps.exists():
-                shutil.rmtree(maafw_deps)
-            shutil.copytree(sdk_root, maafw_deps)
+            def _copy_sdk():
+                if maafw_deps.exists():
+                    shutil.rmtree(maafw_deps)
+                shutil.copytree(sdk_root, maafw_deps)
+            if not _retry_on_permission(_copy_sdk, error_key="err_cannot_access_deps", path=maafw_deps):
+                return False, local_version, False
             print(Console.ok(t("inf_sdk_copied", dest=maafw_deps)))
 
             if not maafw_dest_is_link:

@@ -9,9 +9,12 @@ import (
 
 func testStatus(minutes int, device string) *MembershipStatus {
 	return &MembershipStatus{
-		TierCode:            "orange_free",
-		TierName:            "Orange Free",
-		DailyRuntimeMinutes: minutes,
+		TierCode:                   "orange_free",
+		TierName:                   "Orange Free",
+		DailyRuntimeMinutes:        minutes,
+		RegularDailyRuntimeMinutes: minutes,
+		StartsOn:                   "2026-05-01",
+		ExpiresOn:                  "2026-06-01",
 		DeviceCode: DeviceCodeV7{
 			CPUHash: device,
 		},
@@ -274,6 +277,71 @@ func TestAddQuotaUsageUsesBillableDuration(t *testing.T) {
 	}
 	if snapshot.RemainingSeconds != 480 {
 		t.Fatalf("RemainingSeconds = %d, want 480", snapshot.RemainingSeconds)
+	}
+}
+
+func TestSpecialThenRegularRouteConsumesSpecialFirstThenRegular(t *testing.T) {
+	isolateQuotaState(t)
+	status := testStatus(10, "device-a")
+	status.IsMember = true
+	status.TierCode = "orange_plus"
+	status.TierName = "Orange Plus"
+	status.SpecialPeriodRuntimeMinutes = 1
+
+	snapshot, err := AddQuotaRouteUsageSeconds(status, quotaRouteSpecialThenRegular, 90)
+	if err != nil {
+		t.Fatalf("AddQuotaRouteUsageSeconds() failed: %v", err)
+	}
+	if snapshot.SpecialUsedSeconds != 60 {
+		t.Fatalf("SpecialUsedSeconds = %d, want 60", snapshot.SpecialUsedSeconds)
+	}
+	if snapshot.RegularUsedSeconds != 30 {
+		t.Fatalf("RegularUsedSeconds = %d, want 30", snapshot.RegularUsedSeconds)
+	}
+}
+
+func TestSpecialRouteAvailableFallsBackToRegular(t *testing.T) {
+	isolateQuotaState(t)
+	status := testStatus(10, "device-a")
+	status.SpecialPeriodRuntimeMinutes = 0
+
+	snapshot, ok, err := EnsureQuotaRouteAvailable(status, quotaRouteSpecialThenRegular)
+	if err != nil {
+		t.Fatalf("EnsureQuotaRouteAvailable() failed: %v", err)
+	}
+	if !ok {
+		t.Fatalf("special route should fall back to regular quota")
+	}
+	if !snapshot.FallbackToRegular {
+		t.Fatalf("FallbackToRegular = false, want true")
+	}
+}
+
+func TestSpecialPeriodResetsWhenSubscriptionPeriodChanges(t *testing.T) {
+	isolateQuotaState(t)
+	status := testStatus(10, "device-a")
+	status.SpecialPeriodRuntimeMinutes = 1
+	if _, err := AddQuotaRouteUsageSeconds(status, quotaRouteSpecialThenRegular, 60); err != nil {
+		t.Fatalf("AddQuotaRouteUsageSeconds() failed: %v", err)
+	}
+
+	status.StartsOn = "2026-06-01"
+	status.ExpiresOn = "2026-07-01"
+	snapshot, err := GetQuotaSnapshot(status, quotaPoolSpecialPeriod)
+	if err != nil {
+		t.Fatalf("GetQuotaSnapshot() failed: %v", err)
+	}
+	if snapshot.UsedSeconds != 0 {
+		t.Fatalf("UsedSeconds after period change = %d, want 0", snapshot.UsedSeconds)
+	}
+}
+
+func TestQuotaRouteForEntry(t *testing.T) {
+	if got := quotaRouteForEntry("MapPushingFlow"); got != quotaRouteSpecialThenRegular {
+		t.Fatalf("quotaRouteForEntry(MapPushingFlow) = %s, want %s", got, quotaRouteSpecialThenRegular)
+	}
+	if got := quotaRouteForEntry("DailyRewardsMain"); got != quotaRouteRegular {
+		t.Fatalf("quotaRouteForEntry(DailyRewardsMain) = %s, want %s", got, quotaRouteRegular)
 	}
 }
 

@@ -22,7 +22,7 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
-                        "SimulationRoomBeginSimulation": {
+                        "SimulationRoomStartSimulation": {
                             "enabled": true
                         }
                     }
@@ -30,7 +30,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "SimulationRoomBeginSimulation": {
+                        "SimulationRoomStartSimulation": {
                             "enabled": false
                         }
                     }

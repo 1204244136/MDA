@@ -7,11 +7,11 @@
             }
         },
         "next": [
-            "SimulationRoomEnter",
-            "[JumpBack]NavigationEnterArkFlow"
+            "SimulationRoomEnterMain",
+            "[JumpBack]CommonEnterArk"
         ]
     },
-    "SimulationRoomEnter": {
+    "SimulationRoomEnterMain": {
         "desc": "进入模拟室",
         "recognition": {
             "type": "OCR",
@@ -33,7 +33,7 @@
         "next": [
             "[JumpBack]SimulationRoomConfirmBiosUpdate",
             "SimulationRoomCornerFlow",
-            "SimulationRoomEnter"
+            "SimulationRoomEnterMain"
         ]
     },
     "SimulationRoomConfirmBiosUpdate": {
@@ -93,7 +93,7 @@
             ]
         },
         "next": [
-            "SimulationRoomBeginSimulation",
+            "SimulationRoomStartSimulation",
             "SimulationRoomStartOverclock",
             "CommonEndTask"
         ]

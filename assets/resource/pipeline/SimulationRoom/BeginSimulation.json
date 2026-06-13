@@ -1,5 +1,5 @@
 {
-    "SimulationRoomBeginSimulation": {
+    "SimulationRoomStartSimulation": {
         "desc": "开始模拟",
         "recognition": {
             "type": "And",
@@ -23,8 +23,8 @@
         },
         "next": [
             "[JumpBack]SimulationRoomClaimImmediately",
-            "SimulationRoomQuickSimulation",
-            "SimulationRoomBeginSimulation"
+            "SimulationRoomStartQuickSimulation",
+            "SimulationRoomStartSimulation"
         ]
     },
     "SimulationRoomClaimImmediately": {
@@ -47,7 +47,7 @@
             "type": "Click"
         }
     },
-    "SimulationRoomQuickSimulation": {
+    "SimulationRoomStartQuickSimulation": {
         "desc": "快速模拟",
         "recognition": {
             "type": "OCR",
@@ -67,11 +67,11 @@
             "type": "Click"
         },
         "next": [
-            "SimulationRoomEndSimulation",
+            "SimulationRoomConfirmEndSimulation",
             "SimulationRoomSkipBuff"
         ]
     },
-    "SimulationRoomEndSimulation": {
+    "SimulationRoomConfirmEndSimulation": {
         "desc": "模拟结束",
         "recognition": {
             "type": "OCR",
@@ -92,6 +92,7 @@
         },
         "next": [
             "SimulationRoomCornerFlow",
+            "[JumpBack]SimulationRoomConfirmBattleEnd",
             "[JumpBack]CommonConfirmAction"
         ]
     },
@@ -116,7 +117,7 @@
         },
         "next": [
             "[JumpBack]BattleEntryFlow",
-            "SimulationRoomEndSimulation"
+            "SimulationRoomConfirmEndSimulation"
         ]
     },
     "SimulationRoomBeginRedDotVisible": {

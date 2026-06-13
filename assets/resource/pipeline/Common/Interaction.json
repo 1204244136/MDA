@@ -32,7 +32,8 @@
                     250
                 ],
                 "template": [
-                    "Common/ConfirmWithCircle.png"
+                    "Common/ConfirmWithCircle.png",
+                    "Common/ConfirmWithCircle2.png"
                 ]
             }
         },
@@ -64,11 +65,71 @@
         },
         "action": {
             "type": "Click"
+        }
+    },
+    "CommonCloseSale": {
+        "desc": "关闭推销",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    601,
+                    660,
+                    66,
+                    17
+                ],
+                "expected": [
+                    "点击关闭画面"
+                ]
+            }
         },
-        "post_wait_freezes": 200
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CommonConfirmAction"
+        ]
+    },
+    "CommonGoBack": {
+        "desc": "返回",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    647,
+                    93,
+                    73
+                ],
+                "template": [
+                    "Common/GoBack1.png",
+                    "Common/GoBack2.png",
+                    "Common/GoBack3.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 2000
     },
     "CommonClickMax": {
-        "desc": "点击MAX",
+        "desc": "有可点击的MAX则点击",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonClickMaxVisible",
+                    "CommonClickMaxAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonClickMaxVisible": {
+        "desc": "MAX可见",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -85,9 +146,26 @@
                     0.8
                 ]
             }
-        },
-        "action": {
-            "type": "Click"
+        }
+    },
+    "CommonClickMaxAvailable": {
+        "desc": "MAX可点击",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "CommonClickMaxVisible",
+                "lower": [
+                    140,
+                    140,
+                    140
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 50
+            }
         }
     },
     "CommonClickBlank": {
@@ -102,7 +180,356 @@
             }
         }
     },
+    "CommonTouchToContinue": {
+        "desc": "点击以继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    554,
+                    606,
+                    183,
+                    30
+                ],
+                "expected": [
+                    ".*CONTINUE.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonSwipeUp": {
+        "desc": "向上滑动",
+        "max_hit": 1,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    528
+                ],
+                "end": [
+                    627,
+                    238
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": 20
+    },
+    "CommonBellIconVisible": {
+        "desc": "右上角铃铛图标可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1174,
+                    8,
+                    37,
+                    35
+                ],
+                "template": [
+                    "Common/Bell.png"
+                ]
+            }
+        }
+    },
+    "CommonMailIconVisible": {
+        "desc": "右上角邮件图标可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1211,
+                    9,
+                    30,
+                    31
+                ],
+                "template": [
+                    "Common/Mail.png"
+                ]
+            }
+        }
+    },
+    "CommonReturnHall": {
+        "desc": "进入大厅",
+        "anchor": "NeedCheck",
+        "timeout": 120000,
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "[JumpBack]LoginConfirmServer",
+            "[JumpBack]LoginConfirmDownload",
+            "[JumpBack]LoginConfirmLogin",
+            "[JumpBack]CommonClickHomeButton",
+            "[JumpBack]CommonSkipPlot",
+            "[JumpBack]CommonCloseSale",
+            "[JumpBack]CommonConfirmReward",
+            "[JumpBack]CommonReturnOutpost",
+            "CommonClickFreeState",
+            "[JumpBack]CommonClickHall",
+            "[JumpBack]CommonClickBlank"
+        ]
+    },
+    "CommonReturnOutpost": {
+        "desc": "前哨基地误触返回",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    633,
+                    668,
+                    60,
+                    33
+                ],
+                "expected": [
+                    "关闭"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonEnterOutpost": {
+        "desc": "进入前哨基地",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    362,
+                    542,
+                    82,
+                    33
+                ],
+                "expected": [
+                    "前哨基地"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonNoticeVisible": {
+        "desc": "公告可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    634,
+                    63,
+                    39,
+                    25
+                ],
+                "expected": [
+                    "公告",
+                    "Notice"
+                ]
+            }
+        }
+    },
+    "CommonFreeStateFlow": {
+        "desc": "自由状态响应流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonNoticeVisible"
+                ]
+            }
+        },
+        "next": [
+            "CommonClosePage"
+        ]
+    },
+    "CommonClickHomeButton": {
+        "desc": "点击主页按钮",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    91,
+                    664,
+                    39,
+                    32
+                ],
+                "template": [
+                    "Common/HomeButton.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonSkipPlot": {
+        "desc": "跳过剧情",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1218,
+                    9,
+                    50,
+                    16
+                ],
+                "expected": [
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonFreeStateVisible": {
+        "desc": "自由状态可见",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonBellIconVisible"
+                ]
+            }
+        }
+    },
+    "CommonClickFreeState": {
+        "desc": "点击自由状态",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonFreeStateVisible"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CommonFreeStateFlow",
+            "[Anchor]NeedCheck"
+        ]
+    },
+    "CommonClickHall": {
+        "desc": "点击大厅",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    625,
+                    686,
+                    30,
+                    18
+                ],
+                "expected": [
+                    "大厅"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CommonEnterArk": {
+        "desc": "进入方舟",
+        "next": [
+            "CommonArkEntered",
+            "CommonClickArk",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "CommonArkEntered": {
+        "desc": "处于方舟内部",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "方舟"
+                ]
+            }
+        }
+    },
+    "CommonClickArk": {
+        "desc": "点击方舟",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CommonArkEntered",
+            "CommonClickArk"
+        ]
+    },
+    "CommonArkVisible": {
+        "desc": "大厅的方舟标识",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    896,
+                    471,
+                    54,
+                    36
+                ],
+                "expected": [
+                    "方舟"
+                ]
+            }
+        }
+    },
+    "CommonArkRedDotVisible": {
+        "desc": "大厅的方舟红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    956,
+                    448,
+                    28,
+                    25
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
     "CommonEndTask": {
         "desc": "空节点，用于结束流程"
+    },
+    "CommonArkCornerVisible": {
+        "desc": "左上角的方舟可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    17,
+                    16,
+                    50,
+                    20
+                ],
+                "expected": [
+                    "方舟"
+                ]
+            }
+        }
     }
 }
