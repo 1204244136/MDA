@@ -155,6 +155,7 @@
         "next": [
             "[JumpBack]RecycleRoomClickMax",
             "RecycleRoomClickUpgrade",
+            "[JumpBack]CommonClosePage",
             "RecycleRoomClickRedDot" //兜底
         ]
     },
