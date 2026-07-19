@@ -32,7 +32,7 @@
         ]
     },
     "OutpostBulletinBoardVisible": {
-        "desc": "派遣公告板标志",
+        "desc": "派遣公告栏标志",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -43,7 +43,7 @@
                     28
                 ],
                 "expected": [
-                    "派遣公告栏"
+                    ".*公.栏.*" //派遣公告栏
                 ]
             }
         }
