@@ -31,6 +31,7 @@
         "next": [
             "[JumpBack]LuckyBoxOpeningClickRedDot",
             "[JumpBack]LuckyBoxOpeningClickMaintenanceKitBox",
+            "[JumpBack]LuckyBoxOpeningClickCollectionItemBox",
             "CommonEndTask"
         ]
     },
@@ -46,6 +47,28 @@
                     447
                 ],
                 "template": "Shop/RecyclingShop/MaintenanceKitBox.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LuckyBoxOpeningClickMax",
+            "LuckyBoxOpeningClickConfirm"
+        ]
+    },
+    "LuckyBoxOpeningClickCollectionItemBox": {
+        "desc": "点击收藏品箱",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    61,
+                    173,
+                    1170,
+                    447
+                ],
+                "template": "LuckyBoxOpening/CollectionItemBox.png"
             }
         },
         "action": {
