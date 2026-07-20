@@ -72,7 +72,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "post_wait_freezes": 2000
     },
     "ShopPurchaseCoreDustCase": {
         "desc": "购买芯尘盒",
