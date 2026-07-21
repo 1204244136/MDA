@@ -88,7 +88,8 @@
             "type": "Click"
         },
         "next": [
-            "CommonConfirmAction"
+            "CommonConfirmAction",
+            "CommonCloseSale" //兜底
         ]
     },
     "CommonGoBack": {
