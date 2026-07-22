@@ -75,7 +75,8 @@
         },
         "next": [
             "[JumpBack]ArenaClickCheerReward",
-            "ChampionArenaCompetitionFlow"
+            "ChampionArenaCompetitionFlow",
+            "ChampionArenaEnterChampionsDuel" //兜底
         ]
     },
     "ArenaClickCheerReward": {
