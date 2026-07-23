@@ -144,8 +144,26 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "DailyRewards/DailyLogin/TwinkleGreenStar.png"
+                                        "DailyRewards/DailyLogin/HeroDays.png"
                                     ]
+                                }
+                            }
+                        },
+                        "DailyLoginRewardsAvailable": {
+                            "recognition": {
+                                "param": {
+                                    "roi": "DailyLoginClaimAllButtonVisible",
+                                    "lower": [
+                                        225,
+                                        235,
+                                        60
+                                    ],
+                                    "upper": [
+                                        245,
+                                        255,
+                                        95
+                                    ],
+                                    "count": 100
                                 }
                             }
                         }
