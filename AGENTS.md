@@ -40,6 +40,8 @@
 - commit 后不要自动 push；由用户决定何时推送。
 - commit 信息应使用中文并遵守 Conventional Commits 风格。
 - commit scope 涉及具体任务时，使用任务本身的正式名称并保持原有大小写和连续拼写（例如 `SoloRaid`，不要写成 `solo-raid`）。
+- commit scope 涉及活动主题时，使用对应任务的正式名称 `LargeEvent` 或 `SmallEvent`，不要使用具体主题名（例如 `ProjectMatis`）。
 - 编辑 i18 本地化文件时，保持与参考文件一致的排序。
+- 大活动和小活动的主题 i18n 显示名统一使用全大写；新增或调整主题时，同时检查 `LargeEventTheme` 和 `SmallEventTheme` 的往期主题是否保持一致。
 - Go 测试从仓库根目录运行；Go module 位于 `agent\go-service`。
 - 审查 pipeline 名称时，要检查每个节点的实际职责，不只根据后缀判断。
