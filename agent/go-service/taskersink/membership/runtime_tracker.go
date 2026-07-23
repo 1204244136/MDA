@@ -22,6 +22,7 @@ type RuntimeTracker struct {
 	realNs         int64
 	chargedSeconds int64
 	stopCh         chan struct{}
+	postStop       func()
 	stopped        bool
 	stopPosted     bool
 }
@@ -130,6 +131,17 @@ func (t *RuntimeTracker) requestStop(generation uint64) bool {
 	return true
 }
 
+func (t *RuntimeTracker) takeImmediateStop(generation uint64) func() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if !t.active || t.generation != generation || t.stopPosted || t.postStop == nil {
+		return nil
+	}
+	t.stopped = true
+	t.stopPosted = true
+	return t.postStop
+}
+
 func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) {
 	t.finish()
 
@@ -164,6 +176,9 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.realNs = 0
 	t.chargedSeconds = 0
 	t.stopCh = make(chan struct{})
+	t.postStop = func() {
+		tasker.PostStop()
+	}
 	t.stopped = false
 	t.stopPosted = false
 	generation := t.generation
@@ -205,6 +220,7 @@ func (t *RuntimeTracker) finish() {
 	t.active = false
 	t.status = nil
 	t.stopCh = nil
+	t.postStop = nil
 	t.generation++
 	close(stopCh)
 	t.mu.Unlock()
@@ -278,7 +294,7 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 	billableSeconds := t.consumeBillableSecondsLocked(delta, false)
 	t.mu.Unlock()
 
-	snapshot, err := AddQuotaRouteUsageSeconds(status, route, billableSeconds)
+	snapshot, overdraftExceeded, err := addQuotaRouteUsageSeconds(status, route, billableSeconds)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to record quota usage")
 		t.requestStop(generation)
@@ -301,6 +317,18 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 		Int64("used_seconds", snapshot.UsedSeconds).
 		Int64("remaining_seconds", snapshot.RemainingSeconds).
 		Msg("RuntimeTracker: quota usage recorded")
+
+	if overdraftExceeded {
+		if postStop := t.takeImmediateStop(generation); postStop != nil {
+			log.Warn().
+				Uint64("task_id", taskID).
+				Str("entry", entry).
+				Int64("daily_limit_seconds", snapshot.RegularLimitSeconds).
+				Msg("RuntimeTracker: overdraft limit exceeded, terminating task")
+			postStop()
+		}
+		return snapshot, true
+	}
 
 	if snapshot.RemainingSeconds > 0 || alreadyStopped {
 		return snapshot, false

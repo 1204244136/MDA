@@ -136,7 +136,7 @@ func TestNormalizeQuotaStateClearsWhenNoDebt(t *testing.T) {
 	}
 }
 
-func TestCarriedQuotaDebtDecaysAcrossMultipleDays(t *testing.T) {
+func TestCarriedQuotaDebtCapsAtCurrentDailyLimit(t *testing.T) {
 	state := quotaState{
 		BusinessDate: "2026-05-28",
 		LimitSeconds: 600,
@@ -144,14 +144,40 @@ func TestCarriedQuotaDebtDecaysAcrossMultipleDays(t *testing.T) {
 	}
 
 	cases := map[string]int64{
-		"2026-05-29": 1300,
-		"2026-05-30": 700,
+		"2026-05-29": 600,
+		"2026-05-30": 600,
 		"2026-06-01": 0,
 	}
 	for businessDate, want := range cases {
 		if got := carriedQuotaDebt(state, businessDate, 600); got != want {
 			t.Fatalf("carriedQuotaDebt(%s) = %d, want %d", businessDate, got, want)
 		}
+	}
+}
+
+func TestNormalizeQuotaStateCapsSameDayOverdraft(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(10, "device-a")
+	now := time.Date(2026, 5, 29, 12, 0, 0, 0, beijingLocation)
+	mustSaveQuotaState(t, path, quotaState{
+		BusinessDate:       quotaBusinessDate(now),
+		DeviceHash:         deviceHash(status.DeviceCode),
+		TierCode:           "orange_free",
+		LimitSeconds:       600,
+		UsedSeconds:        5000,
+		CarriedDebtSeconds: 4400,
+	})
+
+	_, state, err := normalizeQuotaState(status, now)
+	if err != nil {
+		t.Fatalf("normalizeQuotaState() failed: %v", err)
+	}
+	snapshot := snapshotFromState(status, state)
+	if snapshot.UsedSeconds != 1200 {
+		t.Fatalf("UsedSeconds = %d, want 1200", snapshot.UsedSeconds)
+	}
+	if snapshot.CarriedDebtSeconds != 600 {
+		t.Fatalf("CarriedDebtSeconds = %d, want 600", snapshot.CarriedDebtSeconds)
 	}
 }
 
@@ -397,6 +423,22 @@ func TestSpecialThenRegularRouteConsumesSpecialFirstThenRegular(t *testing.T) {
 	}
 	if snapshot.RegularUsedSeconds != 30 {
 		t.Fatalf("RegularUsedSeconds = %d, want 30", snapshot.RegularUsedSeconds)
+	}
+}
+
+func TestAddQuotaRouteUsageCapsOverdraftAtOneDailyLimit(t *testing.T) {
+	isolateQuotaState(t)
+	status := testStatus(10, "device-a")
+
+	snapshot, exceeded, err := addQuotaRouteUsageSeconds(status, quotaRouteRegular, 1201)
+	if err != nil {
+		t.Fatalf("addQuotaRouteUsageSeconds() failed: %v", err)
+	}
+	if !exceeded {
+		t.Fatal("addQuotaRouteUsageSeconds() did not report overdraft limit exceeded")
+	}
+	if snapshot.RegularUsedSeconds != 1200 {
+		t.Fatalf("RegularUsedSeconds = %d, want 1200", snapshot.RegularUsedSeconds)
 	}
 }
 

@@ -184,6 +184,33 @@ func quotaLimitSeconds(status *MembershipStatus, pool quotaPool) int64 {
 	}
 }
 
+func quotaMaximumUsedSeconds(limit int64, pool quotaPool) int64 {
+	if limit <= 0 {
+		return 0
+	}
+	if pool == quotaPoolRegularDaily {
+		return limit * 2
+	}
+	return limit
+}
+
+func addQuotaPoolUsage(poolState quotaPoolState, pool quotaPool, seconds int64) (quotaPoolState, bool) {
+	if seconds <= 0 {
+		return poolState, false
+	}
+	maximumUsed := quotaMaximumUsedSeconds(poolState.LimitSeconds, pool)
+	if poolState.UsedSeconds >= maximumUsed {
+		poolState.UsedSeconds = maximumUsed
+		return poolState, true
+	}
+	if seconds > maximumUsed-poolState.UsedSeconds {
+		poolState.UsedSeconds = maximumUsed
+		return poolState, true
+	}
+	poolState.UsedSeconds += seconds
+	return poolState, false
+}
+
 func isRuntimeQuotaSubject(status *MembershipStatus) bool {
 	return !status.UnlimitedRuntime
 }
@@ -239,6 +266,13 @@ func carriedDailyQuotaDebt(previousPeriod string, usedSeconds int64, limitSecond
 	debt := usedSeconds - limit*days
 	if debt < 0 {
 		return 0
+	}
+	maximumDebt := fallbackLimit
+	if maximumDebt <= 0 {
+		maximumDebt = limit
+	}
+	if maximumDebt > 0 && debt > maximumDebt {
+		debt = maximumDebt
 	}
 	return debt
 }
@@ -361,6 +395,18 @@ func normalizeQuotaPool(status *MembershipStatus, state *quotaState, pool quotaP
 	}
 	if poolState.UsedSeconds < 0 {
 		poolState.UsedSeconds = 0
+	}
+	maximumUsed := quotaMaximumUsedSeconds(limit, pool)
+	if poolState.UsedSeconds > maximumUsed {
+		poolState.UsedSeconds = maximumUsed
+	}
+	if pool == quotaPoolRegularDaily {
+		if poolState.CarriedDebtSeconds < 0 {
+			poolState.CarriedDebtSeconds = 0
+		}
+		if poolState.CarriedDebtSeconds > limit {
+			poolState.CarriedDebtSeconds = limit
+		}
 	}
 	state.Pools[poolKey] = poolState
 	if pool == quotaPoolRegularDaily {
@@ -520,10 +566,7 @@ func AddQuotaUsageSeconds(status *MembershipStatus, pool quotaPool, seconds int6
 	if isRuntimeQuotaSubject(status) {
 		poolKey := string(pool)
 		poolState := state.Pools[poolKey]
-		poolState.UsedSeconds += seconds
-		if pool == quotaPoolSpecialPeriod && poolState.UsedSeconds > poolState.LimitSeconds {
-			poolState.UsedSeconds = poolState.LimitSeconds
-		}
+		poolState, _ = addQuotaPoolUsage(poolState, pool, seconds)
 		poolState.UpdatedAt = now.Format(time.RFC3339)
 		state.Pools[poolKey] = poolState
 	}
@@ -581,28 +624,34 @@ func EnsureQuotaRouteAvailable(status *MembershipStatus, route quotaRoute) (Quot
 }
 
 func AddQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, seconds int64) (QuotaSnapshot, error) {
+	snapshot, _, err := addQuotaRouteUsageSeconds(status, route, seconds)
+	return snapshot, err
+}
+
+func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, seconds int64) (QuotaSnapshot, bool, error) {
 	if seconds <= 0 {
 		snapshot, _, err := EnsureQuotaRouteAvailable(status, route)
-		return snapshot, err
+		return snapshot, false, err
 	}
 	quotaMu.Lock()
 	defer quotaMu.Unlock()
 	unlock, err := lockQuotaStateFile()
 	if err != nil {
-		return QuotaSnapshot{}, err
+		return QuotaSnapshot{}, false, err
 	}
 	defer unlock()
 
 	now := time.Now()
 	path, err := quotaStatePath()
 	if err != nil {
-		return QuotaSnapshot{}, err
+		return QuotaSnapshot{}, false, err
 	}
 	state, err := loadQuotaState(path)
 	if err != nil {
-		return QuotaSnapshot{}, err
+		return QuotaSnapshot{}, false, err
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+	overdraftExceeded := false
 	if isRuntimeQuotaSubject(status) {
 		updatedAt := now.Format(time.RFC3339)
 		regularState := state.Pools[string(quotaPoolRegularDaily)]
@@ -625,15 +674,15 @@ func AddQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 			regularCharge = seconds - specialCharge
 		}
 		if regularCharge > 0 {
-			regularState.UsedSeconds += regularCharge
+			regularState, overdraftExceeded = addQuotaPoolUsage(regularState, quotaPoolRegularDaily, regularCharge)
 			regularState.UpdatedAt = updatedAt
 			state.Pools[string(quotaPoolRegularDaily)] = regularState
 		}
 	}
 	if err := saveQuotaState(path, state); err != nil {
-		return QuotaSnapshot{}, err
+		return QuotaSnapshot{}, false, err
 	}
-	return routeSnapshotFromState(status, state, route), nil
+	return routeSnapshotFromState(status, state, route), overdraftExceeded, nil
 }
 
 func FormatMinutes(seconds int64) int64 {
