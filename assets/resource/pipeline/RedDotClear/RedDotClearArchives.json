@@ -177,7 +177,6 @@
     },
     "ArchivesClickUnlock": {
         "desc": "档案馆点击解锁",
-        "timeout": 30000,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -196,6 +195,7 @@
             "type": "Click"
         },
         "post_wait_freezes": 1000,
+        "timeout": 30000,
         "next": [
             "[JumpBack]CommonConfirmReward",
             "[JumpBack]CommonConfirmAction",
