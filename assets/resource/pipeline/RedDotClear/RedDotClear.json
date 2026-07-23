@@ -35,5 +35,64 @@
             "[JumpBack]RedDotClearArcade",
             "CommonEndTask"
         ]
+    },
+    "RedDotClearClickMore": {
+        "desc": "点击查看更多",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearMoreVisible",
+                    "RedDotClearMoreRedDot"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                0,
+                100,
+                200,
+                260
+            ]
+        }
+    },
+    "RedDotClearMoreVisible": {
+        "desc": "查看更多入口可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    100,
+                    200,
+                    260
+                ],
+                "expected": [
+                    ".*查看.*" //查看更多
+                ]
+            }
+        }
+    },
+    "RedDotClearMoreRedDot": {
+        "desc": "查看更多入口有红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "RedDotClearMoreVisible",
+                "roi_offset": [
+                    20,
+                    -30,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
     }
 }

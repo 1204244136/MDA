@@ -18,8 +18,9 @@
             }
         },
         "next": [
+            "[JumpBack]RedDotClearClickMore",
             "RedDotClearArcadeClickEntry",
-            "CommonEndTask"
+            "CommonClickBlank"
         ]
     },
     "RedDotClearArcadeClickEntry": {
@@ -57,7 +58,7 @@
             "param": {
                 "roi": [
                     0,
-                    120,
+                    100,
                     200,
                     260
                 ],
