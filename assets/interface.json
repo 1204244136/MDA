@@ -77,6 +77,11 @@
     "task": [],
     "group": [
         {
+            "name": "preprocess",
+            "label": "$group.preprocess.label",
+            "description": "$group.preprocess.description"
+        },
+        {
             "name": "daily",
             "label": "$group.daily.label",
             "description": "$group.daily.description"
@@ -98,6 +103,7 @@
         }
     ],
     "import": [
+        "tasks/EnterHall.json",
         "tasks/CashShop.json",
         "tasks/Shop.json",
         "tasks/SimulationRoom.json",

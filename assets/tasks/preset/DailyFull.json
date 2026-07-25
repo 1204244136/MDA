@@ -6,6 +6,9 @@
             "description": "$preset.DailyFull.description",
             "task": [
                 {
+                    "name": "EnterHall"
+                },
+                {
                     "name": "CashShop"
                 },
                 {

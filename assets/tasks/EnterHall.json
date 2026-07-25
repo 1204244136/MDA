@@ -1,0 +1,14 @@
+{
+    "task": [
+        {
+            "name": "EnterHall",
+            "label": "$task.EnterHall.label",
+            "entry": "CommonReturnHall",
+            "description": "$task.EnterHall.description",
+            "group": [
+                "preprocess"
+            ]
+        }
+    ],
+    "option": {}
+}

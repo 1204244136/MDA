@@ -6,6 +6,9 @@
             "description": "$preset.SelfUse.description",
             "task": [
                 {
+                    "name": "EnterHall"
+                },
+                {
                     "name": "CashShop"
                 },
                 {
