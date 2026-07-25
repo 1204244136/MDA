@@ -26,7 +26,8 @@
                 ],
                 "template": [
                     "CoordinatedOperations/CoordinatedOperations.png"
-                ]
+                ],
+                "threshold": 0.9
             }
         },
         "action": {
