@@ -9,12 +9,27 @@
             }
         },
         "next": [
-            "CoordinatedOperationsClickEntry",
+            "CoordinatedOperationsEntry",
             "[JumpBack]CommonReturnHall"
         ]
     },
-    "CoordinatedOperationsClickEntry": {
+    "CoordinatedOperationsEntry": {
         "desc": "进入协同作战",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "CoordinatedOperationsClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "CoordinatedOperationsClickEntry": {
+        "desc": "点击协同作战入口",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
