@@ -65,7 +65,7 @@
         ]
     },
     "SimulationRoomSelectOverclockLevel25": {
-        "desc": "检查难度是否为25",
+        "desc": "检查难度是否为25以上",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -76,7 +76,7 @@
                     37
                 ],
                 "expected": [
-                    "25"
+                    "2[5-9]"
                 ]
             }
         },
