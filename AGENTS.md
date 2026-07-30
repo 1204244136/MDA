@@ -45,3 +45,11 @@
 - 大活动和小活动的主题 i18n 显示名统一使用全大写；新增或调整主题时，同时检查 `LargeEventTheme` 和 `SmallEventTheme` 的往期主题是否保持一致。
 - Go 测试从仓库根目录运行；Go module 位于 `agent\go-service`。
 - 审查 pipeline 名称时，要检查每个节点的实际职责，不只根据后缀判断。
+
+## 大型小活动适配
+
+- 部分归入 `SmallEvent` 的特殊大型小活动包含 `STORY I` / `STORY II` 两篇剧情，活动主页通过独立按钮切换 Story。
+- 不适配 Story 切换按钮。Story 2 开放后，活动页面会自动切换到 Story 2，无需 Pipeline 额外点击；不要照搬 `LargeEvent` 的 Story 优先级或 Story 入口切换流程。
+- 关卡模板必须按实际 Story 语义命名。Story 1 使用 `{Theme}Story1Stage.png` 和 `{Theme}Story1StageRepeatable.png`；Story 2 普通难度使用 `{Theme}Story2StageNormal.png` 和 `{Theme}Story2StageNormalRepeatable.png`。不要用 `SP` 代指 Story 2。
+- 将 Story 1、Story 2 模板共同加入 `SmallEventClickStage` 和 `SmallEventClickStageRepeatable` 的主题覆盖，由现有统一关卡流程识别并推进。
+- Story 2 Hard 未开放时，不添加 `{Theme}Story2StageHard*` 模板或配置；开放后再根据实际素材适配。
