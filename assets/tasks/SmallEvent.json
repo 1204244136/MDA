@@ -111,7 +111,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/ProjectMatis/ProjectMatisStageNormal.png"
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory1Stage.png",
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormal.png"
                                     ]
                                 }
                             }
@@ -120,7 +121,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/ProjectMatis/ProjectMatisStageNormalRepeatable.png"
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory1StageRepeatable.png",
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormalRepeatable.png"
                                     ]
                                 }
                             }
