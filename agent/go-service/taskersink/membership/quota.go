@@ -26,11 +26,10 @@ const (
 )
 
 type quotaPoolState struct {
-	PeriodKey          string `json:"period_key"`
-	LimitSeconds       int64  `json:"limit_seconds"`
-	UsedSeconds        int64  `json:"used_seconds"`
-	CarriedDebtSeconds int64  `json:"carried_debt_seconds,omitempty"`
-	UpdatedAt          string `json:"updated_at"`
+	PeriodKey    string `json:"period_key"`
+	LimitSeconds int64  `json:"limit_seconds"`
+	UsedSeconds  int64  `json:"used_seconds"`
+	UpdatedAt    string `json:"updated_at"`
 }
 
 type quotaCouponRedemption struct {
@@ -46,11 +45,10 @@ type quotaState struct {
 	Pools           map[string]quotaPoolState        `json:"pools,omitempty"`
 	RedeemedCoupons map[string]quotaCouponRedemption `json:"redeemed_coupons,omitempty"`
 
-	BusinessDate       string `json:"business_date,omitempty"`
-	LimitSeconds       int64  `json:"limit_seconds,omitempty"`
-	UsedSeconds        int64  `json:"used_seconds,omitempty"`
-	CarriedDebtSeconds int64  `json:"carried_debt_seconds,omitempty"`
-	UpdatedAt          string `json:"updated_at,omitempty"`
+	BusinessDate string `json:"business_date,omitempty"`
+	LimitSeconds int64  `json:"limit_seconds,omitempty"`
+	UsedSeconds  int64  `json:"used_seconds,omitempty"`
+	UpdatedAt    string `json:"updated_at,omitempty"`
 }
 
 type QuotaSnapshot struct {
@@ -64,7 +62,6 @@ type QuotaSnapshot struct {
 	LimitSeconds            int64
 	UsedSeconds             int64
 	RemainingSeconds        int64
-	CarriedDebtSeconds      int64
 	BusinessDate            string
 	SponsorURL              string
 	UnlimitedRuntime        bool
@@ -184,27 +181,17 @@ func quotaLimitSeconds(status *MembershipStatus, pool quotaPool) int64 {
 	}
 }
 
-func quotaMaximumUsedSeconds(limit int64, pool quotaPool) int64 {
-	if limit <= 0 {
-		return 0
-	}
-	if pool == quotaPoolRegularDaily {
-		return limit * 2
-	}
-	return limit
-}
-
-func addQuotaPoolUsage(poolState quotaPoolState, pool quotaPool, seconds int64) (quotaPoolState, bool) {
-	if seconds <= 0 {
+func addQuotaPoolUsage(poolState quotaPoolState, seconds int64) (quotaPoolState, bool) {
+	if seconds <= 0 || poolState.LimitSeconds <= 0 {
 		return poolState, false
 	}
-	maximumUsed := quotaMaximumUsedSeconds(poolState.LimitSeconds, pool)
-	if poolState.UsedSeconds >= maximumUsed {
-		poolState.UsedSeconds = maximumUsed
+	limit := poolState.LimitSeconds
+	if poolState.UsedSeconds >= limit {
+		poolState.UsedSeconds = limit
 		return poolState, true
 	}
-	if seconds > maximumUsed-poolState.UsedSeconds {
-		poolState.UsedSeconds = maximumUsed
+	if poolState.UsedSeconds+seconds >= limit {
+		poolState.UsedSeconds = limit
 		return poolState, true
 	}
 	poolState.UsedSeconds += seconds
@@ -229,54 +216,6 @@ func quotaRouteForEntry(entry string) quotaRoute {
 	return quotaRouteRegular
 }
 
-func parseBusinessDate(date string) (time.Time, bool) {
-	parsed, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return time.Time{}, false
-	}
-	return parsed, true
-}
-
-func carriedQuotaDebt(state quotaState, businessDate string, fallbackLimit int64) int64 {
-	return carriedDailyQuotaDebt(state.BusinessDate, state.UsedSeconds, state.LimitSeconds, businessDate, fallbackLimit)
-}
-
-func carriedDailyQuotaDebt(previousPeriod string, usedSeconds int64, limitSeconds int64, businessDate string, fallbackLimit int64) int64 {
-	if previousPeriod == "" || previousPeriod == businessDate {
-		return usedSeconds
-	}
-
-	previousDate, ok := parseBusinessDate(previousPeriod)
-	if !ok {
-		return 0
-	}
-	currentDate, ok := parseBusinessDate(businessDate)
-	if !ok {
-		return 0
-	}
-	days := int64(currentDate.Sub(previousDate).Hours() / 24)
-	if days <= 0 {
-		return usedSeconds
-	}
-
-	limit := limitSeconds
-	if limit <= 0 {
-		limit = fallbackLimit
-	}
-	debt := usedSeconds - limit*days
-	if debt < 0 {
-		return 0
-	}
-	maximumDebt := fallbackLimit
-	if maximumDebt <= 0 {
-		maximumDebt = limit
-	}
-	if maximumDebt > 0 && debt > maximumDebt {
-		debt = maximumDebt
-	}
-	return debt
-}
-
 func quotaPeriodKey(status *MembershipStatus, pool quotaPool, now time.Time) string {
 	if pool == quotaPoolSpecialPeriod {
 		return quotaSpecialPeriodKey(status)
@@ -296,20 +235,18 @@ func migrateLegacyQuotaState(state *quotaState) {
 		return
 	}
 	state.Pools = map[string]quotaPoolState{}
-	if state.BusinessDate == "" && state.LimitSeconds == 0 && state.UsedSeconds == 0 && state.CarriedDebtSeconds == 0 {
+	if state.BusinessDate == "" && state.LimitSeconds == 0 && state.UsedSeconds == 0 {
 		return
 	}
 	state.Pools[string(quotaPoolRegularDaily)] = quotaPoolState{
-		PeriodKey:          state.BusinessDate,
-		LimitSeconds:       state.LimitSeconds,
-		UsedSeconds:        state.UsedSeconds,
-		CarriedDebtSeconds: state.CarriedDebtSeconds,
-		UpdatedAt:          state.UpdatedAt,
+		PeriodKey:    state.BusinessDate,
+		LimitSeconds: state.LimitSeconds,
+		UsedSeconds:  state.UsedSeconds,
+		UpdatedAt:    state.UpdatedAt,
 	}
 	state.BusinessDate = ""
 	state.LimitSeconds = 0
 	state.UsedSeconds = 0
-	state.CarriedDebtSeconds = 0
 	state.UpdatedAt = ""
 }
 
@@ -375,45 +312,23 @@ func normalizeQuotaPool(status *MembershipStatus, state *quotaState, pool quotaP
 	poolState := state.Pools[poolKey]
 
 	if poolState.PeriodKey != periodKey {
-		if pool == quotaPoolRegularDaily {
-			poolState.UsedSeconds = carriedDailyQuotaDebt(poolState.PeriodKey, poolState.UsedSeconds, poolState.LimitSeconds, periodKey, limit)
-			poolState.CarriedDebtSeconds = poolState.UsedSeconds
-		} else {
-			poolState.UsedSeconds = 0
-			poolState.CarriedDebtSeconds = 0
-		}
+		poolState.UsedSeconds = 0
 		poolState.PeriodKey = periodKey
 	}
 
 	poolState.LimitSeconds = limit
 	poolState.UpdatedAt = updatedAt
-	if pool == quotaPoolSpecialPeriod {
-		poolState.CarriedDebtSeconds = 0
-		if poolState.UsedSeconds > limit {
-			poolState.UsedSeconds = limit
-		}
-	}
 	if poolState.UsedSeconds < 0 {
 		poolState.UsedSeconds = 0
 	}
-	maximumUsed := quotaMaximumUsedSeconds(limit, pool)
-	if poolState.UsedSeconds > maximumUsed {
-		poolState.UsedSeconds = maximumUsed
-	}
-	if pool == quotaPoolRegularDaily {
-		if poolState.CarriedDebtSeconds < 0 {
-			poolState.CarriedDebtSeconds = 0
-		}
-		if poolState.CarriedDebtSeconds > limit {
-			poolState.CarriedDebtSeconds = limit
-		}
+	if poolState.UsedSeconds > limit {
+		poolState.UsedSeconds = limit
 	}
 	state.Pools[poolKey] = poolState
 	if pool == quotaPoolRegularDaily {
 		state.BusinessDate = poolState.PeriodKey
 		state.LimitSeconds = poolState.LimitSeconds
 		state.UsedSeconds = poolState.UsedSeconds
-		state.CarriedDebtSeconds = poolState.CarriedDebtSeconds
 		state.UpdatedAt = poolState.UpdatedAt
 	}
 }
@@ -476,24 +391,19 @@ func snapshotFromState(status *MembershipStatus, state quotaState, pools ...quot
 	if remaining < 0 {
 		remaining = 0
 	}
-	carriedDebt := poolState.CarriedDebtSeconds
-	if carriedDebt < 0 || pool == quotaPoolSpecialPeriod {
-		carriedDebt = 0
-	}
 	return QuotaSnapshot{
-		Pool:               pool,
-		Route:              quotaRouteRegular,
-		PeriodKey:          poolState.PeriodKey,
-		PeriodLabel:        quotaPeriodLabel(pool),
-		TierName:           status.TierName,
-		TierCode:           status.TierCode,
-		LimitSeconds:       limit,
-		UsedSeconds:        used,
-		RemainingSeconds:   remaining,
-		CarriedDebtSeconds: carriedDebt,
-		BusinessDate:       poolState.PeriodKey,
-		SponsorURL:         SponsorURL(status),
-		UnlimitedRuntime:   false,
+		Pool:             pool,
+		Route:            quotaRouteRegular,
+		PeriodKey:        poolState.PeriodKey,
+		PeriodLabel:      quotaPeriodLabel(pool),
+		TierName:         status.TierName,
+		TierCode:         status.TierCode,
+		LimitSeconds:     limit,
+		UsedSeconds:      used,
+		RemainingSeconds: remaining,
+		BusinessDate:     poolState.PeriodKey,
+		SponsorURL:       SponsorURL(status),
+		UnlimitedRuntime: false,
 	}
 }
 
@@ -566,7 +476,7 @@ func AddQuotaUsageSeconds(status *MembershipStatus, pool quotaPool, seconds int6
 	if isRuntimeQuotaSubject(status) {
 		poolKey := string(pool)
 		poolState := state.Pools[poolKey]
-		poolState, _ = addQuotaPoolUsage(poolState, pool, seconds)
+		poolState, _ = addQuotaPoolUsage(poolState, seconds)
 		poolState.UpdatedAt = now.Format(time.RFC3339)
 		state.Pools[poolKey] = poolState
 	}
@@ -651,7 +561,7 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 		return QuotaSnapshot{}, false, err
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
-	overdraftExceeded := false
+	exhausted := false
 	if isRuntimeQuotaSubject(status) {
 		updatedAt := now.Format(time.RFC3339)
 		regularState := state.Pools[string(quotaPoolRegularDaily)]
@@ -674,7 +584,7 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 			regularCharge = seconds - specialCharge
 		}
 		if regularCharge > 0 {
-			regularState, overdraftExceeded = addQuotaPoolUsage(regularState, quotaPoolRegularDaily, regularCharge)
+			regularState, exhausted = addQuotaPoolUsage(regularState, regularCharge)
 			regularState.UpdatedAt = updatedAt
 			state.Pools[string(quotaPoolRegularDaily)] = regularState
 		}
@@ -682,7 +592,7 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, false, err
 	}
-	return routeSnapshotFromState(status, state, route), overdraftExceeded, nil
+	return routeSnapshotFromState(status, state, route), exhausted, nil
 }
 
 func FormatMinutes(seconds int64) int64 {

@@ -52,20 +52,18 @@ func TestRedeemQuotaRefillCouponDailyOnlyClearsDailyPool(t *testing.T) {
 		UpdatedAt:    "2026-06-02T12:00:00+08:00",
 	}
 	mustSaveQuotaState(t, path, quotaState{
-		Version:            2,
-		DeviceHash:         deviceHash(device),
-		TierCode:           "orange_plus",
-		BusinessDate:       "2026-06-02",
-		LimitSeconds:       600,
-		UsedSeconds:        725,
-		CarriedDebtSeconds: 125,
-		UpdatedAt:          "2026-06-02T12:00:00+08:00",
+		Version:      2,
+		DeviceHash:   deviceHash(device),
+		TierCode:     "orange_plus",
+		BusinessDate: "2026-06-02",
+		LimitSeconds: 600,
+		UsedSeconds:  725,
+		UpdatedAt:    "2026-06-02T12:00:00+08:00",
 		Pools: map[string]quotaPoolState{
 			string(quotaPoolRegularDaily): {
-				PeriodKey:          "2026-06-02",
-				LimitSeconds:       600,
-				UsedSeconds:        725,
-				CarriedDebtSeconds: 125,
+				PeriodKey:    "2026-06-02",
+				LimitSeconds: 600,
+				UsedSeconds:  725,
 			},
 			string(quotaPoolSpecialPeriod): specialBefore,
 		},
@@ -85,13 +83,13 @@ func TestRedeemQuotaRefillCouponDailyOnlyClearsDailyPool(t *testing.T) {
 
 	state := mustLoadQuotaState(t, path)
 	regular := state.Pools[string(quotaPoolRegularDaily)]
-	if regular.UsedSeconds != 0 || regular.CarriedDebtSeconds != 0 || regular.PeriodKey != "2026-06-03" {
+	if regular.UsedSeconds != 0 || regular.PeriodKey != "2026-06-03" {
 		t.Fatalf("daily pool was not reset correctly: %+v", regular)
 	}
 	if got := state.Pools[string(quotaPoolSpecialPeriod)]; !reflect.DeepEqual(got, specialBefore) {
 		t.Fatalf("monthly pool changed: got %+v, want %+v", got, specialBefore)
 	}
-	if state.UsedSeconds != 0 || state.CarriedDebtSeconds != 0 || state.BusinessDate != "2026-06-03" {
+	if state.UsedSeconds != 0 || state.BusinessDate != "2026-06-03" {
 		t.Fatalf("legacy daily mirror was not reset: %+v", state)
 	}
 	if state.Version != quotaStateVersion {
@@ -106,21 +104,19 @@ func TestRedeemQuotaRefillCouponMonthlyOnlyClearsMonthlyPool(t *testing.T) {
 	path := isolateQuotaState(t)
 	device := refillTestDevice()
 	regularBefore := quotaPoolState{
-		PeriodKey:          "2026-06-02",
-		LimitSeconds:       600,
-		UsedSeconds:        725,
-		CarriedDebtSeconds: 125,
-		UpdatedAt:          "2026-06-02T12:00:00+08:00",
+		PeriodKey:    "2026-06-02",
+		LimitSeconds: 600,
+		UsedSeconds:  725,
+		UpdatedAt:    "2026-06-02T12:00:00+08:00",
 	}
 	mustSaveQuotaState(t, path, quotaState{
-		Version:            2,
-		DeviceHash:         deviceHash(device),
-		TierCode:           "orange_plus",
-		BusinessDate:       "2026-06-02",
-		LimitSeconds:       600,
-		UsedSeconds:        725,
-		CarriedDebtSeconds: 125,
-		UpdatedAt:          "2026-06-02T12:00:00+08:00",
+		Version:      2,
+		DeviceHash:   deviceHash(device),
+		TierCode:     "orange_plus",
+		BusinessDate: "2026-06-02",
+		LimitSeconds: 600,
+		UsedSeconds:  725,
+		UpdatedAt:    "2026-06-02T12:00:00+08:00",
 		Pools: map[string]quotaPoolState{
 			string(quotaPoolRegularDaily): regularBefore,
 			string(quotaPoolSpecialPeriod): {
@@ -145,10 +141,10 @@ func TestRedeemQuotaRefillCouponMonthlyOnlyClearsMonthlyPool(t *testing.T) {
 		t.Fatalf("daily pool changed: got %+v, want %+v", got, regularBefore)
 	}
 	monthly := state.Pools[string(quotaPoolSpecialPeriod)]
-	if monthly.UsedSeconds != 0 || monthly.CarriedDebtSeconds != 0 {
+	if monthly.UsedSeconds != 0 {
 		t.Fatalf("monthly pool was not reset: %+v", monthly)
 	}
-	if state.BusinessDate != "2026-06-02" || state.UsedSeconds != 725 || state.CarriedDebtSeconds != 125 {
+	if state.BusinessDate != "2026-06-02" || state.UsedSeconds != 725 {
 		t.Fatalf("legacy daily mirror changed: %+v", state)
 	}
 }
@@ -484,10 +480,9 @@ func TestRefillQuotaForSponsorURLClearsAllPoolsForLegacyCallers(t *testing.T) {
 		TierCode:   "orange_plus",
 		Pools: map[string]quotaPoolState{
 			string(quotaPoolRegularDaily): {
-				PeriodKey:          "2026-06-03",
-				LimitSeconds:       600,
-				UsedSeconds:        725,
-				CarriedDebtSeconds: 125,
+				PeriodKey:    "2026-06-03",
+				LimitSeconds: 600,
+				UsedSeconds:  725,
 			},
 			string(quotaPoolSpecialPeriod): {
 				PeriodKey:    "2026-06-01..2026-07-01",
@@ -512,11 +507,11 @@ func TestRefillQuotaForSponsorURLClearsAllPoolsForLegacyCallers(t *testing.T) {
 
 	state := mustLoadQuotaState(t, path)
 	regular := state.Pools[string(quotaPoolRegularDaily)]
-	if regular.UsedSeconds != 0 || regular.CarriedDebtSeconds != 0 {
+	if regular.UsedSeconds != 0 {
 		t.Fatalf("regular pool was not cleared: %+v", regular)
 	}
 	special := state.Pools[string(quotaPoolSpecialPeriod)]
-	if special.UsedSeconds != 0 || special.CarriedDebtSeconds != 0 {
+	if special.UsedSeconds != 0 {
 		t.Fatalf("special pool was not cleared: %+v", special)
 	}
 }

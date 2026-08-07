@@ -294,7 +294,7 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 	billableSeconds := t.consumeBillableSecondsLocked(delta, false)
 	t.mu.Unlock()
 
-	snapshot, overdraftExceeded, err := addQuotaRouteUsageSeconds(status, route, billableSeconds)
+	snapshot, exhausted, err := addQuotaRouteUsageSeconds(status, route, billableSeconds)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to record quota usage")
 		t.requestStop(generation)
@@ -318,13 +318,14 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 		Int64("remaining_seconds", snapshot.RemainingSeconds).
 		Msg("RuntimeTracker: quota usage recorded")
 
-	if overdraftExceeded {
+	if exhausted {
 		if postStop := t.takeImmediateStop(generation); postStop != nil {
+			printQuotaExhausted(snapshot)
 			log.Warn().
 				Uint64("task_id", taskID).
 				Str("entry", entry).
 				Int64("daily_limit_seconds", snapshot.RegularLimitSeconds).
-				Msg("RuntimeTracker: overdraft limit exceeded, terminating task")
+				Msg("RuntimeTracker: quota exhausted, terminating task")
 			postStop()
 		}
 		return snapshot, true

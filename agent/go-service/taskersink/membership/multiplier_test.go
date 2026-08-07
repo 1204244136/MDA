@@ -84,20 +84,20 @@ func TestConsumeTickIgnoresStaleGeneration(t *testing.T) {
 	}
 }
 
-func TestConsumeTickTerminatesWhenOverdraftLimitExceeded(t *testing.T) {
+func TestConsumeTickTerminatesWhenQuotaExhausted(t *testing.T) {
 	isolateQuotaState(t)
 	status := testStatus(10, "device-a")
-	if _, exceeded, err := addQuotaRouteUsageSeconds(status, quotaRouteRegular, 1200); err != nil {
+	if _, exceeded, err := addQuotaRouteUsageSeconds(status, quotaRouteRegular, 599); err != nil {
 		t.Fatalf("addQuotaRouteUsageSeconds() failed: %v", err)
 	} else if exceeded {
-		t.Fatal("reaching the overdraft limit should not report it exceeded")
+		t.Fatal("consuming part of the quota should not report it exhausted")
 	}
 
 	postStopCalls := 0
 	tracker := &RuntimeTracker{
 		active:     true,
 		generation: 3,
-		last:       time.Now().Add(-time.Second),
+		last:       time.Now().Add(-2 * time.Second),
 		multiplier: quotaMultiplier{
 			BasePermille:  multiplierScale,
 			ExtraPermille: multiplierScale,
@@ -110,13 +110,13 @@ func TestConsumeTickTerminatesWhenOverdraftLimitExceeded(t *testing.T) {
 
 	snapshot, done := tracker.consumeTick(status, quotaRouteRegular, 3)
 	if !done {
-		t.Fatal("consumeTick() should stop tracking after the overdraft limit is exceeded")
+		t.Fatal("consumeTick() should stop tracking after the quota is exhausted")
 	}
 	if postStopCalls != 1 {
 		t.Fatalf("PostStop calls = %d, want 1", postStopCalls)
 	}
-	if snapshot.RegularUsedSeconds != 1200 {
-		t.Fatalf("RegularUsedSeconds = %d, want 1200", snapshot.RegularUsedSeconds)
+	if snapshot.RegularUsedSeconds != 600 {
+		t.Fatalf("RegularUsedSeconds = %d, want 600", snapshot.RegularUsedSeconds)
 	}
 	if !tracker.stopPosted {
 		t.Fatal("stopPosted = false, want true")

@@ -262,13 +262,11 @@ func resetQuotaPool(state *quotaState, pool quotaPool, businessDate string, upda
 	poolKey := string(pool)
 	poolState := state.Pools[poolKey]
 	poolState.UsedSeconds = 0
-	poolState.CarriedDebtSeconds = 0
 	poolState.UpdatedAt = updatedAt
 	if pool == quotaPoolRegularDaily {
 		poolState.PeriodKey = businessDate
 		state.BusinessDate = businessDate
 		state.UsedSeconds = 0
-		state.CarriedDebtSeconds = 0
 		state.UpdatedAt = updatedAt
 	}
 	state.Pools[poolKey] = poolState
