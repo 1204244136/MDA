@@ -112,7 +112,8 @@
                                 "param": {
                                     "template": [
                                         "SmallEvent/ProjectMatis/ProjectMatisStory1Stage.png",
-                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormal.png"
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormal.png",
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageHard.png"
                                     ]
                                 }
                             }
@@ -122,7 +123,8 @@
                                 "param": {
                                     "template": [
                                         "SmallEvent/ProjectMatis/ProjectMatisStory1StageRepeatable.png",
-                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormalRepeatable.png"
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormalRepeatable.png",
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageHardRepeatable.png"
                                     ]
                                 }
                             }
