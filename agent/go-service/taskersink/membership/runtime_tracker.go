@@ -22,7 +22,6 @@ type RuntimeTracker struct {
 	realNs         int64
 	chargedSeconds int64
 	stopCh         chan struct{}
-	postStop       func()
 	stopped        bool
 	stopPosted     bool
 }
@@ -131,17 +130,6 @@ func (t *RuntimeTracker) requestStop(generation uint64) bool {
 	return true
 }
 
-func (t *RuntimeTracker) takeImmediateStop(generation uint64) func() {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	if !t.active || t.generation != generation || t.stopPosted || t.postStop == nil {
-		return nil
-	}
-	t.stopped = true
-	t.stopPosted = true
-	return t.postStop
-}
-
 func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) {
 	t.finish()
 
@@ -176,9 +164,6 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.realNs = 0
 	t.chargedSeconds = 0
 	t.stopCh = make(chan struct{})
-	t.postStop = func() {
-		tasker.PostStop()
-	}
 	t.stopped = false
 	t.stopPosted = false
 	generation := t.generation
@@ -220,7 +205,6 @@ func (t *RuntimeTracker) finish() {
 	t.active = false
 	t.status = nil
 	t.stopCh = nil
-	t.postStop = nil
 	t.generation++
 	close(stopCh)
 	t.mu.Unlock()
@@ -319,14 +303,17 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 		Msg("RuntimeTracker: quota usage recorded")
 
 	if exhausted {
-		if postStop := t.takeImmediateStop(generation); postStop != nil {
+		// Arm the pending stop instead of invoking PostStop directly from the
+		// timer goroutine: Agent proxy calls must stay inside MaaFramework's
+		// callback dispatch lifetime (see postPendingStop). The actual PostStop
+		// is delivered by the next Node callback via takePendingStop.
+		if t.requestStop(generation) {
 			printQuotaExhausted(snapshot)
 			log.Warn().
 				Uint64("task_id", taskID).
 				Str("entry", entry).
 				Int64("daily_limit_seconds", snapshot.RegularLimitSeconds).
 				Msg("RuntimeTracker: quota exhausted, terminating task")
-			postStop()
 		}
 		return snapshot, true
 	}

@@ -93,7 +93,6 @@ func TestConsumeTickTerminatesWhenQuotaExhausted(t *testing.T) {
 		t.Fatal("consuming part of the quota should not report it exhausted")
 	}
 
-	postStopCalls := 0
 	tracker := &RuntimeTracker{
 		active:     true,
 		generation: 3,
@@ -102,24 +101,25 @@ func TestConsumeTickTerminatesWhenQuotaExhausted(t *testing.T) {
 			BasePermille:  multiplierScale,
 			ExtraPermille: multiplierScale,
 		},
-		postStop: func() {
-			postStopCalls++
-		},
-		stopped: true,
 	}
 
 	snapshot, done := tracker.consumeTick(status, quotaRouteRegular, 3)
 	if !done {
 		t.Fatal("consumeTick() should stop tracking after the quota is exhausted")
 	}
-	if postStopCalls != 1 {
-		t.Fatalf("PostStop calls = %d, want 1", postStopCalls)
-	}
 	if snapshot.RegularUsedSeconds != 600 {
 		t.Fatalf("RegularUsedSeconds = %d, want 600", snapshot.RegularUsedSeconds)
 	}
-	if !tracker.stopPosted {
-		t.Fatal("stopPosted = false, want true")
+	if !tracker.stopped {
+		t.Fatal("stopped = false, want true (pending stop should be armed)")
+	}
+	// PostStop must be deferred to MaaFramework's callback dispatch lifetime,
+	// not invoked from the quota timer goroutine.
+	if tracker.stopPosted {
+		t.Fatal("stopPosted = true, want false (PostStop must not be posted from the timer goroutine)")
+	}
+	if !tracker.takePendingStop() {
+		t.Fatal("takePendingStop() = false, want true (stop should fire on next callback)")
 	}
 }
 
