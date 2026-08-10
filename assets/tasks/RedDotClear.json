@@ -14,7 +14,8 @@
                 "RedDotClearCostumeGacha",
                 "RedDotClearRhythmGame",
                 "RedDotClearBlaBla",
-                "RedDotClearArcade"
+                "RedDotClearArcade",
+                "RedDotClearCommandCenter"
             ],
             "group": [
                 "utility"
@@ -216,6 +217,28 @@
                     "name": "No",
                     "pipeline_override": {
                         "RedDotClearArcade": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "RedDotClearCommandCenter": {
+            "type": "switch",
+            "label": "$option.RedDotClearCommandCenter.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "RedDotClearCommandCenter": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "RedDotClearCommandCenter": {
                             "enabled": false
                         }
                     }

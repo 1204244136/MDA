@@ -1,0 +1,351 @@
+{
+    "RedDotClearCommandCenter": {
+        "desc": "清除指挥中心红点",
+        "max_hit": 1,
+        "next": [
+            "RedDotClearCommandCenterEnterHall",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "RedDotClearCommandCenterEnterHall": {
+        "desc": "清除指挥中心红点入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCommandCenterEnterFlow",
+            "[JumpBack]CommonEnterOutpost"
+        ]
+    },
+    "RedDotClearCommandCenterEnterFlow": {
+        "desc": "进入指挥中心红点清除流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "OutpostMainPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCommandCenterClickRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearCommandCenterClickRedDot": {
+        "desc": "点击指挥中心",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    677,
+                    572,
+                    18,
+                    17
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCommandCenterEnterCommandCenter"
+        ]
+    },
+    "RedDotClearCommandCenterEnterCommandCenter": {
+        "desc": "进入指挥中心",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    719,
+                    667,
+                    47,
+                    32
+                ],
+                "expected": [
+                    ".*进入.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CommandCenterFlow"
+        ]
+    },
+    "CommandCenterFlow": {
+        "desc": "指挥中心流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommandCenterEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]EnterLostRelicsPage",
+            "[JumpBack]EnterJukeboxPage",
+            "CommonEndTask"
+        ]
+    },
+    "CommandCenterEntered": {
+        "desc": "处于指挥中心界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    ".*指挥中心.*"
+                ]
+            }
+        }
+    },
+    "EnterLostRelicsPage": {
+        "desc": "进入遗失物品界面",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LostRelicsEntryVisible",
+                    "LostRelicsEntryRedDotVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "LostRelicsFlow",
+            "EnterLostRelicsPage"
+        ]
+    },
+    "LostRelicsEntryVisible": {
+        "desc": "遗失物品入口可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    650,
+                    270,
+                    130,
+                    45
+                ],
+                "expected": [
+                    ".*遗失物品.*"
+                ]
+            }
+        }
+    },
+    "LostRelicsEntryRedDotVisible": {
+        "desc": "遗失物品入口有红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "LostRelicsEntryVisible",
+                "roi_offset": [
+                    20,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "LostRelicsFlow": {
+        "desc": "遗失物品流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LostRelicsPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "ClaimAllLostRelics",
+            "CommonGoBack"
+        ]
+    },
+    "LostRelicsPageEntered": {
+        "desc": "处于遗失物品界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    10,
+                    90,
+                    30
+                ],
+                "expected": [
+                    ".*遗失物品.*"
+                ]
+            }
+        }
+    },
+    "ClaimAllLostRelics": {
+        "desc": "遗失物品全部领取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1090,
+                    640,
+                    160,
+                    60
+                ],
+                "expected": [
+                    ".*全部领取.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "[JumpBack]CommonConfirmReward",
+            "CommonGoBack"
+        ]
+    },
+    "EnterJukeboxPage": {
+        "desc": "进入点唱机界面",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "JukeboxEntryVisible",
+                    "JukeboxEntryRedDotVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "JukeboxFlow",
+            "EnterJukeboxPage"
+        ]
+    },
+    "JukeboxEntryVisible": {
+        "desc": "点唱机入口可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    665,
+                    455,
+                    135,
+                    50
+                ],
+                "expected": [
+                    ".*点唱机.*"
+                ]
+            }
+        }
+    },
+    "JukeboxEntryRedDotVisible": {
+        "desc": "点唱机入口有红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "JukeboxEntryVisible",
+                "roi_offset": [
+                    20,
+                    -20,
+                    20,
+                    20
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "JukeboxFlow": {
+        "desc": "点唱机流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "JukeboxPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "ClaimAllJukeboxRewards",
+            "CommonGoBack"
+        ]
+    },
+    "JukeboxPageEntered": {
+        "desc": "处于点唱机界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    10,
+                    90,
+                    30
+                ],
+                "expected": [
+                    ".*点唱机.*"
+                ]
+            }
+        }
+    },
+    "ClaimAllJukeboxRewards": {
+        "desc": "点唱机全部领取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    640,
+                    150,
+                    60
+                ],
+                "expected": [
+                    ".*全部领取.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "[JumpBack]CommonConfirmReward",
+            "CommonGoBack"
+        ]
+    }
+}

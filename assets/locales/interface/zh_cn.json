@@ -145,6 +145,7 @@
     "option.RedDotClearRhythmGame.label": "清除音游红点",
     "option.RedDotClearBlaBla.label": "清除BlaBla红点",
     "option.RedDotClearArcade.label": "清除Arcade红点",
+    "option.RedDotClearCommandCenter.label": "清除指挥中心红点",
     "task.LargeEvent.label": "🎪大活动",
     "task.LargeEvent.description": "进入大活动界面，完成相关任务。（有SD小人的活动叫做大活动）",
     "option.LargeEventTheme.label": "活动主题",
