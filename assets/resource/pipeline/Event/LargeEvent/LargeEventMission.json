@@ -12,7 +12,8 @@
                     107
                 ],
                 "template": [
-                    "Common/RedDot.png"
+                    "Common/RedDot.png",
+                    "Common/RedDotSP.png"
                 ]
             }
         },

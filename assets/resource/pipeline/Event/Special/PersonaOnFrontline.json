@@ -1,0 +1,333 @@
+{
+    "PersonaOnFrontlineMiniGame": {
+        "desc": "小游戏",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    485,
+                    536,
+                    308,
+                    79
+                ],
+                "expected": [
+                    ".*小游戏.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "PersonaOnFrontlineMiniGameFlow"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameFlow": {
+        "desc": "小游戏流程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    542,
+                    57,
+                    25
+                ],
+                "expected": [
+                    ".*化.*" //强化
+                ]
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameClickStart"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameClickStart": {
+        "desc": "小游戏点击开始",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    558,
+                    488,
+                    147,
+                    57
+                ],
+                "expected": [
+                    "(?i).*?start.*?"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 200,
+        "next": [
+            "PersonaOnFrontlineMiniGameClickBattleBegin"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameClickBattleBegin": {
+        "desc": "小游戏点击战斗开始",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    536,
+                    607,
+                    192,
+                    67
+                ],
+                "expected": [
+                    "(?i).*?start.*?"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameCheckPoint",
+            "[JumpBack]PersonaOnFrontlineMiniGameMoveLeftUp"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameCheckPoint": {
+        "desc": "小游戏检查积分",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    581,
+                    55,
+                    60,
+                    30
+                ],
+                "expected": [
+                    "^(?:[3-9]\\d{4}|[1-9]\\d{5,})$"
+                ],
+                "replace": [
+                    [
+                        "[,，]",
+                        ""
+                    ],
+                    [
+                        "[.．]",
+                        ""
+                    ]
+                ]
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameClickPause"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameMoveLeftUp": {
+        "desc": "小游戏左上移动",
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyDownLeft"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyDownLeft": {
+        "desc": "小游戏按下 A 键",
+        "action": {
+            "type": "KeyDown",
+            "param": {
+                "key": 65
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyDownUp"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyDownUp": {
+        "desc": "小游戏按下 W 键",
+        "action": {
+            "type": "KeyDown",
+            "param": {
+                "key": 87
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyUpLeft"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyUpLeft": {
+        "desc": "小游戏左上移动释放 A 键",
+        "action": {
+            "type": "KeyUp",
+            "param": {
+                "key": 65
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyUpUp"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyUpUp": {
+        "desc": "小游戏释放 W 键",
+        "action": {
+            "type": "KeyUp",
+            "param": {
+                "key": 87
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameMoveRightUp"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameMoveRightUp": {
+        "desc": "小游戏右上移动",
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyDownRight"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyDownRight": {
+        "desc": "小游戏按下 D 键",
+        "action": {
+            "type": "KeyDown",
+            "param": {
+                "key": 68
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyDownUpRight"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyDownUpRight": {
+        "desc": "小游戏右上移动按下 W 键",
+        "action": {
+            "type": "KeyDown",
+            "param": {
+                "key": 87
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyUpRight"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyUpRight": {
+        "desc": "小游戏右上移动释放 D 键",
+        "action": {
+            "type": "KeyUp",
+            "param": {
+                "key": 68
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameKeyUpUpRight"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameKeyUpUpRight": {
+        "desc": "小游戏右上移动释放 W 键",
+        "action": {
+            "type": "KeyUp",
+            "param": {
+                "key": 87
+            }
+        },
+        "next": []
+    },
+    "PersonaOnFrontlineMiniGameClickPause": {
+        "desc": "小游戏点击暂停",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    791,
+                    54,
+                    39,
+                    20
+                ],
+                "expected": [
+                    "ESC"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameClickQuickComplete"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameClickQuickComplete": {
+        "desc": "小游戏点击快速完成",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    477,
+                    425,
+                    141,
+                    37
+                ],
+                "expected": [
+                    "快速完成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameClickBack"
+        ]
+    },
+    "PersonaOnFrontlineMiniGameClickBack": {
+        "desc": "小游戏点击返回",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    488,
+                    549,
+                    150,
+                    63
+                ],
+                "expected": [
+                    "返回"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PersonaOnFrontlineMiniGameEventGoBack",
+            "PersonaOnFrontlineMiniGameClickBack" //兜底
+        ]
+    },
+    "PersonaOnFrontlineMiniGameEventGoBack": {
+        "desc": "小游戏返回至主页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    12,
+                    658,
+                    88,
+                    38
+                ],
+                "expected": [
+                    "返回"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LargeEventMainPageEntered",
+            "[JumpBack]CommonConfirmAction"
+        ]
+    }
+}

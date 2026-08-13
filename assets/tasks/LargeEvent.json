@@ -21,7 +21,7 @@
     "option": {
         "LargeEventTheme": {
             "type": "select",
-            "default_case": "WaveToYou",
+            "default_case": "PersonaOnFrontline",
             "label": "$option.LargeEventTheme.label",
             "cases": [
                 {
@@ -164,6 +164,42 @@
                     }
                 },
                 {
+                    "name": "PersonaOnFrontline",
+                    "label": "$option.LargeEventTheme.PersonaOnFrontline",
+                    "option": [
+                        "LargeEventPersonaOnFrontlineMiniGame"
+                    ],
+                    "pipeline_override": {
+                        "LargeEventEnterMainPage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineLogo.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventClickStoryStage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1Stage.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventClickStoryStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1StageRepeatable.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "Other",
                     "label": "$option.LargeEventTheme.Other"
                 }
@@ -209,6 +245,31 @@
                                 "[JumpBack]LargeEventEnterStory",
                                 "[JumpBack]LargeEventWaveToYouMiniGame",
                                 "[JumpBack]LargeEventEnterMission",
+                                "CommonEndTask"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "No"
+                }
+            ]
+        },
+        "LargeEventPersonaOnFrontlineMiniGame": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.LargeEventWaveToYouMiniGame.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LargeEventMainPageFlow": {
+                            "next": [
+                                "[JumpBack]LargeEventEnterLoginStamp",
+                                "[JumpBack]LargeEventEnterChallenge",
+                                "[JumpBack]LargeEventEnterStory",
+                                "[JumpBack]LargeEventEnterMission",
+                                "[JumpBack]PersonaOnFrontlineMiniGame",
                                 "CommonEndTask"
                             ]
                         }
