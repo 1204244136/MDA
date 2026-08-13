@@ -34,7 +34,8 @@
                     20
                 ],
                 "template": [
-                    "Common/New.png"
+                    "Common/New.png",
+                    "Common/RedDot.png"
                 ]
             }
         },
@@ -68,7 +69,7 @@
         ]
     },
     "RedDotClearClickCashShopNew": {
-        "desc": "付费商店点击new",
+        "desc": "付费商店点击红点",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -79,7 +80,8 @@
                     89
                 ],
                 "template": [
-                    "Common/New.png"
+                    "Common/New.png",
+                    "Common/RedDot.png"
                 ],
                 "order_by": "Vertical",
                 "index": -1
@@ -97,8 +99,33 @@
             }
         },
         "next": [
+            "[JumpBack]RedDotClearPurchaseStepUpPackage",
             "RedDotClearClickCashShopNew",
             "CommonEndTask"
+        ]
+    },
+    "RedDotClearPurchaseStepUpPackage": {
+        "desc": "购买StepUp礼包",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    783,
+                    389,
+                    49,
+                    28
+                ],
+                "expected": [
+                    "免费"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CommonConfirmReward"
         ]
     }
 }
