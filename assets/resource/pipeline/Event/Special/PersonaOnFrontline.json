@@ -89,6 +89,7 @@
         },
         "next": [
             "PersonaOnFrontlineMiniGameCheckPoint",
+            "PersonaOnFrontlineMiniGameClickBack",
             "[JumpBack]PersonaOnFrontlineMiniGameMoveLeftUp"
         ]
     },
