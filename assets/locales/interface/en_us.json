@@ -161,6 +161,7 @@
     "option.LargeEventContent.LargeEventMission": "Mission",
     "option.LargeEventArkRangerMiniGame.label": "Mini Game",
     "option.LargeEventWaveToYouMiniGame.label": "Mini Game",
+    "option.LargeEventPersonaOnFrontlineMiniGame.description": "This feature only works in foreground mode",
     "option.LargeEventStarAnisMerchBagClick.label": "Merch Bag",
     "option.LargeEventStoryPriority.label": "Event Story Priority",
     "option.LargeEventStoryPriority.Story2First": "STORY2 First",

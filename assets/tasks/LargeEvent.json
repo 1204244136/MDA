@@ -259,6 +259,7 @@
             "type": "switch",
             "default_case": "Yes",
             "label": "$option.LargeEventWaveToYouMiniGame.label",
+            "description": "$option.LargeEventPersonaOnFrontlineMiniGame.description",
             "cases": [
                 {
                     "name": "Yes",

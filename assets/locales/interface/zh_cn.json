@@ -161,6 +161,7 @@
     "option.LargeEventContent.LargeEventMission": "大活动任务",
     "option.LargeEventArkRangerMiniGame.label": "小游戏",
     "option.LargeEventWaveToYouMiniGame.label": "小游戏",
+    "option.LargeEventPersonaOnFrontlineMiniGame.description": "该功能仅前台模式生效",
     "option.LargeEventStarAnisMerchBagClick.label": "周边包包",
     "option.LargeEventStoryPriority.label": "活动剧情优先级",
     "option.LargeEventStoryPriority.Story2First": "STORY2优先",
