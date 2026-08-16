@@ -46,6 +46,8 @@
         "post_wait_freezes": 1000,
         "next": [
             "[JumpBack]CommonConfirmReward",
+            "[JumpBack]CommonSkipPlot",
+            "[JumpBack]DailyRewardsConfirmRecruit",
             "LargeEventGoBack"
         ]
     }
