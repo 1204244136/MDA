@@ -269,8 +269,8 @@
                                 "[JumpBack]LargeEventEnterLoginStamp",
                                 "[JumpBack]LargeEventEnterChallenge",
                                 "[JumpBack]LargeEventEnterStory",
-                                "[JumpBack]LargeEventEnterMission",
                                 "[JumpBack]PersonaOnFrontlineMiniGame",
+                                "[JumpBack]LargeEventEnterMission",
                                 "CommonEndTask"
                             ]
                         }
