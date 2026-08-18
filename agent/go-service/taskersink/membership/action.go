@@ -67,6 +67,9 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute) bool {
 		Msg("RuntimeQuotaCheck: quota evaluated")
 
 	if ok {
+		if route == quotaRouteSpecialThenRegular && !status.IsMember {
+			maafocus.Print(ctx, i18n.T("tasker.membership_check.non_member_map_pushing_multiplier"))
+		}
 		notifyOnce.Do(func() {
 			if snapshot.UnlimitedRuntime {
 				maafocus.Print(ctx, i18n.T("tasker.membership_check.debug_unlimited"))

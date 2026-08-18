@@ -50,7 +50,7 @@ func TestStatusFromResponseUsesNewQuotaFields(t *testing.T) {
 		TierName:                    "Orange Pro",
 		DailyRuntimeMinutes:         180,
 		RegularDailyRuntimeMinutes:  60,
-		SpecialPeriodRuntimeMinutes: 1500,
+		SpecialPeriodRuntimeMinutes: 300,
 		PaidThroughOn:               "20260701",
 		HasFutureRenewal:            true,
 	}, DeviceCodeV7{})
@@ -67,8 +67,8 @@ func TestStatusFromResponseUsesNewQuotaFields(t *testing.T) {
 	if status.DailyRuntimeMinutes != 60 {
 		t.Fatalf("DailyRuntimeMinutes = %d, want compatibility alias 60", status.DailyRuntimeMinutes)
 	}
-	if status.SpecialPeriodRuntimeMinutes != 1500 {
-		t.Fatalf("SpecialPeriodRuntimeMinutes = %d, want 1500", status.SpecialPeriodRuntimeMinutes)
+	if status.SpecialPeriodRuntimeMinutes != 300 {
+		t.Fatalf("SpecialPeriodRuntimeMinutes = %d, want 300", status.SpecialPeriodRuntimeMinutes)
 	}
 }
 
@@ -82,8 +82,8 @@ func TestStatusFromResponseFallsBackToTierSpecialQuota(t *testing.T) {
 	if status.RegularDailyRuntimeMinutes != 30 {
 		t.Fatalf("RegularDailyRuntimeMinutes = %d, want 30", status.RegularDailyRuntimeMinutes)
 	}
-	if status.SpecialPeriodRuntimeMinutes != 600 {
-		t.Fatalf("SpecialPeriodRuntimeMinutes = %d, want fallback 600", status.SpecialPeriodRuntimeMinutes)
+	if status.SpecialPeriodRuntimeMinutes != 120 {
+		t.Fatalf("SpecialPeriodRuntimeMinutes = %d, want fallback 120", status.SpecialPeriodRuntimeMinutes)
 	}
 }
 

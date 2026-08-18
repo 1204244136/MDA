@@ -148,7 +148,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		return
 	}
 
-	multiplier := multiplierForEntry(detail.Entry)
+	multiplier := multiplierForEntry(detail.Entry, status.IsMember)
 
 	now := time.Now()
 
@@ -182,6 +182,13 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		Str("multiplier_reason", multiplier.Reason).
 		Bool("unlimited_runtime", snapshot.UnlimitedRuntime).
 		Msg("RuntimeTracker: started quota tracking")
+	if detail.Entry == "MapPushingFlow" && !status.IsMember {
+		log.Info().
+			Uint64("task_id", detail.TaskID).
+			Str("entry", detail.Entry).
+			Int("quota_multiplier", 5).
+			Msg("RuntimeTracker: non-member map pushing quota consumption is 5x")
+	}
 
 	if snapshot.UnlimitedRuntime {
 		return

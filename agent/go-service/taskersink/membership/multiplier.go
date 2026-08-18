@@ -10,17 +10,16 @@ type quotaMultiplier struct {
 	Reason        string
 }
 
-func multiplierForEntry(entry string) quotaMultiplier {
+func multiplierForEntry(entry string, isMember bool) quotaMultiplier {
 	m := quotaMultiplier{
 		BasePermille:  multiplierScale,
 		ExtraPermille: multiplierScale,
 		Reason:        "default",
 	}
 
-	switch entry {
-	case "MapPushingFlow":
+	if entry == "MapPushingFlow" && !isMember {
 		m.BasePermille = 5 * multiplierScale
-		m.Reason = "map_pushing"
+		m.Reason = "map_pushing_non_member"
 	}
 
 	return m

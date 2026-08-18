@@ -130,7 +130,7 @@
     "option.DailyRewardsFreeRecruit.label": "周年庆免费招募",
     "task.SoloRaid.label": "🔥单人突击",
     "task.SoloRaid.description": "进入单人突击界面，完成关卡挑战或快速战斗",
-    "task.MapPushing.label": "🗺️自动推图 [5x]",
+    "task.MapPushing.label": "🗺️自动推图",
     "task.MapPushing.description": "需要单独勾选，在地图中靠近怪的地方点击启动，会自动点击怪物进行战斗和触发机关",
     "task.RedDotClear.label": "🔴清除红点",
     "task.RedDotClear.description": "清除各类界面中的红点",
@@ -185,5 +185,5 @@
     "preset.SelfUse.description": "开发人员专属",
     "focus.ManualInterceptionBattle.Succeeded": "检测到拦截战已刷新，请手动开始拦截战",
     "focus.CoordinatedOperationsConfirmConnectionInterrupted.Succeeded": "协同作战连接中断，已停止该任务",
-    "focus.MapPushingFlow.Action.Succeeded": "自动推图已启动，本任务会按 5 倍额度消耗计时"
+    "focus.MapPushingFlow.Action.Succeeded": "自动推图已启动"
 }

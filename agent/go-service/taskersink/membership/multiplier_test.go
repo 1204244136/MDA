@@ -6,15 +6,20 @@ import (
 )
 
 func TestMultiplierForEntry(t *testing.T) {
-	cases := map[string]int64{
-		"SmallEventMain":   1000,
-		"LargeEventMain":   1000,
-		"MapPushingFlow":   5000,
-		"DailyRewardsMain": 1000,
+	cases := []struct {
+		entry    string
+		isMember bool
+		want     int64
+	}{
+		{entry: "SmallEventMain", isMember: false, want: 1000},
+		{entry: "LargeEventMain", isMember: false, want: 1000},
+		{entry: "MapPushingFlow", isMember: true, want: 1000},
+		{entry: "MapPushingFlow", isMember: false, want: 5000},
+		{entry: "DailyRewardsMain", isMember: false, want: 1000},
 	}
-	for entry, want := range cases {
-		if got := multiplierForEntry(entry).BasePermille; got != want {
-			t.Fatalf("multiplierForEntry(%s).BasePermille = %d, want %d", entry, got, want)
+	for _, test := range cases {
+		if got := multiplierForEntry(test.entry, test.isMember).BasePermille; got != test.want {
+			t.Fatalf("multiplierForEntry(%s, %t).BasePermille = %d, want %d", test.entry, test.isMember, got, test.want)
 		}
 	}
 }

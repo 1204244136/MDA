@@ -333,9 +333,9 @@ func statusFromResponse(response *MemberStatusResponse, deviceCode DeviceCodeV7)
 func defaultSpecialPeriodRuntimeMinutes(tierCode string) int {
 	switch tierCode {
 	case "orange_plus":
-		return 600
+		return 120
 	case "orange_pro":
-		return 1500
+		return 300
 	default:
 		return 0
 	}

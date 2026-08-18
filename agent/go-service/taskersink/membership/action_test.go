@@ -70,3 +70,12 @@ func TestFormatMembershipVerificationUnavailableMessage(t *testing.T) {
 		t.Fatalf("message should not say task stopped: %s", message)
 	}
 }
+
+func TestNonMemberMapPushingMultiplierMessage(t *testing.T) {
+	initTestI18n()
+	message := i18n.T("tasker.membership_check.non_member_map_pushing_multiplier")
+
+	if !strings.Contains(message, "5 倍") && !strings.Contains(message, "5x") {
+		t.Fatalf("message does not mention 5x quota consumption: %s", message)
+	}
+}

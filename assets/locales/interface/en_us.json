@@ -130,7 +130,7 @@
     "option.DailyRewardsFreeRecruit.label": "Anniversary Free Recruitment",
     "task.SoloRaid.label": "🔥Solo Raid",
     "task.SoloRaid.description": "Enter the Solo Raid interface and complete stage challenge or quick battle",
-    "task.MapPushing.label": "🗺️Auto Map Pushing [5x]",
+    "task.MapPushing.label": "🗺️Auto Map Pushing",
     "task.MapPushing.description": "Must be selected separately. Click to start near monsters on the map; it will automatically click monsters for battle and trigger mechanisms",
     "task.RedDotClear.label": "🔴Clear Red Dots",
     "task.RedDotClear.description": "Clear red dots across supported interfaces",
@@ -185,5 +185,5 @@
     "preset.SelfUse.description": "For developers only",
     "focus.ManualInterceptionBattle.Succeeded": "Interception battle has been refreshed, please start the battle manually",
     "focus.CoordinatedOperationsConfirmConnectionInterrupted.Succeeded": "Coordinated operations connection interrupted, task has been stopped",
-    "focus.MapPushingFlow.Action.Succeeded": "Auto map pushing has started. This task consumes runtime quota at 5x."
+    "focus.MapPushingFlow.Action.Succeeded": "Auto map pushing has started."
 }
