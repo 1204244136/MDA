@@ -31,11 +31,8 @@
 | `sed`       | `-replace` 运算符或 `ForEach-Object`           |
 | `awk`       | `ConvertFrom-Csv`、`Select-Object` 或 `-split` |
 
-## 跨代理记忆
+## 项目约定
 
-- 本项目需要维护一份跨代理共享的长期记忆，用来让 Claude Code、Codex 或其他代理在接手时理解同一套项目偏好、工作约束和用户要求，而不是只依赖当前会话上下文。
-- 共享跨代理记忆位于 `C:\Users\12042\OneDrive\AgentMemory\MDA.md`；新代理接手或同步长期项目偏好时先查看这里。
-- Claude Code 项目记忆位于 `C:\Users\12042\.claude\projects\c--Users-12042-Documents-GitHub-MDA\memory\`；需要跨代理会话持久保存的偏好要与 OneDrive 共享记忆保持同步。
 - 与用户对话、生成文件内容、生成 commit 信息时优先使用中文。
 - commit 后不要自动 push；由用户决定何时推送。
 - commit 信息应使用中文并遵守 Conventional Commits 风格。
@@ -45,6 +42,13 @@
 - 大活动和小活动的主题 i18n 显示名统一使用全大写；新增或调整主题时，同时检查 `LargeEventTheme` 和 `SmallEventTheme` 的往期主题是否保持一致。
 - Go 测试从仓库根目录运行；Go module 位于 `agent\go-service`。
 - 审查 pipeline 名称时，要检查每个节点的实际职责，不只根据后缀判断。
+
+## Pipeline 与 Go 的分工
+
+- MDA 同时使用 Pipeline 与 Go 两种语言实现任务，二者是互补关系，不是竞争关系。
+- 简单逻辑用 Pipeline 实现，复杂逻辑用 Go 实现。
+- 避免用 Pipeline 硬写复杂逻辑导致配置冗长、难以维护；也避免用 Go 实现简单逻辑，无端抬高维护成本。
+- 一个任务同时包含 Pipeline 与 Go 是正常且合理的现象；涉及任务实现时，按此分工为每个环节选择最合适的语言。
 
 ## 大型小活动适配
 
