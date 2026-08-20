@@ -56,15 +56,15 @@
 参考 MaaEnd（`C:\Users\12042\Documents\GitHub\MaaEnd`）的项目实践：涉及 Go 的任务中，**基本识别一律由 Pipeline 声明式完成，Go 只负责更深层的业务逻辑**，这样更容易维护、调试面板更直观。
 
 - **基本识别放 Pipeline**：模板定位、OCR、颜色确认（ColorMatch）、二次验证、区域偏移（`roi_offset`）、页面/弹窗确认等，都用 Pipeline JSON 声明。
-  - 识别参数（ROI、模板、阈值、颜色区间、`count`、`roi_offset`、`expected`）应留在 Pipeline 中，不要在 Go 代码里硬编码。
-  - 需要组合/二次验证时，优先用 Pipeline 的 `TemplateMatch` + `ColorMatch` + `And`/`Or` + `roi_offset` 表达；例如“模板匹配到槽位后，再确认匹配框内颜色数量达标”。
+    - 识别参数（ROI、模板、阈值、颜色区间、`count`、`roi_offset`、`expected`）应留在 Pipeline 中，不要在 Go 代码里硬编码。
+    - 需要组合/二次验证时，优先用 Pipeline 的 `TemplateMatch` + `ColorMatch` + `And`/`Or` + `roi_offset` 表达；例如“模板匹配到槽位后，再确认匹配框内颜色数量达标”。
 - **Go 只承载业务**：跨节点状态/快照、决策算法、路由、结果解释、数据聚合、需要动态计算或 Pipeline 无法表达的逻辑。
-  - Go 复用 Pipeline 识别节点时使用 `ctx.RunRecognition("节点名", img)`，不要用 `ctx.RunRecognitionDirect` 在 Go 内硬编码识别参数。
-  - 若某个识别必须动态计算 ROI，优先把可变的识别参数下沉到 Pipeline（如通过 `roi_offset`/锚点组合），实在无法表达时才允许在 Go 中计算。
+    - Go 复用 Pipeline 识别节点时使用 `ctx.RunRecognition("节点名", img)`，不要用 `ctx.RunRecognitionDirect` 在 Go 内硬编码识别参数。
+    - 若某个识别必须动态计算 ROI，优先把可变的识别参数下沉到 Pipeline（如通过 `roi_offset`/锚点组合），实在无法表达时才允许在 Go 中计算。
 - **审查原则**：
-  - 审查 Go 代码时，若发现识别参数写在 Go 里，优先考虑挪回 Pipeline。
-  - 审查 Pipeline 时，若发现复杂业务逻辑（状态机、决策、计算、跨节点聚合）硬写在 JSON，优先考虑挪到 Go。
-  - 判断一个环节归属时，问“这是‘看到了什么/在哪里’，还是‘看到之后要做什么/怎么算’”：前者给 Pipeline，后者给 Go。
+    - 审查 Go 代码时，若发现识别参数写在 Go 里，优先考虑挪回 Pipeline。
+    - 审查 Pipeline 时，若发现复杂业务逻辑（状态机、决策、计算、跨节点聚合）硬写在 JSON，优先考虑挪到 Go。
+    - 判断一个环节归属时，问“这是‘看到了什么/在哪里’，还是‘看到之后要做什么/怎么算’”：前者给 Pipeline，后者给 Go。
 
 ## 大型小活动适配
 

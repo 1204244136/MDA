@@ -266,7 +266,6 @@
     },
     "__EquipmentRerollLocateChangedSlot1Match": {
         "desc": "决策页模板匹配第1变更槽标记",
-        "pre_delay": 300,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -284,6 +283,7 @@
                 "index": 0
             }
         },
+        "pre_delay": 300,
         "anchor": "EquipmentRerollChangedSlot1",
         "post_delay": 0,
         "next": [
@@ -292,7 +292,6 @@
     },
     "__EquipmentRerollLocateChangedSlot2Match": {
         "desc": "决策页模板匹配第2变更槽标记",
-        "pre_delay": 300,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -310,6 +309,7 @@
                 "index": 1
             }
         },
+        "pre_delay": 300,
         "anchor": "EquipmentRerollChangedSlot2",
         "post_delay": 0,
         "next": [
@@ -318,7 +318,6 @@
     },
     "__EquipmentRerollLocateChangedSlot3Match": {
         "desc": "决策页模板匹配第3变更槽标记",
-        "pre_delay": 300,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -336,6 +335,7 @@
                 "index": 2
             }
         },
+        "pre_delay": 300,
         "anchor": "EquipmentRerollChangedSlot3",
         "post_delay": 0,
         "next": [

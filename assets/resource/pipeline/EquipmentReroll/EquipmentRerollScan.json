@@ -134,8 +134,8 @@
                 "order_by": "Score"
             }
         },
-        "anchor": "EquipmentRerollInspectFlag",
         "pre_delay": 0,
+        "anchor": "EquipmentRerollInspectFlag",
         "post_delay": 0,
         "next": [
             "EquipmentRerollScanSlot1"

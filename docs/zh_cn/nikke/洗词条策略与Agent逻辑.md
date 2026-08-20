@@ -791,10 +791,10 @@ EquipmentRerollMain
 
 ### 8.2 Pipeline / Go 作用域
 
-| 职责 | 归属 |
-|---|---|
-| 识别（OCR / TemplateMatch / 锚点路由 / 页面流转 / 点击） | Pipeline |
-| 跨节点词条快照、效果记录、四优决策、结果路由 | Go（`agent/go-service/equipmentreroll/`） |
+| 职责                                                     | 归属                                      |
+| -------------------------------------------------------- | ----------------------------------------- |
+| 识别（OCR / TemplateMatch / 锚点路由 / 页面流转 / 点击） | Pipeline                                  |
+| 跨节点词条快照、效果记录、四优决策、结果路由             | Go（`agent/go-service/equipmentreroll/`） |
 
 - 识别配置尽量放 Pipeline（含 `__` 内部节点），便于 MaaFramework 调试面板可视化；
 - Go 通过 `ctx.RunRecognition("节点名", img)` 复用 Pipeline 识别节点做后处理/决策，不再在 Go 内硬编码识别参数；
@@ -846,41 +846,41 @@ EquipmentRerollMain
 
 - 点击二级效果变更后，`__EquipmentRerollResultButtonsVisible` 检测左下角「效果维持」出现作为决策页就绪信号（替代固定延时/画面冻结），超时未出现则失败退出，避免未进入决策页死循环。
 - `EquipmentRerollResultPage`（Go 决策 + 路由）：
-  - Accept → `EquipmentRerollResultClickAccept`（点右下「效果变更」）→ `EquipmentRerollReturnToDecide`；
-  - Keep → `EquipmentRerollResultClickKeep`（点左下「效果维持」）→ `EquipmentRerollConfirmChangeEffect` 继续洗同一件。
+    - Accept → `EquipmentRerollResultClickAccept`（点右下「效果变更」）→ `EquipmentRerollReturnToDecide`；
+    - Keep → `EquipmentRerollResultClickKeep`（点左下「效果维持」）→ `EquipmentRerollConfirmChangeEffect` 继续洗同一件。
 - `ClickKeep` / `ClickAccept` next 含自身节点兜底，防止点击失效误跳流程。
 
 ### 8.6 节点对照表
 
-| 节点 | 职责 | 关键参数 |
-|---|---|---|
-| `EquipmentRerollScanMain` / `Flow` | 全量扫描入口 / 编排 | 独立运行扫描后停止，完整任务内继续到 Decide |
-| `EquipmentRerollScanDetailsPageEntered` | 确认详情资讯页并设扫描锚点 | OCR 详情资讯 |
-| `__EquipmentRerollLocateSlot1/2/3Match` | 左侧分槽模板定位第1/2/3槽标记 | `InspectSlot1/2/3.png`（左侧）、0.9、index 0/1/2、ROI `[480,467,321,105]` |
-| `__EquipmentRerollSlot1/2/3AffixOCR/ValueOCR` | 词条/数值区域 OCR | `[Anchor]SlotN` + roi_offset |
-| `__EquipmentRerollSlot1/2/3LockBlue/Orange` | 锁定状态颜色判定 | ColorMatch 蓝/橙、count 20 |
-| `EquipmentRerollScanSlot1/2/3` | 逐槽扫描业务：复用子识别并写快照 | Go ScanSlotRecognition |
-| `EquipmentRerollScanCloseDetails` | 关闭装备详情页 | CommonCloseButton |
-| `EquipmentRerollDecide` | 四优决策分发、设洗练锚点 | part=all/头/臂/身/腿 |
-| `EquipmentRerollNeed{Part}` | 判断某部位需洗 | Go PartNeedRecognition |
-| `EquipmentRerollOpen{Part}Details` | 通用打开部位详情 | Head/Arms/Torso/Legs 模板 |
-| `EquipmentRerollClickChangeEffect` | 一级效果变更（装备详情页） | OCR 效果变更 |
-| `EquipmentRerollConfirmChangeEffect` | 二级确认效果变更（确认页） | OCR 效果变更 |
-| `__EquipmentRerollResultButtonsVisible` | 决策页就绪信号 | OCR 效果维持 |
-| `__EquipmentRerollLocateChangedSlot1/2/3Match` | 决策页模板定位第1/2/3变更槽标记 | `ResultSlot.png`、0.9、index 0/1/2 |
-| `__EquipmentRerollResultChangedEffectSlot1/2/3` | 读变更效果（Go 复用） | `[Anchor]ChangedSlot1/2/3`、`[0,0,155,0]` |
-| `EquipmentRerollResultPage` | 读变更效果 + 决策路由 | Go ResultDecide + RouteAction |
-| `EquipmentRerollResultClickKeep/Accept` | 点维持/接受（自身兜底） | OCR 按钮 |
-| `EquipmentRerollReturnToDecide` | 关闭回人物页直接调度（不重扫） | JumpBack 关闭 |
-| `EquipmentRerollEnd` | 任务结束 | - |
+| 节点                                            | 职责                             | 关键参数                                                                  |
+| ----------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------- |
+| `EquipmentRerollScanMain` / `Flow`              | 全量扫描入口 / 编排              | 独立运行扫描后停止，完整任务内继续到 Decide                               |
+| `EquipmentRerollScanDetailsPageEntered`         | 确认详情资讯页并设扫描锚点       | OCR 详情资讯                                                              |
+| `__EquipmentRerollLocateSlot1/2/3Match`         | 左侧分槽模板定位第1/2/3槽标记    | `InspectSlot1/2/3.png`（左侧）、0.9、index 0/1/2、ROI `[480,467,321,105]` |
+| `__EquipmentRerollSlot1/2/3AffixOCR/ValueOCR`   | 词条/数值区域 OCR                | `[Anchor]SlotN` + roi_offset                                              |
+| `__EquipmentRerollSlot1/2/3LockBlue/Orange`     | 锁定状态颜色判定                 | ColorMatch 蓝/橙、count 20                                                |
+| `EquipmentRerollScanSlot1/2/3`                  | 逐槽扫描业务：复用子识别并写快照 | Go ScanSlotRecognition                                                    |
+| `EquipmentRerollScanCloseDetails`               | 关闭装备详情页                   | CommonCloseButton                                                         |
+| `EquipmentRerollDecide`                         | 四优决策分发、设洗练锚点         | part=all/头/臂/身/腿                                                      |
+| `EquipmentRerollNeed{Part}`                     | 判断某部位需洗                   | Go PartNeedRecognition                                                    |
+| `EquipmentRerollOpen{Part}Details`              | 通用打开部位详情                 | Head/Arms/Torso/Legs 模板                                                 |
+| `EquipmentRerollClickChangeEffect`              | 一级效果变更（装备详情页）       | OCR 效果变更                                                              |
+| `EquipmentRerollConfirmChangeEffect`            | 二级确认效果变更（确认页）       | OCR 效果变更                                                              |
+| `__EquipmentRerollResultButtonsVisible`         | 决策页就绪信号                   | OCR 效果维持                                                              |
+| `__EquipmentRerollLocateChangedSlot1/2/3Match`  | 决策页模板定位第1/2/3变更槽标记  | `ResultSlot.png`、0.9、index 0/1/2                                        |
+| `__EquipmentRerollResultChangedEffectSlot1/2/3` | 读变更效果（Go 复用）            | `[Anchor]ChangedSlot1/2/3`、`[0,0,155,0]`                                 |
+| `EquipmentRerollResultPage`                     | 读变更效果 + 决策路由            | Go ResultDecide + RouteAction                                             |
+| `EquipmentRerollResultClickKeep/Accept`         | 点维持/接受（自身兜底）          | OCR 按钮                                                                  |
+| `EquipmentRerollReturnToDecide`                 | 关闭回人物页直接调度（不重扫）   | JumpBack 关闭                                                             |
+| `EquipmentRerollEnd`                            | 任务结束                         | -                                                                         |
 
 ### 8.7 Go 组件对应
 
-| Go 组件 | 对应节点 / 场景 |
-|---|---|
-| `EquipmentRerollScanBeginAction` | `EquipmentRerollScanBegin{Part}`（初始化扫描状态） |
-| `EquipmentRerollScanSlotRecognition` | `EquipmentRerollScanSlot1/2/3`（复用 Pipeline 子识别，解释并记录词条/数值/锁定） |
-| `EquipmentRerollScanRouteAction` | `EquipmentRerollScanSlot3`（展示扫描摘要并路由下一部位；独立入口停止，完整任务继续 Decide） |
-| `EquipmentRerollPartNeedRecognition` | `EquipmentRerollDecide` 的分支（AllSatisfied / Need{Part}） |
-| `EquipmentRerollResultDecideRecognition` | `EquipmentRerollResultPage`（读变更效果 + 决策） |
-| `EquipmentRerollResultRouteAction` | `EquipmentRerollResultPage`（按决策路由到维持/接受） |
+| Go 组件                                  | 对应节点 / 场景                                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `EquipmentRerollScanBeginAction`         | `EquipmentRerollScanBegin{Part}`（初始化扫描状态）                                          |
+| `EquipmentRerollScanSlotRecognition`     | `EquipmentRerollScanSlot1/2/3`（复用 Pipeline 子识别，解释并记录词条/数值/锁定）            |
+| `EquipmentRerollScanRouteAction`         | `EquipmentRerollScanSlot3`（展示扫描摘要并路由下一部位；独立入口停止，完整任务继续 Decide） |
+| `EquipmentRerollPartNeedRecognition`     | `EquipmentRerollDecide` 的分支（AllSatisfied / Need{Part}）                                 |
+| `EquipmentRerollResultDecideRecognition` | `EquipmentRerollResultPage`（读变更效果 + 决策）                                            |
+| `EquipmentRerollResultRouteAction`       | `EquipmentRerollResultPage`（按决策路由到维持/接受）                                        |
