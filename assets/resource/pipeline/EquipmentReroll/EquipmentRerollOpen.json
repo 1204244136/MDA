@@ -1,0 +1,262 @@
+{
+    "EquipmentRerollOpenHeadDetails": {
+        "desc": "打开头部装备详情（检查词条 / 洗词条共用）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1068,
+                    476,
+                    167,
+                    153
+                ],
+                "template": [
+                    "EquipmentReroll/Head_Attacker.png",
+                    "EquipmentReroll/Head_Defender.png",
+                    "EquipmentReroll/Head_Supporter.png"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "rate_limit": 100
+        },
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollHeadDetailsEntered"
+        ]
+    },
+    "EquipmentRerollHeadDetailsEntered": {
+        "desc": "确认处于头部装备详情页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    45,
+                    110,
+                    85
+                ],
+                "expected": [
+                    "头部"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollHeadDetailsGate"
+        ]
+    },
+    "EquipmentRerollHeadDetailsGate": {
+        "desc": "头部详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "[Anchor]EquipmentRerollAfterOpenHead"
+        ]
+    },
+    "EquipmentRerollOpenArmsDetails": {
+        "desc": "打开臂部装备详情（检查词条 / 洗词条共用）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1068,
+                    476,
+                    167,
+                    153
+                ],
+                "template": [
+                    "EquipmentReroll/Arms_Attacker.png",
+                    "EquipmentReroll/Arms_Defender.png",
+                    "EquipmentReroll/Arms_Supporter.png"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "rate_limit": 100
+        },
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollArmsDetailsEntered"
+        ]
+    },
+    "EquipmentRerollArmsDetailsEntered": {
+        "desc": "确认处于臂部装备详情页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    45,
+                    110,
+                    85
+                ],
+                "expected": [
+                    "臂部"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollArmsDetailsGate"
+        ]
+    },
+    "EquipmentRerollArmsDetailsGate": {
+        "desc": "臂部详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "[Anchor]EquipmentRerollAfterOpenArms"
+        ]
+    },
+    "EquipmentRerollOpenTorsoDetails": {
+        "desc": "打开身躯装备详情（检查词条 / 洗词条共用）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1068,
+                    476,
+                    167,
+                    153
+                ],
+                "template": [
+                    "EquipmentReroll/Torso_Attacker.png",
+                    "EquipmentReroll/Torso_Defender.png",
+                    "EquipmentReroll/Torso_Supporter.png"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "rate_limit": 100
+        },
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollTorsoDetailsEntered"
+        ]
+    },
+    "EquipmentRerollTorsoDetailsEntered": {
+        "desc": "确认处于身躯装备详情页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    45,
+                    110,
+                    85
+                ],
+                "expected": [
+                    "身躯"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollTorsoDetailsGate"
+        ]
+    },
+    "EquipmentRerollTorsoDetailsGate": {
+        "desc": "身躯详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "[Anchor]EquipmentRerollAfterOpenTorso"
+        ]
+    },
+    "EquipmentRerollOpenLegsDetails": {
+        "desc": "打开腿部装备详情（检查词条 / 洗词条共用）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1068,
+                    476,
+                    167,
+                    153
+                ],
+                "template": [
+                    "EquipmentReroll/Legs_Attacker.png",
+                    "EquipmentReroll/Legs_Defender.png",
+                    "EquipmentReroll/Legs_Supporter.png"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "rate_limit": 100
+        },
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollLegsDetailsEntered"
+        ]
+    },
+    "EquipmentRerollLegsDetailsEntered": {
+        "desc": "确认处于腿部装备详情页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    45,
+                    110,
+                    85
+                ],
+                "expected": [
+                    "腿部"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollLegsDetailsGate"
+        ]
+    },
+    "EquipmentRerollLegsDetailsGate": {
+        "desc": "腿部详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "[Anchor]EquipmentRerollAfterOpenLegs"
+        ]
+    }
+}

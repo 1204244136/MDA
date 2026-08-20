@@ -118,6 +118,7 @@
         "tasks/SoloRaid.json",
         "tasks/MapPushing.json",
         "tasks/RedDotClear.json",
+        "tasks/EquipmentReroll.json",
         "tasks/SmallEvent.json",
         "tasks/LargeEvent.json",
         "tasks/DailyRewards.json",

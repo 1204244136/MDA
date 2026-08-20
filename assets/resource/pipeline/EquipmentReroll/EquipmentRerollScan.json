@@ -1,0 +1,537 @@
+{
+    "EquipmentRerollScanMain": {
+        "desc": "从详情资讯页面开始检查四个部位的装备",
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollScanDetailsPageEntered"
+        ]
+    },
+    "EquipmentRerollScanDetailsPageEntered": {
+        "desc": "确认处于详情资讯页面，并把打开详情页的路由锚点指向检查词条的处理入口",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    15,
+                    70,
+                    25
+                ],
+                "expected": [
+                    "详情资讯"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "anchor": {
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollScanBeginHead",
+            "EquipmentRerollAfterOpenArms": "EquipmentRerollScanBeginArms",
+            "EquipmentRerollAfterOpenTorso": "EquipmentRerollScanBeginTorso",
+            "EquipmentRerollAfterOpenLegs": "EquipmentRerollScanBeginLegs"
+        },
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollOpenHeadDetails"
+        ]
+    },
+    "EquipmentRerollScanBeginHead": {
+        "desc": "初始化头部词条扫描",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollScanBeginAction",
+                "custom_action_param": {
+                    "part": "头部"
+                }
+            }
+        },
+        "post_delay": 0,
+        "next": [
+            "__EquipmentRerollLocateFlag"
+        ]
+    },
+    "EquipmentRerollScanBeginArms": {
+        "desc": "初始化臂部词条扫描",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollScanBeginAction",
+                "custom_action_param": {
+                    "part": "臂部"
+                }
+            }
+        },
+        "post_delay": 0,
+        "next": [
+            "__EquipmentRerollLocateFlag"
+        ]
+    },
+    "EquipmentRerollScanBeginTorso": {
+        "desc": "初始化身躯词条扫描",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollScanBeginAction",
+                "custom_action_param": {
+                    "part": "身躯"
+                }
+            }
+        },
+        "post_delay": 0,
+        "next": [
+            "__EquipmentRerollLocateFlag"
+        ]
+    },
+    "EquipmentRerollScanBeginLegs": {
+        "desc": "初始化腿部词条扫描",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollScanBeginAction",
+                "custom_action_param": {
+                    "part": "腿部"
+                }
+            }
+        },
+        "post_delay": 0,
+        "next": [
+            "__EquipmentRerollLocateFlag"
+        ]
+    },
+    "__EquipmentRerollLocateFlag": {
+        "desc": "装备详情页锚点定位：Flag 小图标，用于按固定 offset 推导三个槽位",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    480,
+                    400,
+                    200,
+                    90
+                ],
+                "template": [
+                    "EquipmentReroll/InspectFlag.png"
+                ],
+                "threshold": 0.9,
+                "order_by": "Score"
+            }
+        },
+        "anchor": "EquipmentRerollInspectFlag",
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollScanSlot1"
+        ]
+    },
+    "EquipmentRerollScanSlot1": {
+        "desc": "全量扫描第1栏：词条/数值/锁定（复用 Pipeline 子识别，Go 记录业务）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollScanSlotRecognition",
+                "custom_recognition_param": {
+                    "slot": 1,
+                    "is_last": false
+                }
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "timeout": 1500,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollScanSlot2"
+        ]
+    },
+    "EquipmentRerollScanSlot2": {
+        "desc": "全量扫描第2栏：词条/数值/锁定（复用 Pipeline 子识别，Go 记录业务）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollScanSlotRecognition",
+                "custom_recognition_param": {
+                    "slot": 2,
+                    "is_last": false
+                }
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "timeout": 1500,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollScanSlot3"
+        ]
+    },
+    "EquipmentRerollScanSlot3": {
+        "desc": "全量扫描第3栏：词条/数值/锁定（复用 Pipeline 子识别，Go 记录业务，完成后路由下一部位）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollScanSlotRecognition",
+                "custom_recognition_param": {
+                    "slot": 3,
+                    "is_last": true
+                }
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollScanRouteAction",
+                "custom_action_param": {
+                    "slot": 3,
+                    "is_last": true
+                }
+            }
+        },
+        "post_delay": 0,
+        "timeout": 1500,
+        "rate_limit": 100,
+        "next": [
+            "[JumpBack]EquipmentRerollScanCloseDetails",
+            "EquipmentRerollDecide"
+        ]
+    },
+    "__EquipmentRerollSlot1AffixOCR": {
+        "desc": "第1槽词条区域 OCR（Flag 锚点 + offset，宽 150）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -90,
+                    45,
+                    136,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot1ValueOCR": {
+        "desc": "第1槽数值区域 OCR（Flag 锚点 + offset，宽 75）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    60,
+                    45,
+                    61,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot1LockBlue": {
+        "desc": "第1槽锁定区域蓝色锁 ColorMatch（永久锁）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    135,
+                    45,
+                    61,
+                    7
+                ],
+                "lower": [
+                    [
+                        0,
+                        135,
+                        225
+                    ]
+                ],
+                "upper": [
+                    [
+                        50,
+                        185,
+                        255
+                    ]
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollSlot1LockOrange": {
+        "desc": "第1槽锁定区域橙色锁 ColorMatch（一次性锁）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    135,
+                    45,
+                    61,
+                    7
+                ],
+                "lower": [
+                    [
+                        175,
+                        75,
+                        55
+                    ]
+                ],
+                "upper": [
+                    [
+                        235,
+                        125,
+                        95
+                    ]
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollSlot2AffixOCR": {
+        "desc": "第2槽词条区域 OCR（Flag 锚点 + offset，宽 150）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -90,
+                    69,
+                    136,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot2ValueOCR": {
+        "desc": "第2槽数值区域 OCR（Flag 锚点 + offset，宽 75）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    60,
+                    69,
+                    61,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot2LockBlue": {
+        "desc": "第2槽锁定区域蓝色锁 ColorMatch（永久锁）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    135,
+                    69,
+                    61,
+                    7
+                ],
+                "lower": [
+                    [
+                        0,
+                        135,
+                        225
+                    ]
+                ],
+                "upper": [
+                    [
+                        50,
+                        185,
+                        255
+                    ]
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollSlot2LockOrange": {
+        "desc": "第2槽锁定区域橙色锁 ColorMatch（一次性锁）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    135,
+                    69,
+                    61,
+                    7
+                ],
+                "lower": [
+                    [
+                        175,
+                        75,
+                        55
+                    ]
+                ],
+                "upper": [
+                    [
+                        235,
+                        125,
+                        95
+                    ]
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollSlot3AffixOCR": {
+        "desc": "第3槽词条区域 OCR（Flag 锚点 + offset，宽 150）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -90,
+                    93,
+                    136,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot3ValueOCR": {
+        "desc": "第3槽数值区域 OCR（Flag 锚点 + offset，宽 75）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    60,
+                    93,
+                    61,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot3LockBlue": {
+        "desc": "第3槽锁定区域蓝色锁 ColorMatch（永久锁）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    135,
+                    93,
+                    61,
+                    7
+                ],
+                "lower": [
+                    [
+                        0,
+                        135,
+                        225
+                    ]
+                ],
+                "upper": [
+                    [
+                        50,
+                        185,
+                        255
+                    ]
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollSlot3LockOrange": {
+        "desc": "第3槽锁定区域橙色锁 ColorMatch（一次性锁）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    135,
+                    93,
+                    61,
+                    7
+                ],
+                "lower": [
+                    [
+                        175,
+                        75,
+                        55
+                    ]
+                ],
+                "upper": [
+                    [
+                        235,
+                        125,
+                        95
+                    ]
+                ],
+                "count": 20
+            }
+        }
+    },
+    "EquipmentRerollScanCloseDetails": {
+        "desc": "初始化扫描专用：关闭装备详情页",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    775,
+                    31,
+                    52,
+                    311
+                ],
+                "template": [
+                    "Common/CloseButton1.png",
+                    "Common/CloseButton2.png",
+                    "Common/CloseButton3.png",
+                    "Common/CloseButton4.png",
+                    "Common/CloseButton5.png",
+                    "Common/CloseButton6.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 0
+    }
+}

@@ -489,3 +489,6 @@ tests/maatools
 # Local AI/code intelligence preferences
 .codegraph/
 .cursor/
+
+# DSH session artifacts
+.dsh-filess/

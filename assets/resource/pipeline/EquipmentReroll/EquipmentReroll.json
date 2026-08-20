@@ -1,0 +1,429 @@
+{
+    "EquipmentRerollMain": {
+        "desc": "洗词条任务入口：从详情资讯页面开始，先识别四件装备，再按四优目标执行效果变更",
+        "next": [
+            "EquipmentRerollFlow"
+        ]
+    },
+    "EquipmentRerollEnd": {
+        "desc": "洗词条结束：四件装备均已有 优越代码伤害增加，或操作次数预算耗尽"
+    },
+    "EquipmentRerollFlow": {
+        "desc": "洗词条编排：先全量识别四件装备，再按四优目标决策与执行效果变更",
+        "next": [
+            "EquipmentRerollScanMain"
+        ]
+    },
+    "EquipmentRerollDecide": {
+        "desc": "四优决策分发：先把洗词条打开详情页的路由锚点指向效果变更入口，再依次判断全部完成/各部位是否需洗",
+        "anchor": {
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollClickChangeEffect",
+            "EquipmentRerollAfterOpenArms": "EquipmentRerollClickChangeEffect",
+            "EquipmentRerollAfterOpenTorso": "EquipmentRerollClickChangeEffect",
+            "EquipmentRerollAfterOpenLegs": "EquipmentRerollClickChangeEffect"
+        },
+        "next": [
+            "EquipmentRerollAllSatisfied",
+            "EquipmentRerollNeedHead",
+            "EquipmentRerollNeedArms",
+            "EquipmentRerollNeedTorso",
+            "EquipmentRerollNeedLegs",
+            "EquipmentRerollEnd"
+        ]
+    },
+    "EquipmentRerollAllSatisfied": {
+        "desc": "四件装备均已有 优越代码伤害增加 → 结束",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollPartNeedRecognition",
+                "custom_recognition_param": {
+                    "part": "all",
+                    "target_effect": "优越代码伤害增加"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollEnd"
+        ]
+    },
+    "EquipmentRerollNeedHead": {
+        "desc": "头部未出现优越代码伤害增加 → 洗头部",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollPartNeedRecognition",
+                "custom_recognition_param": {
+                    "part": "头部",
+                    "target_effect": "优越代码伤害增加"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollOpenHeadDetails"
+        ]
+    },
+    "EquipmentRerollNeedArms": {
+        "desc": "臂部未出现优越代码伤害增加 → 洗臂部",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollPartNeedRecognition",
+                "custom_recognition_param": {
+                    "part": "臂部",
+                    "target_effect": "优越代码伤害增加"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollOpenArmsDetails"
+        ]
+    },
+    "EquipmentRerollNeedTorso": {
+        "desc": "身躯未出现优越代码伤害增加 → 洗身躯",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollPartNeedRecognition",
+                "custom_recognition_param": {
+                    "part": "身躯",
+                    "target_effect": "优越代码伤害增加"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollOpenTorsoDetails"
+        ]
+    },
+    "EquipmentRerollNeedLegs": {
+        "desc": "腿部未出现优越代码伤害增加 → 洗腿部",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollPartNeedRecognition",
+                "custom_recognition_param": {
+                    "part": "腿部",
+                    "target_effect": "优越代码伤害增加"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollOpenLegsDetails"
+        ]
+    },
+    "EquipmentRerollClickChangeEffect": {
+        "desc": "在装备详情页点击效果变更，进入消耗材料确认页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    515,
+                    550,
+                    130,
+                    50
+                ],
+                "expected": [
+                    "效果变更"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800
+        },
+        "next": [
+            "EquipmentRerollConfirmChangeEffect"
+        ]
+    },
+    "EquipmentRerollConfirmChangeEffect": {
+        "desc": "在消耗材料确认页确认效果变更（四优无锁定，消耗 1 个订制模块）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    510,
+                    340,
+                    50
+                ],
+                "expected": [
+                    "效果变更"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800
+        },
+        "next": [
+            "__EquipmentRerollResultButtonsVisible"
+        ]
+    },
+    "EquipmentRerollResultPage": {
+        "desc": "结果页决策：读变更效果并路由到维持/接受",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollResultDecideRecognition",
+                "custom_recognition_param": {
+                    "target_effect": "优越代码伤害增加"
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollResultRouteAction"
+            }
+        },
+        "timeout": 4000,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollResultPage"
+        ]
+    },
+    "EquipmentRerollResultClickKeep": {
+        "desc": "决策页点击左下角效果维持（放弃本次变更），返回效果变更详情页继续洗同一件，自身兜底重试",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    480,
+                    505,
+                    160,
+                    55
+                ],
+                "expected": [
+                    "效果维持"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800
+        },
+        "next": [
+            "EquipmentRerollResultClickKeep",
+            "EquipmentRerollConfirmChangeEffect"
+        ]
+    },
+    "EquipmentRerollResultClickAccept": {
+        "desc": "决策页点击右下角效果变更（接受本次变更），装备达标，回人物页重扫调度下一件，自身兜底重试",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    645,
+                    505,
+                    165,
+                    55
+                ],
+                "expected": [
+                    "效果变更"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800
+        },
+        "next": [
+            "EquipmentRerollResultClickAccept",
+            "EquipmentRerollReturnToDecide"
+        ]
+    },
+    "__EquipmentRerollResultButtonsVisible": {
+        "desc": "内部识别：决策页就绪信号（检测效果维持出现）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    480,
+                    505,
+                    160,
+                    55
+                ],
+                "expected": [
+                    "效果维持"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "timeout": 5000,
+        "rate_limit": 100,
+        "next": [
+            "__EquipmentRerollLocateChangedSlot1Match"
+        ]
+    },
+    "__EquipmentRerollLocateChangedSlot1Match": {
+        "desc": "决策页模板匹配第1变更槽标记",
+        "pre_delay": 300,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    481,
+                    400,
+                    318,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/ResultSlot.png"
+                ],
+                "threshold": 0.9,
+                "order_by": "Vertical",
+                "index": 0
+            }
+        },
+        "anchor": "EquipmentRerollChangedSlot1",
+        "post_delay": 0,
+        "next": [
+            "__EquipmentRerollLocateChangedSlot2Match"
+        ]
+    },
+    "__EquipmentRerollLocateChangedSlot2Match": {
+        "desc": "决策页模板匹配第2变更槽标记",
+        "pre_delay": 300,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    481,
+                    400,
+                    318,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/ResultSlot.png"
+                ],
+                "threshold": 0.9,
+                "order_by": "Vertical",
+                "index": 1
+            }
+        },
+        "anchor": "EquipmentRerollChangedSlot2",
+        "post_delay": 0,
+        "next": [
+            "__EquipmentRerollLocateChangedSlot3Match"
+        ]
+    },
+    "__EquipmentRerollLocateChangedSlot3Match": {
+        "desc": "决策页模板匹配第3变更槽标记",
+        "pre_delay": 300,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    481,
+                    400,
+                    318,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/ResultSlot.png"
+                ],
+                "threshold": 0.9,
+                "order_by": "Vertical",
+                "index": 2
+            }
+        },
+        "anchor": "EquipmentRerollChangedSlot3",
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollResultPage"
+        ]
+    },
+    "__EquipmentRerollResultPageTitle": {
+        "desc": "内部识别：确认效果变更结果页（OPTION CHANGE 标题），仅供 Go 复用",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    110,
+                    210,
+                    65
+                ],
+                "expected": [
+                    "OPTION CHANGE"
+                ]
+            }
+        }
+    },
+    "__EquipmentRerollResultChangedEffectSlot1": {
+        "desc": "内部识别：读取结果页变更效果第1栏（引用第1变更槽锚点，精确位置），仅供 Go 复用",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollChangedSlot1",
+                "roi_offset": [
+                    0,
+                    0,
+                    155,
+                    0
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true,
+                "threshold": 0.3
+            }
+        }
+    },
+    "__EquipmentRerollResultChangedEffectSlot2": {
+        "desc": "内部识别：读取结果页变更效果第2栏（引用第2变更槽锚点，精确位置），仅供 Go 复用",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollChangedSlot2",
+                "roi_offset": [
+                    0,
+                    0,
+                    155,
+                    0
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true,
+                "threshold": 0.3
+            }
+        }
+    },
+    "__EquipmentRerollResultChangedEffectSlot3": {
+        "desc": "内部识别：读取结果页变更效果第3栏（引用第3变更槽锚点，精确位置），仅供 Go 复用",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollChangedSlot3",
+                "roi_offset": [
+                    0,
+                    0,
+                    155,
+                    0
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": true,
+                "threshold": 0.3
+            }
+        }
+    },
+    "EquipmentRerollReturnToDecide": {
+        "desc": "一次效果变更完成：关闭页面回到人物页，基于已刷新的快照直接重新调度（不再全量扫描四件装备）",
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "EquipmentRerollDecide"
+        ]
+    }
+}

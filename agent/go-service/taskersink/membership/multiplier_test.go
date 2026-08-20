@@ -15,6 +15,8 @@ func TestMultiplierForEntry(t *testing.T) {
 		{entry: "LargeEventMain", isMember: false, want: 1000},
 		{entry: "MapPushingFlow", isMember: true, want: 1000},
 		{entry: "MapPushingFlow", isMember: false, want: 5000},
+		{entry: "EquipmentRerollMain", isMember: true, want: 1000},
+		{entry: "EquipmentRerollMain", isMember: false, want: 5000},
 		{entry: "DailyRewardsMain", isMember: false, want: 1000},
 	}
 	for _, test := range cases {

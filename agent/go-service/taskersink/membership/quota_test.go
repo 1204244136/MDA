@@ -446,6 +446,9 @@ func TestQuotaRouteForEntry(t *testing.T) {
 	if got := quotaRouteForEntry("MapPushingFlow"); got != quotaRouteSpecialThenRegular {
 		t.Fatalf("quotaRouteForEntry(MapPushingFlow) = %s, want %s", got, quotaRouteSpecialThenRegular)
 	}
+	if got := quotaRouteForEntry("EquipmentRerollMain"); got != quotaRouteSpecialThenRegular {
+		t.Fatalf("quotaRouteForEntry(EquipmentRerollMain) = %s, want %s", got, quotaRouteSpecialThenRegular)
+	}
 	if got := quotaRouteForEntry("DailyRewardsMain"); got != quotaRouteRegular {
 		t.Fatalf("quotaRouteForEntry(DailyRewardsMain) = %s, want %s", got, quotaRouteRegular)
 	}

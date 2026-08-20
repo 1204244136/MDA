@@ -10,6 +10,17 @@ type quotaMultiplier struct {
 	Reason        string
 }
 
+// isHighConsumptionEntry 判断任务是否属于「高消耗」任务：非会员按 5 倍额度消耗，
+// 配额路由与自动推图一致（专项额度优先，再走日常额度）。
+func isHighConsumptionEntry(entry string) bool {
+	switch entry {
+	case "MapPushingFlow", "EquipmentRerollMain":
+		return true
+	default:
+		return false
+	}
+}
+
 func multiplierForEntry(entry string, isMember bool) quotaMultiplier {
 	m := quotaMultiplier{
 		BasePermille:  multiplierScale,
@@ -17,9 +28,9 @@ func multiplierForEntry(entry string, isMember bool) quotaMultiplier {
 		Reason:        "default",
 	}
 
-	if entry == "MapPushingFlow" && !isMember {
+	if isHighConsumptionEntry(entry) && !isMember {
 		m.BasePermille = 5 * multiplierScale
-		m.Reason = "map_pushing_non_member"
+		m.Reason = "non_member_5x"
 	}
 
 	return m

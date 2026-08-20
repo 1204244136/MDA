@@ -1,0 +1,109 @@
+{
+    "task": [
+        {
+            "name": "EquipmentReroll",
+            "label": "$task.EquipmentReroll.label",
+            "entry": "EquipmentRerollMain",
+            "description": "$task.EquipmentReroll.description",
+            "option": [
+                "EquipmentRerollMode"
+            ],
+            "group": [
+                "utility"
+            ]
+        }
+    ],
+    "option": {
+        "EquipmentRerollMode": {
+            "type": "select",
+            "label": "$option.EquipmentRerollMode.label",
+            "cases": [
+                {
+                    "name": "RerollCharacter",
+                    "label": "$option.RerollCharacter.label",
+                    "pipeline_override": {
+                        "EquipmentRerollFlow": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "EquipmentRerollTemplate"
+                    ]
+                }
+            ],
+            "default_case": "RerollCharacter"
+        },
+        "EquipmentRerollTemplate": {
+            "type": "select",
+            "label": "$option.EquipmentRerollTemplate.label",
+            "cases": [
+                {
+                    "name": "FourElementalDamage",
+                    "label": "$option.FourElementalDamage.label",
+                    "pipeline_override": {
+                        "EquipmentRerollAllSatisfied": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "all",
+                                        "target_effect": "优越代码伤害增加"
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedHead": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "头部",
+                                        "target_effect": "优越代码伤害增加"
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedArms": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "臂部",
+                                        "target_effect": "优越代码伤害增加"
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedTorso": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "身躯",
+                                        "target_effect": "优越代码伤害增加"
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedLegs": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "腿部",
+                                        "target_effect": "优越代码伤害增加"
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollResultPage": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "target_effect": "优越代码伤害增加"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "default_case": "FourElementalDamage"
+        }
+    }
+}

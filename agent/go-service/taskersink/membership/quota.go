@@ -210,7 +210,7 @@ func normalizeTierCode(status *MembershipStatus) string {
 }
 
 func quotaRouteForEntry(entry string) quotaRoute {
-	if entry == "MapPushingFlow" {
+	if isHighConsumptionEntry(entry) {
 		return quotaRouteSpecialThenRegular
 	}
 	return quotaRouteRegular
