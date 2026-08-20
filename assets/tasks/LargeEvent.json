@@ -183,7 +183,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1Stage.png"
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1Stage.png",
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormal.png"
                                     ]
                                 }
                             }
@@ -192,7 +193,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1StageRepeatable.png"
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1StageRepeatable.png",
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormalRepeatable.png"
                                     ]
                                 }
                             }
