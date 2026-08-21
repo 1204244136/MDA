@@ -852,8 +852,8 @@ EquipmentRerollMain
 **材料计费**（已按客户端截图校准，见 `inventory.go:46-78`）：
 | 锁定 | 订制模组 | 自订密钥 |
 |------|----------|----------|
-| 0→1  | 2        | 20       |
-| 1→2  | 3        | 30       |
+| 0→1 | 2 | 20 |
+| 1→2 | 3 | 30 |
 | 效果变更 | 0锁1 /1锁2 /2锁3 订制模组（自订密钥不可代替） |
 
 **去重与轮转**：每件最多1锁（四攻四优避免2锁成本激增）；`expireOneTimeLocks` 在每次 reroll 后使橙锁失效，蓝锁保留。Keep 分支回到 `ConfirmChangeEffect` 直接重洗同件（确认页内，Flag 不参与），Accept 分支经 `ReturnToDecide→Decide` 重调度（基于快照，Flag 重新锚定）。
@@ -882,16 +882,16 @@ EquipmentRerollMain
 | `EquipmentRerollDecide`                         | 双模板决策分发、设洗练锚点       | part=all/头/臂/身/腿（按 template 区分）                                  |
 | `EquipmentRerollNeed{Part}`                     | 判断某部位需洗                   | Go PartNeedRecognition（四优单目标 / 四攻四优双目标）                     |
 | `EquipmentRerollOpen{Part}Details`              | 通用打开部位详情                 | Head/Arms/Torso/Legs 模板                                                 |
-| `EquipmentRerollLockGate` / `LockBranch`        | 锁定前置分发（四攻四优）         | DirectHit 分支：LockNeed vs ClickChangeEffect                              |
+| `EquipmentRerollLockGate` / `LockBranch`        | 锁定前置分发（四攻四优）         | DirectHit 分支：LockNeed vs ClickChangeEffect                             |
 | `__EquipmentRerollLockLocateFlag`               | 锁定前 Flag 锚定                 | `InspectFlag.png` 0.9, 贴详情页                                           |
 | `EquipmentRerollLockNeed` / `LockRouteSlot`     | 锁定需求判定与槽位路由           | Go LockCheck + RouteSlot (3→2优先)                                        |
-| `EquipmentRerollLockClickSlot2/3`               | 点击 2/3号锁图标                 | `[Anchor]InspectFlag` + (135,69/93) 待校准                                 |
+| `EquipmentRerollLockClickSlot2/3`               | 点击 2/3号锁图标                 | `[Anchor]InspectFlag` + (135,69/93) 待校准                                |
 | `EquipmentRerollLockPageEntered`                | 效果锁定页确认                   | OCR 效果锁定                                                              |
-| `EquipmentRerollLockSelectMaterial`             | 锁定材料优选（密钥优先）         | Go LockSelectRecognition + RouteAction                                     |
+| `EquipmentRerollLockSelectMaterial`             | 锁定材料优选（密钥优先）         | Go LockSelectRecognition + RouteAction                                    |
 | `EquipmentRerollLockSelectModule/Key`           | 点击 SELECT                      | OCR SELECT（左右 ROI 区分）                                               |
 | `EquipmentRerollLockConfirm`                    | 锁定页确认                       | OCR 确认（底部蓝条）                                                      |
 | `EquipmentRerollLockNotify` / `NotifyConfirm`   | 通知二次确认                     | OCR 通知 / 确认                                                           |
-| `EquipmentRerollLockDone`                       | 乐观写快照+清 pending            | Go LockDoneAction → ClickChangeEffect                                      |
+| `EquipmentRerollLockDone`                       | 乐观写快照+清 pending            | Go LockDoneAction → ClickChangeEffect                                     |
 | `EquipmentRerollClickChangeEffect`              | 一级效果变更（装备详情页）       | OCR 效果变更                                                              |
 | `EquipmentRerollConfirmChangeEffect`            | 二级确认效果变更（确认页）       | OCR 效果变更                                                              |
 | `__EquipmentRerollResultButtonsVisible`         | 决策页就绪信号                   | OCR 效果维持                                                              |
@@ -905,19 +905,19 @@ EquipmentRerollMain
 
 ### 8.8 Go 组件对应
 
-| Go 组件                                  | 对应节点 / 场景                                                                             |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `EquipmentRerollScanBeginAction`         | `EquipmentRerollScanBegin{Part}`（初始化扫描状态）                                          |
-| `EquipmentRerollScanSlotRecognition`     | `EquipmentRerollScanSlot1/2/3`（复用 Pipeline 子识别，解释并记录词条/数值/锁定）            |
-| `EquipmentRerollScanRouteAction`         | `EquipmentRerollScanSlot3`（展示扫描摘要并路由下一部位；独立入口停止，完整任务继续 Decide） |
-| `EquipmentRerollPartNeedRecognition`     | `EquipmentRerollDecide` 的分支（AllSatisfied / Need{Part}，双模板）                         |
-| `EquipmentRerollLockCheckRecognition`    | `EquipmentRerollLockNeed`（3→2号未锁单目标检查，Box=slot）                                  |
-| `EquipmentRerollLockRouteSlotAction`     | `EquipmentRerollLockRouteSlot`（按 Go 快照路由到 Slot2/3 点击）                             |
-| `EquipmentRerollLockSelectRecognition`   | `EquipmentRerollLockSelectMaterial`（标题校验+密钥优先决策，Box=按钮）                     |
-| `EquipmentRerollLockSelectRouteAction`   | `EquipmentRerollLockSelectMaterial`（按 Go 决策路由到 Module/Key SELECT）                  |
-| `EquipmentRerollLockDoneAction`          | `EquipmentRerollLockDone`（乐观写快照 `applyLockToSnapshot` 并清 pending）                  |
-| `EquipmentRerollResultDecideRecognition` | `EquipmentRerollResultPage`（双模板：四优/四攻四优，读变更+含锁价值）                       |
-| `EquipmentRerollResultRouteAction`       | `EquipmentRerollResultPage`（按决策路由到维持/接受，过期一次性锁）                         |
-| `clearMonitorState` / `expireOneTimeLocks` | `taskLifecycle OnTaskerTask` 及每次结果页后（Keep/Accept）                                |
+| Go 组件                                    | 对应节点 / 场景                                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `EquipmentRerollScanBeginAction`           | `EquipmentRerollScanBegin{Part}`（初始化扫描状态）                                          |
+| `EquipmentRerollScanSlotRecognition`       | `EquipmentRerollScanSlot1/2/3`（复用 Pipeline 子识别，解释并记录词条/数值/锁定）            |
+| `EquipmentRerollScanRouteAction`           | `EquipmentRerollScanSlot3`（展示扫描摘要并路由下一部位；独立入口停止，完整任务继续 Decide） |
+| `EquipmentRerollPartNeedRecognition`       | `EquipmentRerollDecide` 的分支（AllSatisfied / Need{Part}，双模板）                         |
+| `EquipmentRerollLockCheckRecognition`      | `EquipmentRerollLockNeed`（3→2号未锁单目标检查，Box=slot）                                  |
+| `EquipmentRerollLockRouteSlotAction`       | `EquipmentRerollLockRouteSlot`（按 Go 快照路由到 Slot2/3 点击）                             |
+| `EquipmentRerollLockSelectRecognition`     | `EquipmentRerollLockSelectMaterial`（标题校验+密钥优先决策，Box=按钮）                      |
+| `EquipmentRerollLockSelectRouteAction`     | `EquipmentRerollLockSelectMaterial`（按 Go 决策路由到 Module/Key SELECT）                   |
+| `EquipmentRerollLockDoneAction`            | `EquipmentRerollLockDone`（乐观写快照 `applyLockToSnapshot` 并清 pending）                  |
+| `EquipmentRerollResultDecideRecognition`   | `EquipmentRerollResultPage`（双模板：四优/四攻四优，读变更+含锁价值）                       |
+| `EquipmentRerollResultRouteAction`         | `EquipmentRerollResultPage`（按决策路由到维持/接受，过期一次性锁）                          |
+| `clearMonitorState` / `expireOneTimeLocks` | `taskLifecycle OnTaskerTask` 及每次结果页后（Keep/Accept）                                  |
 
 > 锁定卡片文案校准：选中“订制模组”后提示“在解除固定之前，半永久选取的效果不会发生更改。”；选中“自订密钥”后提示“在锁定之后更改效果或重新设置数值时，会解除选取效果的锁定状态。”；二次通知统一为“为固定所选效果，将进行锁定。确定要进行吗？消耗资金 2/20”。
