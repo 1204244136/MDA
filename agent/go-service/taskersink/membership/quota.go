@@ -561,38 +561,88 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 		return QuotaSnapshot{}, false, err
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
-	exhausted := false
-	if isRuntimeQuotaSubject(status) {
-		updatedAt := now.Format(time.RFC3339)
-		regularState := state.Pools[string(quotaPoolRegularDaily)]
-		specialState := state.Pools[string(quotaPoolSpecialPeriod)]
-		regularCharge := seconds
-		if route == quotaRouteSpecialThenRegular {
-			specialRemaining := specialState.LimitSeconds - specialState.UsedSeconds
-			if specialRemaining < 0 {
-				specialRemaining = 0
-			}
-			specialCharge := seconds
-			if specialCharge > specialRemaining {
-				specialCharge = specialRemaining
-			}
-			if specialCharge > 0 {
-				specialState.UsedSeconds += specialCharge
-				specialState.UpdatedAt = updatedAt
-				state.Pools[string(quotaPoolSpecialPeriod)] = specialState
-			}
-			regularCharge = seconds - specialCharge
-		}
-		if regularCharge > 0 {
-			regularState, exhausted = addQuotaPoolUsage(regularState, regularCharge)
-			regularState.UpdatedAt = updatedAt
-			state.Pools[string(quotaPoolRegularDaily)] = regularState
-		}
-	}
+	exhausted := chargeQuotaPools(status, route, seconds, &state, now)
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, false, err
 	}
 	return routeSnapshotFromState(status, state, route), exhausted, nil
+}
+
+// chargeQuotaPools 按路由把 billable 秒数写入对应额度池，返回是否将日常额度耗尽。
+func chargeQuotaPools(status *MembershipStatus, route quotaRoute, seconds int64, state *quotaState, now time.Time) bool {
+	exhausted := false
+	if !isRuntimeQuotaSubject(status) {
+		return exhausted
+	}
+	updatedAt := now.Format(time.RFC3339)
+	regularState := state.Pools[string(quotaPoolRegularDaily)]
+	specialState := state.Pools[string(quotaPoolSpecialPeriod)]
+	regularCharge := seconds
+	if route == quotaRouteSpecialThenRegular {
+		specialRemaining := specialState.LimitSeconds - specialState.UsedSeconds
+		if specialRemaining < 0 {
+			specialRemaining = 0
+		}
+		specialCharge := seconds
+		if specialCharge > specialRemaining {
+			specialCharge = specialRemaining
+		}
+		if specialCharge > 0 {
+			specialState.UsedSeconds += specialCharge
+			specialState.UpdatedAt = updatedAt
+			state.Pools[string(quotaPoolSpecialPeriod)] = specialState
+		}
+		regularCharge = seconds - specialCharge
+	}
+	if regularCharge > 0 {
+		regularState, exhausted = addQuotaPoolUsage(regularState, regularCharge)
+		regularState.UpdatedAt = updatedAt
+		state.Pools[string(quotaPoolRegularDaily)] = regularState
+	}
+	return exhausted
+}
+
+// addQuotaRouteUsageRealSeconds 根据任务 entry 和当前专项额度剩余动态计算倍率，
+// 并在同一次锁内完成扣费，避免每个 tick 重复读写额度状态文件。
+func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool) (QuotaSnapshot, quotaMultiplier, bool, error) {
+	if realSeconds <= 0 {
+		snapshot, _, err := EnsureQuotaRouteAvailable(status, route)
+		return snapshot, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
+	}
+	quotaMu.Lock()
+	defer quotaMu.Unlock()
+	unlock, err := lockQuotaStateFile()
+	if err != nil {
+		fallback := routeSnapshotFromState(status, quotaState{Pools: map[string]quotaPoolState{}}, route)
+		return fallback, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
+	}
+	defer unlock()
+
+	now := time.Now()
+	path, err := quotaStatePath()
+	if err != nil {
+		fallback := routeSnapshotFromState(status, quotaState{Pools: map[string]quotaPoolState{}}, route)
+		return fallback, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
+	}
+	state, err := loadQuotaState(path)
+	if err != nil {
+		fallback := routeSnapshotFromState(status, quotaState{Pools: map[string]quotaPoolState{}}, route)
+		return fallback, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
+	}
+	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+
+	hasSpecialQuota := false
+	if route == quotaRouteSpecialThenRegular {
+		specialState := state.Pools[string(quotaPoolSpecialPeriod)]
+		hasSpecialQuota = specialState.LimitSeconds > 0 && specialState.LimitSeconds-specialState.UsedSeconds > 0
+	}
+	multiplier := multiplierForEntry(entry, hasSpecialQuota)
+	billableSeconds := multiplier.billableSecondsFromReal(realSeconds, flush)
+	exhausted := chargeQuotaPools(status, route, billableSeconds, &state, now)
+	if err := saveQuotaState(path, state); err != nil {
+		return QuotaSnapshot{}, multiplier, false, err
+	}
+	return routeSnapshotFromState(status, state, route), multiplier, exhausted, nil
 }
 
 func FormatMinutes(seconds int64) int64 {

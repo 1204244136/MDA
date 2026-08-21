@@ -34,7 +34,7 @@
     "tasker.membership_check.denied_special": "🍊 Current tier %s, special quota (%d minutes in this period) and regular quota (%d minutes today) are both exhausted; task stopped. Device binding/subscription URL: %s",
     "tasker.membership_check.debug_unlimited": "🍊 Debug builds have unlimited runtime and skip membership checks.",
     "tasker.membership_check.service_unavailable": "🍊 Membership verification service is temporarily unavailable. Continuing with Orange Free quota.",
-    "tasker.membership_check.non_member_5x_multiplier": "🍊 Non-member auto map pushing / effect reroll consumes runtime quota at 5x.",
+    "tasker.membership_check.no_special_quota_5x_multiplier": "🍊 No special quota available; auto map pushing / effect reroll consumes runtime quota at 5x.",
     "tasker.membership_check.update_required": "🍊 This MDA version is no longer supported. Please update to %s or later before running tasks.",
     "tasker.membership_check.renewal_reminder": "🍊 Your membership has %d day(s) remaining and expires on %s. Device binding/renewal URL: %s",
     "tasker.process_warning.title": "⚠️ Note: The following processes are running",

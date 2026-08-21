@@ -4,26 +4,26 @@ import (
 	"sync"
 	"time"
 
+	"github.com/1204244136/MDA/agent/go-service/pkg/i18n"
 	"github.com/1204244136/MDA/agent/go-service/pkg/maafocus"
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 	"github.com/rs/zerolog/log"
 )
 
 type RuntimeTracker struct {
-	mu             sync.Mutex
-	active         bool
-	taskID         uint64
-	entry          string
-	last           time.Time
-	multiplier     quotaMultiplier
-	route          quotaRoute
-	status         *MembershipStatus
-	generation     uint64
-	realNs         int64
-	chargedSeconds int64
-	stopCh         chan struct{}
-	stopped        bool
-	stopPosted     bool
+	mu         sync.Mutex
+	active     bool
+	taskID     uint64
+	entry      string
+	last       time.Time
+	multiplier quotaMultiplier
+	route      quotaRoute
+	status     *MembershipStatus
+	generation uint64
+	realNs     int64
+	stopCh     chan struct{}
+	stopped    bool
+	stopPosted bool
 }
 
 var _ maa.TaskerEventSink = &RuntimeTracker{}
@@ -47,33 +47,22 @@ func (t *RuntimeTracker) OnTaskerTask(tasker *maa.Tasker, event maa.EventStatus,
 	}
 }
 
-func (t *RuntimeTracker) consumeBillableSeconds(delta time.Duration, flush bool) int64 {
-	if delta < 0 {
-		delta = 0
-	}
-
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	return t.consumeBillableSecondsLocked(delta, flush)
-}
-
-func (t *RuntimeTracker) consumeBillableSecondsLocked(delta time.Duration, flush bool) int64 {
-	if delta < 0 {
-		delta = 0
-	}
-
-	t.realNs += delta.Nanoseconds()
-	billableNs := t.multiplier.billableDuration(time.Duration(t.realNs)).Nanoseconds()
-	seconds := billableNs / int64(time.Second)
-	if flush && billableNs%int64(time.Second) > 0 {
-		seconds++
-	}
-	if seconds <= t.chargedSeconds {
+// takeRealSecondsLocked 从已累积的 realNs 中取出可计费的实际秒数。
+// flush 为 true 时不足 1 秒也按 1 秒结算并清零；否则只取整秒，余数保留到下次。
+func (t *RuntimeTracker) takeRealSecondsLocked(flush bool) int64 {
+	if t.realNs <= 0 {
 		return 0
 	}
-	deltaSeconds := seconds - t.chargedSeconds
-	t.chargedSeconds = seconds
-	return deltaSeconds
+	if flush {
+		seconds := (t.realNs + int64(time.Second) - 1) / int64(time.Second)
+		t.realNs = 0
+		return seconds
+	}
+	seconds := t.realNs / int64(time.Second)
+	if seconds > 0 {
+		t.realNs -= seconds * int64(time.Second)
+	}
+	return seconds
 }
 
 func (t *RuntimeTracker) OnNodePipelineNode(ctx *maa.Context, event maa.EventStatus, detail maa.NodePipelineNodeDetail) {
@@ -148,7 +137,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		return
 	}
 
-	multiplier := multiplierForEntry(detail.Entry, status.IsMember)
+	multiplier := multiplierForEntry(detail.Entry, snapshot.SpecialRemainingSeconds > 0)
 
 	now := time.Now()
 
@@ -162,7 +151,6 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.status = status
 	t.generation++
 	t.realNs = 0
-	t.chargedSeconds = 0
 	t.stopCh = make(chan struct{})
 	t.stopped = false
 	t.stopPosted = false
@@ -182,12 +170,12 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		Str("multiplier_reason", multiplier.Reason).
 		Bool("unlimited_runtime", snapshot.UnlimitedRuntime).
 		Msg("RuntimeTracker: started quota tracking")
-	if isHighConsumptionEntry(detail.Entry) && !status.IsMember {
+	if isHighConsumptionEntry(detail.Entry) && snapshot.SpecialRemainingSeconds <= 0 {
 		log.Info().
 			Uint64("task_id", detail.TaskID).
 			Str("entry", detail.Entry).
 			Int("quota_multiplier", 5).
-			Msg("RuntimeTracker: non-member high consumption task quota is 5x")
+			Msg("RuntimeTracker: high consumption task without special quota is 5x")
 	}
 
 	if snapshot.UnlimitedRuntime {
@@ -206,9 +194,11 @@ func (t *RuntimeTracker) finish() {
 	multiplier := t.multiplier
 	route := t.route
 	status := t.status
+	entry := t.entry
 	stopCh := t.stopCh
 	realDelta := time.Since(t.last)
-	billableSeconds := t.consumeBillableSecondsLocked(realDelta, true)
+	t.realNs += realDelta.Nanoseconds()
+	realSeconds := t.takeRealSecondsLocked(true)
 	t.active = false
 	t.status = nil
 	t.stopCh = nil
@@ -219,12 +209,17 @@ func (t *RuntimeTracker) finish() {
 	if status == nil {
 		status = GetMembershipStatus()
 	}
-	if _, err := AddQuotaRouteUsageSeconds(status, route, billableSeconds); err != nil {
-		log.Warn().Err(err).Msg("RuntimeTracker: failed to flush final quota usage")
+	if realSeconds > 0 {
+		_, currentMultiplier, _, err := addQuotaRouteUsageRealSeconds(status, entry, route, realSeconds, true)
+		if err != nil {
+			log.Warn().Err(err).Msg("RuntimeTracker: failed to flush final quota usage")
+		} else {
+			multiplier = currentMultiplier
+		}
 	}
 	log.Debug().
 		Int64("real_seconds", int64(realDelta/time.Second)).
-		Int64("billable_seconds", billableSeconds).
+		Int64("billable_seconds", realSeconds).
 		Str("quota_route", string(route)).
 		Int64("base_multiplier_permille", multiplier.BasePermille).
 		Int64("extra_multiplier_permille", multiplier.ExtraPermille).
@@ -271,27 +266,38 @@ func nextQuotaTickInterval(remainingSeconds int64) time.Duration {
 
 func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute, generation uint64) (QuotaSnapshot, bool) {
 	now := time.Now()
+
 	t.mu.Lock()
 	if !t.active || t.generation != generation {
 		t.mu.Unlock()
 		return QuotaSnapshot{}, true
 	}
-	delta := now.Sub(t.last)
-	t.last = now
 	taskID := t.taskID
 	entry := t.entry
-	multiplier := t.multiplier
+	delta := now.Sub(t.last)
+	t.last = now
+	t.realNs += delta.Nanoseconds()
+	realSeconds := t.takeRealSecondsLocked(false)
+	oldMultiplier := t.multiplier
 	alreadyStopped := t.stopped
-	billableSeconds := t.consumeBillableSecondsLocked(delta, false)
 	t.mu.Unlock()
 
-	snapshot, exhausted, err := addQuotaRouteUsageSeconds(status, route, billableSeconds)
+	snapshot, multiplier, exhausted, err := addQuotaRouteUsageRealSeconds(status, entry, route, realSeconds, false)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to record quota usage")
 		t.requestStop(generation)
 		return QuotaSnapshot{}, true
 	}
 
+	if multiplier.totalPermille() > multiplierScale && oldMultiplier.totalPermille() <= multiplierScale {
+		printNoSpecialQuota5x()
+	}
+
+	t.mu.Lock()
+	t.multiplier = multiplier
+	t.mu.Unlock()
+
+	billableSeconds := multiplier.billableSecondsFromReal(realSeconds, false)
 	log.Debug().
 		Uint64("task_id", taskID).
 		Str("entry", entry).
@@ -337,6 +343,10 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 
 func printQuotaExhausted(snapshot QuotaSnapshot) {
 	maafocus.PrintLargeContentTrimNewline(formatQuotaDeniedMessage(snapshot))
+}
+
+func printNoSpecialQuota5x() {
+	maafocus.PrintLargeContentTrimNewline(i18n.T("tasker.membership_check.no_special_quota_5x_multiplier"))
 }
 
 func printMembershipVerificationUnavailable() {
