@@ -30,3 +30,23 @@ func TestResultDecideParamNormalize(t *testing.T) {
 		t.Fatalf("trimmed target effect = %q", p.TargetEffect)
 	}
 }
+
+func TestIsTransientUnlockText(t *testing.T) {
+	cases := []struct {
+		raw  string
+		want bool
+	}{
+		{raw: " 已解除效果", want: true},
+		{raw: "已解除效果锁定。", want: true},
+		{raw: "解除", want: true},
+		{raw: "【攻击力增加】", want: false},
+		{raw: "未获得效果", want: false},
+		{raw: "", want: false},
+	}
+
+	for _, tc := range cases {
+		if got := isTransientUnlockText(tc.raw); got != tc.want {
+			t.Fatalf("isTransientUnlockText(%q) = %v, want %v", tc.raw, got, tc.want)
+		}
+	}
+}

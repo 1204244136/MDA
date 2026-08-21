@@ -21,6 +21,13 @@ func TestNormalizeEffect(t *testing.T) {
 		{name: "effect with spaces", raw: "最大 装弹数 增加 68.93%", want: "最大装弹数增加", ok: true},
 		{name: "unobtained effect is empty", raw: "未获得效果", want: "", ok: false},
 		{name: "one OCR character error", raw: "蓄力伤害增力", want: "蓄力伤害增加", ok: true},
+		{name: "truncated defense via key char", raw: "防增加】", want: "防御力增加", ok: true},
+		{name: "truncated attack via key char", raw: "攻增加】", want: "攻击力增加", ok: true},
+		{name: "truncated elemental via key char", raw: "优增加】", want: "优越代码伤害增加", ok: true},
+		{name: "truncated speed via key char", raw: "速增加】", want: "蓄力速度增加", ok: true},
+		{name: "truncated crit damage via key chars", raw: "暴伤增加】", want: "暴击伤害增加", ok: true},
+		{name: "truncated charge damage via key chars", raw: "蓄伤增加】", want: "蓄力伤害增加", ok: true},
+		{name: "missing first char fuzzy", raw: "击伤害增加】", want: "暴击伤害增加", ok: true},
 		{name: "unknown effect", raw: "效果变更", want: "", ok: false},
 		{name: "empty effect", raw: "", want: "", ok: false},
 	}
@@ -43,6 +50,8 @@ func TestIsUnobtainedEffect(t *testing.T) {
 	}{
 		{name: "plain label", raw: "未获得效果", want: true},
 		{name: "label with spaces", raw: "未 获得 效果", want: true},
+		{name: "truncated label", raw: "未获得效", want: true},
+		{name: "shorter truncated label", raw: "未获得", want: true},
 		{name: "effect text", raw: "蓄力速度增加 4.92%", want: false},
 		{name: "unrecognized description", raw: "效果数值将在进入战斗时生效", want: false},
 	}

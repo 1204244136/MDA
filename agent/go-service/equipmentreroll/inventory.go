@@ -44,21 +44,73 @@ func (inv Inventory) EstimateSupportedEffectChanges() int {
 }
 
 // CanAffordLock 判断是否足以支付一次指定材料的锁定。
-// 订制模块锁定是持续性锁，自订密钥锁定只保护下一次效果变更。
+// 订制模块锁定是持续性锁（半永久，解除前不失效），自订密钥锁定只保护下一次效果变更。
 // lockIndex 是本次新增锁在装备上所处的顺序位（从 0 开始）。
-//
-// TODO(校准)：锁定材料的单次消耗数量由客户端确认后接入；四优模板不使用锁定。
+// 成本以客户端截图校准：0→1 需 2 模块 / 20 密钥，1→2 需 3 模块 / 30 密钥。
 func (inv Inventory) CanAffordLock(material string, lockIndex int) bool {
 	if lockIndex < 0 {
 		lockIndex = 0
 	}
-	cost := 1 + lockIndex
+	var cost int
+	switch lockIndex {
+	case 0:
+		cost = 2
+	case 1:
+		cost = 3
+	default:
+		cost = 3
+		if lockIndex > 1 {
+			// 最多2锁，再加锁沿用3/30（防御性）
+			cost = 3
+		}
+	}
 	switch material {
 	case "订制模块":
+		if lockIndex == 0 && cost == 2 || lockIndex == 1 && cost == 3 {
+			// 普通分支
+		}
 		return inv.CustomModules >= cost
 	case "自订密钥":
+		if lockIndex == 0 {
+			cost = 20
+		} else {
+			cost = 30
+		}
 		return inv.CustomLockKeys >= cost
 	default:
 		return false
 	}
+}
+
+// LockCost 返回指定材料在 lockIndex 位的消耗数量（用于日志/扣费）。
+func LockCost(material string, lockIndex int) int {
+	if lockIndex < 0 {
+		lockIndex = 0
+	}
+	switch material {
+	case "订制模块":
+		if lockIndex == 0 {
+			return 2
+		}
+		return 3
+	case "自订密钥":
+		if lockIndex == 0 {
+			return 20
+		}
+		return 30
+	default:
+		return 0
+	}
+}
+
+// ChooseLockMaterial 按“有密钥用密钥，不够再用模块”选择锁定材料。
+// 返回选中材料名与是否可支付；若都不足返回("", false)。
+func (inv Inventory) ChooseLockMaterial(lockIndex int) (string, bool) {
+	if inv.CanAffordLock("自订密钥", lockIndex) {
+		return "自订密钥", true
+	}
+	if inv.CanAffordLock("订制模块", lockIndex) {
+		return "订制模块", true
+	}
+	return "", false
 }

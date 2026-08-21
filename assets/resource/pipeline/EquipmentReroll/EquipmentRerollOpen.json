@@ -21,11 +21,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 500,
-            "rate_limit": 100
-        },
         "post_delay": 0,
+        "rate_limit": 500,
         "next": [
             "EquipmentRerollHeadDetailsEntered"
         ]
@@ -86,11 +83,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 500,
-            "rate_limit": 100
-        },
         "post_delay": 0,
+        "rate_limit": 500,
         "next": [
             "EquipmentRerollArmsDetailsEntered"
         ]
@@ -151,11 +145,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 500,
-            "rate_limit": 100
-        },
         "post_delay": 0,
+        "rate_limit": 500,
         "next": [
             "EquipmentRerollTorsoDetailsEntered"
         ]
@@ -216,11 +207,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 500,
-            "rate_limit": 100
-        },
         "post_delay": 0,
+        "rate_limit": 500,
         "next": [
             "EquipmentRerollLegsDetailsEntered"
         ]

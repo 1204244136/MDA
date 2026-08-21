@@ -99,6 +99,122 @@
                                     }
                                 }
                             }
+                        },
+                        "EquipmentRerollLockNeed": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "template": "FourElementalDamage"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "FourAttackFourElementalDamage",
+                    "label": "$option.FourAttackFourElementalDamage.label",
+                    "pipeline_override": {
+                        "EquipmentRerollAllSatisfied": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "all",
+                                        "template": "FourAttackFourElementalDamage",
+                                        "target_effects": [
+                                            "优越代码伤害增加",
+                                            "攻击力增加"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedHead": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "头部",
+                                        "template": "FourAttackFourElementalDamage",
+                                        "target_effects": [
+                                            "优越代码伤害增加",
+                                            "攻击力增加"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedArms": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "臂部",
+                                        "template": "FourAttackFourElementalDamage",
+                                        "target_effects": [
+                                            "优越代码伤害增加",
+                                            "攻击力增加"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedTorso": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "身躯",
+                                        "template": "FourAttackFourElementalDamage",
+                                        "target_effects": [
+                                            "优越代码伤害增加",
+                                            "攻击力增加"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollNeedLegs": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "part": "腿部",
+                                        "template": "FourAttackFourElementalDamage",
+                                        "target_effects": [
+                                            "优越代码伤害增加",
+                                            "攻击力增加"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollResultPage": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "template": "FourAttackFourElementalDamage",
+                                        "target_effects": [
+                                            "优越代码伤害增加",
+                                            "攻击力增加"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollLockNeed": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "template": "FourAttackFourElementalDamage"
+                                    }
+                                }
+                            }
+                        },
+                        "EquipmentRerollKeepLockCheck": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "template": "FourAttackFourElementalDamage"
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -1,26 +1,26 @@
 {
     "EquipmentRerollMain": {
-        "desc": "洗词条任务入口：从详情资讯页面开始，先识别四件装备，再按四优目标执行效果变更",
+        "desc": "洗词条任务入口：从详情资讯页面开始，先识别四件装备，再按模板执行效果变更",
         "next": [
             "EquipmentRerollFlow"
         ]
     },
     "EquipmentRerollEnd": {
-        "desc": "洗词条结束：四件装备均已有 优越代码伤害增加，或操作次数预算耗尽"
+        "desc": "洗词条结束：四件装备均已满足模板目标，或操作次数预算耗尽"
     },
     "EquipmentRerollFlow": {
-        "desc": "洗词条编排：先全量识别四件装备，再按四优目标决策与执行效果变更",
+        "desc": "洗词条编排：先全量识别四件装备，再按模板决策与执行效果变更",
         "next": [
             "EquipmentRerollScanMain"
         ]
     },
     "EquipmentRerollDecide": {
-        "desc": "四优决策分发：先把洗词条打开详情页的路由锚点指向效果变更入口，再依次判断全部完成/各部位是否需洗",
+        "desc": "决策分发：设锚点到锁定检查，再依次判断全部完成/各部位是否需洗（支持四优/四攻四优）",
         "anchor": {
-            "EquipmentRerollAfterOpenHead": "EquipmentRerollClickChangeEffect",
-            "EquipmentRerollAfterOpenArms": "EquipmentRerollClickChangeEffect",
-            "EquipmentRerollAfterOpenTorso": "EquipmentRerollClickChangeEffect",
-            "EquipmentRerollAfterOpenLegs": "EquipmentRerollClickChangeEffect"
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenTorso": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenLegs": "EquipmentRerollLockGate"
         },
         "next": [
             "EquipmentRerollAllSatisfied",
@@ -32,7 +32,7 @@
         ]
     },
     "EquipmentRerollAllSatisfied": {
-        "desc": "四件装备均已有 优越代码伤害增加 → 结束",
+        "desc": "四件装备均满足目标（按模板参数判定）→ 结束",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -48,7 +48,7 @@
         ]
     },
     "EquipmentRerollNeedHead": {
-        "desc": "头部未出现优越代码伤害增加 → 洗头部",
+        "desc": "头部未满足模板目标 → 洗头部",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -64,7 +64,7 @@
         ]
     },
     "EquipmentRerollNeedArms": {
-        "desc": "臂部未出现优越代码伤害增加 → 洗臂部",
+        "desc": "臂部未满足模板目标 → 洗臂部",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -80,7 +80,7 @@
         ]
     },
     "EquipmentRerollNeedTorso": {
-        "desc": "身躯未出现优越代码伤害增加 → 洗身躯",
+        "desc": "身躯未满足模板目标 → 洗身躯",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -96,7 +96,7 @@
         ]
     },
     "EquipmentRerollNeedLegs": {
-        "desc": "腿部未出现优越代码伤害增加 → 洗腿部",
+        "desc": "腿部未满足模板目标 → 洗腿部",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -109,6 +109,357 @@
         },
         "next": [
             "EquipmentRerollOpenLegsDetails"
+        ]
+    },
+    "EquipmentRerollLockGate": {
+        "desc": "锁定检查入口：Flag 锚定后判定是否需锁定 2/3号槽位（四攻四优 3→2→1 策略，无硬编码兜底）",
+        "next": [
+            "__EquipmentRerollLockLocateFlag"
+        ]
+    },
+    "__EquipmentRerollLockLocateFlag": {
+        "desc": "洗练锁定前 Flag 锚点定位（阈值0.3，确认页后重入偏暗需freeze）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    380,
+                    240,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/InspectFlag.png"
+                ],
+                "threshold": 0.3,
+                "order_by": "Score"
+            }
+        },
+        "anchor": "EquipmentRerollInspectFlag",
+        "next": [
+            "EquipmentRerollLockBranch"
+        ]
+    },
+    "EquipmentRerollLockBranch": {
+        "desc": "锁定分支：优先尝试锁定 2/3号，不需锁定则直接效果变更",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "EquipmentRerollLockNeed",
+            "EquipmentRerollClickChangeEffect"
+        ]
+    },
+    "EquipmentRerollLockNeed": {
+        "desc": "判断当前装备是否需锁定 2/3号单一目标槽（命中→锁定流程，四攻四优才生效）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollLockCheckRecognition",
+                "custom_recognition_param": {
+                    "template": "FourElementalDamage"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollLockRouteSlot"
+        ]
+    },
+    "EquipmentRerollLockRouteSlot": {
+        "desc": "根据待锁槽位路由到 Slot2/3 点击",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollLockRouteSlotAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollLockClickSlot2",
+            "EquipmentRerollLockClickSlot3"
+        ]
+    },
+    "EquipmentRerollLockClickSlot2": {
+        "desc": "点击 2号槽（整行）进入锁定页（Flag锚点整行，框高收窄贴合槽位）",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -90,
+                    69,
+                    300,
+                    2
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    3,
+                    -60,
+                    -6
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300
+        },
+        "next": [
+            "EquipmentRerollLockPageEntered",
+            "EquipmentRerollLockClickSlot2"
+        ]
+    },
+    "EquipmentRerollLockClickSlot3": {
+        "desc": "点击 3号槽（整行）进入锁定页（3号优先，框高收窄避免压到下方效果变更按钮）",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -90,
+                    93,
+                    300,
+                    2
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    3,
+                    -60,
+                    -6
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300
+        },
+        "next": [
+            "EquipmentRerollLockPageEntered",
+            "EquipmentRerollLockClickSlot3"
+        ]
+    },
+    "EquipmentRerollLockPageEntered": {
+        "desc": "确认进入效果锁定页：OCR 检测标题“效果锁定”，未检测到则回到点击节点重试（自身兜底）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    618,
+                    147,
+                    73,
+                    28
+                ],
+                "expected": [
+                    "效果锁定"
+                ]
+            }
+        },
+        "next": [
+            "EquipmentRerollLockSelectMaterial"
+        ]
+    },
+    "EquipmentRerollLockSelectMaterial": {
+        "desc": "选择锁定材料：自订密钥优先，不够用订制模块（Go决策）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollLockSelectRecognition",
+                "custom_recognition_param": {}
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollLockSelectRouteAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollLockSelectMaterial"
+        ]
+    },
+    "EquipmentRerollLockSelectModule": {
+        "desc": "点击左侧订制模块 SELECT",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    460,
+                    105,
+                    36
+                ],
+                "expected": [
+                    "SELECT"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EquipmentRerollLockConfirm"
+        ]
+    },
+    "EquipmentRerollLockSelectKey": {
+        "desc": "点击右侧自订密钥 SELECT（优先）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    644,
+                    460,
+                    105,
+                    36
+                ],
+                "expected": [
+                    "SELECT"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EquipmentRerollLockConfirm"
+        ]
+    },
+    "EquipmentRerollLockConfirm": {
+        "desc": "点击锁定页底部“确认”（启用前灰色，SELECT后变蓝）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    544,
+                    359,
+                    80
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EquipmentRerollLockNotify"
+        ]
+    },
+    "EquipmentRerollLockNotify": {
+        "desc": "二次确认弹窗：通知“为固定所选效果，将进行锁定。确定要进行吗？”（确认页后重入偏暗需freeze）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    601,
+                    196,
+                    75,
+                    29
+                ],
+                "expected": [
+                    "通知"
+                ]
+            }
+        },
+        "next": [
+            "EquipmentRerollLockNotifyConfirm"
+        ]
+    },
+    "EquipmentRerollLockNotifyConfirm": {
+        "desc": "点击通知弹窗“确认”完成上锁，返回详情页（同步快照）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    650,
+                    433,
+                    150,
+                    34
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EquipmentRerollLockDone"
+        ]
+    },
+    "EquipmentRerollLockDone": {
+        "desc": "上锁完成（同步快照+清理 pending），分流到详情页或确认页继续刷新",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollLockDoneAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollLockAfterRoute"
+        ]
+    },
+    "EquipmentRerollLockAfterRoute": {
+        "desc": "锁定完成分流：确认页特征优先，避免详情页 InspectFlag 在确认页误命中；确认页流程回确认页刷新，详情页流程回详情页刷新",
+        "next": [
+            "EquipmentRerollLockAfterIsConfirm",
+            "EquipmentRerollLockAfterIsDetail"
+        ]
+    },
+    "EquipmentRerollLockAfterIsDetail": {
+        "desc": "详情页特征：InspectFlag 图标（详情页有、确认页无）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    380,
+                    240,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/InspectFlag.png"
+                ],
+                "threshold": 0.9,
+                "order_by": "Score"
+            }
+        },
+        "next": [
+            "EquipmentRerollClickChangeEffect"
+        ]
+    },
+    "EquipmentRerollLockAfterIsConfirm": {
+        "desc": "确认页特征：效果变更说明文字（确认页有、详情页无）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    190,
+                    320,
+                    70
+                ],
+                "expected": [
+                    "将.*改造效果与数值"
+                ]
+            }
+        },
+        "next": [
+            "EquipmentRerollConfirmChangeEffect"
         ]
     },
     "EquipmentRerollClickChangeEffect": {
@@ -130,15 +481,12 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 800
-        },
         "next": [
             "EquipmentRerollConfirmChangeEffect"
         ]
     },
     "EquipmentRerollConfirmChangeEffect": {
-        "desc": "在消耗材料确认页确认效果变更（四优无锁定，消耗 1 个订制模块）",
+        "desc": "在消耗材料确认页确认效果变更（按锁定数计费：0锁1/1锁2/2锁3 订制模块）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -156,15 +504,12 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 800
-        },
         "next": [
             "__EquipmentRerollResultButtonsVisible"
         ]
     },
     "EquipmentRerollResultPage": {
-        "desc": "结果页决策：读变更效果并路由到维持/接受",
+        "desc": "结果页决策：读变更效果并路由到维持/接受（支持四优/四攻四优模板参数）",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -181,13 +526,13 @@
             }
         },
         "timeout": 4000,
-        "rate_limit": 100,
+        "rate_limit": 200,
         "next": [
             "EquipmentRerollResultPage"
         ]
     },
     "EquipmentRerollResultClickKeep": {
-        "desc": "决策页点击左下角效果维持（放弃本次变更），返回效果变更详情页继续洗同一件，自身兜底重试",
+        "desc": "决策页点击左下角效果维持（放弃本次变更），回到确认页重洗同件（自身兜底，等待动画稳定后再判断是否重试），需与详情页 Flag 区分",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -206,15 +551,133 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 800
+            "time": 500
         },
         "next": [
             "EquipmentRerollResultClickKeep",
+            "EquipmentRerollKeepLockGate"
+        ]
+    },
+    "EquipmentRerollKeepLockGate": {
+        "desc": "结果页维持后的确认页哨兵：识别确认页独有说明文字“将按照指定概率变更所有改造效果与数值”，避免结果页右侧“效果变更”按钮误判",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    190,
+                    320,
+                    70
+                ],
+                "expected": [
+                    "将.*改造效果与数值"
+                ]
+            }
+        },
+        "rate_limit": 200,
+        "next": [
+            "EquipmentRerollKeepLockCheck",
             "EquipmentRerollConfirmChangeEffect"
         ]
     },
+    "EquipmentRerollKeepLockCheck": {
+        "desc": "确认页锁定判定：复用 LockCheck 判定 2/3 号槽是否需锁（模板由任务选项覆盖，四优默认不锁）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollLockCheckRecognition",
+                "custom_recognition_param": {
+                    "template": "FourElementalDamage"
+                }
+            }
+        },
+        "next": [
+            "EquipmentRerollKeepLockRoute"
+        ]
+    },
+    "EquipmentRerollKeepLockRoute": {
+        "desc": "按待锁槽位路由到确认页槽位点击；无需锁定则确认页直接刷新",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollKeepLockRouteSlotAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollKeepClickSlot2",
+            "EquipmentRerollKeepClickSlot3",
+            "EquipmentRerollConfirmChangeEffect"
+        ]
+    },
+    "EquipmentRerollKeepClickSlot2": {
+        "desc": "效果变更确认页点击 2号槽进入锁定页（固定坐标）",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    495,
+                    283,
+                    300,
+                    20
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    4,
+                    -60,
+                    -8
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 200
+        },
+        "next": [
+            "EquipmentRerollLockPageEntered",
+            "EquipmentRerollKeepClickSlot2"
+        ]
+    },
+    "EquipmentRerollKeepClickSlot3": {
+        "desc": "效果变更确认页点击 3号槽进入锁定页（固定坐标）",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": [
+                    494,
+                    310,
+                    302,
+                    20
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    4,
+                    -60,
+                    -8
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 200
+        },
+        "next": [
+            "EquipmentRerollLockPageEntered",
+            "EquipmentRerollKeepClickSlot3"
+        ]
+    },
     "EquipmentRerollResultClickAccept": {
-        "desc": "决策页点击右下角效果变更（接受本次变更），装备达标，回人物页重扫调度下一件，自身兜底重试",
+        "desc": "决策页点击右下角效果变更（接受本次变更），自身兜底重试；成功后由 AfterAccept 分流：当前部位仍缺词条则留在详情页继续，已达标才回人物页重调度",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -233,10 +696,26 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 800
+            "time": 400
         },
         "next": [
             "EquipmentRerollResultClickAccept",
+            "EquipmentRerollAfterAccept"
+        ]
+    },
+    "EquipmentRerollAfterAccept": {
+        "desc": "接受变更后分流：当前部位仍缺目标词条 → 留在确认页进 KeepLockGate 继续锁定/重洗；已达标 → 返回人物页重新调度",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollAfterAcceptRouteAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollKeepLockGate",
             "EquipmentRerollReturnToDecide"
         ]
     },
@@ -283,9 +762,10 @@
                 "index": 0
             }
         },
-        "pre_delay": 300,
+        "pre_delay": 0,
         "anchor": "EquipmentRerollChangedSlot1",
         "post_delay": 0,
+        "rate_limit": 200,
         "next": [
             "__EquipmentRerollLocateChangedSlot2Match"
         ]
@@ -309,9 +789,10 @@
                 "index": 1
             }
         },
-        "pre_delay": 300,
+        "pre_delay": 0,
         "anchor": "EquipmentRerollChangedSlot2",
         "post_delay": 0,
+        "rate_limit": 200,
         "next": [
             "__EquipmentRerollLocateChangedSlot3Match"
         ]
@@ -335,9 +816,10 @@
                 "index": 2
             }
         },
-        "pre_delay": 300,
+        "pre_delay": 0,
         "anchor": "EquipmentRerollChangedSlot3",
         "post_delay": 0,
+        "rate_limit": 200,
         "next": [
             "EquipmentRerollResultPage"
         ]
@@ -366,9 +848,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollChangedSlot1",
                 "roi_offset": [
+                    8,
                     0,
-                    0,
-                    155,
+                    160,
                     0
                 ],
                 "expected": [
@@ -386,9 +868,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollChangedSlot2",
                 "roi_offset": [
+                    8,
                     0,
-                    0,
-                    155,
+                    160,
                     0
                 ],
                 "expected": [
@@ -406,9 +888,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollChangedSlot3",
                 "roi_offset": [
+                    8,
                     0,
-                    0,
-                    155,
+                    160,
                     0
                 ],
                 "expected": [
@@ -418,6 +900,26 @@
                 "threshold": 0.3
             }
         }
+    },
+    "__EquipmentRerollLockTitle": {
+        "desc": "效果锁定页标题识别（布局固定，roi 单点维护；主流程与 Go 复用同一节点）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    618,
+                    147,
+                    73,
+                    28
+                ],
+                "expected": [
+                    "效果锁定"
+                ]
+            }
+        },
+        "next": [
+            "EquipmentRerollLockSelectMaterial"
+        ]
     },
     "EquipmentRerollReturnToDecide": {
         "desc": "一次效果变更完成：关闭页面回到人物页，基于已刷新的快照直接重新调度（不再全量扫描四件装备）",

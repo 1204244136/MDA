@@ -54,9 +54,9 @@ var officialEffects = []string{
 }
 
 type recordEffectParam struct {
-	Slot   int      `json:"slot"`
-	Part   string   `json:"part"`
-	IsLast bool     `json:"is_last"`
+	Slot   int    `json:"slot"`
+	Part   string `json:"part"`
+	IsLast bool   `json:"is_last"`
 	// Value 数值区域 OCR 原文（可选，兼容旧的仅词条记录调用）。
 	Value string `json:"value"`
 	// Lock 锁定状态（可选，兼容旧的仅词条记录调用）。
@@ -223,8 +223,8 @@ func setCurrentPart(taskID int64, part string) error {
 
 // updatePartEffects 用一次效果变更后的最新词条与数值刷新快照中的指定部位，
 // 使后续决策可直接基于快照调度，无需重新全量扫描四件装备。
-// 结果页按「之前的方案」读取变更槽位文本：词条名 + 数值；锁定关系不增删，
-// 因此保留原锁定状态（已锁槽位保持不变，未锁槽位仍为无锁）。
+// 结果页按「之前的方案」读取变更槽位文本：词条名 + 数值；
+// 锁定关系：洗4优保留原锁；四攻四优在接受变更后需处理一次性锁失效。
 func updatePartEffects(taskID int64, part string, effects, values [maxSlot]string) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
@@ -236,10 +236,79 @@ func updatePartEffects(taskID int64, part string, effects, values [maxSlot]strin
 	for i := range scan.Slots {
 		scan.Slots[i].Effect = effects[i]
 		scan.Slots[i].Value = values[i]
-		// Lock 保留原值：洗4优不增删锁。
+		// 洗4优不增删锁，接受后保留原锁（永久/一次性）；后续由 expireOneTimeLocks 处理一次性锁失效。
 	}
 	state.Parts[part] = scan
 	states[taskID] = state
+}
+
+// applyLockToSnapshot 在装备详情页成功上锁后，将指定槽位标记为对应锁定状态。
+// material 为 "订制模块"（永久）或 "自订密钥"（一次性）；slot 为1-based。
+func applyLockToSnapshot(taskID int64, part string, slot int, material string) {
+	if slot < minSlot || slot > maxSlot {
+		return
+	}
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	if state.Parts == nil {
+		state.Parts = make(map[string]partScan)
+	}
+	scan := state.Parts[part]
+	var lk SlotLock
+	switch material {
+	case "订制模块":
+		lk = LockPermanent
+	case "自订密钥":
+		lk = LockOneTime
+	default:
+		lk = LockNone
+	}
+	scan.Slots[slot-1].Lock = lk
+	state.Parts[part] = scan
+	states[taskID] = state
+}
+
+// expireOneTimeLocks 在一次效果变更完成后，使指定部位的一次性锁全部失效。
+// 永久锁保持不变；自订密钥锁定的特性：无论结果页维持还是接受，下一轮都失效。
+func expireOneTimeLocks(taskID int64, part string) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	scan, ok := state.Parts[part]
+	if !ok {
+		return
+	}
+	for i := range scan.Slots {
+		if scan.Slots[i].Lock == LockOneTime {
+			scan.Slots[i].Lock = LockNone
+		}
+	}
+	state.Parts[part] = scan
+	states[taskID] = state
+}
+
+// countLocks 返回该部位当前锁定数（永久+一次性）。
+func countLocks(scan partScan) int {
+	c := 0
+	for _, s := range scan.Slots {
+		if s.Lock != LockNone {
+			c++
+		}
+	}
+	return c
+}
+
+// GetPartScan 返回单部位完整快照（供锁定决策使用）。
+func GetPartScan(taskID int64, part string) (partScan, bool) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state, ok := states[taskID]
+	if !ok {
+		return partScan{}, false
+	}
+	scan, ok := state.Parts[part]
+	return scan, ok
 }
 
 func displayEffectSlots(effects [maxSlot]string, emptyLabel string) [maxSlot]string {
@@ -386,6 +455,39 @@ func recordEffect(taskID int64, params recordEffectParam, effect string) (monito
 	return state, nil
 }
 
+// specializedEffect 根据 OCR 中残留的关键字符做特异化识别。
+// 适用于 OCR 严重截断但保留独有特征字的情况，例如“防增加】”应识别为“防御力增加”。
+// 只使用在官方效果中具有排他性的字符/字符组合，避免误判。
+func specializedEffect(raw string) (string, bool) {
+	han := strings.Map(func(r rune) rune {
+		if unicode.Is(unicode.Han, r) {
+			return r
+		}
+		return -1
+	}, raw)
+	switch {
+	case strings.Contains(han, "防"):
+		return "防御力增加", true
+	case strings.Contains(han, "攻"):
+		return TargetEffectAttackIncrease, true
+	case strings.Contains(han, "优"):
+		return TargetEffectElementalDamage, true
+	case strings.Contains(han, "命"):
+		return "命中率增加", true
+	case strings.Contains(han, "装") || strings.Contains(han, "弹"):
+		return "最大装弹数增加", true
+	case strings.Contains(han, "速"):
+		return "蓄力速度增加", true
+	case strings.Contains(han, "暴") && strings.Contains(han, "率"):
+		return "暴击率增加", true
+	case strings.Contains(han, "暴") && strings.Contains(han, "伤"):
+		return "暴击伤害增加", true
+	case strings.Contains(han, "蓄") && strings.Contains(han, "伤"):
+		return "蓄力伤害增加", true
+	}
+	return "", false
+}
+
 func normalizeEffect(raw string) (string, bool) {
 	compact := strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
@@ -397,6 +499,11 @@ func normalizeEffect(raw string) (string, bool) {
 		if strings.Contains(compact, effect) {
 			return effect, true
 		}
+	}
+
+	// OCR 严重截断但保留独有特征字时，用特异化规则直接识别。
+	if effect, ok := specializedEffect(raw); ok {
+		return effect, true
 	}
 
 	// OCR may replace one Chinese character. Compare only Chinese text so
@@ -431,7 +538,8 @@ func isUnobtainedEffect(raw string) bool {
 		}
 		return r
 	}, raw)
-	return strings.Contains(compact, "未获得效果")
+	// OCR 可能只识别出“未获得效”/“未获得”，只要包含“未获得”即视为空槽。
+	return strings.Contains(compact, "未获得")
 }
 
 func runeEditDistance(a, b []rune) int {

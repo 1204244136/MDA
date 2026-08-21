@@ -53,24 +53,39 @@ func TestEstimateSupportedEffectChanges(t *testing.T) {
 }
 
 func TestCanAffordLock(t *testing.T) {
-	inv := Inventory{CustomModules: 2, CustomLockKeys: 1}
+	// 校准后：0→1 需 2模组/20密钥，1→2 需 3模组/30密钥
+	inv := Inventory{CustomModules: 3, CustomLockKeys: 30}
 
 	if !inv.CanAffordLock("订制模块", 0) {
-		t.Fatal("two modules should afford the first module lock")
+		t.Fatal("three modules should afford the first module lock (cost 2)")
 	}
 	if !inv.CanAffordLock("订制模块", 1) {
-		t.Fatal("two modules should afford the second module lock")
+		t.Fatal("three modules should afford the second module lock (cost 3)")
 	}
-	if inv.CanAffordLock("订制模块", 2) {
-		t.Fatal("two modules should not afford the third module lock")
+	if (Inventory{CustomModules: 2}).CanAffordLock("订制模块", 1) {
+		t.Fatal("two modules should not afford the second module lock (cost 3)")
 	}
 	if !inv.CanAffordLock("自订密钥", 0) {
-		t.Fatal("one key should afford the first key lock")
+		t.Fatal("30 keys should afford the first key lock (cost 20)")
 	}
-	if inv.CanAffordLock("自订密钥", 1) {
-		t.Fatal("one key should not afford the second key lock")
+	if !inv.CanAffordLock("自订密钥", 1) {
+		t.Fatal("30 keys should afford the second key lock (cost 30)")
+	}
+	if (Inventory{CustomLockKeys: 19}).CanAffordLock("自订密钥", 0) {
+		t.Fatal("19 keys should not afford the first key lock (cost 20)")
+	}
+	if (Inventory{CustomLockKeys: 29}).CanAffordLock("自订密钥", 1) {
+		t.Fatal("29 keys should not afford the second key lock (cost 30)")
 	}
 	if inv.CanAffordLock("未知材料", 0) {
 		t.Fatal("unknown lock material should never be affordable")
+	}
+
+	// 优选策略：有密钥用密钥
+	if mat, ok := inv.ChooseLockMaterial(0); !ok || mat != "自订密钥" {
+		t.Fatalf("choose lock material should prefer key when affordable, got %q", mat)
+	}
+	if mat, ok := (Inventory{CustomModules: 5, CustomLockKeys: 0}).ChooseLockMaterial(0); !ok || mat != "订制模块" {
+		t.Fatalf("fallback to module when key insufficient, got %q", mat)
 	}
 }

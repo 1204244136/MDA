@@ -14,5 +14,6 @@ func (s *taskLifecycle) OnTaskerTask(_ *maa.Tasker, event maa.EventStatus, detai
 	switch event {
 	case maa.EventStatusStarting, maa.EventStatusSucceeded, maa.EventStatusFailed:
 		clearMonitorState(int64(detail.TaskID))
+		clearPendingLock(int64(detail.TaskID))
 	}
 }

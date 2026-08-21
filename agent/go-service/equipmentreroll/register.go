@@ -25,5 +25,29 @@ func Register() {
 	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollResultRouteAction", &EquipmentRerollResultRouteAction{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollResultRouteAction")
 	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollAfterAcceptRouteAction", &EquipmentRerollAfterAcceptRouteAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollAfterAcceptRouteAction")
+	}
+	if err := maa.AgentServerRegisterCustomRecognition("EquipmentRerollLockCheckRecognition", &EquipmentRerollLockCheckRecognition{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollLockCheckRecognition")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockRouteSlotAction", &EquipmentRerollLockRouteSlotAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollLockRouteSlotAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollKeepLockRouteSlotAction", &EquipmentRerollKeepLockRouteSlotAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollKeepLockRouteSlotAction")
+	}
+	if err := maa.AgentServerRegisterCustomRecognition("EquipmentRerollLockSelectRecognition", &EquipmentRerollLockSelectRecognition{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollLockSelectRecognition")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockSelectRouteAction", &EquipmentRerollLockSelectRouteAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollLockSelectRouteAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockConfirmAction", &EquipmentRerollLockConfirmAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollLockConfirmAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockDoneAction", &EquipmentRerollLockDoneAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollLockDoneAction")
+	}
 	maa.AgentServerAddTaskerSink(&taskLifecycle{})
 }

@@ -1,6 +1,6 @@
 # NIKKE 洗词条策略与 MDA 实现逻辑
 
-> 本文件是供开发 Agent 理解需求并编写 MDA 任务的策略规格，描述“洗装备”和“洗角色”的目标、锁定策略、概率决策及伪代码。实际读取界面、计算结果和执行点击的是 MDA 运行时，不是 Agent。效果名称、效果概率和 UI 文案以同目录的[装备系统与洗词条研究](装备系统与洗词条研究.md)为准。
+> 本文件是供开发 Agent 理解需求并编写 MDA 任务的策略规格，描述“洗装备”和“洗角色”的目标、锁定策略、概率决策及伪代码。实际读取界面、计算结果和执行点击的是 MDA 运行时，不是 Agent。游戏内效果名称、数值与 UI 文案以[装备系统与洗词条研究](装备系统与洗词条研究.md)为准；概率模型与期望消耗计算见[洗词条概率与期望计算](洗词条概率与期望计算.md)。
 
 - 整理日期：2026-08-19
 - 状态：已实现“四优”模板的识别、决策与效果变更流程；其它模板仍处于设计阶段
@@ -186,7 +186,7 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 
 ### 3.2 默认锁定顺序：先苦后甜
 
-栏位赋予效果的概率为 1 号栏位 100%、2 号栏位 50%、3 号栏位 30%。在没有更具体的用户配置时，默认优先处理 3 → 2 → 1：
+栏位/效果概率见[洗词条概率与期望计算](洗词条概率与期望计算.md)。在没有更具体的用户配置时，默认优先处理 3 → 2 → 1：
 
 - 目标是 3 条有效：先把 3 号栏位洗出目标并锁定，再处理 2 号，最后处理 1 号；
 - 目标是 2 条有效：若 2、3 号栏位任一先出现有效词条，就锁定该栏位，再洗剩余未锁定栏位；达到两条后立即结束。若当前只有 1 号栏位有效，不要先锁 1 号再追 2、3 号栏位；
@@ -272,7 +272,7 @@ preferredSlotOrder: [3, 2, 1]
 - 3 号栏位是补充词条：虽然计入 12 有效，但 1、2 号栏位必须恰好同时容纳攻和优，后续成功条件更窄；
 - 所以在其他条件相同时，`3 栏攻/优` 的状态分数、锁定优先级和保留优先级都必须高于 `3 栏补充有效`。
 
-以“补充词条仍可为最大装弹数或蓄力速度”为例，锁定 3 栏优越代码后，下一次在 1、2 栏同时得到“攻击力 + 任一补充词条”的基线概率约为 3.38%；锁定 3 栏最大装弹数后，下一次在 1、2 栏同时得到“优越代码 + 攻击力”的概率约为 1.46%。具体概率会随剩余全局配额和已锁效果变化，但前者的结构价值更高这一判断不变。
+以“补充词条仍可为最大装弹数或蓄力速度”为例的基线概率见[洗词条概率与期望计算](洗词条概率与期望计算.md)。具体概率会随剩余全局配额和已锁效果变化，但前者的结构价值更高这一判断不变。
 
 ## 5. 全局配额下的锁定决策
 
@@ -287,15 +287,9 @@ preferredSlotOrder: [3, 2, 1]
 
 ### 5.2 基础概率参考
 
-下表是未锁定、没有现有效果排除时的基线估计，使用当前研究中的栏位概率和效果权重；锁定或同件已有相同效果后，必须重新计算：
+单次效果变更的栏位/效果基线概率，以及四优、四攻四优的期望消耗计算，统一见[洗词条概率与期望计算](洗词条概率与期望计算.md)。
 
-| 目标效果集合                    | 1 号栏位命中 | 2 号栏位命中 | 3 号栏位命中 | 一次结果至少命中 1 条 |
-| ------------------------------- | -----------: | -----------: | -----------: | --------------------: |
-| 仅优越代码伤害增加              |       10.00% |        5.08% |        3.07% |                18.15% |
-| 优越代码伤害增加或攻击力增加    |       20.00% |       10.15% |        6.14% |                34.17% |
-| 四种目标效果合计权重 44% 的示例 |       44.00% |       22.03% |       13.23% |                50.67% |
-
-这说明在追逐低概率栏位时，先处理 3 号、再处理 2 号、最后处理 1 号通常更节省；但全局配额、当前已有词条和锁定材料会改变结论。
+基线概率表明：在追逐低概率栏位时，先处理 3 号、再处理 2 号、最后处理 1 号通常更节省；但全局配额、当前已有词条和锁定材料会改变结论。
 
 ### 5.3 把锁定纳入全局单步动作
 
@@ -776,25 +770,29 @@ function chooseLockPlan(characterState, equipmentIndex, plan):
 EquipmentRerollMain
   → EquipmentRerollFlow
     → EquipmentRerollScanMain           # 首次全量扫描四件装备：词条/数值/锁定（仅一次）
-      → EquipmentRerollDecide           # 四优决策分发
-        → Need{Part}（未达标部位）
+      → EquipmentRerollDecide           # 决策分发（支持四优/四攻四优）
+        → Need{Part}（未达标部位，模板参数区分）
           → Open{Part}Details（通用打开）
-            → ClickChangeEffect（一级效果变更）
-              → ConfirmChangeEffect（二级确认）
-                → __EquipmentRerollResultButtonsVisible（决策页就绪信号）
-                  → __EquipmentRerollLocateChangedSlot1Match（定位变更槽锚点）
-                    → EquipmentRerollResultPage（读变更效果 + 决策路由）
-                      → ResultClickKeep（维持→继续洗同一件）
-                      → ResultClickAccept（接受→ReturnToDecide 调度）
-        → EquipmentRerollEnd（四件达标）
+            → LockGate（四攻四优检查 2/3号单一目标未锁 → 锁定流程，Flag 锚定仅详情页） # 四优直通
+              → LockClickSlot2/3 → LockPageEntered → LockSelectMaterial → LockSelectKey/Module → LockConfirm → LockNotify → LockNotifyConfirm → LockDone(写快照)
+            → ClickChangeEffect（一级，详情页按锁定数计费 0锁1/1锁2/2锁3）
+              → ConfirmChangeEffect（二级，确认页 1000/1 成本）
+                → __EquipmentRerollResultButtonsVisible
+                  → __EquipmentRerollLocateChangedSlot1Match
+                    → EquipmentRerollResultPage
+                      → ResultClickKeep（维持→ ConfirmChangeEffect 确认页重洗，不经过 Flag）
+                      → ResultClickAccept（接受→ ReturnToDecide 关闭回人物页→ Decide 重调度）
+        → EquipmentRerollEnd
 ```
+
+> 四优：`LockGate` 直通 `ClickChangeEffect`（无锁定，0锁计费1模组）；四攻四优：单目标在 2/3号未锁时先执行完整锁定流程（点击槽位→效果锁定页→有密钥用密钥否则用模块→确认→通知二次确认→返回详情页，乐观写快照），再执行效果变更。锁定材料策略为“有自订密钥用密钥，不够/不足再用订制模块”。
 
 ### 8.2 Pipeline / Go 作用域
 
 | 职责                                                     | 归属                                      |
 | -------------------------------------------------------- | ----------------------------------------- |
 | 识别（OCR / TemplateMatch / 锚点路由 / 页面流转 / 点击） | Pipeline                                  |
-| 跨节点词条快照、效果记录、四优决策、结果路由             | Go（`agent/go-service/equipmentreroll/`） |
+| 跨节点词条快照、效果记录、双模板决策、锁定编排、结果路由 | Go（`agent/go-service/equipmentreroll/`） |
 
 - 识别配置尽量放 Pipeline（含 `__` 内部节点），便于 MaaFramework 调试面板可视化；
 - Go 通过 `ctx.RunRecognition("节点名", img)` 复用 Pipeline 识别节点做后处理/决策，不再在 Go 内硬编码识别参数；
@@ -802,11 +800,12 @@ EquipmentRerollMain
 
 ### 8.3 扫描快照与“不重复全量扫描”
 
-- Go 维护 task 级快照：每部位 3 槽 ×（词条名、数值、锁定状态）。既有决策逻辑继续通过 `GetEquipmentEffects(taskID)` 读取词条名；后续任务可通过 `GetEquipmentSlotScans(taskID)` 读取完整快照（词条 + 数值 + 锁定）。
+- Go 维护 task 级快照：每部位 3 槽 ×（词条名、数值、锁定状态）。既有决策逻辑继续通过 `GetEquipmentEffects(taskID)` 读取词条名；四攻四优通过 `GetEquipmentSlotScans(taskID)` / `GetPartScan(taskID,part)` 读取完整快照（含锁）。
 - `EquipmentRerollScanMain` 首次全量扫描写入快照；之后**不再全量扫描**。
 - 职责划分：`EquipmentRerollScan*` 节点只负责「扫描四件装备」；扫描结束后若任务入口是 `EquipmentRerollScanMain`（独立运行/调试），则扫描完腿部即停止；若入口是 `EquipmentRerollMain`（完整洗词条任务），才继续路由到 `EquipmentRerollDecide` 进入洗练决策。
 - 收尾细节：独立收尾的“关闭详情页”必须使用普通节点引用（非 `[JumpBack]`），否则关闭后会回跳父节点再次查找关闭按钮，导致已关闭页面识别失败并超时。
-- 每次决策页结果：Accept → 用「变更效果」刷新该部位词条快照，并同步更新从结果页 OCR 解析出的数值；锁定关系保留（洗4优不增删锁）；Keep → 保留原快照。
+- 锁定快照：`applyLockToSnapshot(taskID,part,slot,material)` 乐观写入锁（密钥=一次性蓝橙？实际蓝=永久/橙=一次），`expireOneTimeLocks(taskID,part)` 在每次效果变更后（Keep/Accept）使一次性锁失效，永久锁保留。待图校准后以实际 ColorMatch 为准。
+- 每次决策页结果：Accept → 用「变更效果」刷新该部位词条快照，并同步更新从结果页 OCR 解析出的数值；Keep → 保留原快照；两者均过期一次性锁。
 - 决策页沿用之前的锚点方案读取变更槽位（`ResultSlot` 定位 + 内部 OCR 节点），不使用 Flag offset；Go 从 OCR 原文解析词条名与数值。
 - 洗练完成经 `EquipmentRerollReturnToDecide` 回 `EquipmentRerollDecide`，直接基于快照调度下一件未达标装备。
 
@@ -842,15 +841,34 @@ EquipmentRerollMain
 - `__EquipmentRerollLocateChangedSlot{N}Match`：TemplateMatch `ResultSlot.png`（0.9、index 0/1/2），锚定 `EquipmentRerollChangedSlot1/2/3`。
 - `__EquipmentRerollResultChangedEffectSlot{N}`：OCR 引用各自 `[Anchor]EquipmentRerollChangedSlot{N}` + `[0, 0, 155, 0]`，精确位置，不再用 `0/24/48` 偏移。
 
-### 8.5 决策页就绪与按钮兜底
+### 8.5 锁定流程（四攻四优）与材料策略
+
+> 截图校准（1280×720）：效果锁定页标题“效果锁定”居中，卡片分别显示“订制模组 必要2/持有”与“自订密钥 必要20/持有”，底部“确认”启用前灰色、SELECT后变蓝；二次确认弹窗标题“通知”、文案“为固定所选效果，将进行锁定。确定要进行吗？消耗资金 2/20”，按钮“取消/确认”。
+
+**玩家操作路径**：详情页点击槽位右侧锁图标 → 进入“效果锁定”页 → 点击左右 `SELECT`（有密钥优先点击右侧“自订密钥”，不足再点左侧“订制模组”）→ 点击底部“确认”（启用）→ 弹出“通知”二次确认 → 点击“确认” → 返回详情页（该槽显示蓝/橙锁，仅读）→ 再执行效果变更。
+
+**Pipeline 实现**：`EquipmentRerollLockGate → __LockLocateFlag(Flag锚点) → LockBranch[LockNeed/ClickChangeEffect] → LockRouteSlot → LockClickSlot2/3 → LockPageEntered(OCR 效果锁定) → LockSelectMaterial(Go优选密钥) → LockSelectRouteAction → LockSelectKey/Module(OCR SELECT) → LockConfirm(OCR 确认) → LockNotify(OCR 通知) → LockNotifyConfirm(OCR 确认) → LockDone(Go写快照+清pending) → ClickChangeEffect`。其中 `LockNeed` 仅在 `DesiredLockSlotForFourAtkFourElem` 返回 3→2优先的未锁单目标槽时命中；1号单目标不锁。
+
+**材料计费**（已按客户端截图校准，见 `inventory.go:46-78`）：
+| 锁定 | 订制模组 | 自订密钥 |
+|------|----------|----------|
+| 0→1  | 2        | 20       |
+| 1→2  | 3        | 30       |
+| 效果变更 | 0锁1 /1锁2 /2锁3 订制模组（自订密钥不可代替） |
+
+**去重与轮转**：每件最多1锁（四攻四优避免2锁成本激增）；`expireOneTimeLocks` 在每次 reroll 后使橙锁失效，蓝锁保留。Keep 分支回到 `ConfirmChangeEffect` 直接重洗同件（确认页内，Flag 不参与），Accept 分支经 `ReturnToDecide→Decide` 重调度（基于快照，Flag 重新锚定）。
+
+### 8.6 决策页就绪与按钮兜底
 
 - 点击二级效果变更后，`__EquipmentRerollResultButtonsVisible` 检测左下角「效果维持」出现作为决策页就绪信号（替代固定延时/画面冻结），超时未出现则失败退出，避免未进入决策页死循环。
-- `EquipmentRerollResultPage`（Go 决策 + 路由）：
+- `EquipmentRerollResultPage`（Go 双模板决策 + 路由）：
+    - 四优：`PartHasEffect` 单目标任意栏命中即接受；
+    - 四攻四优：`PartHasBothEffects` 双目标，`DecideResultPageFourAtkFourElem` 按 2→1→0 数量+ 3/2号锁定价值比较，`0→1` 时1号单优直接 `Keep`，防御性保留已达标。
     - Accept → `EquipmentRerollResultClickAccept`（点右下「效果变更」）→ `EquipmentRerollReturnToDecide`；
-    - Keep → `EquipmentRerollResultClickKeep`（点左下「效果维持」）→ `EquipmentRerollConfirmChangeEffect` 继续洗同一件。
+    - Keep → `EquipmentRerollResultClickKeep`（点左下「效果维持」）→ `EquipmentRerollConfirmChangeEffect` 直接重洗同件（确认页内）。
 - `ClickKeep` / `ClickAccept` next 含自身节点兜底，防止点击失效误跳流程。
 
-### 8.6 节点对照表
+### 8.7 节点对照表
 
 | 节点                                            | 职责                             | 关键参数                                                                  |
 | ----------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------- |
@@ -861,26 +879,45 @@ EquipmentRerollMain
 | `__EquipmentRerollSlot1/2/3LockBlue/Orange`     | 锁定状态颜色判定                 | ColorMatch 蓝/橙、count 20                                                |
 | `EquipmentRerollScanSlot1/2/3`                  | 逐槽扫描业务：复用子识别并写快照 | Go ScanSlotRecognition                                                    |
 | `EquipmentRerollScanCloseDetails`               | 关闭装备详情页                   | CommonCloseButton                                                         |
-| `EquipmentRerollDecide`                         | 四优决策分发、设洗练锚点         | part=all/头/臂/身/腿                                                      |
-| `EquipmentRerollNeed{Part}`                     | 判断某部位需洗                   | Go PartNeedRecognition                                                    |
+| `EquipmentRerollDecide`                         | 双模板决策分发、设洗练锚点       | part=all/头/臂/身/腿（按 template 区分）                                  |
+| `EquipmentRerollNeed{Part}`                     | 判断某部位需洗                   | Go PartNeedRecognition（四优单目标 / 四攻四优双目标）                     |
 | `EquipmentRerollOpen{Part}Details`              | 通用打开部位详情                 | Head/Arms/Torso/Legs 模板                                                 |
+| `EquipmentRerollLockGate` / `LockBranch`        | 锁定前置分发（四攻四优）         | DirectHit 分支：LockNeed vs ClickChangeEffect                              |
+| `__EquipmentRerollLockLocateFlag`               | 锁定前 Flag 锚定                 | `InspectFlag.png` 0.9, 贴详情页                                           |
+| `EquipmentRerollLockNeed` / `LockRouteSlot`     | 锁定需求判定与槽位路由           | Go LockCheck + RouteSlot (3→2优先)                                        |
+| `EquipmentRerollLockClickSlot2/3`               | 点击 2/3号锁图标                 | `[Anchor]InspectFlag` + (135,69/93) 待校准                                 |
+| `EquipmentRerollLockPageEntered`                | 效果锁定页确认                   | OCR 效果锁定                                                              |
+| `EquipmentRerollLockSelectMaterial`             | 锁定材料优选（密钥优先）         | Go LockSelectRecognition + RouteAction                                     |
+| `EquipmentRerollLockSelectModule/Key`           | 点击 SELECT                      | OCR SELECT（左右 ROI 区分）                                               |
+| `EquipmentRerollLockConfirm`                    | 锁定页确认                       | OCR 确认（底部蓝条）                                                      |
+| `EquipmentRerollLockNotify` / `NotifyConfirm`   | 通知二次确认                     | OCR 通知 / 确认                                                           |
+| `EquipmentRerollLockDone`                       | 乐观写快照+清 pending            | Go LockDoneAction → ClickChangeEffect                                      |
 | `EquipmentRerollClickChangeEffect`              | 一级效果变更（装备详情页）       | OCR 效果变更                                                              |
 | `EquipmentRerollConfirmChangeEffect`            | 二级确认效果变更（确认页）       | OCR 效果变更                                                              |
 | `__EquipmentRerollResultButtonsVisible`         | 决策页就绪信号                   | OCR 效果维持                                                              |
 | `__EquipmentRerollLocateChangedSlot1/2/3Match`  | 决策页模板定位第1/2/3变更槽标记  | `ResultSlot.png`、0.9、index 0/1/2                                        |
 | `__EquipmentRerollResultChangedEffectSlot1/2/3` | 读变更效果（Go 复用）            | `[Anchor]ChangedSlot1/2/3`、`[0,0,155,0]`                                 |
-| `EquipmentRerollResultPage`                     | 读变更效果 + 决策路由            | Go ResultDecide + RouteAction                                             |
-| `EquipmentRerollResultClickKeep/Accept`         | 点维持/接受（自身兜底）          | OCR 按钮                                                                  |
+| `EquipmentRerollResultPage`                     | 读变更效果 + 决策路由            | Go ResultDecide + RouteAction（双模板）                                   |
+| `EquipmentRerollResultClickKeep/Accept`         | 点维持/接受（自身兜底）          | OCR 按钮（Keep→ConfirmChangeEffect，Accept→ReturnToDecide）               |
+| `__EquipmentRerollLockTitle`                    | 锁定页标题（Go 复用）            | OCR 效果锁定                                                              |
 | `EquipmentRerollReturnToDecide`                 | 关闭回人物页直接调度（不重扫）   | JumpBack 关闭                                                             |
 | `EquipmentRerollEnd`                            | 任务结束                         | -                                                                         |
 
-### 8.7 Go 组件对应
+### 8.8 Go 组件对应
 
 | Go 组件                                  | 对应节点 / 场景                                                                             |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `EquipmentRerollScanBeginAction`         | `EquipmentRerollScanBegin{Part}`（初始化扫描状态）                                          |
 | `EquipmentRerollScanSlotRecognition`     | `EquipmentRerollScanSlot1/2/3`（复用 Pipeline 子识别，解释并记录词条/数值/锁定）            |
 | `EquipmentRerollScanRouteAction`         | `EquipmentRerollScanSlot3`（展示扫描摘要并路由下一部位；独立入口停止，完整任务继续 Decide） |
-| `EquipmentRerollPartNeedRecognition`     | `EquipmentRerollDecide` 的分支（AllSatisfied / Need{Part}）                                 |
-| `EquipmentRerollResultDecideRecognition` | `EquipmentRerollResultPage`（读变更效果 + 决策）                                            |
-| `EquipmentRerollResultRouteAction`       | `EquipmentRerollResultPage`（按决策路由到维持/接受）                                        |
+| `EquipmentRerollPartNeedRecognition`     | `EquipmentRerollDecide` 的分支（AllSatisfied / Need{Part}，双模板）                         |
+| `EquipmentRerollLockCheckRecognition`    | `EquipmentRerollLockNeed`（3→2号未锁单目标检查，Box=slot）                                  |
+| `EquipmentRerollLockRouteSlotAction`     | `EquipmentRerollLockRouteSlot`（按 Go 快照路由到 Slot2/3 点击）                             |
+| `EquipmentRerollLockSelectRecognition`   | `EquipmentRerollLockSelectMaterial`（标题校验+密钥优先决策，Box=按钮）                     |
+| `EquipmentRerollLockSelectRouteAction`   | `EquipmentRerollLockSelectMaterial`（按 Go 决策路由到 Module/Key SELECT）                  |
+| `EquipmentRerollLockDoneAction`          | `EquipmentRerollLockDone`（乐观写快照 `applyLockToSnapshot` 并清 pending）                  |
+| `EquipmentRerollResultDecideRecognition` | `EquipmentRerollResultPage`（双模板：四优/四攻四优，读变更+含锁价值）                       |
+| `EquipmentRerollResultRouteAction`       | `EquipmentRerollResultPage`（按决策路由到维持/接受，过期一次性锁）                         |
+| `clearMonitorState` / `expireOneTimeLocks` | `taskLifecycle OnTaskerTask` 及每次结果页后（Keep/Accept）                                |
+
+> 锁定卡片文案校准：选中“订制模组”后提示“在解除固定之前，半永久选取的效果不会发生更改。”；选中“自订密钥”后提示“在锁定之后更改效果或重新设置数值时，会解除选取效果的锁定状态。”；二次通知统一为“为固定所选效果，将进行锁定。确定要进行吗？消耗资金 2/20”。

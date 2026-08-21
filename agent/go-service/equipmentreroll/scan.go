@@ -61,6 +61,17 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 
 	scan := scanSlotByPipeline(ctx, arg.Img, params.Slot)
 
+	if isTransientUnlockText(scan.RawEffect) {
+		log.Warn().
+			Str("component", "EquipmentReroll").
+			Int64("task_id", arg.TaskID).
+			Str("part", part).
+			Int("slot", params.Slot).
+			Str("raw_effect", scan.RawEffect).
+			Msg("slot is in transient unlock state; retry scan")
+		return nil, false
+	}
+
 	if _, err := recordEffect(arg.TaskID, recordEffectParam{
 		Slot:   params.Slot,
 		Part:   part,
