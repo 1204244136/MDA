@@ -250,8 +250,8 @@
                 "roi": [
                     768,
                     543,
-                    26,
-                    27
+                    37,
+                    96
                 ],
                 "template": [
                     "Common/RedDot.png"
