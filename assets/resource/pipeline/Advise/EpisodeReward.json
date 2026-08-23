@@ -64,7 +64,15 @@
                 ]
             }
         },
-        "post_wait_freezes": 2500,
+        "post_wait_freezes": {
+            "target": [
+                1198,
+                3,
+                66,
+                47
+            ],
+            "time": 2500
+        },
         "next": [
             "[JumpBack]AdviseStoryFlow",
             "[JumpBack]CommonConfirmReward",
