@@ -21,7 +21,8 @@
                     66
                 ],
                 "template": [
-                    "DailyRewards/Pass/PassChange.png"
+                    "DailyRewards/Pass/PassChange.png",
+                    "DailyRewards/Pass/PassList.png"
                 ]
             }
         },
