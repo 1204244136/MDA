@@ -38,6 +38,24 @@ func TestRecordEffectStoresValueAndLock(t *testing.T) {
 	}
 }
 
+func TestFirstExistingLock(t *testing.T) {
+	scan := partScan{Slots: [maxSlot]slotScanData{
+		{Effect: "攻击力增加", Lock: LockNone},
+		{Effect: "蓄力速度增加", Lock: LockOneTime},
+		{Effect: "最大装弹数增加", Lock: LockPermanent},
+	}}
+
+	slot, lock, found := firstExistingLock(scan)
+	if !found || slot != 2 || lock != LockOneTime {
+		t.Fatalf("firstExistingLock() = (%d, %v, %v), want (2, %v, true)", slot, lock, found, LockOneTime)
+	}
+
+	slot, lock, found = firstExistingLock(partScan{})
+	if found || slot != 0 || lock != LockNone {
+		t.Fatalf("firstExistingLock(empty) = (%d, %v, %v), want (0, %v, false)", slot, lock, found, LockNone)
+	}
+}
+
 func TestExtractPercentValue(t *testing.T) {
 	cases := []struct {
 		name string

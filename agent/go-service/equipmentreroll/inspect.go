@@ -113,14 +113,14 @@ func buildPartEffectsMessage(part string, scan partScan, key string) string {
 }
 
 // EquipmentRerollScanRouteAction 全量扫描路由：扫描完最后一个槽位后
-// 展示该部位扫描摘要（词条 / 数值 / 锁定），并把流程路由到下一部位；
-// 腿部扫描完成后统一进入物资检测，后续节点再按任务入口决定是否继续洗词条。
+// 检查洗词条任务的前置条件（所有槽位必须无锁），再展示该部位扫描摘要
+// （词条 / 数值 / 锁定）并把流程路由到下一部位；独立扫描入口保留原有观察行为。
 type EquipmentRerollScanRouteAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollScanRouteAction{}
 
 func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
-	if arg == nil {
+	if ctx == nil || arg == nil {
 		log.Error().Str("component", "EquipmentReroll").Msg("scan route argument is nil")
 		return false
 	}
@@ -147,6 +147,27 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 	if !ok {
 		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("scan route scan state is missing")
 		return false
+	}
+
+	if !isStandaloneScanEntry(ctx, arg) {
+		if slot, lock, found := firstExistingLock(scan); found {
+			lockLabel := lockDisplayLabel(lock)
+			log.Error().
+				Str("component", "EquipmentReroll").
+				Int64("task_id", arg.TaskID).
+				Str("part", part).
+				Int("slot", slot).
+				Str("lock", lock.String()).
+				Msg("precheck found an existing equipment lock; stopping task")
+			maafocus.Print(ctx, fmt.Sprintf(
+				i18n.T("tasker.equipment_reroll.preexisting_lock"),
+				part,
+				slot,
+				lockLabel,
+			))
+			ctx.GetTasker().PostStop()
+			return false
+		}
 	}
 
 	maafocus.Print(ctx, buildPartEffectsMessage(part, scan, "tasker.equipment_reroll.effects"))

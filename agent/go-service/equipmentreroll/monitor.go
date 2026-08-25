@@ -39,6 +39,17 @@ func (l SlotLock) String() string {
 	}
 }
 
+func lockDisplayLabel(lock SlotLock) string {
+	switch lock {
+	case LockPermanent:
+		return i18n.T("tasker.equipment_reroll.lock_permanent")
+	case LockOneTime:
+		return i18n.T("tasker.equipment_reroll.lock_one_time")
+	default:
+		return ""
+	}
+}
+
 var equipmentParts = []string{"头部", "臂部", "身躯", "腿部"}
 
 var officialEffects = []string{
@@ -579,6 +590,17 @@ func currentPartScan(taskID int64) (partScan, bool) {
 		return partScan{}, false
 	}
 	return partScanFromArrays(state.Effects, state.Values, state.Locks), true
+}
+
+// firstExistingLock 返回扫描快照中第一个已存在的锁。
+// 前置扫描只允许发现无锁装备；脚本运行中新增的锁不会再次经过这条扫描路由。
+func firstExistingLock(scan partScan) (int, SlotLock, bool) {
+	for i, slot := range scan.Slots {
+		if slot.Lock != LockNone {
+			return i + 1, slot.Lock, true
+		}
+	}
+	return 0, LockNone, false
 }
 
 func recordEffect(taskID int64, params recordEffectParam, effect string) (monitorState, error) {
