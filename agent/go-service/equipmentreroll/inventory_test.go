@@ -43,6 +43,15 @@ func TestCanAffordReroll(t *testing.T) {
 	}
 }
 
+func TestAffordableRerollCost(t *testing.T) {
+	if cost, ok := affordableRerollCost(Inventory{CustomModules: 2}, 1); !ok || cost != 2 {
+		t.Fatalf("two modules should afford one-lock reroll at cost 2, got cost=%d ok=%v", cost, ok)
+	}
+	if cost, ok := affordableRerollCost(Inventory{CustomModules: 1}, 1); ok || cost != 2 {
+		t.Fatalf("one module should not afford one-lock reroll, got cost=%d ok=%v", cost, ok)
+	}
+}
+
 func TestEstimateSupportedEffectChanges(t *testing.T) {
 	if got := (Inventory{CustomModules: 0}).EstimateSupportedEffectChanges(); got != 0 {
 		t.Fatalf("zero modules estimate = %d, want 0", got)
@@ -88,4 +97,41 @@ func TestCanAffordLock(t *testing.T) {
 	if mat, ok := (Inventory{CustomModules: 5, CustomLockKeys: 0}).ChooseLockMaterial(0); !ok || mat != "订制模块" {
 		t.Fatalf("fallback to module when key insufficient, got %q", mat)
 	}
+	if mat, ok := selectLockMaterial(Inventory{CustomModules: 5, CustomLockKeys: 0}, "自订密钥", 0); !ok || mat != "订制模块" {
+		t.Fatalf("unaffordable requested key should fall back to module, got %q", mat)
+	}
+}
+
+func TestInventoryBehaviorTracking(t *testing.T) {
+	const tid = int64(900000001)
+	clearMonitorState(tid)
+
+	// 未初始化前 getInventory 返回 ok=false。
+	if _, ok := getInventory(tid); ok {
+		t.Fatal("getInventory should be ok=false before initialization")
+	}
+
+	// 前置“获取材料库存”初始化。
+	setInventory(tid, Inventory{CustomModules: 760, CustomLockKeys: 2766})
+	inv, ok := getInventory(tid)
+	if !ok {
+		t.Fatal("getInventory should be ok=true after initialization")
+	}
+	if inv.CustomModules != 760 || inv.CustomLockKeys != 2766 {
+		t.Fatalf("initialized inventory mismatch: %+v", inv)
+	}
+
+	// 行为扣减：效果变更扣模块；锁定扣密钥/模块。
+	recordRerollModuleCost(tid, 3)
+	recordLockMaterialCost(tid, "自订密钥", 0) // 0→1 密钥 20
+	recordLockMaterialCost(tid, "订制模块", 1) // 1→2 模块 3
+
+	inv, _ = getInventory(tid)
+	if inv.CustomModules != 760-3-3 {
+		t.Fatalf("modules balance = %d, want %d", inv.CustomModules, 760-3-3)
+	}
+	if inv.CustomLockKeys != 2766-20 {
+		t.Fatalf("keys balance = %d, want %d", inv.CustomLockKeys, 2766-20)
+	}
+	clearMonitorState(tid)
 }

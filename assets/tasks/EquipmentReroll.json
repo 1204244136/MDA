@@ -6,220 +6,190 @@
             "entry": "EquipmentRerollMain",
             "description": "$task.EquipmentReroll.description",
             "option": [
-                "EquipmentRerollMode"
+                "EquipmentRerollQuota"
             ],
+            "group": [
+                "utility"
+            ]
+        },
+        {
+            "name": "EquipmentDetect",
+            "label": "$task.EquipmentDetect.label",
+            "entry": "EquipmentRerollScanMain",
+            "description": "$task.EquipmentDetect.description",
             "group": [
                 "utility"
             ]
         }
     ],
     "option": {
-        "EquipmentRerollMode": {
-            "type": "select",
-            "label": "$option.EquipmentRerollMode.label",
-            "cases": [
+        "EquipmentRerollQuota": {
+            "type": "input",
+            "label": "$option.EquipmentRerollQuota.label",
+            "description": "$option.EquipmentRerollQuota.description",
+            "inputs": [
                 {
-                    "name": "RerollCharacter",
-                    "label": "$option.RerollCharacter.label",
-                    "pipeline_override": {
-                        "EquipmentRerollFlow": {
-                            "enabled": true
-                        }
-                    },
-                    "option": [
-                        "EquipmentRerollTemplate"
-                    ]
+                    "name": "EquipmentRerollQuotaElementalDamage",
+                    "label": "$option.EquipmentRerollQuota.inputs.ElementalDamage.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "4"
+                },
+                {
+                    "name": "EquipmentRerollQuotaAttackIncrease",
+                    "label": "$option.EquipmentRerollQuota.inputs.AttackIncrease.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaMaxAmmo",
+                    "label": "$option.EquipmentRerollQuota.inputs.MaxAmmo.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaCritDamage",
+                    "label": "$option.EquipmentRerollQuota.inputs.CritDamage.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaCritRate",
+                    "label": "$option.EquipmentRerollQuota.inputs.CritRate.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaChargeSpeed",
+                    "label": "$option.EquipmentRerollQuota.inputs.ChargeSpeed.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaChargeDamage",
+                    "label": "$option.EquipmentRerollQuota.inputs.ChargeDamage.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaHitRate",
+                    "label": "$option.EquipmentRerollQuota.inputs.HitRate.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
+                },
+                {
+                    "name": "EquipmentRerollQuotaDefense",
+                    "label": "$option.EquipmentRerollQuota.inputs.Defense.label",
+                    "pipeline_type": "int",
+                    "verify": "^(-1|[0-4])$",
+                    "default": "0"
                 }
             ],
-            "default_case": "RerollCharacter"
-        },
-        "EquipmentRerollTemplate": {
-            "type": "select",
-            "label": "$option.EquipmentRerollTemplate.label",
-            "cases": [
-                {
-                    "name": "FourElementalDamage",
-                    "label": "$option.FourElementalDamage.label",
-                    "pipeline_override": {
-                        "EquipmentRerollAllSatisfied": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "all",
-                                        "target_effect": "优越代码伤害增加"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollNeedHead": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "头部",
-                                        "target_effect": "优越代码伤害增加"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollNeedArms": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "臂部",
-                                        "target_effect": "优越代码伤害增加"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollNeedTorso": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "身躯",
-                                        "target_effect": "优越代码伤害增加"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollNeedLegs": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "腿部",
-                                        "target_effect": "优越代码伤害增加"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollResultPage": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "target_effect": "优越代码伤害增加"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollLockNeed": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "template": "FourElementalDamage"
-                                    }
+            "pipeline_override": {
+                "EquipmentRerollAllSatisfied": {
+                    "recognition": {
+                        "param": {
+                            "custom_recognition_param": {
+                                "part": "all",
+                                "global_quota": {
+                                    "优越代码伤害增加": "{EquipmentRerollQuotaElementalDamage}",
+                                    "攻击力增加": "{EquipmentRerollQuotaAttackIncrease}",
+                                    "最大装弹数增加": "{EquipmentRerollQuotaMaxAmmo}",
+                                    "暴击伤害增加": "{EquipmentRerollQuotaCritDamage}",
+                                    "暴击率增加": "{EquipmentRerollQuotaCritRate}",
+                                    "蓄力速度增加": "{EquipmentRerollQuotaChargeSpeed}",
+                                    "蓄力伤害增加": "{EquipmentRerollQuotaChargeDamage}",
+                                    "命中率增加": "{EquipmentRerollQuotaHitRate}",
+                                    "防御力增加": "{EquipmentRerollQuotaDefense}"
                                 }
                             }
                         }
                     }
                 },
-                {
-                    "name": "FourAttackFourElementalDamage",
-                    "label": "$option.FourAttackFourElementalDamage.label",
-                    "pipeline_override": {
-                        "EquipmentRerollAllSatisfied": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "all",
-                                        "template": "FourAttackFourElementalDamage",
-                                        "target_effects": [
-                                            "优越代码伤害增加",
-                                            "攻击力增加"
-                                        ]
-                                    }
+                "EquipmentRerollChoosePart": {
+                    "action": {
+                        "param": {
+                            "custom_action_param": {
+                                "global_quota": {
+                                    "优越代码伤害增加": "{EquipmentRerollQuotaElementalDamage}",
+                                    "攻击力增加": "{EquipmentRerollQuotaAttackIncrease}",
+                                    "最大装弹数增加": "{EquipmentRerollQuotaMaxAmmo}",
+                                    "暴击伤害增加": "{EquipmentRerollQuotaCritDamage}",
+                                    "暴击率增加": "{EquipmentRerollQuotaCritRate}",
+                                    "蓄力速度增加": "{EquipmentRerollQuotaChargeSpeed}",
+                                    "蓄力伤害增加": "{EquipmentRerollQuotaChargeDamage}",
+                                    "命中率增加": "{EquipmentRerollQuotaHitRate}",
+                                    "防御力增加": "{EquipmentRerollQuotaDefense}"
                                 }
                             }
-                        },
-                        "EquipmentRerollNeedHead": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "头部",
-                                        "template": "FourAttackFourElementalDamage",
-                                        "target_effects": [
-                                            "优越代码伤害增加",
-                                            "攻击力增加"
-                                        ]
-                                    }
+                        }
+                    }
+                },
+                "EquipmentRerollResultPage": {
+                    "recognition": {
+                        "param": {
+                            "custom_recognition_param": {
+                                "global_quota": {
+                                    "优越代码伤害增加": "{EquipmentRerollQuotaElementalDamage}",
+                                    "攻击力增加": "{EquipmentRerollQuotaAttackIncrease}",
+                                    "最大装弹数增加": "{EquipmentRerollQuotaMaxAmmo}",
+                                    "暴击伤害增加": "{EquipmentRerollQuotaCritDamage}",
+                                    "暴击率增加": "{EquipmentRerollQuotaCritRate}",
+                                    "蓄力速度增加": "{EquipmentRerollQuotaChargeSpeed}",
+                                    "蓄力伤害增加": "{EquipmentRerollQuotaChargeDamage}",
+                                    "命中率增加": "{EquipmentRerollQuotaHitRate}",
+                                    "防御力增加": "{EquipmentRerollQuotaDefense}"
                                 }
                             }
-                        },
-                        "EquipmentRerollNeedArms": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "臂部",
-                                        "template": "FourAttackFourElementalDamage",
-                                        "target_effects": [
-                                            "优越代码伤害增加",
-                                            "攻击力增加"
-                                        ]
-                                    }
+                        }
+                    }
+                },
+                "EquipmentRerollLockNeed": {
+                    "recognition": {
+                        "param": {
+                            "custom_recognition_param": {
+                                "global_quota": {
+                                    "优越代码伤害增加": "{EquipmentRerollQuotaElementalDamage}",
+                                    "攻击力增加": "{EquipmentRerollQuotaAttackIncrease}",
+                                    "最大装弹数增加": "{EquipmentRerollQuotaMaxAmmo}",
+                                    "暴击伤害增加": "{EquipmentRerollQuotaCritDamage}",
+                                    "暴击率增加": "{EquipmentRerollQuotaCritRate}",
+                                    "蓄力速度增加": "{EquipmentRerollQuotaChargeSpeed}",
+                                    "蓄力伤害增加": "{EquipmentRerollQuotaChargeDamage}",
+                                    "命中率增加": "{EquipmentRerollQuotaHitRate}",
+                                    "防御力增加": "{EquipmentRerollQuotaDefense}"
                                 }
                             }
-                        },
-                        "EquipmentRerollNeedTorso": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "身躯",
-                                        "template": "FourAttackFourElementalDamage",
-                                        "target_effects": [
-                                            "优越代码伤害增加",
-                                            "攻击力增加"
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollNeedLegs": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "part": "腿部",
-                                        "template": "FourAttackFourElementalDamage",
-                                        "target_effects": [
-                                            "优越代码伤害增加",
-                                            "攻击力增加"
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollResultPage": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "template": "FourAttackFourElementalDamage",
-                                        "target_effects": [
-                                            "优越代码伤害增加",
-                                            "攻击力增加"
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollLockNeed": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "template": "FourAttackFourElementalDamage"
-                                    }
-                                }
-                            }
-                        },
-                        "EquipmentRerollKeepLockCheck": {
-                            "recognition": {
-                                "param": {
-                                    "custom_recognition_param": {
-                                        "template": "FourAttackFourElementalDamage"
-                                    }
+                        }
+                    }
+                },
+                "EquipmentRerollKeepLockCheck": {
+                    "recognition": {
+                        "param": {
+                            "custom_recognition_param": {
+                                "global_quota": {
+                                    "优越代码伤害增加": "{EquipmentRerollQuotaElementalDamage}",
+                                    "攻击力增加": "{EquipmentRerollQuotaAttackIncrease}",
+                                    "最大装弹数增加": "{EquipmentRerollQuotaMaxAmmo}",
+                                    "暴击伤害增加": "{EquipmentRerollQuotaCritDamage}",
+                                    "暴击率增加": "{EquipmentRerollQuotaCritRate}",
+                                    "蓄力速度增加": "{EquipmentRerollQuotaChargeSpeed}",
+                                    "蓄力伤害增加": "{EquipmentRerollQuotaChargeDamage}",
+                                    "命中率增加": "{EquipmentRerollQuotaHitRate}",
+                                    "防御力增加": "{EquipmentRerollQuotaDefense}"
                                 }
                             }
                         }
                     }
                 }
-            ],
-            "default_case": "FourElementalDamage"
+            }
         }
     }
 }

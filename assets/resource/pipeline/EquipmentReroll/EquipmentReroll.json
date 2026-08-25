@@ -1,6 +1,6 @@
 {
     "EquipmentRerollMain": {
-        "desc": "洗词条任务入口：从详情资讯页面开始，先识别四件装备，再按模板执行效果变更",
+        "desc": "洗词条任务入口：从详情资讯页面开始，先识别四件装备，再按自定义配额执行效果变更",
         "action": {
             "type": "Custom",
             "param": {
@@ -12,16 +12,32 @@
         ]
     },
     "EquipmentRerollEnd": {
-        "desc": "洗词条结束：四件装备均已满足模板目标，或操作次数预算耗尽"
+        "desc": "洗词条结束：四件装备均已满足自定义配额目标，或操作次数预算耗尽"
+    },
+    "EquipmentRerollFinalSummary": {
+        "desc": "结束前通过 focus 输出人类可读摘要（装备详情含档位 + 库存）",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFinalSummaryAction",
+                "custom_action_param": {}
+            }
+        },
+        "next": [
+            "EquipmentRerollEnd"
+        ]
     },
     "EquipmentRerollFlow": {
-        "desc": "洗词条编排：先全量识别四件装备，再按模板决策与执行效果变更",
+        "desc": "洗词条编排：先全量识别四件装备（腿部完成后物资检测一次获取材料库存），再按自定义配额决策与执行效果变更",
         "next": [
             "EquipmentRerollScanMain"
         ]
     },
     "EquipmentRerollDecide": {
-        "desc": "决策分发：设锚点到锁定检查，再依次判断全部完成/各部位是否需洗（支持四优/四攻四优）",
+        "desc": "决策分发：设锚点到锁定检查，先判断全部完成，再通过全局有限步前瞻选择收益最高的部位（自定义配额）",
         "anchor": {
             "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
             "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
@@ -30,95 +46,46 @@
         },
         "next": [
             "EquipmentRerollAllSatisfied",
-            "EquipmentRerollNeedHead",
-            "EquipmentRerollNeedArms",
-            "EquipmentRerollNeedTorso",
-            "EquipmentRerollNeedLegs",
+            "EquipmentRerollChoosePart",
+            "EquipmentRerollEnd"
+        ]
+    },
+    "EquipmentRerollChoosePart": {
+        "desc": "全局有限步前瞻：从四件装备中选择期望收益最高的部位并直接打开对应详情页",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollChoosePartAction",
+                "custom_action_param": {}
+            }
+        },
+        "next": [
             "EquipmentRerollEnd"
         ]
     },
     "EquipmentRerollAllSatisfied": {
-        "desc": "四件装备均满足目标（按模板参数判定）→ 结束",
+        "desc": "四件装备均满足自定义配额目标 → 结束",
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollPartNeedRecognition",
                 "custom_recognition_param": {
                     "part": "all",
-                    "target_effect": "优越代码伤害增加"
+                    "global_quota": {
+                        "优越代码伤害增加": 4
+                    }
                 }
             }
         },
         "next": [
-            "EquipmentRerollEnd"
-        ]
-    },
-    "EquipmentRerollNeedHead": {
-        "desc": "头部未满足模板目标 → 洗头部",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "EquipmentRerollPartNeedRecognition",
-                "custom_recognition_param": {
-                    "part": "头部",
-                    "target_effect": "优越代码伤害增加"
-                }
-            }
-        },
-        "next": [
-            "EquipmentRerollOpenHeadDetails"
-        ]
-    },
-    "EquipmentRerollNeedArms": {
-        "desc": "臂部未满足模板目标 → 洗臂部",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "EquipmentRerollPartNeedRecognition",
-                "custom_recognition_param": {
-                    "part": "臂部",
-                    "target_effect": "优越代码伤害增加"
-                }
-            }
-        },
-        "next": [
-            "EquipmentRerollOpenArmsDetails"
-        ]
-    },
-    "EquipmentRerollNeedTorso": {
-        "desc": "身躯未满足模板目标 → 洗身躯",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "EquipmentRerollPartNeedRecognition",
-                "custom_recognition_param": {
-                    "part": "身躯",
-                    "target_effect": "优越代码伤害增加"
-                }
-            }
-        },
-        "next": [
-            "EquipmentRerollOpenTorsoDetails"
-        ]
-    },
-    "EquipmentRerollNeedLegs": {
-        "desc": "腿部未满足模板目标 → 洗腿部",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "EquipmentRerollPartNeedRecognition",
-                "custom_recognition_param": {
-                    "part": "腿部",
-                    "target_effect": "优越代码伤害增加"
-                }
-            }
-        },
-        "next": [
-            "EquipmentRerollOpenLegsDetails"
+            "EquipmentRerollFinalSummary"
         ]
     },
     "EquipmentRerollLockGate": {
-        "desc": "锁定检查入口：Flag 锚定后判定是否需锁定 2/3号槽位（四攻四优 3→2→1 策略，无硬编码兜底）",
+        "desc": "锁定检查入口：Flag 锚定后按自定义配额策略判定是否需锁定 2/3号槽位",
         "next": [
             "__EquipmentRerollLockLocateFlag"
         ]
@@ -157,13 +124,15 @@
         ]
     },
     "EquipmentRerollLockNeed": {
-        "desc": "判断当前装备是否需锁定 2/3号单一目标槽（命中→锁定流程，四攻四优才生效）",
+        "desc": "判断当前装备是否需锁定 2/3号槽（命中→锁定流程，自定义配额生效）",
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollLockCheckRecognition",
                 "custom_recognition_param": {
-                    "template": "FourElementalDamage"
+                    "global_quota": {
+                        "优越代码伤害增加": 4
+                    }
                 }
             }
         },
@@ -254,7 +223,7 @@
         ]
     },
     "EquipmentRerollLockPageEntered": {
-        "desc": "确认进入效果锁定页：OCR 检测标题“效果锁定”，未检测到则回到点击节点重试（自身兜底）",
+        "desc": "原子节点：确认进入效果锁定页（OCR 标题“效果锁定”）。与“锁词条”解耦，真锁流程由 LockSelectMaterial 承接",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -272,6 +241,95 @@
         "next": [
             "EquipmentRerollLockSelectMaterial"
         ]
+    },
+    "EquipmentRerollMaterialCheckEnter": {
+        "desc": "腿部扫描完成后“物资检测”入口（纯 Pipeline）：点击必出的第一槽（slot1，100% 出词条）进入效果锁定页；若未进入（识别失败）则再次点击（兜底）",
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -90,
+                    45,
+                    300,
+                    2
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    3,
+                    -60,
+                    -6
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300
+        },
+        "next": [
+            "EquipmentRerollMaterialCheckPageEntered",
+            "EquipmentRerollMaterialCheckEnter"
+        ]
+    },
+    "EquipmentRerollMaterialCheckPageEntered": {
+        "desc": "物资检测：OCR 确认进入效果锁定页（复用 __EquipmentRerollLockTitle）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    618,
+                    147,
+                    73,
+                    28
+                ],
+                "expected": [
+                    "效果锁定"
+                ]
+            }
+        },
+        "next": [
+            "EquipmentRerollMaterialCheck"
+        ]
+    },
+    "EquipmentRerollMaterialCheck": {
+        "desc": "物资检测：读取效果锁定页的材料持有数量初始化 Inventory 余额（记录逻辑→Go；不实际锁定），随后退出",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollMaterialCheckRecognition",
+                "custom_recognition_param": {}
+            }
+        },
+        "next": [
+            "EquipmentRerollMaterialCheckExit"
+        ]
+    },
+    "EquipmentRerollMaterialCheckExit": {
+        "desc": "物资检测退出（纯 Pipeline）：用 [JumpBack]CommonClosePage 关闭效果锁定页，再用 [JumpBack]EquipmentRerollScanCloseDetails 关闭腿部详情页，进入 EquipmentRerollAfterMaterialCheck 路由",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "[JumpBack]EquipmentRerollScanCloseDetails",
+            "EquipmentRerollAfterMaterialCheck"
+        ]
+    },
+    "EquipmentRerollAfterMaterialCheck": {
+        "desc": "物资检测退出后路由（Go）：独立装备检测 → 结束；完整洗词条任务 → EquipmentRerollDecide",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollAfterMaterialCheckAction"
+            }
+        }
     },
     "EquipmentRerollLockSelectMaterial": {
         "desc": "选择锁定材料：自订密钥优先，不够用订制模块（Go决策）",
@@ -445,7 +503,7 @@
             }
         },
         "next": [
-            "EquipmentRerollClickChangeEffect"
+            "EquipmentRerollLockRouteSlot"
         ]
     },
     "EquipmentRerollLockAfterIsConfirm": {
@@ -465,7 +523,7 @@
             }
         },
         "next": [
-            "EquipmentRerollConfirmChangeEffect"
+            "EquipmentRerollKeepLockRoute"
         ]
     },
     "EquipmentRerollClickChangeEffect": {
@@ -488,7 +546,39 @@
             "type": "Click"
         },
         "next": [
+            "EquipmentRerollPrepareRerollCost"
+        ]
+    },
+    "EquipmentRerollPrepareRerollCost": {
+        "desc": "效果变更确认前校验库存并记录待消耗订制模块数（按当前锁定数计费）",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollPrepareRerollCostAction",
+                "custom_action_param": {}
+            }
+        },
+        "next": [
             "EquipmentRerollConfirmChangeEffect"
+        ]
+    },
+    "EquipmentRerollRecordRerollCost": {
+        "desc": "确认成功后记录本次效果变更消耗的订制模块（按当前锁定数计费）",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRecordRerollCostAction",
+                "custom_action_param": {}
+            }
+        },
+        "next": [
+            "__EquipmentRerollResultButtonsVisible"
         ]
     },
     "EquipmentRerollConfirmChangeEffect": {
@@ -511,17 +601,19 @@
             "type": "Click"
         },
         "next": [
-            "__EquipmentRerollResultButtonsVisible"
+            "EquipmentRerollRecordRerollCost"
         ]
     },
     "EquipmentRerollResultPage": {
-        "desc": "结果页决策：读变更效果并路由到维持/接受（支持四优/四攻四优模板参数）",
+        "desc": "结果页决策：读变更效果并路由到维持/接受（自定义配额）",
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollResultDecideRecognition",
                 "custom_recognition_param": {
-                    "target_effect": "优越代码伤害增加"
+                    "global_quota": {
+                        "优越代码伤害增加": 4
+                    }
                 }
             }
         },
@@ -583,17 +675,19 @@
         "rate_limit": 200,
         "next": [
             "EquipmentRerollKeepLockCheck",
-            "EquipmentRerollConfirmChangeEffect"
+            "EquipmentRerollPrepareRerollCost"
         ]
     },
     "EquipmentRerollKeepLockCheck": {
-        "desc": "确认页锁定判定：复用 LockCheck 判定 2/3 号槽是否需锁（模板由任务选项覆盖，四优默认不锁）",
+        "desc": "确认页锁定判定：复用 LockCheck 按自定义配额判定 2/3 号槽是否需锁",
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollLockCheckRecognition",
                 "custom_recognition_param": {
-                    "template": "FourElementalDamage"
+                    "global_quota": {
+                        "优越代码伤害增加": 4
+                    }
                 }
             }
         },
@@ -615,7 +709,7 @@
         "next": [
             "EquipmentRerollKeepClickSlot2",
             "EquipmentRerollKeepClickSlot3",
-            "EquipmentRerollConfirmChangeEffect"
+            "EquipmentRerollPrepareRerollCost"
         ]
     },
     "EquipmentRerollKeepClickSlot2": {
@@ -726,14 +820,14 @@
         ]
     },
     "__EquipmentRerollResultButtonsVisible": {
-        "desc": "内部识别：决策页就绪信号（检测效果维持出现）",
+        "desc": "内部识别：决策页就绪信号（检测效果维持出现；ROI 需覆盖完整按钮文本，避免只识别到“效果”裁掉“维持”）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
                     480,
                     505,
-                    160,
+                    200,
                     55
                 ],
                 "expected": [
@@ -856,14 +950,13 @@
                 "roi_offset": [
                     8,
                     0,
-                    160,
+                    290,
                     0
                 ],
                 "expected": [
                     ".*"
                 ],
-                "only_rec": true,
-                "threshold": 0.3
+                "only_rec": true
             }
         }
     },
@@ -876,14 +969,13 @@
                 "roi_offset": [
                     8,
                     0,
-                    160,
+                    290,
                     0
                 ],
                 "expected": [
                     ".*"
                 ],
-                "only_rec": true,
-                "threshold": 0.3
+                "only_rec": true
             }
         }
     },
@@ -896,14 +988,13 @@
                 "roi_offset": [
                     8,
                     0,
-                    160,
+                    290,
                     0
                 ],
                 "expected": [
                     ".*"
                 ],
-                "only_rec": true,
-                "threshold": 0.3
+                "only_rec": true
             }
         }
     },
@@ -926,6 +1017,42 @@
         "next": [
             "EquipmentRerollLockSelectMaterial"
         ]
+    },
+    "__EquipmentRerollLockModuleHeld": {
+        "desc": "效果锁定页：订制模组「持有 N」数量（获取库存时 Go 解析；ROI 覆盖持有数字，布局固定单点维护）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    505,
+                    440,
+                    100,
+                    30
+                ],
+                "expected": [
+                    ".*"
+                ]
+            }
+        },
+        "next": []
+    },
+    "__EquipmentRerollLockKeyHeld": {
+        "desc": "效果锁定页：自订密钥「持有 N」数量（获取库存时 Go 解析；ROI 覆盖持有数字）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    649,
+                    440,
+                    100,
+                    30
+                ],
+                "expected": [
+                    ".*"
+                ]
+            }
+        },
+        "next": []
     },
     "EquipmentRerollReturnToDecide": {
         "desc": "一次效果变更完成：关闭页面回到人物页，基于已刷新的快照直接重新调度（不再全量扫描四件装备）",

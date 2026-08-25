@@ -109,25 +109,30 @@ func TestScanBeginInitializesGenericPartState(t *testing.T) {
 
 func TestScanNextItems(t *testing.T) {
 	tests := []struct {
-		name          string
-		part          string
-		stopAfterScan bool
-		wantCount     int
-		wantFirst     string
-		wantSecond    string
+		name       string
+		part       string
+		wantCount  int
+		wantFirst  string
+		wantSecond string
 	}{
 		{name: "head", part: "头部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenArmsDetails"},
 		{name: "arm", part: "臂部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenTorsoDetails"},
 		{name: "body", part: "身躯", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenLegsDetails"},
-		{name: "leg full flow", part: "腿部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollDecide"},
-		{name: "leg standalone stops", part: "腿部", stopAfterScan: true, wantCount: 1, wantFirst: "EquipmentRerollScanCloseDetails"},
+		{name: "leg goes to material check", part: "腿部", wantCount: 1, wantFirst: "EquipmentRerollMaterialCheckEnter"},
+		{name: "unknown part", part: "未知", wantCount: 0},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			next, ok := scanNextItems(tt.part, tt.stopAfterScan)
-			if !ok || len(next) != tt.wantCount || next[0].Name != tt.wantFirst {
-				t.Fatalf("scanNextItems(%q, %v) = (%v, %v)", tt.part, tt.stopAfterScan, next, ok)
+			next, ok := scanNextItems(tt.part)
+			if ok != (tt.wantCount > 0) || len(next) != tt.wantCount {
+				t.Fatalf("scanNextItems(%q) = (%v, %v)", tt.part, next, ok)
+			}
+			if tt.wantCount == 0 {
+				return
+			}
+			if next[0].Name != tt.wantFirst {
+				t.Fatalf("scanNextItems(%q) first = %q, want %q", tt.part, next[0].Name, tt.wantFirst)
 			}
 			if tt.wantCount == 2 && next[1].Name != tt.wantSecond {
 				t.Fatalf("scanNextItems(%q) second = %q, want %q", tt.part, next[1].Name, tt.wantSecond)
@@ -163,7 +168,7 @@ func TestRecordEffectCompletesAndRetainsTaskSnapshot(t *testing.T) {
 		t.Fatalf("effects = %v, want %v", state.Effects, want)
 	}
 
-	parts, ok := GetEquipmentEffects(taskID)
+	parts, ok := GetEquipmentSlotScans(taskID)
 	if ok {
 		t.Fatal("partial task snapshot should not be complete")
 	}
@@ -176,12 +181,12 @@ func TestRecordEffectCompletesAndRetainsTaskSnapshot(t *testing.T) {
 			}
 		}
 	}
-	parts, ok = GetEquipmentEffects(taskID)
+	parts, ok = GetEquipmentSlotScans(taskID)
 	if !ok {
 		t.Fatal("complete task snapshot was not available")
 	}
 	for _, part := range equipmentParts {
-		if parts[part] != [maxSlot]string{"攻击力增加", "攻击力增加", "攻击力增加"} {
+		if parts[part].Effects() != [maxSlot]string{"攻击力增加", "攻击力增加", "攻击力增加"} {
 			t.Fatalf("snapshot[%s] = %v", part, parts[part])
 		}
 	}
@@ -199,13 +204,29 @@ func TestTaskLifecycleClearsSnapshot(t *testing.T) {
 			}
 		}
 	}
-	if _, ok := GetEquipmentEffects(taskID); !ok {
+	if _, ok := GetEquipmentSlotScans(taskID); !ok {
 		t.Fatal("snapshot was not complete before lifecycle cleanup")
 	}
 
 	(&taskLifecycle{}).OnTaskerTask(nil, maa.EventStatusSucceeded, maa.TaskerTaskDetail{TaskID: uint64(taskID), Entry: "EquipmentRerollMain"})
-	if _, ok := GetEquipmentEffects(taskID); ok {
+	if _, ok := GetEquipmentSlotScans(taskID); ok {
 		t.Fatal("snapshot survived task completion")
+	}
+}
+
+func TestClearPendingRerollCostDoesNotRecordUsage(t *testing.T) {
+	const taskID int64 = 1005
+	clearMonitorState(taskID)
+	t.Cleanup(func() { clearMonitorState(taskID) })
+
+	setPendingRerollCost(taskID, 2)
+	clearPendingRerollCost(taskID)
+	usage, ok := GetMaterialUsage(taskID)
+	if !ok {
+		t.Fatal("monitor state should remain available for the pending-cost assertion")
+	}
+	if usage.CustomModules != 0 {
+		t.Fatalf("discarded pending cost should not be recorded, got %d modules", usage.CustomModules)
 	}
 }
 
@@ -229,14 +250,14 @@ func TestUpdatePartEffectsRefreshesSnapshot(t *testing.T) {
 	}
 	updatePartEffects(taskID, "头部", [maxSlot]string{"优越代码伤害增加", "", ""}, [maxSlot]string{"10.00%", "", ""})
 
-	parts, ok := GetEquipmentEffects(taskID)
+	parts, ok := GetEquipmentSlotScans(taskID)
 	if !ok {
 		t.Fatal("snapshot was not complete after update")
 	}
-	if !PartHasEffect(parts["头部"], "优越代码伤害增加") {
+	if !PartHasEffect(parts["头部"].Effects(), "优越代码伤害增加") {
 		t.Fatal("头部 should be satisfied after accepted change")
 	}
-	if PartHasEffect(parts["臂部"], "优越代码伤害增加") {
+	if PartHasEffect(parts["臂部"].Effects(), "优越代码伤害增加") {
 		t.Fatal("臂部 should still be unsatisfied")
 	}
 
@@ -251,5 +272,34 @@ func TestUpdatePartEffectsRefreshesSnapshot(t *testing.T) {
 	}
 	if head.Slots[0].Lock != LockNone {
 		t.Fatalf("头部 slot1 lock = %v, want LockNone", head.Slots[0].Lock)
+	}
+}
+
+func TestMaterialUsageAccumulation(t *testing.T) {
+	const taskID int64 = 4001
+	clearMonitorState(taskID)
+	t.Cleanup(func() { clearMonitorState(taskID) })
+
+	recordRerollModuleCost(taskID, 1)
+	recordRerollModuleCost(taskID, 2)
+	recordLockMaterialCost(taskID, "自订密钥", 0)
+	recordLockMaterialCost(taskID, "订制模块", 0)
+
+	usage, ok := GetMaterialUsage(taskID)
+	if !ok {
+		t.Fatal("material usage should be available")
+	}
+	if usage.CustomModules != 1+2+2 {
+		t.Fatalf("custom modules = %d, want %d", usage.CustomModules, 1+2+2)
+	}
+	if usage.CustomLockKeys != 20 {
+		t.Fatalf("custom lock keys = %d, want 20", usage.CustomLockKeys)
+	}
+	// 分解校验：效果变更模块 = 1+2；订制模组锁定模块 = 2；密钥 = 20。
+	if usage.RerollModules != 1+2 {
+		t.Fatalf("reroll modules = %d, want %d", usage.RerollModules, 1+2)
+	}
+	if usage.LockModules != 2 {
+		t.Fatalf("lock modules = %d, want 2", usage.LockModules)
 	}
 }

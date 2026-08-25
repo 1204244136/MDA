@@ -68,9 +68,10 @@ func TestFormatSlotLine(t *testing.T) {
 		scan slotScanData
 		want string
 	}{
-		{name: "full", scan: slotScanData{Effect: "蓄力伤害增加", Value: "11.81%", Lock: LockPermanent}, want: "蓄力伤害增加 11.81% （永久锁）"},
+		{name: "full", scan: slotScanData{Effect: "蓄力伤害增加", Value: "11.81%", Lock: LockPermanent}, want: "蓄力伤害增加 11.81%（T11） （永久锁）"},
+		{name: "calibrated", scan: slotScanData{Effect: "蓄力伤害增加", Value: "11.80%", Lock: LockNone}, want: "蓄力伤害增加 11.81%（T11）"},
 		{name: "no value", scan: slotScanData{Effect: "防御力增加", Lock: LockNone}, want: "防御力增加"},
-		{name: "one-time lock", scan: slotScanData{Effect: "最大装弹数增加", Value: "68.93%", Lock: LockOneTime}, want: "最大装弹数增加 68.93% （一次性锁）"},
+		{name: "one-time lock", scan: slotScanData{Effect: "最大装弹数增加", Value: "68.93%", Lock: LockOneTime}, want: "最大装弹数增加 68.93%（T11） （一次性锁）"},
 		{name: "empty slot", scan: slotScanData{Effect: "", Value: "10%", Lock: LockNone}, want: "（空槽位）"},
 	}
 	for _, tt := range cases {

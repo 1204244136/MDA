@@ -3,6 +3,9 @@ package equipmentreroll
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -10,10 +13,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// 本文件实现四攻四优的"效果锁定"流程：
+// 本文件实现自定义配额下的"效果锁定"流程：
 // 点击槽位 → 进入效果锁定页（标题"效果锁定"）→ 选择消耗材料（SELECT）→ 点击确认 → 二次确认通知页点击确认 → 返回详情页。
 // 材料策略：有自订密钥用自订密钥，不够再用订制模块（用户确认策略）。
-// 锁定位：仅对 3→2号中已出现单一目标且未锁定的槽位执行锁定，1号不锁。
+// 锁定位：由 plan_dp.go 的策略迭代决定；策略上只考虑 2/3 号槽（1 号不锁——1 号 100% 易得、锁 1 追 23 代价高）。
+//
+// 文档索引：docs/zh_cn/nikke/EquipmentReroll/洗词条策略与Agent逻辑.md
 
 var (
 	lockPendingMu       sync.Mutex
@@ -48,51 +53,19 @@ func clearPendingLock(taskID int64) {
 
 // lockCheckParam 是 EquipmentRerollLockCheckRecognition 的参数。
 type lockCheckParam struct {
-	Part     string `json:"part"`
-	Template string `json:"template"`
+	Part        string         `json:"part"`
+	GlobalQuota map[string]int `json:"global_quota"`
+	// Material 可选：本次锁定使用的材料（"自订密钥"默认 / "订制模块"）。
+	// 当自订密钥耗尽、回退用订制模组时，应传入 "订制模块"，使锁定决策计入模块获取成本。
+	Material string `json:"material"`
 }
 
 func (p *lockCheckParam) normalize() {
 	p.Part = strings.TrimSpace(p.Part)
-	p.Template = strings.TrimSpace(p.Template)
-	if p.Template == "" {
-		p.Template = "FourElementalDamage"
+	p.Material = strings.TrimSpace(p.Material)
+	if len(p.GlobalQuota) > 0 {
+		p.GlobalQuota = normalizeQuota(p.GlobalQuota)
 	}
-}
-
-// isFourAtkTemplateFromNodeJSON 从节点 JSON 中解析 EquipmentRerollLockNeed 的模板覆盖。
-func isFourAtkTemplateFromNodeJSON(raw string) bool {
-	if raw == "" {
-		return false
-	}
-	var data struct {
-		Recognition struct {
-			Param struct {
-				CustomRecognitionParam struct {
-					Template string `json:"template"`
-				} `json:"custom_recognition_param"`
-			} `json:"param"`
-		} `json:"recognition"`
-	}
-	if err := json.Unmarshal([]byte(raw), &data); err != nil {
-		return false
-	}
-	t := strings.TrimSpace(data.Recognition.Param.CustomRecognitionParam.Template)
-	return t == "FourAttackFourElementalDamage" || t == "FourAtkFourElem"
-}
-
-// isFourAtkTemplateFromLockNeed 读取当前任务中 EquipmentRerollLockNeed 节点的生效覆盖，
-// 用于在 Keep 分支的 EquipmentRerollKeepLockCheck 未单独覆盖模板时，推断当前是否为四攻四优任务。
-// 这是对旧任务资源/未加载完整覆盖的兼容回退；四优任务下该节点覆盖为 FourElementalDamage，因此不会误锁。
-func isFourAtkTemplateFromLockNeed(ctx *maa.Context) bool {
-	if ctx == nil {
-		return false
-	}
-	raw, err := ctx.GetNodeJSON("EquipmentRerollLockNeed")
-	if err != nil {
-		return false
-	}
-	return isFourAtkTemplateFromNodeJSON(raw)
 }
 
 // EquipmentRerollLockCheckRecognition 判断当前详情页的指定部位是否需要先锁定再洗。
@@ -115,31 +88,135 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 			params.Part = p
 		}
 	}
-	isFourAtk := params.Template == "FourAttackFourElementalDamage" || params.Template == "FourAtkFourElem"
-	if !isFourAtk {
-		// 兼容：Keep 分支节点未被任务资源覆盖时，从 LockNeed 的有效覆盖推断当前模板。
-		isFourAtk = isFourAtkTemplateFromLockNeed(ctx)
-	}
-	if !isFourAtk {
-		return nil, false
-	}
-	scan, ok := GetPartScan(arg.TaskID, params.Part)
+	// 自定义配额：按全局配额决定锁定。
+	parts, ok := GetEquipmentSlotScans(arg.TaskID)
 	if !ok {
 		return nil, false
 	}
-	slot, need := DesiredLockSlotForFourAtkFourElem(scan)
-	if !need {
+	quota := params.GlobalQuota
+	if quotaTotal(quota) == 0 {
+		quota = quotaFromLockNeed(ctx)
+	}
+	if !quotaIsValid(quota) {
 		return nil, false
 	}
-	setPendingLock(arg.TaskID, slot, "")
-	log.Info().Str("component", "EquipmentReroll").Str("part", params.Part).Int("lock_slot", slot).Msg("part needs lock before reroll")
+	inv, inventoryReady := getInventory(arg.TaskID)
+	if !inventoryReady {
+		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("lock planning requires initialized material inventory")
+		return nil, false
+	}
+	scan, ok := parts[params.Part]
+	if !ok {
+		return nil, false
+	}
+	lockIndex := countLocks(scan)
+	slot, material, affordable := desiredLockPlanForInventory(parts, params.Part, quota, inv, params.Material)
+	if !affordable {
+		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Int("lock_index", lockIndex).Msg("no affordable lock material")
+		return nil, false
+	}
+	// 按实际可用材料规划；模块锁定会计入获取成本，密钥锁定不会。
+	if slot == 0 {
+		return nil, false
+	}
+	// 护栏：目标槽已锁定，不能再“上锁”，返回无需锁定（避免反复尝试锁已锁的第3槽）。
+	if scan.Slots[slot-1].Lock != LockNone {
+		log.Warn().Str("component", "EquipmentReroll").Str("part", params.Part).Int("lock_slot", slot).Msg("target lock slot already locked; skip lock")
+		return nil, false
+	}
+	setPendingLock(arg.TaskID, slot, material)
+	log.Info().Str("component", "EquipmentReroll").Str("part", params.Part).Str("material", material).Int("lock_slot", slot).Msg("part needs lock before reroll (custom quota)")
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
+}
+
+// quotaFromLockNeed 从 EquipmentRerollLockNeed 节点 JSON 中读取自定义配额。
+func quotaFromLockNeed(ctx *maa.Context) map[string]int {
+	if ctx == nil {
+		return nil
+	}
+	raw, err := ctx.GetNodeJSON("EquipmentRerollLockNeed")
+	if err != nil {
+		return nil
+	}
+	var data struct {
+		Recognition struct {
+			Param struct {
+				CustomRecognitionParam struct {
+					GlobalQuota map[string]int `json:"global_quota"`
+				} `json:"custom_recognition_param"`
+			} `json:"param"`
+		} `json:"recognition"`
+	}
+	if err := json.Unmarshal([]byte(raw), &data); err != nil {
+		return nil
+	}
+	return normalizeQuota(data.Recognition.Param.CustomRecognitionParam.GlobalQuota)
+}
+
+func desiredLockPlanForInventory(parts map[string]partScan, part string, quota map[string]int, inv Inventory, requested string) (int, string, bool) {
+	scan, ok := parts[part]
+	if !ok {
+		return 0, "", false
+	}
+	material, ok := selectLockMaterial(inv, requested, countLocks(scan))
+	if !ok {
+		return 0, "", false
+	}
+	slot, need := DesiredLockSlotForQuota(parts, part, quota, material)
+	if !need {
+		return 0, material, false
+	}
+	return slot, material, true
+}
+
+// desiredLockSlotForCurrentMode 计算当前自定义配额下的待锁槽位，用于 pending 丢失时回退。
+// 若已缓存库存（效果锁定页 OCR）且自订密钥不足以支付锁定，则按“订制模块”口径（计入获取成本）
+// 计算，使模块锁定时决策更保守。
+func desiredLockSlotForCurrentMode(ctx *maa.Context, taskID int64, part string) (int, bool) {
+	if ctx == nil {
+		return 0, false
+	}
+	quota := quotaFromLockNeed(ctx)
+	parts, ok := GetEquipmentSlotScans(taskID)
+	if !ok || len(quota) == 0 {
+		return 0, false
+	}
+	material := lockMaterialForTask(taskID, part)
+	return DesiredLockSlotForQuota(parts, part, quota, material)
+}
+
+// lockMaterialForTask 依据缓存库存决定本次锁定假设使用的材料：
+// 自订密钥足以支付时用密钥（获取成本 0），否则用订制模块（计入获取成本）。未读到库存时默认密钥。
+func lockMaterialForTask(taskID int64, part string) string {
+	inv, ok := getInventory(taskID)
+	if !ok {
+		return "自订密钥"
+	}
+	lockIndex := 0
+	if scan, sok := GetPartScan(taskID, part); sok {
+		lockIndex = countLocks(scan)
+	}
+	if key, kok := inv.ChooseLockMaterial(lockIndex); kok {
+		return key
+	}
+	return "订制模块"
 }
 
 // EquipmentRerollLockRouteSlotAction 根据待锁槽位路由到 Slot2/3 点击节点。
 type EquipmentRerollLockRouteSlotAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollLockRouteSlotAction{}
+
+func lockRouteTarget(slot int) string {
+	switch slot {
+	case 2:
+		return "EquipmentRerollLockClickSlot2"
+	case 3:
+		return "EquipmentRerollLockClickSlot3"
+	default:
+		return "EquipmentRerollClickChangeEffect"
+	}
+}
 
 func (a *EquipmentRerollLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 	if ctx == nil || arg == nil {
@@ -148,20 +225,24 @@ func (a *EquipmentRerollLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.Cust
 	slot, _, ok := getPendingLock(arg.TaskID)
 	if !ok {
 		if p, ok2 := currentEffectPart(arg.TaskID); ok2 {
-			if scan, ok3 := GetPartScan(arg.TaskID, p); ok3 {
-				if s, need := DesiredLockSlotForFourAtkFourElem(scan); need {
-					slot = s
-				}
+			if s, need := desiredLockSlotForCurrentMode(ctx, arg.TaskID, p); need {
+				slot = s
 			}
 		}
 	}
-	if slot == 0 {
-		slot = 3
+	// 护栏：目标槽已锁，不能再“上锁”，转去效果变更。
+	if slot == 2 || slot == 3 {
+		if p, ok2 := currentEffectPart(arg.TaskID); ok2 {
+			if scan, kok := GetPartScan(arg.TaskID, p); kok && scan.Slots[slot-1].Lock != LockNone {
+				log.Warn().Str("component", "EquipmentReroll").Int("slot", slot).Msg("target slot already locked; go change effect instead of re-lock")
+				if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: "EquipmentRerollClickChangeEffect"}}); err != nil {
+					return false
+				}
+				return true
+			}
+		}
 	}
-	target := "EquipmentRerollLockClickSlot3"
-	if slot == 2 {
-		target = "EquipmentRerollLockClickSlot2"
-	}
+	target := lockRouteTarget(slot)
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route lock slot")
 		return false
@@ -196,17 +277,7 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 			part = p
 		}
 	}
-	slot, _, _ := getPendingLock(arg.TaskID)
-	if slot == 0 {
-		if p, ok := GetPartScan(arg.TaskID, part); ok {
-			if s, need := DesiredLockSlotForFourAtkFourElem(p); need {
-				slot = s
-			}
-		}
-		if slot == 0 {
-			slot = 3
-		}
-	}
+	slot, pendingMaterial, _ := getPendingLock(arg.TaskID)
 
 	titleDetail, err := ctx.RunRecognition("__EquipmentRerollLockTitle", arg.Img, nil)
 	if err != nil || titleDetail == nil || !titleDetail.Hit {
@@ -214,11 +285,54 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 		return nil, false
 	}
 
+	// 用前置“获取材料库存”初始化、并由行为扣减的库存余额决策材料（不再每次 OCR）。
 	material := params.Material
 	if material == "" {
-		// 默认策略：自订密钥优先
-		// 若后续能通过 OCR 读取"持有"数量，可动态回退；当前先按优先策略
+		material = pendingMaterial
+	}
+	inv, inventoryReady := getInventory(arg.TaskID)
+	if inventoryReady {
+		parts, scansOK := GetEquipmentSlotScans(arg.TaskID)
+		scan, scanOK := parts[part]
+		if !scansOK || !scanOK {
+			return nil, false
+		}
+		lockIndex := countLocks(scan)
+		selected, ok2 := selectLockMaterial(inv, material, lockIndex)
+		if !ok2 {
+			log.Warn().
+				Str("component", "EquipmentReroll").
+				Int64("task_id", arg.TaskID).
+				Str("part", part).
+				Int("modules_held", inv.CustomModules).
+				Int("keys_held", inv.CustomLockKeys).
+				Int("lock_index", lockIndex).
+				Msg("cannot afford any lock material (behavior inventory)")
+			return nil, false
+		}
+		materialChanged := selected != material
+		material = selected
+		if slot == 0 || materialChanged {
+			quota := quotaFromLockNeed(ctx)
+			if !quotaIsValid(quota) {
+				return nil, false
+			}
+			if selectedSlot, need := DesiredLockSlotForQuota(parts, part, quota, material); need {
+				slot = selectedSlot
+			} else {
+				return nil, false
+			}
+		}
+	} else if material == "" {
+		// 独立调试锁定流程没有库存快照时，保留旧的密钥默认行为。
 		material = "自订密钥"
+	}
+	if slot == 0 {
+		if s, need := desiredLockSlotForCurrentMode(ctx, arg.TaskID, part); need {
+			slot = s
+		} else {
+			slot = 3
+		}
 	}
 	setPendingLock(arg.TaskID, slot, material)
 
@@ -227,14 +341,65 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 		materialCode = 1
 	}
 
-	log.Info().Str("component", "EquipmentReroll").Str("material", material).Int("slot", slot).Msg("lock material selected")
+	log.Info().
+		Str("component", "EquipmentReroll").
+		Str("material", material).
+		Int("slot", slot).
+		Msg("lock material selected (behavior inventory)")
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: fmt.Sprintf(`{"material_code":%d}`, materialCode)}, true
+}
+
+// lastNonEmptyOCRText 返回识别结果中最后一条非空 OCR 文本（取最后一个匹配，稳健去空白）。
+func lastNonEmptyOCRText(detail *maa.RecognitionDetail) string {
+	var last string
+	for _, result := range allResults(detail) {
+		if result == nil {
+			continue
+		}
+		ocr, ok := result.AsOCR()
+		if !ok {
+			continue
+		}
+		text := strings.Join(strings.Fields(ocr.Text), " ")
+		if text != "" {
+			last = text
+		}
+	}
+	return last
+}
+
+// readLockHeldCount 读取效果锁定页“持有 N”数量：OCR 后取最后一个整数（如 “持有 760” → 760）。
+// 返回 (数量, 是否识别到)；识别失败/未命中时数量为 0。
+func readLockHeldCount(ctx *maa.Context, img image.Image, nodeName string) (int, bool) {
+	detail, err := ctx.RunRecognition(nodeName, img, nil)
+	if err != nil || detail == nil || !detail.Hit {
+		log.Debug().Str("component", "EquipmentReroll").Str("node", nodeName).Msg("lock held count not recognized")
+		return 0, false
+	}
+	text := lastNonEmptyOCRText(detail)
+	if text == "" {
+		return 0, false
+	}
+	re := regexp.MustCompile(`\d+`)
+	matches := re.FindAllString(text, -1)
+	if len(matches) == 0 {
+		return 0, false
+	}
+	n, _ := strconv.Atoi(matches[len(matches)-1])
+	return n, true
 }
 
 // EquipmentRerollLockSelectRouteAction 根据 LockSelectRecognition 的 Box 路由到模块/密钥 SELECT 点击。
 type EquipmentRerollLockSelectRouteAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollLockSelectRouteAction{}
+
+func lockSelectRouteTarget(materialCode int) string {
+	if materialCode == 1 {
+		return "EquipmentRerollLockSelectModule"
+	}
+	return "EquipmentRerollLockSelectKey"
+}
 
 func (a *EquipmentRerollLockSelectRouteAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 	if ctx == nil || arg == nil {
@@ -257,46 +422,11 @@ func (a *EquipmentRerollLockSelectRouteAction) Run(ctx *maa.Context, arg *maa.Cu
 			materialCode = 1
 		}
 	}
-	target := "EquipmentRerollLockSelectKey"
-	if materialCode == 1 {
-		target = "EquipmentRerollLockSelectModule"
-	}
+	target := lockSelectRouteTarget(materialCode)
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		return false
 	}
 	log.Info().Str("component", "EquipmentReroll").Str("target", target).Msg("lock select routed")
-	return true
-}
-
-// EquipmentRerollLockConfirmAction 在锁定页点击"确认"后，等待二次确认弹窗并乐观更新快照。
-type EquipmentRerollLockConfirmAction struct{}
-
-var _ maa.CustomActionRunner = &EquipmentRerollLockConfirmAction{}
-
-func (a *EquipmentRerollLockConfirmAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
-	if ctx == nil || arg == nil {
-		return false
-	}
-	part, ok := currentEffectPart(arg.TaskID)
-	if !ok {
-		return true
-	}
-	slot, material, ok := getPendingLock(arg.TaskID)
-	if !ok {
-		if scan, ok2 := GetPartScan(arg.TaskID, part); ok2 {
-			if s, need := DesiredLockSlotForFourAtkFourElem(scan); need {
-				slot = s
-				material = "自订密钥"
-			}
-		}
-	}
-	if slot != 0 {
-		if material == "" {
-			material = "自订密钥"
-		}
-		applyLockToSnapshot(arg.TaskID, part, slot, material)
-		log.Info().Str("component", "EquipmentReroll").Str("part", part).Int("slot", slot).Str("material", material).Msg("lock applied to snapshot (optimistic)")
-	}
 	return true
 }
 
@@ -316,20 +446,44 @@ func (a *EquipmentRerollLockDoneAction) Run(ctx *maa.Context, arg *maa.CustomAct
 			if material == "" {
 				material = "自订密钥"
 			}
+			if scan, ok2 := GetPartScan(arg.TaskID, part); ok2 {
+				lockIndex := countLocks(scan)
+				recordLockMaterialCost(arg.TaskID, material, lockIndex)
+				log.Info().Str("component", "EquipmentReroll").Str("part", part).Int("slot", slot).Str("material", material).Int("lock_index", lockIndex).Msg("recorded lock material cost")
+			}
 			applyLockToSnapshot(arg.TaskID, part, slot, material)
 			log.Info().Str("component", "EquipmentReroll").Str("part", part).Int("slot", slot).Str("material", material).Msg("lock applied to snapshot on done")
 		}
 		clearPendingLock(arg.TaskID)
+
+		// 支持至多 2 锁：若策略仍建议锁第二把，则仅写入 pending 待锁槽；
+		// 由 LockDone 之后的 LockAfterRoute 按当前页面（确认页/详情页）分流到对应锁定入口，
+		// 避免“在结果页/确认页却点了详情页坐标的锁图标”导致反复点已锁/点不到。
+		if s, need := desiredLockSlotForCurrentMode(ctx, arg.TaskID, part); need {
+			setPendingLock(arg.TaskID, s, "")
+			log.Info().Str("component", "EquipmentReroll").Str("part", part).Int("next_lock_slot", s).Msg("set second lock pending; LockAfterRoute routes by page")
+		}
 	}
 	return true
 }
 
 // EquipmentRerollKeepLockRouteSlotAction 在效果变更确认页完成锁定判定后，路由到确认页槽位点击节点。
 // 复用 EquipmentRerollLockCheckRecognition 写入的 pending 槽位：2/3 号路由到确认页点击节点；
-// 无需锁定（slot 缺失或 0）时直接路由到确认页刷新（EquipmentRerollConfirmChangeEffect）。
+// 无需锁定（slot 缺失或 0）时直接路由到材料记录节点，随后进入确认页刷新。
 type EquipmentRerollKeepLockRouteSlotAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollKeepLockRouteSlotAction{}
+
+func keepLockRouteTarget(slot int) string {
+	switch slot {
+	case 2:
+		return "EquipmentRerollKeepClickSlot2"
+	case 3:
+		return "EquipmentRerollKeepClickSlot3"
+	default:
+		return "EquipmentRerollPrepareRerollCost"
+	}
+}
 
 func (a *EquipmentRerollKeepLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 	if ctx == nil || arg == nil {
@@ -338,19 +492,21 @@ func (a *EquipmentRerollKeepLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.
 	slot, _, ok := getPendingLock(arg.TaskID)
 	if !ok {
 		if p, ok2 := currentEffectPart(arg.TaskID); ok2 {
-			if scan, ok3 := GetPartScan(arg.TaskID, p); ok3 {
-				if s, need := DesiredLockSlotForFourAtkFourElem(scan); need {
-					slot = s
-				}
+			if s, need := desiredLockSlotForCurrentMode(ctx, arg.TaskID, p); need {
+				slot = s
 			}
 		}
 	}
-	target := "EquipmentRerollConfirmChangeEffect" // 无需锁定：确认页直接刷新
-	if slot == 2 {
-		target = "EquipmentRerollKeepClickSlot2"
-	} else if slot == 3 {
-		target = "EquipmentRerollKeepClickSlot3"
+	// 护栏：目标槽已锁，则无需再锁，转去准备记录消耗（确认页刷新）。
+	if slot == 2 || slot == 3 {
+		if p, ok2 := currentEffectPart(arg.TaskID); ok2 {
+			if scan, kok := GetPartScan(arg.TaskID, p); kok && scan.Slots[slot-1].Lock != LockNone {
+				log.Warn().Str("component", "EquipmentReroll").Int("slot", slot).Msg("keep-lock target already locked; skip re-lock")
+				slot = 0
+			}
+		}
 	}
+	target := keepLockRouteTarget(slot)
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route keep lock slot")
 		return false

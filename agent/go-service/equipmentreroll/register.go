@@ -16,6 +16,15 @@ func Register() {
 	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollScanRouteAction", &EquipmentRerollScanRouteAction{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollScanRouteAction")
 	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollChoosePartAction", &EquipmentRerollChoosePartAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollChoosePartAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollPrepareRerollCostAction", &EquipmentRerollPrepareRerollCostAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollPrepareRerollCostAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollRecordRerollCostAction", &EquipmentRerollRecordRerollCostAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollRecordRerollCostAction")
+	}
 	if err := maa.AgentServerRegisterCustomRecognition("EquipmentRerollPartNeedRecognition", &EquipmentRerollPartNeedRecognition{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollPartNeedRecognition")
 	}
@@ -43,11 +52,17 @@ func Register() {
 	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockSelectRouteAction", &EquipmentRerollLockSelectRouteAction{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollLockSelectRouteAction")
 	}
-	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockConfirmAction", &EquipmentRerollLockConfirmAction{}); err != nil {
-		log.Error().Err(err).Msg("failed to register EquipmentRerollLockConfirmAction")
-	}
 	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollLockDoneAction", &EquipmentRerollLockDoneAction{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollLockDoneAction")
+	}
+	if err := maa.AgentServerRegisterCustomRecognition("EquipmentRerollMaterialCheckRecognition", &EquipmentRerollMaterialCheckRecognition{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollMaterialCheckRecognition")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollFinalSummaryAction", &EquipmentRerollFinalSummaryAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollFinalSummaryAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollAfterMaterialCheckAction", &EquipmentRerollAfterMaterialCheckAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollAfterMaterialCheckAction")
 	}
 	maa.AgentServerAddTaskerSink(&taskLifecycle{})
 }

@@ -84,20 +84,83 @@ func (p partScan) Effects() [maxSlot]string {
 	return effects
 }
 
-// monitorState 全量扫描的 task 级状态：当前部位的进行中数组 + 四部位完整快照。
+// MaterialUsage 记录任务执行期间累计消耗的材料数量。
+type MaterialUsage struct {
+	// CustomModules 订制模块总消耗（效果变更 + 订制模块锁定）。
+	CustomModules int
+	// CustomLockKeys 自订密钥消耗（自订密钥锁定）。
+	CustomLockKeys int
+	// RerollModules 其中“效果变更”消耗的订制模块数。
+	RerollModules int
+	// LockModules 其中“订制模组锁定”消耗的订制模块数。
+	LockModules int
+}
+
+// monitorState 全量扫描的 task 级状态：当前部位的进行中数组 + 四部位完整快照 + 材料消耗。
 type monitorState struct {
-	Part     string
-	Effects  [maxSlot]string
-	Values   [maxSlot]string
-	Locks    [maxSlot]SlotLock
-	Parts    map[string]partScan
-	NextSlot int
+	Part                 string
+	Effects              [maxSlot]string
+	Values               [maxSlot]string
+	Locks                [maxSlot]SlotLock
+	Parts                map[string]partScan
+	NextSlot             int
+	Materials            MaterialUsage
+	PendingRerollCost    int       // 已准备确认、尚未写入 Materials 的订制模块数
+	Inventory            Inventory // 任务级材料余额（前置“获取材料库存”初始化，之后由行为扣减）
+	InventoryInitialized bool      // Inventory 是否已被前置任务初始化
 }
 
 var (
 	stateMu sync.Mutex
 	states  = make(map[int64]monitorState)
 )
+
+// setInventory 初始化/更新任务级材料库存（前置“获取材料库存”OCR 到的一次性初始值）。
+func setInventory(taskID int64, inv Inventory) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	state.Inventory = inv
+	state.InventoryInitialized = true
+	states[taskID] = state
+}
+
+// getInventory 读取任务级材料余额。只有前置任务已初始化过才返回 ok=true。
+func getInventory(taskID int64) (Inventory, bool) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state, ok := states[taskID]
+	if !ok || !state.InventoryInitialized {
+		return Inventory{}, false
+	}
+	return state.Inventory, true
+}
+
+// decrementInventory 在记录一次消耗时相应地扣减材料余额（按行为推导，不再 OCR）。
+func decrementInventory(taskID int64, material string, cost int) {
+	if cost <= 0 {
+		return
+	}
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	if !state.InventoryInitialized {
+		return
+	}
+	switch material {
+	case "订制模块":
+		state.Inventory.CustomModules -= cost
+		if state.Inventory.CustomModules < 0 {
+			state.Inventory.CustomModules = 0
+		}
+	default:
+		state.Inventory.CustomLockKeys -= cost
+		if state.Inventory.CustomLockKeys < 0 {
+			state.Inventory.CustomLockKeys = 0
+		}
+	}
+	states[taskID] = state
+}
 
 // allResults 汇总识别结果（best + filtered + all）供遍历使用。
 func allResults(detail *maa.RecognitionDetail) []*maa.RecognitionResult {
@@ -169,6 +232,97 @@ func clearMonitorState(taskID int64) {
 	stateMu.Unlock()
 }
 
+// recordRerollModuleCost 累加一次“效果变更”消耗的订制模块（累计日志 + 行为扣减库存余额）。
+func recordRerollModuleCost(taskID int64, modules int) {
+	if modules <= 0 {
+		return
+	}
+	stateMu.Lock()
+	state := states[taskID]
+	state.Materials.CustomModules += modules
+	state.Materials.RerollModules += modules
+	state.PendingRerollCost = 0
+	states[taskID] = state
+	stateMu.Unlock()
+	decrementInventory(taskID, "订制模块", modules)
+}
+
+// setPendingRerollCost 在效果变更确认前记录“待消耗”的订制模块数。
+func setPendingRerollCost(taskID int64, modules int) {
+	if modules <= 0 {
+		return
+	}
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	state.PendingRerollCost = modules
+	states[taskID] = state
+}
+
+// consumePendingRerollCost 读取并清空待记录的订制模块数。
+func consumePendingRerollCost(taskID int64) int {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	cost := state.PendingRerollCost
+	state.PendingRerollCost = 0
+	states[taskID] = state
+	return cost
+}
+
+// flushPendingRerollCost 在成功结束前把未消费的待记录消耗补入 Materials。
+func flushPendingRerollCost(taskID int64) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	if state.PendingRerollCost > 0 {
+		state.Materials.CustomModules += state.PendingRerollCost
+		state.Materials.RerollModules += state.PendingRerollCost
+		state.PendingRerollCost = 0
+		states[taskID] = state
+	}
+}
+
+func clearPendingRerollCost(taskID int64) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	state.PendingRerollCost = 0
+	states[taskID] = state
+}
+
+// recordLockMaterialCost 累加一次“效果锁定”消耗的材料（累计日志 + 行为扣减库存余额）。
+// lockIndex 为该装备当前已有锁数量（0=第一把锁，1=第二把锁）。
+func recordLockMaterialCost(taskID int64, material string, lockIndex int) {
+	cost := LockCost(material, lockIndex)
+	if cost <= 0 {
+		return
+	}
+	stateMu.Lock()
+	state := states[taskID]
+	switch material {
+	case "订制模块":
+		state.Materials.CustomModules += cost
+		state.Materials.LockModules += cost
+	default:
+		state.Materials.CustomLockKeys += cost
+	}
+	states[taskID] = state
+	stateMu.Unlock()
+	decrementInventory(taskID, material, cost)
+}
+
+// GetMaterialUsage 返回当前任务累计的材料消耗。
+func GetMaterialUsage(taskID int64) (MaterialUsage, bool) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state, ok := states[taskID]
+	if !ok {
+		return MaterialUsage{}, false
+	}
+	return state.Materials, true
+}
+
 func isEquipmentPart(part string) bool {
 	for _, candidate := range equipmentParts {
 		if candidate == part {
@@ -224,7 +378,7 @@ func setCurrentPart(taskID int64, part string) error {
 // updatePartEffects 用一次效果变更后的最新词条与数值刷新快照中的指定部位，
 // 使后续决策可直接基于快照调度，无需重新全量扫描四件装备。
 // 结果页按「之前的方案」读取变更槽位文本：词条名 + 数值；
-// 锁定关系：洗4优保留原锁；四攻四优在接受变更后需处理一次性锁失效。
+// 锁定关系：接受变更后保留原锁，由 expireOneTimeLocks 处理一次性锁失效。
 func updatePartEffects(taskID int64, part string, effects, values [maxSlot]string) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
@@ -320,6 +474,15 @@ func displayEffectSlots(effects [maxSlot]string, emptyLabel string) [maxSlot]str
 	return effects
 }
 
+func emptySlotDisplayLabel() string {
+	const key = "tasker.equipment_reroll.empty_slot"
+	label := i18n.T(key)
+	if label == key {
+		return "（空槽位）"
+	}
+	return label
+}
+
 // formatSlotLine 生成单个槽位的扫描展示行：词条 + 数值 + 锁定标签。
 func formatSlotLine(scan slotScanData, emptyLabel string, lockLabels map[SlotLock]string) string {
 	if strings.TrimSpace(scan.Effect) == "" {
@@ -327,6 +490,9 @@ func formatSlotLine(scan slotScanData, emptyLabel string, lockLabels map[SlotLoc
 	}
 	line := scan.Effect
 	if value := strings.TrimSpace(scan.Value); value != "" {
+		if tier, calibrated, ok := resolveEffectTier(scan.Effect, value); ok {
+			value = valueTierDisplay(calibrated, tier)
+		}
 		line += " " + value
 	}
 	if label := lockLabels[scan.Lock]; label != "" {
@@ -341,6 +507,12 @@ func displayScanLines(scan partScan, emptyLabel string) [maxSlot]string {
 		LockPermanent: i18n.T("tasker.equipment_reroll.lock_permanent"),
 		LockOneTime:   i18n.T("tasker.equipment_reroll.lock_one_time"),
 	}
+	return formatScanLines(scan, emptyLabel, lockLabels)
+}
+
+// formatScanLines 生成一件装备三槽的展示行。
+// lockLabels 由调用方决定是否展示锁定状态，槽位、数值、档位和空槽位格式保持统一。
+func formatScanLines(scan partScan, emptyLabel string, lockLabels map[SlotLock]string) [maxSlot]string {
 	var lines [maxSlot]string
 	for i, slot := range scan.Slots {
 		lines[i] = formatSlotLine(slot, emptyLabel, lockLabels)
@@ -357,31 +529,8 @@ func partScanFromArrays(effects [maxSlot]string, values [maxSlot]string, locks [
 	return scan
 }
 
-// GetEquipmentEffects returns the four-part snapshot accumulated for a task.
-// The returned map is a copy and can be safely used by a later custom action.
-func GetEquipmentEffects(taskID int64) (map[string][maxSlot]string, bool) {
-	stateMu.Lock()
-	defer stateMu.Unlock()
-
-	state, ok := states[taskID]
-	if !ok || len(state.Parts) != len(equipmentParts) {
-		return nil, false
-	}
-	for _, part := range equipmentParts {
-		if _, ok := state.Parts[part]; !ok {
-			return nil, false
-		}
-	}
-
-	parts := make(map[string][maxSlot]string, len(state.Parts))
-	for part, scan := range state.Parts {
-		parts[part] = scan.Effects()
-	}
-	return parts, true
-}
-
 // GetEquipmentSlotScans 返回四部位完整扫描快照（词条 + 数值 + 锁定状态）。
-// 当前洗四优决策只使用词条，但后续任务需要数值与锁定关系，因此保留完整快照读取入口。
+// 返回的 map 是副本，可安全供后续 Custom 组件读取。
 func GetEquipmentSlotScans(taskID int64) (map[string]partScan, bool) {
 	stateMu.Lock()
 	defer stateMu.Unlock()

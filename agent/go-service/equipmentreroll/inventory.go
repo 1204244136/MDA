@@ -6,7 +6,7 @@ package equipmentreroll
 //   - "效果变更"只能消耗订制模块；自订密钥不能代替洗词条费用；
 //   - "效果锁定"才可以在订制模块和自订密钥之间二选一支付。
 //
-// 四优模板不锁定，因此每次效果变更固定消耗 1 个订制模块。
+// 四优配额不锁定，因此每次效果变更固定消耗 1 个订制模块。
 
 // Inventory 表示当前两种材料的库存数量。
 type Inventory struct {
@@ -34,8 +34,13 @@ func (inv Inventory) CanAffordReroll(activeLocks int) bool {
 	return inv.CustomModules >= RerollModuleCost(activeLocks)
 }
 
+func affordableRerollCost(inv Inventory, activeLocks int) (int, bool) {
+	cost := RerollModuleCost(activeLocks)
+	return cost, inv.CanAffordReroll(activeLocks)
+}
+
 // EstimateSupportedEffectChanges 估算剩余订制模块在不新增锁定的前提下
-// 还能支持多少次效果变更。四优模板（无锁）下即为库存数本身。
+// 还能支持多少次效果变更。四优配额（无锁）下即为库存数本身。
 func (inv Inventory) EstimateSupportedEffectChanges() int {
 	if inv.CustomModules <= 0 {
 		return 0
@@ -66,9 +71,6 @@ func (inv Inventory) CanAffordLock(material string, lockIndex int) bool {
 	}
 	switch material {
 	case "订制模块":
-		if lockIndex == 0 && cost == 2 || lockIndex == 1 && cost == 3 {
-			// 普通分支
-		}
 		return inv.CustomModules >= cost
 	case "自订密钥":
 		if lockIndex == 0 {
@@ -113,4 +115,11 @@ func (inv Inventory) ChooseLockMaterial(lockIndex int) (string, bool) {
 		return "订制模块", true
 	}
 	return "", false
+}
+
+func selectLockMaterial(inv Inventory, requested string, lockIndex int) (string, bool) {
+	if requested != "" && inv.CanAffordLock(requested, lockIndex) {
+		return requested, true
+	}
+	return inv.ChooseLockMaterial(lockIndex)
 }

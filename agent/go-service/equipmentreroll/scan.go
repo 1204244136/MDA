@@ -19,10 +19,11 @@ type scanSlotParam struct {
 	IsLast bool `json:"is_last"`
 }
 
-// slotScanResult 单个槽位扫描得到的词条 / 数值 / 锁定。
+// slotScanResult 单个槽位扫描得到的词条 / 数值 / 锁定 / 档位。
 type slotScanResult struct {
 	Effect    string // 规范化后的官方效果名称（空 = 空槽 / 未获得效果）
-	Value     string // 数值区域 OCR 原文
+	Value     string // 数值（OCR 校准后，精确到档位表数值）
+	Tier      int    // 效果数值档位（1~15，来自 mapping；0=未确认）
 	Lock      SlotLock
 	RawEffect string // 词条区域 OCR 原文
 	RawValue  string // 数值区域 OCR 原文
@@ -88,19 +89,46 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 		return nil, false
 	}
 
-	log.Info().
+	// 结构化识别 detail 和日志用于诊断；用户可见摘要由 EquipmentRerollScanRouteAction 通过 focus 输出。
+	log.Debug().
 		Str("component", "EquipmentReroll").
 		Int64("task_id", arg.TaskID).
 		Str("part", part).
 		Int("slot", params.Slot).
 		Str("effect", scan.Effect).
-		Str("value", scan.Value).
+		Str("value", valueTierDisplay(scan.Value, scan.Tier)). // 带档位显示（前端/用户）
+		Int("tier", scan.Tier).
+		Str("value_tier", valueTierDisplay(scan.Value, scan.Tier)).
 		Str("lock", scan.Lock.String()).
 		Str("raw_effect", scan.RawEffect).
 		Str("raw_value", scan.RawValue).
 		Msg("equipment slot scanned")
 
-	return &maa.CustomRecognitionResult{Box: maa.Rect{}, Detail: "{}"}, true
+	// 把“带档位的数值”作为结构化识别 detail 返回，供 maafw.log 诊断。
+	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: buildScanSlotDetail(part, params.Slot, scan)}, true
+}
+
+// buildScanSlotDetail 构造槽位扫描的诊断 detail JSON（含档位）。
+// value 字段带档位（如 11.81%（T11）），raw_value 保留 OCR 原值。
+func buildScanSlotDetail(part string, slot int, scan slotScanResult) string {
+	display := valueTierDisplay(scan.Value, scan.Tier)
+	msg := "空槽位"
+	if scan.Effect != "" {
+		msg = fmt.Sprintf("%s %s", scan.Effect, display)
+	}
+	detail := map[string]any{
+		"part":       part,
+		"slot":       slot,
+		"effect":     scan.Effect,
+		"value":      display,
+		"tier":       scan.Tier,
+		"value_tier": display,
+		"raw_value":  scan.RawValue,
+		"lock":       scan.Lock.String(),
+		"message":    msg,
+	}
+	b, _ := json.Marshal(detail)
+	return string(b)
 }
 
 // scanSlotByPipeline 复用 Pipeline 子识别节点读取一个槽位的词条 / 数值 / 锁定。
@@ -120,6 +148,11 @@ func scanSlotByPipeline(ctx *maa.Context, img image.Image, slot int) slotScanRes
 	if err == nil && valueDetail != nil {
 		result.Value = firstRawOCRText(valueDetail)
 		result.RawValue = result.Value
+		// 档位校准：用映射表修正 OCR 数值（输出精确档位值）。
+		if tier, calibrated, ok := resolveEffectTier(result.Effect, result.Value); ok {
+			result.Value = calibrated
+			result.Tier = tier
+		}
 	}
 
 	blueDetail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dLockBlue", slot), img, nil)
@@ -136,4 +169,12 @@ func scanSlotByPipeline(ctx *maa.Context, img image.Image, slot int) slotScanRes
 
 	result.Lock = LockNone
 	return result
+}
+
+// valueTierDisplay 返回 "11.81%（T11）" 形式的展示串（无档位时只返回数值）。
+func valueTierDisplay(value string, tier int) string {
+	if tier <= 0 {
+		return value
+	}
+	return fmt.Sprintf("%s（T%d）", value, tier)
 }

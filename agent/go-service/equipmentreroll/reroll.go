@@ -7,18 +7,28 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/1204244136/MDA/agent/go-service/pkg/maafocus"
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 	"github.com/rs/zerolog/log"
 )
 
 // 本文件实现"洗词条"执行层的 MaaFramework Custom 组件：
-//   - EquipmentRerollPartNeedRecognition：四优/四攻四优决策——选择需要洗的部位 / 判断全部完成；
+//   - EquipmentRerollPartNeedRecognition：自定义配额决策——选择需要洗的部位 / 判断全部完成；
 //   - EquipmentRerollResultDecideRecognition：效果变更结果页决策——点击"效果变更"或"效果维持"。
+//
+// 文档索引：docs/zh_cn/nikke/EquipmentReroll/洗词条策略与Agent逻辑.md
 //
 // 界面坐标说明：结果页坐标基于 1280x720 样本校准。
 
 // partAll 表示一次判断四件装备是否全部达标。
 const partAll = "all"
+
+func routeEquipmentRerollEnd(ctx *maa.Context, currentTaskName string) error {
+	if ctx == nil {
+		return fmt.Errorf("task context is nil")
+	}
+	return ctx.OverrideNext(currentTaskName, []maa.NextItem{{Name: "EquipmentRerollEnd"}})
+}
 
 // 结果页决策通过 CustomRecognitionResult.Detail 传递业务意图（decision），
 // 按钮点击由 Pipeline 节点 EquipmentRerollResultClickKeep/Accept（OCR 定位）完成；
@@ -40,59 +50,18 @@ var resultChangedEffectSlotNodes = [maxSlot]string{
 }
 
 // partNeedParam 是 EquipmentRerollPartNeedRecognition 的参数。
-// 兼容旧任务：仅传 target_effect（四优）；新模板可传 template 或 target_effects。
 type partNeedParam struct {
 	// Part 要判断的部位："头部"/"臂部"/"身躯"/"腿部"，或 "all" 表示判断四件全部达标。
 	Part string `json:"part"`
-	// TargetEffect 单目标效果名称（四优），缺省为"优越代码伤害增加"。
-	TargetEffect string `json:"target_effect"`
-	// TargetEffects 多目标效果名称（四攻四优传 ["优越代码伤害增加","攻击力增加"]）。
-	TargetEffects []string `json:"target_effects"`
-	// Template 模板标识：FourElementalDamage / FourAttackFourElementalDamage，缺省按 TargetEffect 推断。
-	Template string `json:"template"`
+	// GlobalQuota 自定义词条配额：-1 禁止 / 0 不要求 / 1~4 需求。
+	GlobalQuota map[string]int `json:"global_quota"`
 }
 
 func (p *partNeedParam) normalize() {
 	p.Part = strings.TrimSpace(p.Part)
-	p.TargetEffect = strings.TrimSpace(p.TargetEffect)
-	p.Template = strings.TrimSpace(p.Template)
-	for i, e := range p.TargetEffects {
-		p.TargetEffects[i] = strings.TrimSpace(e)
+	if len(p.GlobalQuota) > 0 {
+		p.GlobalQuota = normalizeQuota(p.GlobalQuota)
 	}
-	if len(p.TargetEffects) == 0 && p.TargetEffect != "" {
-		// 旧任务单字段兼容
-	}
-	if p.Template == "" {
-		if len(p.TargetEffects) == 2 {
-			p.Template = "FourAttackFourElementalDamage"
-		} else if p.TargetEffect == TargetEffectElementalDamage || p.TargetEffect == "" {
-			p.Template = "FourElementalDamage"
-		}
-	}
-	if p.TargetEffect == "" && len(p.TargetEffects) == 0 {
-		p.TargetEffect = TargetEffectElementalDamage
-	}
-}
-
-func (p *partNeedParam) isFourAtkFourElem() bool {
-	if p.Template == "FourAttackFourElementalDamage" || p.Template == "FourAtkFourElem" {
-		return true
-	}
-	if len(p.TargetEffects) == 2 {
-		hasElem, hasAtk := false, false
-		for _, e := range p.TargetEffects {
-			if e == TargetEffectElementalDamage {
-				hasElem = true
-			}
-			if e == TargetEffectAttackIncrease {
-				hasAtk = true
-			}
-		}
-		if hasElem && hasAtk {
-			return true
-		}
-	}
-	return false
 }
 
 // EquipmentRerollPartNeedRecognition 判断某个部位是否还需要洗词条。
@@ -115,162 +84,65 @@ func (r *EquipmentRerollPartNeedRecognition) Run(ctx *maa.Context, arg *maa.Cust
 	}
 	params.normalize()
 
-	// 四攻四优分支
-	if params.isFourAtkFourElem() {
-		return r.runFourAtkFourElem(arg, params)
-	}
-
-	// 四优分支（兼容旧）
-	parts, ok := GetEquipmentEffects(arg.TaskID)
-	if !ok {
-		log.Warn().
-			Int64("task_id", arg.TaskID).
-			Str("part", params.Part).
-			Msg("equipment snapshot is incomplete; skip reroll")
+	if !quotaIsValid(params.GlobalQuota) {
+		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("part need recognition requires a valid 1 to 12 affix quota")
 		return nil, false
 	}
-
-	if params.Part == partAll {
-		if AllPartsSatisfied(parts, params.TargetEffect) {
-			log.Info().Str("component", "EquipmentReroll").Msg("all four parts satisfy four-elemental-damage target")
-			return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
-		}
-		return nil, false
-	}
-
-	effects, ok := parts[params.Part]
-	if !ok {
-		log.Warn().
-			Int64("task_id", arg.TaskID).
-			Str("part", params.Part).
-			Msg("part not found in equipment snapshot")
-		return nil, false
-	}
-	if PartHasEffect(effects, params.TargetEffect) {
-		log.Info().
-			Str("component", "EquipmentReroll").
-			Str("part", params.Part).
-			Msg("part already satisfies four-elemental-damage target")
-		return nil, false
-	}
-
-	if err := setCurrentPart(arg.TaskID, params.Part); err != nil {
-		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to mark current part for reroll")
-		return nil, false
-	}
-	log.Info().
-		Str("component", "EquipmentReroll").
-		Int64("task_id", arg.TaskID).
-		Str("part", params.Part).
-		Msg("part needs reroll")
-	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
+	return r.runQuota(arg, params)
 }
 
-func (r *EquipmentRerollPartNeedRecognition) runFourAtkFourElem(arg *maa.CustomRecognitionArg, params partNeedParam) (*maa.CustomRecognitionResult, bool) {
+func (r *EquipmentRerollPartNeedRecognition) runQuota(arg *maa.CustomRecognitionArg, params partNeedParam) (*maa.CustomRecognitionResult, bool) {
+	quota := normalizeQuota(params.GlobalQuota)
+	if !quotaIsValid(quota) {
+		log.Error().
+			Str("component", "EquipmentReroll").
+			Int64("task_id", arg.TaskID).
+			Int("quota_total", quotaTotal(quota)).
+			Msg("custom quota requires 1 to 12 affixes")
+		return nil, false
+	}
+
 	parts, ok := GetEquipmentSlotScans(arg.TaskID)
 	if !ok {
-		// 兼容：若完整快照缺失，退化为词条快照判断
-		effParts, ok2 := GetEquipmentEffects(arg.TaskID)
-		if !ok2 {
-			log.Warn().Int64("task_id", arg.TaskID).Msg("equipment snapshot is incomplete; skip reroll")
-			return nil, false
-		}
-		if params.Part == partAll {
-			if AllPartsSatisfiedFourAtkFourElem(effParts) {
-				log.Info().Str("component", "EquipmentReroll").Msg("all four parts satisfy four-atk-four-elem target")
-				return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
-			}
-			return nil, false
-		}
-		effects, ok := effParts[params.Part]
-		if !ok {
-			return nil, false
-		}
-		if PartHasBothEffects(effects) {
-			return nil, false
-		}
-		if err := setCurrentPart(arg.TaskID, params.Part); err != nil {
-			return nil, false
-		}
-		return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
+		log.Warn().
+			Int64("task_id", arg.TaskID).
+			Str("part", params.Part).
+			Msg("equipment snapshot is incomplete; skip custom quota reroll")
+		return nil, false
 	}
 
 	if params.Part == partAll {
-		// 转成 [maxSlot]string map 供 AllPartsSatisfiedFourAtkFourElem 复用
-		m := make(map[string][maxSlot]string, len(parts))
-		for p, scan := range parts {
-			m[p] = scan.Effects()
-		}
-		if AllPartsSatisfiedFourAtkFourElem(m) {
-			log.Info().Str("component", "EquipmentReroll").Msg("all four parts satisfy four-atk-four-elem target")
+		if AllPartsSatisfiedQuota(parts, quota) {
+			log.Info().Str("component", "EquipmentReroll").Msg("all four parts satisfy custom quota target")
+			// 用户可见摘要由后继 EquipmentRerollFinalSummaryAction 统一通过 focus 输出。
 			return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
 		}
 		return nil, false
 	}
 
-	scan, ok := parts[params.Part]
-	if !ok {
-		log.Warn().Int64("task_id", arg.TaskID).Str("part", params.Part).Msg("part not found in equipment snapshot")
-		return nil, false
-	}
-	if PartHasBothEffects(scan.Effects()) {
-		log.Info().Str("component", "EquipmentReroll").Str("part", params.Part).Msg("part already satisfies four-atk-four-elem target")
+	if !PartNeedsRerollQuota(parts, params.Part, quota) {
+		log.Info().Str("component", "EquipmentReroll").Str("part", params.Part).Msg("part already satisfies custom quota target")
 		return nil, false
 	}
 	if err := setCurrentPart(arg.TaskID, params.Part); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to mark current part for reroll")
 		return nil, false
 	}
-	effects := scan.Effects()
 	log.Info().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Str("part", params.Part).
-		Strs("effects", effects[:]).Msg("part needs reroll (four-atk-four-elem)")
+		Msg("part needs reroll (custom quota)")
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
 }
 
 // resultDecideParam 是 EquipmentRerollResultDecideRecognition 的参数。
 type resultDecideParam struct {
-	// TargetEffect 单目标效果名称，四优缺省。
-	TargetEffect string `json:"target_effect"`
-	// TargetEffects 多目标（四攻四优）。
-	TargetEffects []string `json:"target_effects"`
-	Template      string   `json:"template"`
+	// GlobalQuota 自定义词条配额：-1 禁止 / 0 不要求 / 1~4 需求。
+	GlobalQuota map[string]int `json:"global_quota"`
 }
 
 func (p *resultDecideParam) normalize() {
-	p.TargetEffect = strings.TrimSpace(p.TargetEffect)
-	p.Template = strings.TrimSpace(p.Template)
-	for i, e := range p.TargetEffects {
-		p.TargetEffects[i] = strings.TrimSpace(e)
+	if len(p.GlobalQuota) > 0 {
+		p.GlobalQuota = normalizeQuota(p.GlobalQuota)
 	}
-	if len(p.TargetEffects) == 0 && p.TargetEffect == "" {
-		p.TargetEffect = TargetEffectElementalDamage
-	}
-	if p.Template == "" {
-		if len(p.TargetEffects) == 2 {
-			p.Template = "FourAttackFourElementalDamage"
-		} else if p.TargetEffect != "" {
-			p.Template = "FourElementalDamage"
-		}
-	}
-}
-
-func (p *resultDecideParam) isFourAtkFourElem() bool {
-	if p.Template == "FourAttackFourElementalDamage" || p.Template == "FourAtkFourElem" {
-		return true
-	}
-	if len(p.TargetEffects) == 2 {
-		hasElem, hasAtk := false, false
-		for _, e := range p.TargetEffects {
-			if e == TargetEffectElementalDamage {
-				hasElem = true
-			}
-			if e == TargetEffectAttackIncrease {
-				hasAtk = true
-			}
-		}
-		return hasElem && hasAtk
-	}
-	return false
 }
 
 // EquipmentRerollResultDecideRecognition 在效果变更结果页上读取
@@ -320,48 +192,56 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 		return nil, false
 	}
 
-	// 四攻四优：需完整快照以判定锁定价值
-	if params.isFourAtkFourElem() {
-		return r.decideFourAtkFourElem(arg, params, part, changed, changedValues, changedRaw)
-	}
-
-	parts, ok := GetEquipmentEffects(arg.TaskID)
-	if !ok {
-		log.Error().Str("component", "EquipmentReroll").Msg("result decide snapshot is incomplete")
+	if !quotaIsValid(params.GlobalQuota) {
+		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("result decide requires a valid 1 to 12 affix quota")
 		return nil, false
 	}
-	current := parts[part]
-
-	decision := DecideResultPage(current, changed, params.TargetEffect)
-
-	if decision == ResultDecisionAccept {
-		updatePartEffects(arg.TaskID, part, changed, changedValues)
-	}
-	// 维持或接受后，一次性锁均失效（自订密钥特性）；永久锁保留。
-	// 四优无锁，可安全调用。
-	expireOneTimeLocks(arg.TaskID, part)
-
-	log.Info().
-		Str("component", "EquipmentReroll").
-		Int64("task_id", arg.TaskID).
-		Strs("current", current[:]).
-		Strs("changed", changed[:]).
-		Strs("changed_values", changedValues[:]).
-		Strs("raw_changed", changedRaw[:]).
-		Str("decision", decision.String()).
-		Msg("result page decision made")
-
-	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: resultDecisionDetail(decision)}, true
+	return r.decideQuota(arg, params, part, changed, changedValues, changedRaw)
 }
 
-func (r *EquipmentRerollResultDecideRecognition) decideFourAtkFourElem(arg *maa.CustomRecognitionArg, params resultDecideParam, part string, changed, changedValues, changedRaw [maxSlot]string) (*maa.CustomRecognitionResult, bool) {
+func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomRecognitionArg, params resultDecideParam, part string, changed, changedValues, changedRaw [maxSlot]string) (*maa.CustomRecognitionResult, bool) {
 	scan, ok := GetPartScan(arg.TaskID, part)
 	if !ok {
 		log.Error().Str("component", "EquipmentReroll").Msg("result decide part scan is missing")
 		return nil, false
 	}
+	quota := normalizeQuota(params.GlobalQuota)
+	if !quotaIsValid(quota) {
+		log.Error().
+			Str("component", "EquipmentReroll").
+			Int64("task_id", arg.TaskID).
+			Int("quota_total", quotaTotal(quota)).
+			Msg("custom quota requires 1 to 12 affixes")
+		return nil, false
+	}
+
 	current := scan.Effects()
-	decision := DecideResultPageFourAtkFourElem(current, changed, scan)
+	decision := ResultDecisionKeep
+	decisionDetail := ""
+	if allParts, okAll := GetEquipmentSlotScans(arg.TaskID); okAll {
+		candidateParts := make(map[string]partScan, len(allParts))
+		for p, s := range allParts {
+			candidateParts[p] = s
+		}
+		candidate := candidateParts[part]
+		for i := range candidate.Slots {
+			candidate.Slots[i].Effect = changed[i]
+			candidate.Slots[i].Value = changedValues[i]
+		}
+		candidateParts[part] = candidate
+		// 方向 A：决策改为期望成本。候选全局期望剩余模块数严格更低才接受，
+		// 而非旧积分制的"已匹配配额数 × 100 + 槽位结构分"。
+		// 期望成本由 expectedModulesForQuota 计算（槽位获得概率 / 效果权重 / 同结果排除 / 锁定与重洗费用）。
+		currentCost := expectedModulesForQuota(allParts, quota)
+		candidateCost := expectedModulesForQuota(candidateParts, quota)
+		if candidateCost < currentCost-1e-6 {
+			decision = ResultDecisionAccept
+		}
+		decisionDetail = fmt.Sprintf("current_cost=%.2f candidate_cost=%.2f", currentCost, candidateCost)
+	} else {
+		// 全局快照缺失时的降级路径（单件期望成本比较）。
+		decision = DecideResultPageQuota(current, changed, scan, quota)
+	}
 	if decision == ResultDecisionAccept {
 		updatePartEffects(arg.TaskID, part, changed, changedValues)
 	}
@@ -375,8 +255,8 @@ func (r *EquipmentRerollResultDecideRecognition) decideFourAtkFourElem(arg *maa.
 		Strs("changed_values", changedValues[:]).
 		Strs("raw_changed", changedRaw[:]).
 		Str("decision", decision.String()).
-		Str("template", "FourAttackFourElementalDamage").
-		Msg("result page decision made (four-atk-four-elem)")
+		Str("expected_cost", decisionDetail).
+		Msg("result page decision made (custom quota)")
 
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: resultDecisionDetail(decision)}, true
 }
@@ -447,6 +327,16 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image) ([maxSlot]string
 				Msg("result page slot OCR incomplete; retry recognition")
 			return effects, values, rawTexts, false
 		}
+		// 非空词条必须同时读到百分比；否则接受后无法展示数值/档位，
+		// 让当前帧重试而不是写入不完整的快照。
+		if effects[i] != "" && values[i] == "" {
+			log.Warn().
+				Str("component", "EquipmentReroll").
+				Int("slot", i+1).
+				Str("raw", raw).
+				Msg("result page slot value OCR incomplete; retry recognition")
+			return effects, values, rawTexts, false
+		}
 	}
 	if validCount == 0 {
 		return effects, values, rawTexts, false
@@ -474,6 +364,16 @@ func customRecognitionDetail(arg *maa.CustomActionArg) string {
 	return ""
 }
 
+func resultRouteTarget(detail string) string {
+	var decision struct {
+		Decision string `json:"decision"`
+	}
+	if err := json.Unmarshal([]byte(detail), &decision); err == nil && decision.Decision == "keep" {
+		return "EquipmentRerollResultClickKeep"
+	}
+	return "EquipmentRerollResultClickAccept"
+}
+
 // EquipmentRerollResultRouteAction 根据 EquipmentRerollResultDecideRecognition 返回的决策
 // 路由到对应的点击节点：效果维持（返回效果变更详情页继续洗同一件）
 // 或效果变更（接受变更后回人物页重扫调度）。决策通过 Detail JSON 传递，不依赖坐标。
@@ -487,15 +387,7 @@ func (a *EquipmentRerollResultRouteAction) Run(ctx *maa.Context, arg *maa.Custom
 		return false
 	}
 
-	target := "EquipmentRerollResultClickAccept"
-	if detail := customRecognitionDetail(arg); detail != "" {
-		var d struct {
-			Decision string `json:"decision"`
-		}
-		if err := json.Unmarshal([]byte(detail), &d); err == nil && d.Decision == "keep" {
-			target = "EquipmentRerollResultClickKeep"
-		}
-	}
+	target := resultRouteTarget(customRecognitionDetail(arg))
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route result page decision")
 		return false
@@ -524,20 +416,22 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 		return false
 	}
 
-	target := "EquipmentRerollReturnToDecide"
+	// ResultDecisionAccept 已在结果页识别阶段更新快照；接受按钮完成后立即输出当前部位，
+	// 让用户能实时看到本次效果变更后的三条词条，再继续后续调度。
 	if part, ok := currentEffectPart(arg.TaskID); ok {
-		if scan, ok2 := GetPartScan(arg.TaskID, part); ok2 {
-			if isFourAtkTemplateFromLockNeed(ctx) {
-				if !PartHasBothEffects(scan.Effects()) {
-					target = "EquipmentRerollKeepLockGate"
-				}
-			} else {
-				if !PartHasEffect(scan.Effects(), TargetEffectElementalDamage) {
-					target = "EquipmentRerollKeepLockGate"
-				}
-			}
+		if scan, ok := GetPartScan(arg.TaskID, part); ok {
+			maafocus.Print(ctx, buildPartEffectsMessage(part, scan, "tasker.equipment_reroll.effects_changed"))
+		} else {
+			log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Str("part", part).
+				Msg("accepted result snapshot is missing; skip user-facing effect summary")
 		}
+	} else {
+		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).
+			Msg("accepted result part is missing; skip user-facing effect summary")
 	}
+
+	// 自定义配额：接受后直接回整体调度，由 EquipmentRerollDecide 判断全局缺口。
+	target := "EquipmentRerollReturnToDecide"
 
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route after-accept")

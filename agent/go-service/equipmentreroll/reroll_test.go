@@ -1,33 +1,26 @@
 package equipmentreroll
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestPartNeedParamNormalize(t *testing.T) {
-	p := &partNeedParam{}
+	p := &partNeedParam{Part: "  头部  ", GlobalQuota: map[string]int{"最大装弹数增加": -1, "攻击力增加": 0}}
 	p.normalize()
-	if p.TargetEffect != TargetEffectElementalDamage {
-		t.Fatalf("default target effect = %q, want %q", p.TargetEffect, TargetEffectElementalDamage)
+	if p.Part != "头部" {
+		t.Fatalf("trimmed part = %q, want 头部", p.Part)
 	}
-
-	p = &partNeedParam{TargetEffect: "  攻击力增加  "}
-	p.normalize()
-	if p.TargetEffect != "攻击力增加" {
-		t.Fatalf("trimmed target effect = %q", p.TargetEffect)
+	if quotaTotal(p.GlobalQuota) != 0 {
+		t.Fatalf("quota total should ignore 0 and -1, got %d", quotaTotal(p.GlobalQuota))
+	}
+	if p.GlobalQuota["最大装弹数增加"] != -1 {
+		t.Fatal("forbidden -1 should be kept")
 	}
 }
 
 func TestResultDecideParamNormalize(t *testing.T) {
-	p := &resultDecideParam{}
+	p := &resultDecideParam{GlobalQuota: map[string]int{"优越代码伤害增加": 4, "命中率增加": 0}}
 	p.normalize()
-	if p.TargetEffect != TargetEffectElementalDamage {
-		t.Fatalf("default target effect = %q, want %q", p.TargetEffect, TargetEffectElementalDamage)
-	}
-	p = &resultDecideParam{TargetEffect: " 最大装弹数增加 "}
-	p.normalize()
-	if p.TargetEffect != "最大装弹数增加" {
-		t.Fatalf("trimmed target effect = %q", p.TargetEffect)
+	if quotaTotal(p.GlobalQuota) != 4 {
+		t.Fatalf("quota total = %d, want 4", quotaTotal(p.GlobalQuota))
 	}
 }
 
