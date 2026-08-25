@@ -30,7 +30,7 @@
     "EquipmentRerollHeadDetailsEntered": {
         "desc": "确认处于头部装备详情页面",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     460,
@@ -38,9 +38,7 @@
                     110,
                     85
                 ],
-                "expected": [
-                    "头部"
-                ]
+                "template": "EquipmentReroll/Head.png"
             }
         },
         "pre_delay": 0,
@@ -92,7 +90,7 @@
     "EquipmentRerollArmsDetailsEntered": {
         "desc": "确认处于臂部装备详情页面",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     460,
@@ -100,9 +98,7 @@
                     110,
                     85
                 ],
-                "expected": [
-                    "臂部"
-                ]
+                "template": "EquipmentReroll/Arms.png"
             }
         },
         "pre_delay": 0,
@@ -154,7 +150,7 @@
     "EquipmentRerollTorsoDetailsEntered": {
         "desc": "确认处于身躯装备详情页面",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     460,
@@ -162,9 +158,7 @@
                     110,
                     85
                 ],
-                "expected": [
-                    "身躯"
-                ]
+                "template": "EquipmentReroll/Torso.png"
             }
         },
         "pre_delay": 0,
@@ -216,7 +210,7 @@
     "EquipmentRerollLegsDetailsEntered": {
         "desc": "确认处于腿部装备详情页面",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     460,
@@ -224,9 +218,7 @@
                     110,
                     85
                 ],
-                "expected": [
-                    "腿部"
-                ]
+                "template": "EquipmentReroll/Legs.png"
             }
         },
         "pre_delay": 0,
