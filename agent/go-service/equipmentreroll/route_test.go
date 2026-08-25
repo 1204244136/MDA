@@ -79,11 +79,14 @@ func TestLockSelectRouteTarget(t *testing.T) {
 }
 
 func TestMaterialCheckAndChoosePartRouteTargets(t *testing.T) {
-	if got := materialCheckRouteTarget(true); got != "EquipmentRerollFinalSummary" {
+	if got := materialCheckRouteTarget(true, false); got != "EquipmentRerollFinalSummary" {
 		t.Fatalf("standalone material check route = %q", got)
 	}
-	if got := materialCheckRouteTarget(false); got != "EquipmentRerollDecide" {
+	if got := materialCheckRouteTarget(false, false); got != "EquipmentRerollDecide" {
 		t.Fatalf("full material check route = %q", got)
+	}
+	if got := materialCheckRouteTarget(false, true); got != "EquipmentRerollSingleDecide" {
+		t.Fatalf("single equipment material check route = %q", got)
 	}
 
 	tests := map[string]string{
@@ -103,6 +106,42 @@ func TestMaterialCheckAndChoosePartRouteTargets(t *testing.T) {
 	}
 }
 
+func TestScanNextItemsSingleModeStopsAfterSelectedPart(t *testing.T) {
+	// 角色模式：非腿部链到下一部位，腿部才做物资检测。
+	for part, wantNext := range map[string]string{
+		"头部": "EquipmentRerollOpenArmsDetails",
+		"臂部": "EquipmentRerollOpenTorsoDetails",
+		"身躯": "EquipmentRerollOpenLegsDetails",
+	} {
+		items, ok := scanNextItems(part, false)
+		if !ok {
+			t.Fatalf("scanNextItems(%q, false) not ok", part)
+		}
+		if len(items) != 2 || items[0].Name != "[JumpBack]EquipmentRerollScanCloseDetails" || items[1].Name != wantNext {
+			t.Fatalf("scanNextItems(%q, false) = %+v, want close + %s", part, items, wantNext)
+		}
+	}
+	items, ok := scanNextItems("腿部", false)
+	if !ok || len(items) != 1 || items[0].Name != "EquipmentRerollMaterialCheckEnter" {
+		t.Fatalf("character mode legs route = %+v", items)
+	}
+
+	// 单件模式：任意部位扫完都直接进物资检测，不再链到下一件。
+	for _, part := range equipmentParts {
+		items, ok := scanNextItems(part, true)
+		if !ok {
+			t.Fatalf("scanNextItems(%q, true) not ok", part)
+		}
+		if len(items) != 1 || items[0].Name != "EquipmentRerollMaterialCheckEnter" {
+			t.Fatalf("single mode %q route = %+v, want material check only", part, items)
+		}
+	}
+
+	if _, ok := scanNextItems("未知", false); ok {
+		t.Fatal("unknown part should not produce a route")
+	}
+}
+
 func TestRouteActionsRejectNilArguments(t *testing.T) {
 	tests := []struct {
 		name string
@@ -116,6 +155,8 @@ func TestRouteActionsRejectNilArguments(t *testing.T) {
 		{name: "keep lock", run: (&EquipmentRerollKeepLockRouteSlotAction{}).Run},
 		{name: "choose part", run: (&EquipmentRerollChoosePartAction{}).Run},
 		{name: "material check", run: (&EquipmentRerollAfterMaterialCheckAction{}).Run},
+		{name: "single decide", run: (&EquipmentRerollSingleDecideAction{}).Run},
+		{name: "single scan route", run: (&EquipmentRerollSingleScanRouteAction{}).Run},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

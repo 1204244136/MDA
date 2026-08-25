@@ -219,15 +219,23 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 
 ## 4. 自定义词条配额（唯一模型）
 
-当前 MDA 只支持**自定义词条配额**，不再提供模板选择。每个效果可填：
+当前 MDA 只支持**自定义词条配额**，不再提供模板选择。角色模式（`EquipmentRerollMode=Character`）下，
+9 种效果各有一个独立 select（`EquipmentRerollQuota<Effect>`），直选该效果的需求数量：
 
-- `-1`：禁止词条。任意装备出现该效果都视为整体目标未完成，策略会尽量把它洗成其它效果；
-- `0`：不要求；
-- `1-4`：需求数量。
+- `禁止`：禁止词条。任意装备出现该效果都视为整体目标未完成，策略会尽量把它洗成其它效果；
+- `不要求`：不要求；
+- `需求 1` ~ `需求 4`：需求数量（单件装备不能出现重复效果，单效果上限 4 = 四件装备各一条）。
 
-全部正数配额合计必须在 `1-12` 条之间。由于同一件装备不能出现重复效果，单效果配额上限为 4（四件装备各一条）。
+全部正数配额合计必须在 `1-12` 条之间（Go 端 `quotaIsValid` 校验）。
 
-> 说明：范围用连字符 `1-4`/`1-12`，不要用波浪号 `1~4`/`1~12`——部分界面/字体把 `~` 连在数字间渲染成类似**删除线**的横线（见任务/选项描述 `option.EquipmentRerollQuota.description`）。中文界面对应为“每种效果可填 -1（禁止）、0（不要求）或 1-4（需求数量），全部正数合计 1-12 条…”。
+> 接口统一说明：角色配额的每个效果 select 与单件模式的"需求词条行"select 一样，case 直接写死语义值，
+> 配置统一写入承载点 **`EquipmentRerollLockNeed.attach` 的扁平顶层键**（模式 `mode`；单件部位 `part`；
+> 角色 `quota_<效果名>`；单件 `want1/2/3`、`slot1/2/3`）。选择 attach 是因为 MaaFramework 对同一节点多次
+> override 时 `custom_recognition_param` 是**整体替换**（后覆盖会丢失前值），而 attach 顶层键按 key 合并互不覆盖。
+> 其余组件（AllSatisfied / ChoosePart / ResultPage / KeepLockCheck / SingleDecide 等）
+> 统一经 `loadCarrierConfig` 从承载点读取，不再各自接收 override。
+> 范围说明：需求数量用连字符 `1-4`/`1-12`，不要用波浪号 `1~4`/`1~12`——部分界面/字体把 `~` 连在数字间
+> 渲染成类似**删除线**的横线。
 
 **常见示例：**
 
@@ -1029,7 +1037,7 @@ EquipmentRerollMain
 - 每次锁定：按实际材料（自订密钥/订制模块）和当前锁位记录消耗；
 - **仅在任务成功（`EventStatusSucceeded`）结束时**输出本次累计消耗（用户可见，`logMaterialConsumption`）：`custom_modules`（订制模块总消耗）、`custom_lock_keys`（自订密钥）、`reroll_modules`（其中效果变更模块）、`lock_modules`（其中订制模组锁定模块）。失败/手动停止**不打印**（失败时 pending 未确认成本也不计入）。
 - **成功结束时的装备详情面向用户**：`EquipmentRerollFinalSummaryAction` 构造最终四件装备详情与库存摘要并通过 `maafocus.Print` 发送 focus。逐槽自定义识别 Detail 仍保留在 `maafw.log` 供诊断；`logMaterialConsumption` 在成功时向 go-service.log 输出本次材料消耗（`custom_modules` / `custom_lock_keys` / `reroll_modules` / `lock_modules`）。
-- **任务结束摘要（独立 focus 事件）**：管线节点 `EquipmentRerollFinalSummary` 使用 `DirectHit + EquipmentRerollFinalSummaryAction`，置于 `EquipmentRerollEnd` 之前；独立 `EquipmentDetect` 路由 `EquipmentRerollAfterMaterialCheckAction` → `EquipmentRerollFinalSummary`，完整任务 `EquipmentRerollAllSatisfied` → `EquipmentRerollFinalSummary`。动作把“文本加工”集中在一处，再通过 `_GO_SERVICE_FOCUS_` 发送 `【装备详情】…（含 11.81%（T11））…【库存】订制模块 N / 自订密钥 M`，与 MaaEnd 的用户可见输出方式一致。
+- **任务结束摘要（独立 focus 事件）**：管线节点 `EquipmentRerollFinalSummary` 使用 `DirectHit + EquipmentRerollFinalSummaryAction`，置于 `EquipmentRerollEnd` 之前；调试用的独立扫描入口（`EquipmentRerollScanMain`）路由 `EquipmentRerollAfterMaterialCheckAction` → `EquipmentRerollFinalSummary`，完整任务 `EquipmentRerollAllSatisfied` → `EquipmentRerollFinalSummary`。动作把“文本加工”集中在一处，再通过 `_GO_SERVICE_FOCUS_` 发送 `【装备详情】…（含 11.81%（T11））…【库存】订制模块 N / 自订密钥 M`，与 MaaEnd 的用户可见输出方式一致。摘要按“已扫描到的部位”输出：角色模式四件，单件模式只有选定的那一件。
 - `MaterialUsage` 结构含 `CustomModules` / `CustomLockKeys` / `RerollModules` / `LockModules`，对应 `recordRerollModuleCost` / `recordLockMaterialCost` 记账分解。
 
 **锁定材料双模式与获取成本**（模拟 + 决策实现）：
@@ -1110,3 +1118,168 @@ EquipmentRerollMain
 | `clearMonitorState` / `expireOneTimeLocks` | `taskLifecycle OnTaskerTask` 及每次结果页后（Keep/Accept）                                  |
 
 > 锁定卡片文案校准：选中“订制模组”后提示“在解除固定之前，半永久选取的效果不会发生更改。”；选中“自订密钥”后提示“在锁定之后更改效果或重新设置数值时，会解除选取效果的锁定状态。”；二次通知统一为“为固定所选效果，将进行锁定。确定要进行吗？消耗资金 2/20”。
+
+## 9. 单件模式（洗单个装备词条）
+
+> 本节描述 `EquipmentReroll` 任务下的**单件模式**（选项 `EquipmentRerollMode` = `Single`）的实现。
+> 洗角色词条与洗单件词条是同一任务（入口 `EquipmentRerollMain`）下的**同级互斥模式**：
+> 选项 `EquipmentRerollMode`（select，默认 `Character`）决定入口路由与物资检测后的决策分支，
+> `EquipmentRerollSinglePart`（选择部位）与 `EquipmentRerollSingleWant1/2/3` + `EquipmentRerollSingleWant1/2/3Slot`（三组“需求词条+槽位”直选）
+> 是 `Single` case 的嵌套子选项。
+> 纯决策逻辑集中在 `agent/go-service/equipmentreroll/single.go`，入口动作在 `single_action.go`；
+> 槽位概率 / 期望成本 DP 复用了 `plan_dp.go`（新增 `slotAllow` 槽位限定感知）。
+
+### 9.1 定位与区别
+
+角色模式（§1.2/§4/§8）把四件装备当作**一个整体**，用全局配额 + 分配感知 + 全局有限步前瞻做跨装备的
+复杂组合调度。**单件模式**只洗用户选定的一件装备，明确“不做跨装备的复杂搭配策略计算”，只在单件内部
+做目标判定与锁定决策。两者共享同一套原子化 Pipeline / Go 组件（扫描、锁定、效果变更、结果页），
+通过承载点 `EquipmentRerollLockNeed.attach.mode` 切换模式：
+
+| 维度 | 角色模式（EquipmentRerollMode=Character） | 单件模式（EquipmentRerollMode=Single） |
+| --- | --- | --- |
+| 任务 / 入口 | `EquipmentReroll`（入口 `EquipmentRerollMain`） | 同一任务、同一入口（由 `attach.mode` 分流） |
+| 操作对象 | 四件装备联合调度 | 用户选定的一件（头部/臂部/身躯/腿部） |
+| 扫描范围 | 四件全扫，腿部扫完做一次物资检测 | **只扫选定那一件**，扫完即做物资检测 |
+| 目标模型 | 全局配额（-1 禁止 / 0 / 1-4，合计 1-12） | 单件目标（1-3 条需求词条，每条可限定落槽） |
+| 槽位限定 | 不限定（只看是否持有） | 每个需求词条可限定落槽（不选则任意槽位均可） |
+| 词条数量上限 | 1-12（四件 × 三槽） | 1-3（单件三槽、同效果不重复） |
+| 锁定决策 | 分配感知 + 先苦后甜 / 拿到就锁（跨装备） | 需求 <2 不锁；==2 拿到就锁（期望收益差距 DP）；==3 先苦后甜（单件内） |
+| 组合策略 | 有（分配感知、承载者流转、交换） | 无（纯单件局部目标） |
+
+### 9.2 任务选项
+
+**`EquipmentRerollMode`**（select，父级、互斥）：
+
+| case | 含义 | 嵌套子选项 | pipeline_override |
+| --- | --- | --- | --- |
+| `Character`（默认） | 洗角色词条 | 9 个效果配额 select（`EquipmentRerollQuotaElementalDamage` 等） | `attach.mode = "character"` |
+| `Single` | 洗单件词条 | `EquipmentRerollSinglePart`、`EquipmentRerollSingleWant1/2/3` | `attach.mode = "single"`；`EquipmentRerollScanDetailsPageEntered.next → EquipmentRerollSingleScanRoute`（只扫选定那一件） |
+
+两种模式共用入口 `EquipmentRerollMain`（RuntimeQuotaCheck 计费）与扫描 + 物资检测流程；
+`EquipmentRerollAfterMaterialCheck` 读取承载点 `attach.mode` 分流到 `EquipmentRerollDecide`（角色）或
+`EquipmentRerollSingleDecide`（单件）。
+
+> **模式判定只有 `attach.mode` 一个来源。** 早期实现用“单件目标是否为空”反推模式，
+> 结果一个非法的单件配置（例如把同一个词条选了两次）会让目标解析为空，从而**静默退化**成
+> 角色模式的默认配额去洗，用户完全无从察觉。现在配置非法就明确报错并结束任务（§9.9）。
+
+**`EquipmentRerollSinglePart`**（select，嵌套于 Single）：选择要洗的部位（头部/臂部/身躯/腿部），默认头部。
+写入 `attach.part`，同时决定扫描起点与决策对象。
+
+**需求词条行**（`EquipmentRerollSingleWant1/2/3` + `EquipmentRerollSingleWant1/2/3Slot`，嵌套于 Single；
+建模借鉴 MaaEnd 的逐项 select：每个语义独立控件、case 直接写死语义值，不做数字编码）：
+
+- `EquipmentRerollSingleWantN`（select）：第 N 条需求词条，case = `None`（不需求，默认）+ 9 种官方效果名直选；
+- `EquipmentRerollSingleWantNSlot`（select，嵌套在对应 WantN 的效果 case 下）：该词条的槽位限定，
+  case = `Any`（任意槽位，默认）/ `Slot1` / `Slot2` / `Slot3`。
+- 每个 case 的 `pipeline_override` 把语义值**写死**到统一配置承载节点
+  `EquipmentRerollLockNeed.attach`（顶层键，多 option 覆盖互不覆盖——不同于整体替换的 `custom_recognition_param`）：
+  - 效果 case → `attach.wantN = "<官方效果名>"`；
+  - 槽位 case → `attach.slotN = 0（任意）/ 1 / 2 / 3`。
+- Go 端 `singleTargetFromRows` 把三行组装为 `effect -> slot` 目标：空行忽略、同一效果重复选择判为非法；
+  其余组件（锁定、结果页、接受路由、单件决策、扫描路由）统一经 `loadCarrierConfig(ctx)` 读取该节点配置，
+  不再各自接收 target 参数。识别器按帧调用，因此一次 `Run` 内只读一次并把 `carrierConfig` 往下传。
+
+全部需求词条（三行中非 None 的行数）合计必须为 **1-3 条**
+（单件三槽、同效果不重复；不能把两条词条限定到同一槽——由 `singleTargetProblem` 校验并返回原因码）。
+单件模式暂不提供“禁止词条”概念（角色模式 `-1` 仍可用）。
+
+### 9.3 锁定决策（期望收益差距）
+
+单件模式锁定决策 `singleDesiredLockSlot` 按需求词条数分档（复用 `plan_dp.go` 的 slot-aware DP）：
+
+- **需求 == 1**：不锁。单条目标找到即达标，锁反而抬升重洗成本（每锁 1 槽多 1 模块）。
+- **需求 == 2**：**拿到就锁**。对已落在“允许槽位”的可锁 2/3 号槽，用
+  `bestLockSlotAndCostForTarget` 比较“锁该槽 vs 不锁”的期望剩余订制模块成本，选**期望收益差距
+  （不锁成本 − 锁后成本，越低越优）**最大的槽锁定；若无收益则回退不锁。
+- **需求 == 3**：**先苦后甜**。三槽全满（饱和），先便宜刷最难的 3 号（获得概率 30%）落地才锁，
+  再顺序锁 2 号；1 号槽策略上不锁（100% 易得、锁 1 追 23 代价高）。
+
+锁定材料策略与角色模式一致（有自订密钥用密钥、不足再订制模块；模块锁定时计入获取成本，决策更保守）。
+
+### 9.4 达标判定与结果页决策
+
+- **达标判定** `singlePartSatisfied`：每个需求词条都出现在其允许槽位（`effectInAllowedSlot`），
+  且不存在任何禁止词条。
+- **结果页决策** `DecideResultPageSingle`：用 slot-aware 期望成本比较当前/候选状态，
+  候选期望成本严格更低才接受；持平且“允许槽位上的有效词条数”上升也接受（短期最优，不覆盖宏观更差）。
+
+### 9.5 slot-aware 期望成本与原子化复用
+
+为了支持槽位限定，`plan_dp.go` 的 DP 核心增加了一个**可选的 `slotAllow` 参数**
+（`expectedModulesForPartCore(scan, quota, required, forbidden, lockSlot, slotAllow)`）：
+
+- `nil` 表示任意槽位 → 与角色模式完全一致（行为不变，全部既有测试通过）；
+- 非空时，`compressEffectSlot` 会把“需求效果落在不允许槽位”压缩为 `other`，完成判定
+  `partHasRequiredAndNoForbiddenSlot` 只在允许槽位上计数，锁定在非允许槽位的需求效果视为不可达。
+- 角色模式包装函数（`expectedModulesForPartAllocated`、`bestLockSlotAndCostForRequired`、
+  `desiredLockSlotBitterSweet`、`lockStillWorthIt`）保持不变，内部传 `nil` 就等价于原有逻辑。
+- 单件模式经 `singleExpectedCost` / `bestLockSlotAndCostForTarget` 等入口按 `slotAllow` 调用同一个
+  `expectedModulesForPartCore`，
+  复用同一套概率模型（槽位获得概率 / 效果权重 / 同件不重复排除）。
+
+> 这是“若原有逻辑不够原子化则对齐进行拆分”的落点：把 DP 的“按需效果是否存在”判断拆成
+> “按需效果是否在允许槽位存在”，角色与单件两条路径共用同一概率模型。
+
+### 9.6 Pipeline / Go 节点对应（新增）
+
+| 节点 | 职责 | 组件 |
+| --- | --- | --- |
+| `EquipmentRerollMain` | 共用入口（RuntimeQuotaCheck 计费）→ `EquipmentRerollFlow`（两种模式同一条编排） | membership `RuntimeQuotaCheckAction`、任务选项 `EquipmentRerollMode` |
+| `EquipmentRerollSingleScanRoute` | 单件扫描起点：跳过其余三件，直接打开 `attach.part` 选定的那一件详情 | 新增 `EquipmentRerollSingleScanRouteAction` |
+| `EquipmentRerollSingleDecide` | 判断选定部位是否达标：达标→摘要/结束；目标不可达→告知用户并结束；否则打开该部位详情（重设 AfterOpen 锚点→LockGate） | 新增 `EquipmentRerollSingleDecideAction` |
+| `EquipmentRerollSingleReturnToDecide` | 单件一次效果变更后回单件决策（不再重新扫描） | - |
+| `EquipmentRerollAfterMaterialCheck` | 物资检测后路由：独立扫描→摘要；角色（mode=character）→Decide；单件（mode=single）→SingleDecide | `EquipmentRerollAfterMaterialCheckAction`（读 `attach.mode` 分流） |
+| `EquipmentRerollLockNeed` / `KeepLockCheck` | 配置承载点 + 锁定判定（单件模式：`singleDesiredLockSlot`） | `EquipmentRerollLockCheckRecognition`（`lockCheckSingle` 分支） |
+| `EquipmentRerollResultPage` | 结果页决策（单件模式：`DecideResultPageSingle`） | `EquipmentRerollResultDecideRecognition`（`decideSingle` 分支） |
+| `EquipmentRerollAfterAccept` | 接受后路由（单件模式→`EquipmentRerollSingleReturnToDecide`） | `EquipmentRerollAfterAcceptRouteAction`（读 `attach.mode`） |
+| `EquipmentRerollLockSelectMaterial` / `LockDone` / `LockRouteSlot` / `KeepLockRoute` | 材料选择 / 二次锁 / 待锁槽路由（统一经 `desiredLockSlotForConfig` 按模式回退） | 复用，内部改用模式感知的 `desiredLockSlotForCurrentMode` |
+
+> **复用原则**：除上述 Go 组件增加模式分支、以及新增一个扫描起点路由动作外，单件模式**不新增**打开详情、
+> 锁定页、效果变更、结果按钮等原子化节点；所有识别参数仍只维护在 Pipeline，Go 不硬编码任何识别 ROI。
+
+### 9.7 会员配额
+
+两种模式共用入口 `EquipmentRerollMain`，属于**高消耗**任务（`taskersink/membership/multiplier.go`
+的 `taskTierByEntry` 中 `taskTierHigh`）：非会员按 5 倍额度消耗、配额路由走专项优先
+（`quotaRouteSpecialThenRegular`）。单件模式不额外注册入口，直接复用角色模式的计费口径。
+
+### 9.8 数据示例（单件，期望订制模块基线）
+
+与 §4.4 表同口径的“单件”直观基线（无初始锁定，目标达成即停；仅示意量级，未逐样本枚举）：
+
+| 目标 | 词条数 | 期望模块量级 |
+| --- | ---: | --- |
+| 优（任意槽） | 1 | 低（找到即停，不锁） |
+| 优@3 | 1 | 中（需刷 30% 槽，不锁保低成本） |
+| 优@3 + 攻@2 | 2 | 中高（锁优@3 后按 2 模块/刷追攻） |
+| 优@3 + 攻@2 + 装弹（任意） | 3 | 高（先苦后甜，逐步锁 3、2） |
+
+> 具体期望值由 `singleExpectedCost` 按实际快照与库存计算，单个目标是否锁由
+> `singleDesiredLockSlot` 的期望收益差距决定；此处仅说明量级与策略分档，不属于运行时契约。
+
+### 9.9 不可达目标与非法配置的拦截
+
+期望成本模型用哨兵值 `costUnreachable`（`plan_dp.go`）表示“这个目标做不到”，触发场景：
+
+- 禁止词条被**永久锁**死在某槽（锁定无法解除）；
+- **需求词条被锁在了槽位限定不允许的槽**——例如 3 号槽已锁“攻击力增加”，而用户把“攻击力增加”
+  限定到 2 号槽。锁定既不能解除、词条也不会跨槽移动；
+- 剩余可洗空槽数少于需求缺口。
+
+`costUnreachable` 是**哨兵而不是“很贵的成本”**，必须在决策入口拦截并结束任务：
+
+| 模式 | 拦截点 | 判定 | 用户提示 |
+| --- | --- | --- | --- |
+| 单件 | `EquipmentRerollSingleDecideAction` | `singleTargetUnreachable`（`singleExpectedCost >= costUnreachable`） | `tasker.equipment_reroll.single_target_unreachable` |
+| 角色 | `EquipmentRerollChoosePartAction` | `expectedModulesForQuota >= costUnreachable` | `tasker.equipment_reroll.quota_unreachable` |
+
+配置本身非法（重复选同一词条、两条限定到同一槽、需求数不在 1-3、部位未选）时同样立即结束，
+`carrierConfig.TargetProblem` 带原因码进日志，用户侧发
+`tasker.equipment_reroll.single_target_invalid` / `single_part_invalid`。
+
+> **为什么必须拦截**：若不拦截，`singlePartSatisfied` 恒为 false（一直判定“还没达标，继续洗”），
+> 而结果页当前/候选成本同为 `costUnreachable`、比较后恒判 `Keep`（一直不接受）。任务会一路洗下去，
+> 直到 `EquipmentRerollPrepareRerollCostAction` 发现订制模块耗尽才结束——等于把用户全部付费材料
+> 消耗在一个数学上不可能达成的目标上，且日志里没有任何一条说明原因。

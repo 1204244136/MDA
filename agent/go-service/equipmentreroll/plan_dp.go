@@ -8,6 +8,14 @@ import (
 	"sync"
 )
 
+// costUnreachable 是"目标不可达"的哨兵成本值。
+//
+// 期望成本模型里，任何无法通过效果变更达成的状态都返回这个值，例如：禁止词条被永久
+// 锁死、需求词条被锁在了槽位限定不允许的槽、剩余空槽数少于缺口。它是哨兵而不是真实
+// 成本——调用方拿到 >= costUnreachable 的结果必须当成"这个目标做不到"来处理并结束任务，
+// 而不是当成"很贵但可以继续洗"，否则会把用户的材料全部消耗在不可能达成的目标上。
+const costUnreachable = 1e9
+
 // 全局 memo 缓存：同一 (装备快照, 配额, 全局计数, 锁定位) 的 DP 结果只算一次。
 var (
 	dpCacheMu sync.Mutex
@@ -57,8 +65,9 @@ func strSliceKey(list []string) string {
 	return strings.Join(cp, "\x01")
 }
 
-// dpCacheKeyCore 以“显式 required/forbidden 集合”为缓存键（DP 只依赖这两者，不依赖 counts）。
-func dpCacheKeyCore(scan partScan, quota map[string]int, required, forbidden []string, lockSlot int) string {
+// dpCacheKeyCore 以“显式 required/forbidden 集合 + 槽位限定”为缓存键
+// （DP 只依赖这些，不依赖 counts）。slotAllow 为空时表示不限定槽位。
+func dpCacheKeyCore(scan partScan, quota map[string]int, required, forbidden []string, lockSlot int, slotAllow map[string]map[int]bool) string {
 	var b strings.Builder
 	for i := 0; i < maxSlot; i++ {
 		b.WriteString(scan.Slots[i].Effect)
@@ -73,6 +82,28 @@ func dpCacheKeyCore(scan partScan, quota map[string]int, required, forbidden []s
 	b.WriteString(strSliceKey(forbidden))
 	b.WriteByte('#')
 	b.WriteString(strconv.Itoa(lockSlot))
+	if len(slotAllow) > 0 {
+		names := make([]string, 0, len(slotAllow))
+		for e := range slotAllow {
+			names = append(names, e)
+		}
+		sort.Strings(names)
+		b.WriteByte('#')
+		for _, e := range names {
+			b.WriteString(e)
+			b.WriteByte('=')
+			slots := make([]int, 0, len(slotAllow[e]))
+			for s := range slotAllow[e] {
+				slots = append(slots, s)
+			}
+			sort.Ints(slots)
+			for _, s := range slots {
+				b.WriteString(strconv.Itoa(s))
+				b.WriteByte(',')
+			}
+			b.WriteByte(';')
+		}
+	}
 	return b.String()
 }
 
@@ -226,7 +257,9 @@ func forbiddenLabel(effect string) string {
 	return forbiddenLabelPrefix + effect
 }
 
-func compressEffect(effect string, required, forbidden map[string]bool) string {
+// compressEffectSlot 槽位感知的效果压缩：限定槽位（slotAllow）时，
+// 需求效果出现在“不允许的槽位”会压缩为 other（不满足完成判定）。
+func compressEffectSlot(effect string, slot int, required, forbidden map[string]bool, slotAllow map[string]map[int]bool) string {
 	if effect == "" {
 		return ""
 	}
@@ -234,7 +267,10 @@ func compressEffect(effect string, required, forbidden map[string]bool) string {
 		return forbiddenLabel(effect)
 	}
 	if required[effect] {
-		return effect
+		if allow := slotAllow[effect]; len(allow) == 0 || allow[slot] {
+			return effect
+		}
+		return otherEffectLabel
 	}
 	return otherEffectLabel
 }
@@ -247,13 +283,14 @@ type compressedOutcome struct {
 
 // enumerateCompressedOutcomes 枚举未锁定槽位的压缩结果，并按压缩向量聚合概率。
 // lockedEffects 为该件锁定槽位所持效果，一并计入排除池（见 enumerateSlotOutcomes）。
-func enumerateCompressedOutcomes(unlocked []int, required, forbidden map[string]bool, lockedEffects []string) []compressedOutcome {
+// slotAllow 非空时按槽位压缩（需求效果只允许出现在限定槽位，其余槽位按 other 处理）。
+func enumerateCompressedOutcomes(unlocked []int, required, forbidden map[string]bool, lockedEffects []string, slotAllow map[string]map[int]bool) []compressedOutcome {
 	raw := enumerateSlotOutcomes(unlocked, lockedEffects)
 	aggregated := make(map[string]*compressedOutcome)
 	for _, outcome := range raw {
 		values := make([]string, len(unlocked))
 		for i, slot := range unlocked {
-			values[i] = compressEffect(outcome.effects[slot], required, forbidden)
+			values[i] = compressEffectSlot(outcome.effects[slot], slot, required, forbidden, slotAllow)
 		}
 		key := strings.Join(values, "\x00")
 		if existing, ok := aggregated[key]; ok {
@@ -278,12 +315,15 @@ func quotaStateKey(effects [maxSlot]string) string {
 func expectedModulesForPartAllocated(scan partScan, quota map[string]int, required []string, lockSlot int) float64 {
 	quota = normalizeQuota(quota)
 	forbidden := forbiddenEffects(quota)
-	return expectedModulesForPartCore(scan, quota, required, forbidden, lockSlot)
+	return expectedModulesForPartCore(scan, quota, required, forbidden, lockSlot, nil)
 }
 
-func expectedModulesForPartCore(scan partScan, quota map[string]int, required, forbidden []string, lockSlot int) float64 {
+// expectedModulesForPartCore 单件在给定 required/forbidden、锁定位与槽位限定下的期望剩余模块成本。
+// slotAllow：effect -> 允许出现的槽位集合（0 基下标）；为 nil 表示任意槽位（角色模式口径）。
+// 返回 costUnreachable 表示当前目标不可达，调用方必须当成“做不到”处理而不是“很贵”。
+func expectedModulesForPartCore(scan partScan, quota map[string]int, required, forbidden []string, lockSlot int, slotAllow map[string]map[int]bool) float64 {
 	quota = normalizeQuota(quota)
-	cacheKey := dpCacheKeyCore(scan, quota, required, forbidden, lockSlot)
+	cacheKey := dpCacheKeyCore(scan, quota, required, forbidden, lockSlot, slotAllow)
 	dpCacheMu.Lock()
 	if cached, ok := dpCache[cacheKey]; ok {
 		dpCacheMu.Unlock()
@@ -320,29 +360,45 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 	for i, slot := range scan.Slots {
 		if locked[i] && slot.Effect != "" && forbiddenSetMap[slot.Effect] {
 			// 禁止词条一旦锁定便无法通过重洗移除，当前目标不可达。
-			return 1e9
+			return costUnreachable
+		}
+		// 槽位限定：需求效果被锁定在“不允许的槽位”时无法移动到限定槽，目标不可达。
+		if locked[i] && slot.Effect != "" && requiredSetMap[slot.Effect] {
+			if allow := slotAllow[slot.Effect]; len(allow) > 0 && !allow[i] {
+				return costUnreachable
+			}
 		}
 	}
 	missingRequired := 0
 	for effect := range requiredSetMap {
 		if partHasEffect(scan, effect) {
-			continue
+			// 已有该效果，但需确认其落在允许槽位（锁定/未锁定均可判定，见下文完成判定）。
+			ok := false
+			for i, e := range scan.Slots {
+				if e.Effect == effect && (len(slotAllow[effect]) == 0 || slotAllow[effect][i]) {
+					ok = true
+					break
+				}
+			}
+			if ok {
+				continue
+			}
 		}
 		if effectWeights[effect] <= 0 {
 			// 未知效果不可能由效果变更产生。
-			return 1e9
+			return costUnreachable
 		}
 		missingRequired++
 	}
 	if missingRequired > len(unlocked) {
 		// 每个槽位不能重复同一效果，剩余空槽不足以补齐缺口。
-		return 1e9
+		return costUnreachable
 	}
 	if len(unlocked) == 0 {
-		if partHasRequiredAndNoForbidden(scan.Effects(), requiredSetMap, forbiddenSetMap) {
+		if partHasRequiredAndNoForbiddenSlot(scan.Effects(), requiredSetMap, forbiddenSetMap, slotAllow) {
 			return 0
 		}
-		return 1e9
+		return costUnreachable
 	}
 
 	// 枚举压缩状态：空槽、每个必需效果、每个禁止效果、other。
@@ -362,7 +418,7 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 			return
 		}
 		if locked[idx] {
-			cur[idx] = compressEffect(scan.Slots[idx].Effect, requiredSetMap, forbiddenSetMap)
+			cur[idx] = compressEffectSlot(scan.Slots[idx].Effect, idx, requiredSetMap, forbiddenSetMap, slotAllow)
 			rec(idx+1, cur)
 			return
 		}
@@ -376,8 +432,12 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 	partHasRequiredCompressed := func(state [maxSlot]string) bool {
 		for _, effect := range required {
 			found := false
-			for _, value := range state {
-				if value == effect {
+			allow := slotAllow[effect]
+			for i, value := range state {
+				if value != effect {
+					continue
+				}
+				if len(allow) == 0 || allow[i] {
 					found = true
 					break
 				}
@@ -403,7 +463,7 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 		if partHasRequiredCompressed(state) {
 			vals[key] = 0
 		} else {
-			vals[key] = 1e9
+			vals[key] = costUnreachable
 		}
 	}
 
@@ -414,7 +474,7 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 			lockedEffects = append(lockedEffects, scan.Slots[i].Effect)
 		}
 	}
-	outcomes := enumerateCompressedOutcomes(unlocked, requiredSetMap, forbiddenSetMap, lockedEffects)
+	outcomes := enumerateCompressedOutcomes(unlocked, requiredSetMap, forbiddenSetMap, lockedEffects, slotAllow)
 	rerollCost := float64(RerollModuleCost(activeLocks))
 
 	// 用线性方程组精确求解期望成本，替代价值迭代。
@@ -449,7 +509,7 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 		x, solvable := solveLinearSystem(a, b)
 		if !solvable {
 			// 不可达状态会产生奇异矩阵；不要把未求出的增广列值当成有效成本。
-			return 1e9
+			return costUnreachable
 		}
 		for i, state := range incomplete {
 			vals[quotaStateKey(state)] = x[i]
@@ -461,7 +521,7 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 	// map 零值 0，导致 DP 误判“当前装备已完成、期望成本为 0”，锁定决策失效。
 	compressedCurrent := [maxSlot]string{}
 	for i := 0; i < maxSlot; i++ {
-		compressedCurrent[i] = compressEffect(scan.Slots[i].Effect, requiredSetMap, forbiddenSetMap)
+		compressedCurrent[i] = compressEffectSlot(scan.Slots[i].Effect, i, requiredSetMap, forbiddenSetMap, slotAllow)
 	}
 	result := vals[quotaStateKey(compressedCurrent)]
 	dpCacheMu.Lock()
@@ -745,20 +805,29 @@ func allocateQuotaRequired(parts map[string]partScan, quota map[string]int) map[
 	return assigned
 }
 
-// bestLockSlotAndCostForRequired 用“显式 required 集合”计算最优锁定位与期望成本。
+// bestLockSlotAndCostForRequired 用“显式 required 集合”计算最优锁定位与期望成本（角色模式，不限槽位）。
 // 只有在“该件负责某配额效果”且该槽持有它时才考虑锁定；材料获取成本按材质计入。
 // material 为 “自订密钥”（获取成本 0）或 “订制模块”（计入获取成本）。
 func bestLockSlotAndCostForRequired(scan partScan, quota map[string]int, required []string, material string) (int, float64) {
+	return bestLockSlotAndCostCore(scan, quota, required, forbiddenEffects(quota), material, nil)
+}
+
+// bestLockSlotAndCostForTarget 槽位感知版本：给定 required/forbidden 与 slotAllow，计算最优锁定位与期望成本。
+func bestLockSlotAndCostForTarget(scan partScan, quota map[string]int, required, forbidden []string, material string, slotAllow map[string]map[int]bool) (int, float64) {
+	return bestLockSlotAndCostCore(scan, quota, required, forbidden, material, slotAllow)
+}
+
+func bestLockSlotAndCostCore(scan partScan, quota map[string]int, required, forbidden []string, material string, slotAllow map[string]map[int]bool) (int, float64) {
 	quota = normalizeQuota(quota)
 	lockMat := lockMaterialOrDefault(material)
-	cacheKey := "lock2:" + dpCacheKeyCore(scan, quota, required, forbiddenEffects(quota), 0) + "#" + lockMat
+	cacheKey := "lock2:" + dpCacheKeyCore(scan, quota, required, forbidden, 0, slotAllow) + "#" + lockMat
 	if v, ok := lockStrategyCache.Load(cacheKey); ok {
 		pair := v.([2]float64)
 		return int(pair[0]), pair[1]
 	}
 	reqSet := requiredSet(required)
 	bestSlot := 0
-	bestCost := expectedModulesForPartAllocated(scan, quota, required, 0)
+	bestCost := expectedModulesForPartCore(scan, quota, required, forbidden, 0, slotAllow)
 	for _, slot := range []int{3, 2} {
 		if scan.Slots[slot-1].Lock != LockNone {
 			continue
@@ -767,7 +836,10 @@ func bestLockSlotAndCostForRequired(scan partScan, quota map[string]int, require
 		if effect == "" || !reqSet[effect] {
 			continue
 		}
-		cost := expectedModulesForPartAllocated(scan, quota, required, slot)
+		if allow := slotAllow[effect]; len(allow) > 0 && !allow[slot-1] {
+			continue
+		}
+		cost := expectedModulesForPartCore(scan, quota, required, forbidden, slot, slotAllow)
 		if lockMat == "订制模块" {
 			cost += float64(lockAcquireCost(countLocks(scan)))
 		}
@@ -786,11 +858,28 @@ func slotHoldsRequired(scan partScan, slot int, reqSet map[string]bool) bool {
 	return effect != "" && reqSet[effect]
 }
 
-// lockStillWorthIt 校验“锁定某槽”在含获取成本（若用订制模组）下仍严格低于不锁。
+// slotHoldsRequiredTarget 槽位感知版本：槽位必须同时是需求效果允许出现的槽位。
+func slotHoldsRequiredTarget(scan partScan, slot int, reqSet map[string]bool, slotAllow map[string]map[int]bool) bool {
+	effect := scan.Slots[slot-1].Effect
+	if effect == "" || !reqSet[effect] {
+		return false
+	}
+	if allow := slotAllow[effect]; len(allow) > 0 && !allow[slot-1] {
+		return false
+	}
+	return true
+}
+
+// lockStillWorthIt 校验“锁定某槽”在含获取成本（若用订制模组）下仍严格低于不锁（角色模式，不限槽位）。
 // 自订密钥获取成本为 0，仅比较效果变更期望成本。
 func lockStillWorthIt(scan partScan, quota map[string]int, required []string, slot int, material string) bool {
-	lockCost := expectedModulesForPartAllocated(scan, quota, required, slot)
-	noLockCost := expectedModulesForPartAllocated(scan, quota, required, 0)
+	return lockStillWorthItCore(scan, quota, required, forbiddenEffects(quota), slot, material, nil)
+}
+
+// lockStillWorthItCore 槽位感知版本。
+func lockStillWorthItCore(scan partScan, quota map[string]int, required, forbidden []string, slot int, material string, slotAllow map[string]map[int]bool) bool {
+	lockCost := expectedModulesForPartCore(scan, quota, required, forbidden, slot, slotAllow)
+	noLockCost := expectedModulesForPartCore(scan, quota, required, forbidden, 0, slotAllow)
 	if lockMaterialOrDefault(material) == "订制模块" {
 		lockCost += float64(lockAcquireCost(countLocks(scan)))
 	}
@@ -799,36 +888,41 @@ func lockStillWorthIt(scan partScan, quota map[string]int, required []string, sl
 
 // desiredLockSlotBitterSweet 先苦后甜：饱和度配额（本件负责 >=3 种，每槽都需填配额，
 // 如 优4/攻4/装弹4 → 每件 优1/攻1/装弹1）下，先刷最难得出的 3 号（当前未持本件负责效果
-// 的最高难度槽），拿到才锁；不先锁已有效的低优先槽。
+// 的最高难度槽），拿到才锁；不先锁已有效的低优先槽（角色模式，不限槽位）。
 // 难度序 3→2（获得概率 30%/50%，越高越难得，故“先苦后甜”先做 3 号）。
 // 返回 0 表示当前应便宜刷硬目标（不锁）；非 0 为建议锁定的槽位。
 func desiredLockSlotBitterSweet(scan partScan, quota map[string]int, required []string, material string) int {
+	return desiredLockSlotBitterSweetCore(scan, quota, required, forbiddenEffects(quota), material, nil)
+}
+
+// desiredLockSlotBitterSweetCore 槽位感知版本：需求效果仅在其允许槽位（slotAllow）算作持有。
+func desiredLockSlotBitterSweetCore(scan partScan, quota map[string]int, required, forbidden []string, material string, slotAllow map[string]map[int]bool) int {
 	reqSet := requiredSet(required)
 	hardOrder := [2]int{3, 2}
-	// 先苦：难度序中第一个“尚未持有本件负责效果”的槽 = 当前要刷的硬目标。
+	// 先苦：难度序中第一个“尚未在允许槽位持有本件负责效果”的槽 = 当前要刷的硬目标。
 	targetIdx := -1
 	for i, slot := range hardOrder {
-		if !slotHoldsRequired(scan, slot, reqSet) {
+		if !slotHoldsRequiredTarget(scan, slot, reqSet, slotAllow) {
 			targetIdx = i
 			break
 		}
 	}
-	// 拿到就锁：先保护“优先于硬目标、已持有本件负责效果、且未锁定”的更高难度槽。
+	// 拿到就锁：先保护“优先于硬目标、已在允许槽位持有本件负责效果、且未锁定”的更高难度槽。
 	if targetIdx >= 0 {
 		for j := 0; j < targetIdx; j++ {
 			slot := hardOrder[j]
-			if scan.Slots[slot-1].Lock == LockNone && slotHoldsRequired(scan, slot, reqSet) {
-				if lockStillWorthIt(scan, quota, required, slot, material) {
+			if scan.Slots[slot-1].Lock == LockNone && slotHoldsRequiredTarget(scan, slot, reqSet, slotAllow) {
+				if lockStillWorthItCore(scan, quota, required, forbidden, slot, material, slotAllow) {
 					return slot
 				}
 			}
 		}
 		return 0 // 无更高难度已持有槽可保 → 便宜刷硬目标
 	}
-	// 全部可锁槽都已持有本件负责效果 → 顺序锁最高难度未锁槽（拿到就锁）。
+	// 全部可锁槽都已在允许槽位持有本件负责效果 → 顺序锁最高难度未锁槽（拿到就锁）。
 	for _, slot := range hardOrder {
-		if scan.Slots[slot-1].Lock == LockNone && slotHoldsRequired(scan, slot, reqSet) {
-			if lockStillWorthIt(scan, quota, required, slot, material) {
+		if scan.Slots[slot-1].Lock == LockNone && slotHoldsRequiredTarget(scan, slot, reqSet, slotAllow) {
+			if lockStillWorthItCore(scan, quota, required, forbidden, slot, material, slotAllow) {
 				return slot
 			}
 		}
@@ -980,7 +1074,7 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 		// 本件负责的配额效果（分配感知）：outcomes 按压缩状态枚举（空/必需/禁止/other）。
 		required := assigned[part]
 		forbidden := forbiddenEffects(quota)
-		outcomes := enumerateCompressedOutcomes(unlocked, requiredSet(required), forbiddenSet(forbidden), lockedEffects)
+		outcomes := enumerateCompressedOutcomes(unlocked, requiredSet(required), forbiddenSet(forbidden), lockedEffects, nil)
 
 		// 其余三件在当前分配下的基础成本与 required（结果间复用）。
 		type qBase struct {
@@ -1050,8 +1144,13 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 // partHasRequiredAndNoForbidden 判断当前三槽是否已包含所有需要保留/补齐的配额效果，
 // 且不包含任何被禁止的效果。
 func partHasRequiredAndNoForbidden(effects [maxSlot]string, required, forbidden map[string]bool) bool {
+	return partHasRequiredAndNoForbiddenSlot(effects, required, forbidden, nil)
+}
+
+// partHasRequiredAndNoForbiddenSlot 槽位感知版本：需求效果必须落在其允许槽位（slotAllow）。
+func partHasRequiredAndNoForbiddenSlot(effects [maxSlot]string, required, forbidden map[string]bool, slotAllow map[string]map[int]bool) bool {
 	for effect := range required {
-		if !PartHasEffect(effects, effect) {
+		if !effectInAllowedSlots(effects, effect, slotAllow[effect]) {
 			return false
 		}
 	}
@@ -1061,4 +1160,14 @@ func partHasRequiredAndNoForbidden(effects [maxSlot]string, required, forbidden 
 		}
 	}
 	return true
+}
+
+// effectInAllowedSlots 判断 effects 中 effect 是否出现在允许槽位（allow 为空表示任意槽位）。
+func effectInAllowedSlots(effects [maxSlot]string, effect string, allow map[int]bool) bool {
+	for i, e := range effects {
+		if e == effect && (len(allow) == 0 || allow[i]) {
+			return true
+		}
+	}
+	return false
 }

@@ -31,9 +31,24 @@
         ]
     },
     "EquipmentRerollFlow": {
-        "desc": "洗词条编排：先全量识别四件装备（腿部完成后物资检测一次获取材料库存），再按自定义配额决策与执行效果变更",
+        "desc": "洗词条编排：先识别装备（角色模式四件 / 单件模式仅选定一件，扫描末尾做一次物资检测），再按模式决策与执行效果变更",
         "next": [
             "EquipmentRerollScanMain"
+        ]
+    },
+    "EquipmentRerollSingleScanRoute": {
+        "desc": "单件模式扫描起点（Go）：跳过其余三件，直接打开 attach.part 选定的那一件装备详情",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollSingleScanRouteAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollEnd"
         ]
     },
     "EquipmentRerollDecide": {
@@ -124,7 +139,7 @@
         ]
     },
     "EquipmentRerollLockNeed": {
-        "desc": "判断当前装备是否需锁定 2/3号槽（命中→锁定流程，自定义配额生效）",
+        "desc": "配置承载点 + 锁定判定：全部任务选项写在本节点 attach 顶层键（mode/part/wantN/slotN/quota_<效果名>，attach 按 key 合并互不覆盖）；命中→锁定流程",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -320,7 +335,7 @@
         ]
     },
     "EquipmentRerollAfterMaterialCheck": {
-        "desc": "物资检测退出后路由（Go）：独立装备检测 → 结束；完整洗词条任务 → EquipmentRerollDecide",
+        "desc": "物资检测退出后路由（Go）：独立检测→结束；角色→Decide；单件→SingleDecide",
         "recognition": {
             "type": "DirectHit"
         },
@@ -1059,6 +1074,34 @@
         "next": [
             "[JumpBack]CommonClosePage",
             "EquipmentRerollDecide"
+        ]
+    },
+    "EquipmentRerollSingleDecide": {
+        "desc": "单件决策：达标→摘要/结束；目标不可达→告知用户并结束；否则打开部位详情（部位与目标从承载点 attach 读取）",
+        "anchor": {
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenTorso": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenLegs": "EquipmentRerollLockGate"
+        },
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollSingleDecideAction"
+            }
+        },
+        "next": [
+            "EquipmentRerollEnd"
+        ]
+    },
+    "EquipmentRerollSingleReturnToDecide": {
+        "desc": "单件一次变更完成：关闭回单件决策（不重扫）",
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "EquipmentRerollSingleDecide"
         ]
     }
 }

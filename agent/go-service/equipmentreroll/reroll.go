@@ -84,6 +84,8 @@ func (r *EquipmentRerollPartNeedRecognition) Run(ctx *maa.Context, arg *maa.Cust
 	}
 	params.normalize()
 
+	// 角色配额统一从承载点读取（attach.quota_* 优先，为空时回退本节点自带默认）。
+	params.GlobalQuota = loadCarrierConfig(ctx).resolveQuota(params.GlobalQuota)
 	if !quotaIsValid(params.GlobalQuota) {
 		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("part need recognition requires a valid 1 to 12 affix quota")
 		return nil, false
@@ -135,7 +137,7 @@ func (r *EquipmentRerollPartNeedRecognition) runQuota(arg *maa.CustomRecognition
 
 // resultDecideParam 是 EquipmentRerollResultDecideRecognition 的参数。
 type resultDecideParam struct {
-	// GlobalQuota 自定义词条配额：-1 禁止 / 0 不要求 / 1~4 需求。
+	// GlobalQuota 自定义词条配额：-1 禁止 / 0 不要求 / 1~4 需求（角色模式）。
 	GlobalQuota map[string]int `json:"global_quota"`
 }
 
@@ -192,11 +194,69 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 		return nil, false
 	}
 
+	// 全部任务选项统一从承载点读取；一次 Run 只读一次。
+	cfg := loadCarrierConfig(ctx)
+	if cfg.isSingle() {
+		return r.decideSingle(arg, part, changed, changedValues, changedRaw, cfg)
+	}
+
+	// 角色配额：承载点 attach.quota_* 优先，为空时回退本节点自带默认。
+	params.GlobalQuota = cfg.resolveQuota(params.GlobalQuota)
 	if !quotaIsValid(params.GlobalQuota) {
 		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("result decide requires a valid 1 to 12 affix quota")
 		return nil, false
 	}
 	return r.decideQuota(arg, params, part, changed, changedValues, changedRaw)
+}
+
+// decideSingle 单件模式结果页决策：用单件期望剩余模块成本比较当前/候选状态。
+func (r *EquipmentRerollResultDecideRecognition) decideSingle(arg *maa.CustomRecognitionArg, part string, changed, changedValues, changedRaw [maxSlot]string, cfg carrierConfig) (*maa.CustomRecognitionResult, bool) {
+	scan, ok := GetPartScan(arg.TaskID, part)
+	if !ok {
+		log.Error().Str("component", "EquipmentReroll").Msg("single equipment result decide part scan is missing")
+		return nil, false
+	}
+	if !cfg.singleTargetOK() {
+		log.Error().
+			Str("component", "EquipmentReroll").
+			Int64("task_id", arg.TaskID).
+			Int("want_count", len(cfg.Target.Want)).
+			Str("problem", cfg.TargetProblem).
+			Msg("single equipment result decide requires a valid 1 to 3 affix target")
+		return nil, false
+	}
+	t := cfg.Target
+
+	current := scan.Effects()
+	decision := DecideResultPageSingle(changed, scan, t)
+	if decision == ResultDecisionAccept {
+		updatePartEffects(arg.TaskID, part, changed, changedValues)
+	}
+	expireOneTimeLocks(arg.TaskID, part)
+
+	log.Info().
+		Str("component", "EquipmentReroll").
+		Int64("task_id", arg.TaskID).
+		Str("part", part).
+		Strs("current", current[:]).
+		Strs("changed", changed[:]).
+		Strs("changed_values", changedValues[:]).
+		Strs("raw_changed", changedRaw[:]).
+		Str("decision", decision.String()).
+		Float64("current_cost", singleExpectedCost(scan, t)).
+		Float64("candidate_cost", singleExpectedCostOfEffects(changed, scan, t)).
+		Msg("single equipment result page decision made")
+
+	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: resultDecisionDetail(decision)}, true
+}
+
+// singleExpectedCostOfEffects 构造把 changed 写入快照后的候选扫描，并计算单件期望成本。
+func singleExpectedCostOfEffects(changed [maxSlot]string, scan partScan, t singleTarget) float64 {
+	cand := scan
+	for i := range cand.Slots {
+		cand.Slots[i].Effect = changed[i]
+	}
+	return singleExpectedCost(cand, t)
 }
 
 func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomRecognitionArg, params resultDecideParam, part string, changed, changedValues, changedRaw [maxSlot]string) (*maa.CustomRecognitionResult, bool) {
@@ -416,7 +476,7 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 		return false
 	}
 
-	// ResultDecisionAccept 已在结果页识别阶段更新快照；接受按钮完成后立即输出当前部位，
+	// 结果页决策已在识别阶段更新快照；接受按钮完成后立即输出当前部位，
 	// 让用户能实时看到本次效果变更后的三条词条，再继续后续调度。
 	if part, ok := currentEffectPart(arg.TaskID); ok {
 		if scan, ok := GetPartScan(arg.TaskID, part); ok {
@@ -430,17 +490,20 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 			Msg("accepted result part is missing; skip user-facing effect summary")
 	}
 
-	// 自定义配额：接受后直接回整体调度，由 EquipmentRerollDecide 判断全局缺口。
-	target := "EquipmentRerollReturnToDecide"
+	// 单件模式：接受后回单件决策（关闭页面 → SingleDecide 判断是否达标）；与角色模式保持一致的调度语义。
+	targetNode := "EquipmentRerollReturnToDecide"
+	if loadCarrierConfig(ctx).isSingle() {
+		targetNode = "EquipmentRerollSingleReturnToDecide"
+	}
 
-	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
+	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: targetNode}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route after-accept")
 		return false
 	}
 	log.Info().
 		Str("component", "EquipmentReroll").
 		Int64("task_id", arg.TaskID).
-		Str("target", target).
+		Str("target", targetNode).
 		Msg("after-accept routed")
 	return true
 }

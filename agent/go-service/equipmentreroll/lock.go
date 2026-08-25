@@ -88,15 +88,17 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 			params.Part = p
 		}
 	}
-	// 自定义配额：按全局配额决定锁定。
+	// 全部任务选项统一从承载点读取；一次 Run 只读一次，往下传给分支使用。
+	cfg := loadCarrierConfig(ctx)
+	if cfg.isSingle() {
+		return r.lockCheckSingle(arg, params, cfg)
+	}
+	// 角色模式：按全局配额决定锁定（承载点 attach.quota_* 优先，回退本节点默认）。
 	parts, ok := GetEquipmentSlotScans(arg.TaskID)
 	if !ok {
 		return nil, false
 	}
-	quota := params.GlobalQuota
-	if quotaTotal(quota) == 0 {
-		quota = quotaFromLockNeed(ctx)
-	}
+	quota := cfg.resolveQuota(params.GlobalQuota)
 	if !quotaIsValid(quota) {
 		return nil, false
 	}
@@ -119,9 +121,10 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 	if slot == 0 {
 		return nil, false
 	}
-	// 护栏：目标槽已锁定，不能再“上锁”，返回无需锁定（避免反复尝试锁已锁的第3槽）。
+	// 防御性检查：DesiredLockSlotForQuota 只会返回未锁的 2/3 号槽，走到这里说明策略层与
+	// 快照不一致。用 Debug 记录——正常运行不该出现，也不值得当成告警干扰用户日志。
 	if scan.Slots[slot-1].Lock != LockNone {
-		log.Warn().Str("component", "EquipmentReroll").Str("part", params.Part).Int("lock_slot", slot).Msg("target lock slot already locked; skip lock")
+		log.Debug().Str("component", "EquipmentReroll").Str("part", params.Part).Int("lock_slot", slot).Msg("target lock slot already locked; skip lock")
 		return nil, false
 	}
 	setPendingLock(arg.TaskID, slot, material)
@@ -129,28 +132,52 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
 }
 
-// quotaFromLockNeed 从 EquipmentRerollLockNeed 节点 JSON 中读取自定义配额。
-func quotaFromLockNeed(ctx *maa.Context) map[string]int {
-	if ctx == nil {
-		return nil
+// lockCheckSingle 单件模式锁定检查：按目标（effect -> 槽位限定）判断是否需要锁定某槽。
+// 命中表示存在可锁定的 2/3 号槽（该槽已持有落在允许槽位的需求词条），路由到锁定流程。
+func (r *EquipmentRerollLockCheckRecognition) lockCheckSingle(arg *maa.CustomRecognitionArg, params lockCheckParam, cfg carrierConfig) (*maa.CustomRecognitionResult, bool) {
+	if !cfg.singleTargetOK() {
+		log.Error().
+			Str("component", "EquipmentReroll").
+			Int64("task_id", arg.TaskID).
+			Str("part", params.Part).
+			Int("want_count", len(cfg.Target.Want)).
+			Str("problem", cfg.TargetProblem).
+			Msg("single equipment lock check requires a valid 1 to 3 affix target")
+		return nil, false
 	}
-	raw, err := ctx.GetNodeJSON("EquipmentRerollLockNeed")
-	if err != nil {
-		return nil
+	t := cfg.Target
+	part := params.Part
+	if part == "" {
+		part = cfg.Part
 	}
-	var data struct {
-		Recognition struct {
-			Param struct {
-				CustomRecognitionParam struct {
-					GlobalQuota map[string]int `json:"global_quota"`
-				} `json:"custom_recognition_param"`
-			} `json:"param"`
-		} `json:"recognition"`
+	scan, ok := GetPartScan(arg.TaskID, part)
+	if !ok {
+		return nil, false
 	}
-	if err := json.Unmarshal([]byte(raw), &data); err != nil {
-		return nil
+	inv, inventoryReady := getInventory(arg.TaskID)
+	if !inventoryReady {
+		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("single equipment lock planning requires initialized material inventory")
+		return nil, false
 	}
-	return normalizeQuota(data.Recognition.Param.CustomRecognitionParam.GlobalQuota)
+	lockIndex := countLocks(scan)
+	material, ok := selectLockMaterial(inv, params.Material, lockIndex)
+	if !ok {
+		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Int("lock_index", lockIndex).Msg("single equipment no affordable lock material")
+		return nil, false
+	}
+	slot, need := singleDesiredLockSlot(scan, t, material)
+	if !need {
+		return nil, false
+	}
+	// 防御性检查：singleDesiredLockSlot 只会返回未锁的 2/3 号槽，走到这里说明策略层与
+	// 快照不一致。用 Debug 记录——正常运行不该出现，也不值得当成告警干扰用户日志。
+	if scan.Slots[slot-1].Lock != LockNone {
+		log.Debug().Str("component", "EquipmentReroll").Str("part", part).Int("lock_slot", slot).Msg("single equipment target lock slot already locked; skip lock")
+		return nil, false
+	}
+	setPendingLock(arg.TaskID, slot, material)
+	log.Info().Str("component", "EquipmentReroll").Str("part", part).Str("material", material).Int("lock_slot", slot).Msg("part needs lock before reroll (single equipment)")
+	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
 }
 
 func desiredLockPlanForInventory(parts map[string]partScan, part string, quota map[string]int, inv Inventory, requested string) (int, string, bool) {
@@ -169,20 +196,41 @@ func desiredLockPlanForInventory(parts map[string]partScan, part string, quota m
 	return slot, material, true
 }
 
-// desiredLockSlotForCurrentMode 计算当前自定义配额下的待锁槽位，用于 pending 丢失时回退。
-// 若已缓存库存（效果锁定页 OCR）且自订密钥不足以支付锁定，则按“订制模块”口径（计入获取成本）
-// 计算，使模块锁定时决策更保守。
+// desiredLockSlotForCurrentMode 计算当前模式下的待锁槽位，用于 pending 丢失时回退。
+// 读取一次承载点后委托给 desiredLockSlotForConfig。
 func desiredLockSlotForCurrentMode(ctx *maa.Context, taskID int64, part string) (int, bool) {
 	if ctx == nil {
 		return 0, false
 	}
-	quota := quotaFromLockNeed(ctx)
-	parts, ok := GetEquipmentSlotScans(taskID)
-	if !ok || len(quota) == 0 {
+	return desiredLockSlotForConfig(loadCarrierConfig(ctx), taskID, part)
+}
+
+// desiredLockSlotForConfig 按已读取的承载点配置计算待锁槽位：
+//   - 单件模式：按 singleDesiredLockSlot（需求 2+ 才考虑锁槽，含槽位限定）；
+//   - 角色模式：按 DesiredLockSlotForQuota（分配感知 + 先苦后甜）。
+//
+// 若已缓存库存（效果锁定页 OCR）且自订密钥不足以支付锁定，则按“订制模块”口径
+// （计入获取成本）计算，使模块锁定时决策更保守。
+func desiredLockSlotForConfig(cfg carrierConfig, taskID int64, part string) (int, bool) {
+	scan, ok := GetPartScan(taskID, part)
+	if !ok {
 		return 0, false
 	}
 	material := lockMaterialForTask(taskID, part)
-	return DesiredLockSlotForQuota(parts, part, quota, material)
+	if cfg.isSingle() {
+		if !cfg.singleTargetOK() {
+			return 0, false
+		}
+		return singleDesiredLockSlot(scan, cfg.Target, material)
+	}
+	if quotaTotal(cfg.Quota) == 0 {
+		return 0, false
+	}
+	parts, ok := GetEquipmentSlotScans(taskID)
+	if !ok {
+		return 0, false
+	}
+	return DesiredLockSlotForQuota(parts, part, cfg.Quota, material)
 }
 
 // lockMaterialForTask 依据缓存库存决定本次锁定假设使用的材料：
@@ -292,9 +340,10 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 	}
 	inv, inventoryReady := getInventory(arg.TaskID)
 	if inventoryReady {
-		parts, scansOK := GetEquipmentSlotScans(arg.TaskID)
-		scan, scanOK := parts[part]
-		if !scansOK || !scanOK {
+		// 只取当前部位的快照：本节点两种模式共用，而单件模式只扫了选定那一件，
+		// 用要求四件齐全的 GetEquipmentSlotScans 会让单件模式在这里直接识别失败。
+		scan, scanOK := GetPartScan(arg.TaskID, part)
+		if !scanOK {
 			return nil, false
 		}
 		lockIndex := countLocks(scan)
@@ -313,11 +362,8 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 		materialChanged := selected != material
 		material = selected
 		if slot == 0 || materialChanged {
-			quota := quotaFromLockNeed(ctx)
-			if !quotaIsValid(quota) {
-				return nil, false
-			}
-			if selectedSlot, need := DesiredLockSlotForQuota(parts, part, quota, material); need {
+			// 单件/角色模式统一回退：从 EquipmentRerollLockNeed 读取目标配置重算待锁槽。
+			if selectedSlot, need := desiredLockSlotForCurrentMode(ctx, arg.TaskID, part); need {
 				slot = selectedSlot
 			} else {
 				return nil, false

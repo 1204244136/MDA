@@ -531,6 +531,24 @@ func partScanFromArrays(effects [maxSlot]string, values [maxSlot]string, locks [
 
 // GetEquipmentSlotScans 返回四部位完整扫描快照（词条 + 数值 + 锁定状态）。
 // 返回的 map 是副本，可安全供后续 Custom 组件读取。
+// getScannedParts 返回目前已扫描到的部位快照（有几件返回几件）。
+// 与 GetEquipmentSlotScans 的区别：后者要求四件齐全（角色模式决策的前提），
+// 这里只用于摘要输出——单件模式只扫一件，仍应把那一件打印出来。
+func getScannedParts(taskID int64) map[string]partScan {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
+	state, ok := states[taskID]
+	if !ok || len(state.Parts) == 0 {
+		return nil
+	}
+	parts := make(map[string]partScan, len(state.Parts))
+	for part, scan := range state.Parts {
+		parts[part] = scan
+	}
+	return parts
+}
+
 func GetEquipmentSlotScans(taskID int64) (map[string]partScan, bool) {
 	stateMu.Lock()
 	defer stateMu.Unlock()

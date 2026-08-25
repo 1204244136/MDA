@@ -64,5 +64,11 @@ func Register() {
 	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollAfterMaterialCheckAction", &EquipmentRerollAfterMaterialCheckAction{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollAfterMaterialCheckAction")
 	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollSingleDecideAction", &EquipmentRerollSingleDecideAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollSingleDecideAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollSingleScanRouteAction", &EquipmentRerollSingleScanRouteAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollSingleScanRouteAction")
+	}
 	maa.AgentServerAddTaskerSink(&taskLifecycle{})
 }

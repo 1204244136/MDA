@@ -45,24 +45,24 @@ func (a *ScanBeginAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 }
 
 // scanNextItems 返回当前部位扫描完成后的路由：
-//   - 非腿部：关闭详情页 → 打开下一部位详情；
-//   - 腿部：先“物资检测”（进入效果锁定页读取材料库存），退出后由 EquipmentRerollAfterMaterialCheck 分支：
-//     独立检测 → 结束；完整洗词条任务 → EquipmentRerollDecide。
+//   - 单件模式：只扫用户选定的那一件，扫完直接“物资检测”（不再链到下一部位）；
+//   - 角色模式非腿部：关闭详情页 → 打开下一部位详情；
+//   - 角色模式腿部：先“物资检测”（进入效果锁定页读取材料库存），退出后由
+//     EquipmentRerollAfterMaterialCheck 分支：独立扫描 → 结束；洗词条任务 → 对应模式的决策。
 //
 // 注意：中间切换部位的“关闭”必须用 [JumpBack] 回跳父节点后再打开下一部位。
-func scanNextItems(part string) ([]maa.NextItem, bool) {
+func scanNextItems(part string, single bool) ([]maa.NextItem, bool) {
+	// 物资检测点击的是“当前已打开详情页”的第一槽，与具体部位无关，
+	// 因此单件模式在自己那一件上做物资检测与腿部一样有效。
+	if single || part == "腿部" {
+		return []maa.NextItem{
+			{Name: "EquipmentRerollMaterialCheckEnter"},
+		}, true
+	}
 	nextByPart := map[string]string{
 		"头部": "EquipmentRerollOpenArmsDetails",
 		"臂部": "EquipmentRerollOpenTorsoDetails",
 		"身躯": "EquipmentRerollOpenLegsDetails",
-	}
-	if part == "腿部" {
-		// 无论独立检测还是完整洗词条任务：所有装备信息已获取后，先“物资检测”→ 进入效果锁定页
-		// 读取材料库存并初始化余额，再退出。退出后由 EquipmentRerollAfterMaterialCheck 分支：
-		//   独立检测 → 结束；完整任务 → EquipmentRerollDecide。
-		return []maa.NextItem{
-			{Name: "EquipmentRerollMaterialCheckEnter"},
-		}, true
 	}
 	next, ok := nextByPart[part]
 	if !ok {
@@ -151,7 +151,7 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 
 	maafocus.Print(ctx, buildPartEffectsMessage(part, scan, "tasker.equipment_reroll.effects"))
 
-	next, ok := scanNextItems(part)
+	next, ok := scanNextItems(part, loadCarrierConfig(ctx).isSingle())
 	if !ok {
 		log.Error().Str("component", "EquipmentReroll").Str("part", part).Msg("no next node for equipment part")
 		return false

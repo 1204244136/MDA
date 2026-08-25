@@ -43,12 +43,13 @@ func buildStandaloneSummaryMessage(taskID int64) string {
 	return fmt.Sprintf("【库存】订制模块 %d / 自订密钥 %d", inv.CustomModules, inv.CustomLockKeys)
 }
 
-// buildFinalSummaryMessage 生成洗词条任务结束摘要：四件装备详情（含档位）+ 本次消耗材料。
+// buildFinalSummaryMessage 生成洗词条任务结束摘要：已扫描装备的详情（含档位）+ 本次消耗材料。
+// 角色模式为四件，单件模式只有用户选定的那一件。
 func buildFinalSummaryMessage(taskID int64) string {
 	var sb strings.Builder
 	sb.WriteString("【装备详情】")
-	parts, ok := GetEquipmentSlotScans(taskID)
-	if ok {
+	parts := getScannedParts(taskID)
+	if len(parts) > 0 {
 		for _, part := range equipmentParts {
 			scan, ok := parts[part]
 			if !ok {
