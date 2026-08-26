@@ -11,7 +11,7 @@
     "tasker.equipment_reroll.empty_slot": "(Empty slot)",
     "tasker.equipment_reroll.lock_permanent": "(Permanent lock)",
     "tasker.equipment_reroll.lock_one_time": "(One-time lock)",
-    "tasker.equipment_reroll.preexisting_lock": "⚠️ Equipment reroll precheck found %s slot %d with an existing lock%s. All slots must be unlocked when the task starts; locks may only be added by the script. The task has stopped. Remove existing locks and retry.",
+    "tasker.equipment_reroll.preexisting_lock": "⚠️ Equipment reroll precheck found %s slot %d with an existing lock%s. All slots must be unlocked when the task starts; locks may only be added by the script. The task failed and the flow was stopped. Remove existing locks and retry.",
     "tasker.equipment_reroll.single_part_invalid": "⚠️ Single-piece reroll: no equipment part selected, task ended. Choose Head/Arms/Torso/Legs in the task options.",
     "tasker.equipment_reroll.single_target_invalid": "⚠️ Single-piece reroll: the requested affixes are invalid, task ended. Check whether the same affix was chosen twice, or two affixes were pinned to the same slot (1-3 affixes required).",
     "tasker.equipment_reroll.single_target_unreachable": "⚠️ Single-piece reroll: existing locks on %s conflict with the slot restrictions, so the target can never be reached; task ended. Locked affixes cannot be unlocked or moved between slots — adjust the slot restrictions or pick another part.",

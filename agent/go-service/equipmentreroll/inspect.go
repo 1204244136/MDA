@@ -158,14 +158,16 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 				Str("part", part).
 				Int("slot", slot).
 				Str("lock", lock.String()).
-				Msg("precheck found an existing equipment lock; stopping task")
-			maafocus.Print(ctx, fmt.Sprintf(
+				Msg("precheck found an existing equipment lock; task failed")
+			// 通过标准输出发送提示，避免为一次失败通知创建临时 Go focus 节点并污染 Maa 日志。
+			maafocus.PrintLargeContentTrimNewline(fmt.Sprintf(
 				i18n.T("tasker.equipment_reroll.preexisting_lock"),
 				part,
 				slot,
 				lockLabel,
 			))
-			ctx.GetTasker().PostStop()
+			// CustomAction 返回 false 即表示当前任务失败；不要再调用 PostStop，
+			// 否则 Maa 会额外创建“停止任务”的伪任务。
 			return false
 		}
 	}
