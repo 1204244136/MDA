@@ -2,7 +2,7 @@
 
 ## 平台与环境
 
-- **操作系统**：Windows（本项目仅面向 Windows）
+- **操作系统**：Windows（此 AGENTS.md 面向 Windows）
 - **Shell**：PowerShell 7
 - **路径分隔符**：在终端命令中引用 Windows 本地路径时优先使用反斜杠 `\`（例如 `C:\Users\...`）；Markdown 链接、URL、前端 import、配置约定等语境按各自规范使用 `/` 或 `\`
 
