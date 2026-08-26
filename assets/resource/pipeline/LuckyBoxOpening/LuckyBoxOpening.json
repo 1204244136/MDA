@@ -147,9 +147,9 @@
             "param": {
                 "roi": [
                     743,
-                    450,
+                    425,
                     66,
-                    159
+                    184
                 ],
                 "template": [
                     "Common/MAX.png"
