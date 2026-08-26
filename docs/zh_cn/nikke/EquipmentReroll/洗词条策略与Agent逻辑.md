@@ -101,8 +101,8 @@ T10 改造已经自动生成初始效果，四件装备实际进入任务时几�
 **决策与执行的材料边界（关键）**
 
 - **决策/规划侧**：材料库存视为**无限**，不参与决策。理由：用户材料不足就不会运行任务，所以规划时统一按成本最低口径（**自订密钥**，锁定获取成本 0）估算。
-  - 实现：`planningMaterialForPart` 忽略库存、统一返回 `自订密钥`；`consumePlanningLockMaterial` 决策期不扣减、始终可支付；`chooseBestPartForQuota` 不做 `CanAffordReroll` 过滤；`planningInventoryCacheKey` 固定为 `#inventory:infinite`。
-  - 因此 `expectedModulesForQuota` / `chooseBestPartForQuota` 的期望成本**不随库存/密钥有无变化**（对应测试 `TestExpectedModulesForQuotaIgnoresInventory`）。
+    - 实现：`planningMaterialForPart` 忽略库存、统一返回 `自订密钥`；`consumePlanningLockMaterial` 决策期不扣减、始终可支付；`chooseBestPartForQuota` 不做 `CanAffordReroll` 过滤；`planningInventoryCacheKey` 固定为 `#inventory:infinite`。
+    - 因此 `expectedModulesForQuota` / `chooseBestPartForQuota` 的期望成本**不随库存/密钥有无变化**（对应测试 `TestExpectedModulesForQuotaIgnoresInventory`）。
 - **执行侧**：材料**切换逻辑保留**（不影响决策）。真实执行锁定仍按“有自订密钥用密钥、不足/不够再切订制模块”（`selectLockMaterial` / `ChooseLockMaterial`），并做库存门禁与“cannot afford any lock material”提示；效果变更始终扣订制模块。
 - **分工**：决策模型只回答“洗哪件/锁哪槽/要不要锁”，用无限材料算期望成本；执行层才根据真实库存选择实际材料并扣费。
 
@@ -197,12 +197,12 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 栏位/效果概率见[洗词条概率与期望计算](洗词条概率与期望计算.md)。在没有更具体的用户配置时，默认按“难度序 3 → 2 → 1”（3 号最难出，故先攻）决定锁定。按“本件负责的配额效果数量”分两种口径（与实现 `DesiredLockSlotForQuota` 一致，用 `allocateQuotaRequired` 得到本件负责集合）：
 
 - **饱和配额（本件负责 ≥3 种，即每槽都需填配额；如 优4/攻4/装弹4 → 每件 优1/攻1/装弹1）——先苦后甜**：
-  - 先便宜刷最难的 **3 号**（当前未持本件负责效果的最高难度槽），落地才锁；**不先锁已有效的低优先槽**（如 2 号），避免把“赌 3 号与 1 号一次凑齐”的成本抬到每刷 2 模块；
-  - 拿到 3 号后立即锁它，再处理 2 号并锁，最后让 1 号补上剩余一种（策略上**不锁 1 号**：锁 1 追 23 代价高——1 号 100% 易得、锁它反而抬重洗成本，真正难保的是 2/3 号）。
+    - 先便宜刷最难的 **3 号**（当前未持本件负责效果的最高难度槽），落地才锁；**不先锁已有效的低优先槽**（如 2 号），避免把“赌 3 号与 1 号一次凑齐”的成本抬到每刷 2 模块；
+    - 拿到 3 号后立即锁它，再处理 2 号并锁，最后让 1 号补上剩余一种（策略上**不锁 1 号**：锁 1 追 23 代价高——1 号 100% 易得、锁它反而抬重洗成本，真正难保的是 2/3 号）。
 - **非饱和（本件负责 1~2 种）——拿到就锁**：
-  - 只要 2/3 号栏位里有一个槽持有“本件仍需要提供”的配额词条，就把它锁定（先锁难出的、后锁易出的）；不要因为已锁一个就停止加锁，后续又拿到另一条仍需要的配额词条也要立刻加锁；
-  - 目标是 2 条有效：若 2、3 号任一先出现有效词条，就锁定该栏位，再洗剩余未锁定栏位；达到两条后立即结束。若当前只有 1 号栏位有效，不要先锁 1 号再追 2、3 号栏位；
-  - 目标是 1 条有效：可以接受任意栏位命中，达到目标后结束这件装备，不需要为了把词条移动到 1 号栏位而继续操作。
+    - 只要 2/3 号栏位里有一个槽持有“本件仍需要提供”的配额词条，就把它锁定（先锁难出的、后锁易出的）；不要因为已锁一个就停止加锁，后续又拿到另一条仍需要的配额词条也要立刻加锁；
+    - 目标是 2 条有效：若 2、3 号任一先出现有效词条，就锁定该栏位，再洗剩余未锁定栏位；达到两条后立即结束。若当前只有 1 号栏位有效，不要先锁 1 号再追 2、3 号栏位；
+    - 目标是 1 条有效：可以接受任意栏位命中，达到目标后结束这件装备，不需要为了把词条移动到 1 号栏位而继续操作。
 
 > **一条装备不能有两种相同效果**（游戏规则，见 §1.3）。已锁定的效果“占用”了这条装备的名额，因此在其余槽位的抽取池中会被排除——所以绝不可能出现“锁了两条攻击”或“锁了攻击又洗出攻击”。**多数量目标（如“两条装弹”）必然要落在两件不同装备上**。这条规则由游戏天然保证，策略层面无需额外“去重”，但必须在建模与调度中遵守。
 
@@ -319,20 +319,20 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 - **分配感知（可流转）**：每步基于当前快照用 `allocateQuotaRequired` 重算“每件负责的配额效果集合”，稀缺配额（如 装弹1）只分给承载者，且承载者按**成本交换**（`pickCheapestCarriersForEffect`，补齐成本最低者晋升、原承载者退行）并随状态**实时流转**；策略只追本件负责的效果，避免“每件都抢稀缺配额”导致破坏优/攻、振荡不收敛。验证程序 `verification/main.go` 的 `allocateAssigned` 也用**成本交换口径**（`carrierCost` 近似，固定一次），因此对称起点（四件完全相同）下结果不变，非对称状态会按成本选更优承载者。
 - **`>=` 验收（至少 1 条，不是恰好 1 条）**：装弹/蓄力速度≥1 即达标；洗出两条也不强制刷掉。
 
-| 配额 | 期望模块 | 期望刷新 | 触顶 | 最终装弹分布 |
-|---|---:|---:|---:|---|
-| 4（优4/四优） | **23.2** | 22.7 | 0% | 装弹(非配额) 0=51% / 1=37% / 2=10% |
-| 4/1（优4/攻1） | **35.4** | 28.3 | 0% | 装弹(非配额) 0=53% / 1=36% / 2=9% |
-| 4/2/1（优4/攻2/装弹1） | **59.8** | 39.4 | 0% | 装弹 1=82% / 2=17% |
-| 4/4（优4/攻4） | **77.4** | 47.8 | 0% | 装弹(非配额) 0=72% / 1=25% / 2=3% |
-| 4/4/1（优4/攻4/装弹1） | **106.9** | 57.1 | 0% | 装弹 1=83% / 2=16% |
-| 4/4/1/1（优4/攻4/装弹1/蓄力速度1） | **136.6** | 66.6 | 0% | 装弹 1=90% / 2=10% |
-| 4/4/4（优4/攻4/装弹4） | **202.9** | 87.4 | 0% | 装弹 4=100% |
-| 4/4/1 + 命中率-1(禁) | **109.3** | 58.1 | 0% | 装弹 1=81% / 2=18% |
-| **4/4/2（优4/攻4/装弹2）** | **138.4** | 67.0 | 0% | 装弹 2=90% / 3=10% |
-| **仅稀缺（装弹1/蓄力速度1）** | **8.8** | 8.7 | 0% | 装弹 1=90% / 2=10% |
-| **混合多稀缺（优4/装弹1/蓄力速度1）** | **44.6** | 32.0 | 0% | 装弹 1=79% / 2=19% |
-| **混合多稀缺（优4/攻2/装弹2/蓄力速度1）** | **98.3** | 53.3 | 0% | 装弹 2=92% / 3=8% |
+| 配额                                      |  期望模块 | 期望刷新 | 触顶 | 最终装弹分布                       |
+| ----------------------------------------- | --------: | -------: | ---: | ---------------------------------- |
+| 4（优4/四优）                             |  **23.2** |     22.7 |   0% | 装弹(非配额) 0=51% / 1=37% / 2=10% |
+| 4/1（优4/攻1）                            |  **35.4** |     28.3 |   0% | 装弹(非配额) 0=53% / 1=36% / 2=9%  |
+| 4/2/1（优4/攻2/装弹1）                    |  **59.8** |     39.4 |   0% | 装弹 1=82% / 2=17%                 |
+| 4/4（优4/攻4）                            |  **77.4** |     47.8 |   0% | 装弹(非配额) 0=72% / 1=25% / 2=3%  |
+| 4/4/1（优4/攻4/装弹1）                    | **106.9** |     57.1 |   0% | 装弹 1=83% / 2=16%                 |
+| 4/4/1/1（优4/攻4/装弹1/蓄力速度1）        | **136.6** |     66.6 |   0% | 装弹 1=90% / 2=10%                 |
+| 4/4/4（优4/攻4/装弹4）                    | **202.9** |     87.4 |   0% | 装弹 4=100%                        |
+| 4/4/1 + 命中率-1(禁)                      | **109.3** |     58.1 |   0% | 装弹 1=81% / 2=18%                 |
+| **4/4/2（优4/攻4/装弹2）**                | **138.4** |     67.0 |   0% | 装弹 2=90% / 3=10%                 |
+| **仅稀缺（装弹1/蓄力速度1）**             |   **8.8** |      8.7 |   0% | 装弹 1=90% / 2=10%                 |
+| **混合多稀缺（优4/装弹1/蓄力速度1）**     |  **44.6** |     32.0 |   0% | 装弹 1=79% / 2=19%                 |
+| **混合多稀缺（优4/攻2/装弹2/蓄力速度1）** |  **98.3** |     53.3 |   0% | 装弹 2=92% / 3=8%                  |
 
 > 说明：统一基线 + 成本交换分配（`allocateAssigned`/`carrierCost`，对称起点下与启发式结果一致）后，期望成本**随需求总量大体单调递增**（4 < 4/1 < 4/2/1 < 4/4 < 4/4/1 < 4/4/1/1 < 4/4/4），全部 0% 触顶、0% 禁词残留。“四优 ≈ 23”与《洗词条概率与期望计算.md》理论值 22.04 基本吻合；`4/4/1 + 命中-1` 仅比 `4/4/1` 高约 2.4（避免禁词的开销，且起点不含命中，故清洗负担小）。
 >
@@ -348,17 +348,17 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 
 1. **满配额效果**（`quota[e] >= 件数`，如 优4/攻4）：分给全部件，并占用该件 1 槽。
 2. **稀缺配额效果**（`quota[e] < 件数`，如 装弹1）：分给 `quota[e]` 个承载者；**每件承载稀缺效果的容量 = `maxSlot − 满配额数`**（满配额占槽，剩余槽可承载多个稀缺）。
-   - 例：优4/攻4 满配额（占 2 槽）→ 容量=1；仅 优4 满配额（占 1 槽）→ 容量=2（同件可承载 2 个稀缺）。每件配额效果总数恒 ≤ 3（3 槽上限）。
+    - 例：优4/攻4 满配额（占 2 槽）→ 容量=1；仅 优4 满配额（占 1 槽）→ 容量=2（同件可承载 2 个稀缺）。每件配额效果总数恒 ≤ 3（3 槽上限）。
 
 **涌现承载者（slot3 命中者优先）**
 
 稀缺配额选择承载者时，按“**slot3 先命中 优/攻/装弹 者优先**”的涌现规则：
 
-| 当前 slot3 | 当前 slot2 | 角色 | 该件 required |
-|---|---|---|---|
-| ∈ 正数配额效果（优/攻/装弹/…) | 任意 | **承载者** | `满配额 + 该稀缺`（1、2 槽补剩余） |
-| ∉ 正数配额效果 | ∈ **满配额效果**（quota[e] >= 件数，如 优/攻，可含任意满配额） | **降格者** | `满配额`（仅 优/攻 等满配额效果） |
-| 其余 | 其余 | **未定** | 待定（继续“边刷边找”承载者） |
+| 当前 slot3                    | 当前 slot2                                                     | 角色       | 该件 required                      |
+| ----------------------------- | -------------------------------------------------------------- | ---------- | ---------------------------------- |
+| ∈ 正数配额效果（优/攻/装弹/…) | 任意                                                           | **承载者** | `满配额 + 该稀缺`（1、2 槽补剩余） |
+| ∉ 正数配额效果                | ∈ **满配额效果**（quota[e] >= 件数，如 优/攻，可含任意满配额） | **降格者** | `满配额`（仅 优/攻 等满配额效果）  |
+| 其余                          | 其余                                                           | **未定**   | 待定（继续“边刷边找”承载者）       |
 
 - 承载者选择由**显式成本交换 `pickCheapestCarriersForEffect`** 决定（成本更低者晋升、原承载者退行）；角色分类只是观察/调度参考；
 - 每件累计承载稀缺数不超过 `容量 = maxSlot − 满配额数`（否则超出 3 槽）。
@@ -385,17 +385,18 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 - **注意**：性价比主排序并不等于“带锁件一定被降权”。若某件因**锁住废槽/卡点**导致全局成本很高，洗它的**降本更大**，哪怕每次 2 模块，`gainPerCost` 仍可能领先——这是正确的：**被卡住的点更值得优先修**。只有当带锁件的收益（降本）不足时，才会被无锁便宜件（1 模块）反超。
 
 **“每洗一次模块数”与“位置+数量+权重”的分工**
+
 - `gainPerCost`（主排序）负责**成本/收益性价比**；
 - `washPriority`（次排序兜底）负责**落后程度**（位置 + 数量 + 概率权重补正），在降本相近时决定谁更该洗。
 
 **“压力”与风险归纳**
 
-| 配额 | 合计 | 每件压力 | 容量 | 说明（成本权衡口径） |
-|---|---|---:|---:|---|
-| 4/1（优4/攻1） | 5 | 3 件=1 条，1 件=2 条 | 2 | 无“凑 3 条”件，无 1 号槽成本问题 |
-| 4/4/1（优4/攻4/装弹1） | 9 | 3 件=2 条，1 件=3 条 | 1 | 唯一致使 1 号槽有“策略上不锁”的成本权衡 |
-| 4/4/1/1/1/1（优4/攻4 + 4×稀缺1） | 12 | 每件=3 条 | 1 | 每件都有 1 号槽“策略上不锁”的成本权衡 |
-| 4/4/4（优4/攻4/装弹4） | 12 | 每件=3 条 | 0 | 每件都有 1 号槽“策略上不锁”的成本权衡 |
+| 配额                             | 合计 |             每件压力 | 容量 | 说明（成本权衡口径）                    |
+| -------------------------------- | ---- | -------------------: | ---: | --------------------------------------- |
+| 4/1（优4/攻1）                   | 5    | 3 件=1 条，1 件=2 条 |    2 | 无“凑 3 条”件，无 1 号槽成本问题        |
+| 4/4/1（优4/攻4/装弹1）           | 9    | 3 件=2 条，1 件=3 条 |    1 | 唯一致使 1 号槽有“策略上不锁”的成本权衡 |
+| 4/4/1/1/1/1（优4/攻4 + 4×稀缺1） | 12   |            每件=3 条 |    1 | 每件都有 1 号槽“策略上不锁”的成本权衡   |
+| 4/4/4（优4/攻4/装弹4）           | 12   |            每件=3 条 |    0 | 每件都有 1 号槽“策略上不锁”的成本权衡   |
 
 > **“1 号槽”是成本权衡，而非物理限制**：1 号槽本身可以被锁定；策略不锁它是因为 1 号 100% 易得、锁 1 追 23 代价高、真正难保的是 2/3 号槽。因此“承载者必须凑 3 条”只是意味着**有一条落在 1 号槽且策略选择不为它上锁**（低成本回归），不是“锁不住”。
 
@@ -408,6 +409,7 @@ HIGH_MODULE_LOCK_WEIGHT >> KEY_LOCK_WEIGHT
 **任意配额适配说明**
 
 这套“角色阶梯 + 成本交换 + 容量 + 调度优先级”对**任意由 9 种 T10 效果组成的正数配额**适用：
+
 - 效果权重表 `effectWeights` 覆盖了全部 9 种效果（优/攻/装弹/蓄力/暴击/命中/防御等），DP 对任意这些效果都能算期望成本；
 - 角色分类已泛化：承载者 = slot3 命中**任意正数配额**；降格者 = slot2 持**满配额效果**（`quota[e] >= 件数`，不限于 攻/优）；
 - 容量 = `maxSlot − 满配额数`，承载稀缺数 ≤ 容量（支持无满配额时单件承载多个稀缺、以及饱和时容量为 0）；
@@ -946,7 +948,7 @@ EquipmentRerollMain
 - Go 维护 task 级快照：每部位 3 槽 ×（词条名、数值、锁定状态）。自定义配额通过 `GetEquipmentSlotScans(taskID)` / `GetPartScan(taskID,part)` 读取完整快照（含锁）进行全局匹配。
 - `EquipmentRerollScanMain` 首次全量扫描写入快照；之后**不再全量扫描**。
 - **档位显示与数值校准（扫描日志 + 面向用户）**：扫描时对每个槽位计算 `value`、`tier`、`value_tier`（如 `11.81%（T11）`）。档位由 `effectTiers`（1~15 档映射，见[装备系统与洗词条研究](装备系统与洗词条研究.md) §数值档位）判定；`resolveEffectTier` 取“最近档位”并在 **OCR 与档位有出入时校准**输出为档位表的精确数值（容差 0.05%），存入快照的 `Value`。未知效果 / 空值 / 无法确认档位 → 不校准（`tier=0`）。
-  - **用户可见输出**：`EquipmentRerollScanRouteAction` 从快照取出词条和数值，在展示边界再次解析档位并通过 `maafocus.Print` 发送 focus，因此 MXU 显示 `11.81%（T11）`。`buildScanSlotDetail` 仍把 `value`、`raw_value`、`tier`、`value_tier` 和 `message` 写入自定义识别 Detail，但该结构只用于 `maafw.log` 诊断，不是 MXU 的展示契约。
+    - **用户可见输出**：`EquipmentRerollScanRouteAction` 从快照取出词条和数值，在展示边界再次解析档位并通过 `maafocus.Print` 发送 focus，因此 MXU 显示 `11.81%（T11）`。`buildScanSlotDetail` 仍把 `value`、`raw_value`、`tier`、`value_tier` 和 `message` 写入自定义识别 Detail，但该结构只用于 `maafw.log` 诊断，不是 MXU 的展示契约。
 - 职责划分：`EquipmentRerollScan*` 节点只负责「扫描四件装备」；扫描完全部装备（腿部完成）后，**无论独立检测还是完整任务**，都先“物资检测一次”进入效果锁定页读取材料库存初始化余额；随后由 `EquipmentRerollAfterMaterialCheck` 按入口分支——若任务入口是 `EquipmentRerollScanMain`（独立运行/调试）→ 结束；若入口是 `EquipmentRerollMain`（完整洗词条任务）→ 进入 `EquipmentRerollDecide` 决策。
 - 收尾细节：独立收尾的“关闭详情页”必须使用普通节点引用（非 `[JumpBack]`），否则关闭后会回跳父节点再次查找关闭按钮，导致已关闭页面识别失败并超时。
 - 锁定快照：`applyLockToSnapshot(taskID,part,slot,material)` 乐观写入锁（密钥=一次性蓝橙？实际蓝=永久/橙=一次），`expireOneTimeLocks(taskID,part)` 在每次效果变更后（Keep/Accept）使一次性锁失效，永久锁保留。待图校准后以实际 ColorMatch 为准。
@@ -994,12 +996,14 @@ EquipmentRerollMain
 **玩家操作路径**：详情页点击槽位右侧锁图标 → 进入“效果锁定”页 → 点击左右 `SELECT`（有密钥优先点击右侧“自订密钥”，不足再点左侧“订制模组”）→ 点击底部“确认”（启用）→ 弹出“通知”二次确认 → 点击“确认” → 返回详情页（该槽显示蓝/橙锁，仅读）→ 再执行效果变更。
 
 **Pipeline 实现（两条锁定入口，汇合到同一锁页链路）**：
+
 - **详情页入口**：`EquipmentRerollLockGate → __LockLocateFlag(Flag锚点) → LockBranch[LockNeed/ClickChangeEffect] → LockRouteSlot → LockClickSlot2/3`（Flag 锚点坐标）。
 - **效果变更确认/结果页入口**：`KeepLockGate(OCR“将…改造效果与数值”) → KeepLockCheck → KeepLockRoute → KeepClickSlot2/3`（固定坐标）。
 - 二者汇合：`…ClickSlotX → LockPageEntered(OCR 效果锁定) → LockSelectMaterial(Go按库存优先密钥、必要时模块) → LockSelectRouteAction → LockSelectKey/Module(OCR SELECT) → LockConfirm(OCR 确认) → LockNotify(OCR 通知) → LockNotifyConfirm(OCR 确认) → LockDone(Go写快照+清pending)`。
 
 **锁定完成后的导航（按当前页面自适应，避免用错坐标）**：
 `LockDone → EquipmentRerollLockAfterRoute(页面确认) → LockAfterIsConfirm(OCR 确认页) → EquipmentRerollKeepLockRoute`；或 `→ LockAfterIsDetail(TemplateMatch 详情页)` → `EquipmentRerollLockRouteSlot`。其中：
+
 - 上一把锁后若 `DesiredLockSlotForQuota` 仍建议锁第二把，`EquipmentRerollLockDoneAction` 只**写入 pending 待锁槽**（不再直接 `OverrideNext`）；
 - `EquipmentRerollKeepLockRouteSlotAction` / `EquipmentRerollLockRouteSlotAction` 再**读 pending**：有待锁→路由到对应点击节点（确认页 `KeepClickSlotX` / 详情页 `LockClickSlotX`）；无待锁→详情页 `ClickChangeEffect`、确认页 `PrepareRerollCost`。
 
@@ -1031,6 +1035,7 @@ EquipmentRerollMain
 | 效果变更 | 0锁1 /1锁2 /2锁3 订制模组（自订密钥不可代替） |
 
 **材料消耗统计**：**库存只在腿部扫描完成后的“物资检测”流程初始化一次**（进入效果锁定页，`EquipmentRerollMaterialCheckRecognition` 读取订制模组/自订密钥「持有」→ `setInventory`，不实际锁定）。之后所有消耗（效果变更扣模块、锁定扣密钥/模块）都靠**行为记录**扣减余额（`recordRerollModuleCost` / `recordLockMaterialCost` → `decrementInventory`），不再每次 OCR。
+
 - **库存输出**：`EquipmentRerollMaterialCheckRecognition` 在识别 `Detail` 中记录库存，供 `maafw.log` 诊断；面向用户的库存由任务结束摘要统一通过 focus 输出。go-service.log 同时记录 `material inventory initialized (material check)`（Info，含 modules/keys）。
 
 - 每次效果变更：按当前锁定数记录订制模块消耗；
@@ -1060,43 +1065,43 @@ EquipmentRerollMain
 
 ### 8.7 节点对照表
 
-| 节点                                            | 职责                             | 关键参数                                                                  |
-| ----------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------- |
-| `EquipmentRerollScanMain` / `Flow`              | 全量扫描入口 / 编排              | 独立运行扫描后停止，完整任务内继续到 Decide                               |
-| `EquipmentRerollMaterialCheck`                   | 物资检测：进入效果锁定页读取材料库存，初始化 Inventory 余额 | Go MaterialCheckRecognition（OCR 订制模组/自订密钥 持有）+ Pipeline 进入/退出   |
-| `EquipmentRerollAfterMaterialCheck`               | 物资检测后路由：独立检测→End；完整任务→Decide | Go AfterMaterialCheckAction（按任务入口分支）                 |
-| `EquipmentRerollScanDetailsPageEntered`         | 确认详情资讯页并设扫描锚点       | OCR 详情资讯                                                              |
-| `__EquipmentRerollLocateSlot1/2/3Match`         | 左侧分槽模板定位第1/2/3槽标记    | `InspectSlot1/2/3.png`（左侧）、0.9、index 0/1/2、ROI `[480,467,321,105]` |
-| `__EquipmentRerollSlot1/2/3AffixOCR/ValueOCR`   | 词条/数值区域 OCR                | `[Anchor]SlotN` + roi_offset                                              |
-| `__EquipmentRerollSlot1/2/3LockBlue/Orange`     | 锁定状态颜色判定                 | ColorMatch 蓝/橙、count 20                                                |
-| `EquipmentRerollScanSlot1/2/3`                  | 逐槽扫描业务：复用子识别并写快照 | Go ScanSlotRecognition                                                    |
-| `EquipmentRerollScanCloseDetails`               | 关闭装备详情页                   | CommonCloseButton                                                         |
-| `EquipmentRerollDecide`                         | 自定义配额决策分发、设洗练锚点   | global_quota 全局判定                                                     |
-| `EquipmentRerollAllSatisfied`                   | 四件装备均满足自定义配额         | Go PartNeedRecognition（part=all + global_quota）                         |
-| `EquipmentRerollChoosePart`                     | 全局有限步前瞻选择部位           | Go ChoosePartAction（期望收益/模块成本）                                  |
-| `EquipmentRerollOpen{Part}Details`              | 通用打开部位详情                 | Head/Arms/Torso/Legs 模板                                                 |
-| `EquipmentRerollLockGate` / `LockBranch`        | 锁定前置分发（配额模式）         | DirectHit 分支：LockNeed vs ClickChangeEffect                             |
-| `__EquipmentRerollLockLocateFlag`               | 锁定前 Flag 锚定                 | `InspectFlag.png` 0.9, 贴详情页                                           |
-| `EquipmentRerollLockNeed` / `LockRouteSlot`     | 锁定需求判定与槽位路由           | Go LockCheck + RouteSlot (3→2优先)                                        |
-| `EquipmentRerollLockClickSlot2/3`               | 点击 2/3号锁图标                 | `[Anchor]InspectFlag` + (135,69/93) 待校准                                |
-| `EquipmentRerollLockPageEntered`                | 效果锁定页确认                   | OCR 效果锁定                                                              |
-| `EquipmentRerollLockSelectMaterial`             | 锁定材料优选（密钥优先）         | Go LockSelectRecognition + RouteAction                                    |
-| `EquipmentRerollLockSelectModule/Key`           | 点击 SELECT                      | OCR SELECT（左右 ROI 区分）                                               |
-| `EquipmentRerollLockConfirm`                    | 锁定页确认                       | OCR 确认（底部蓝条）                                                      |
-| `EquipmentRerollLockNotify` / `NotifyConfirm`   | 通知二次确认                     | OCR 通知 / 确认                                                           |
-| `EquipmentRerollLockDone`                       | 乐观写快照+清 pending            | Go LockDoneAction → ClickChangeEffect                                     |
-| `EquipmentRerollClickChangeEffect`              | 一级效果变更（装备详情页）       | OCR 效果变更                                                              |
-| `EquipmentRerollPrepareRerollCost`              | 确认前校验库存并记录待消耗订制模块数       | Go PrepareRerollCostAction（按当前锁定数 + Inventory 门禁）                                |
-| `EquipmentRerollConfirmChangeEffect`            | 二级确认效果变更（确认页）       | OCR 效果变更                                                              |
-| `EquipmentRerollRecordRerollCost`               | 确认后正式记录本次消耗           | Go RecordRerollCostAction（按当前锁定数）                                 |
-| `__EquipmentRerollResultButtonsVisible`         | 决策页就绪信号                   | OCR 效果维持                                                              |
-| `__EquipmentRerollLocateChangedSlot1/2/3Match`  | 决策页模板定位第1/2/3变更槽标记  | `ResultSlot.png`、0.9、index 0/1/2                                        |
-| `__EquipmentRerollResultChangedEffectSlot1/2/3` | 读变更效果（Go 复用）            | `[Anchor]ChangedSlot1/2/3`、`[8,0,290,0]`，覆盖词条、数值和档位解析所需百分比 |
-| `EquipmentRerollResultPage`                     | 读变更效果 + 决策路由            | Go ResultDecide + RouteAction（自定义配额）                               |
-| `EquipmentRerollResultClickKeep/Accept`         | 点维持/接受（自身兜底）          | OCR 按钮（Keep→ConfirmChangeEffect，Accept→ReturnToDecide）               |
-| `__EquipmentRerollLockTitle`                    | 锁定页标题（Go 复用）            | OCR 效果锁定                                                              |
-| `EquipmentRerollReturnToDecide`                 | 关闭回人物页直接调度（不重扫）   | JumpBack 关闭                                                             |
-| `EquipmentRerollEnd`                            | 任务结束                         | -                                                                         |
+| 节点                                            | 职责                                                        | 关键参数                                                                      |
+| ----------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `EquipmentRerollScanMain` / `Flow`              | 全量扫描入口 / 编排                                         | 独立运行扫描后停止，完整任务内继续到 Decide                                   |
+| `EquipmentRerollMaterialCheck`                  | 物资检测：进入效果锁定页读取材料库存，初始化 Inventory 余额 | Go MaterialCheckRecognition（OCR 订制模组/自订密钥 持有）+ Pipeline 进入/退出 |
+| `EquipmentRerollAfterMaterialCheck`             | 物资检测后路由：独立检测→End；完整任务→Decide               | Go AfterMaterialCheckAction（按任务入口分支）                                 |
+| `EquipmentRerollScanDetailsPageEntered`         | 确认详情资讯页并设扫描锚点                                  | OCR 详情资讯                                                                  |
+| `__EquipmentRerollLocateSlot1/2/3Match`         | 左侧分槽模板定位第1/2/3槽标记                               | `InspectSlot1/2/3.png`（左侧）、0.9、index 0/1/2、ROI `[480,467,321,105]`     |
+| `__EquipmentRerollSlot1/2/3AffixOCR/ValueOCR`   | 词条/数值区域 OCR                                           | `[Anchor]SlotN` + roi_offset                                                  |
+| `__EquipmentRerollSlot1/2/3LockBlue/Orange`     | 锁定状态颜色判定                                            | ColorMatch 蓝/橙、count 20                                                    |
+| `EquipmentRerollScanSlot1/2/3`                  | 逐槽扫描业务：复用子识别并写快照                            | Go ScanSlotRecognition                                                        |
+| `EquipmentRerollScanCloseDetails`               | 关闭装备详情页                                              | CommonCloseButton                                                             |
+| `EquipmentRerollDecide`                         | 自定义配额决策分发、设洗练锚点                              | global_quota 全局判定                                                         |
+| `EquipmentRerollAllSatisfied`                   | 四件装备均满足自定义配额                                    | Go PartNeedRecognition（part=all + global_quota）                             |
+| `EquipmentRerollChoosePart`                     | 全局有限步前瞻选择部位                                      | Go ChoosePartAction（期望收益/模块成本）                                      |
+| `EquipmentRerollOpen{Part}Details`              | 通用打开部位详情                                            | Head/Arms/Torso/Legs 模板                                                     |
+| `EquipmentRerollLockGate` / `LockBranch`        | 锁定前置分发（配额模式）                                    | DirectHit 分支：LockNeed vs ClickChangeEffect                                 |
+| `__EquipmentRerollLockLocateFlag`               | 锁定前 Flag 锚定                                            | `InspectFlag.png` 0.9, 贴详情页                                               |
+| `EquipmentRerollLockNeed` / `LockRouteSlot`     | 锁定需求判定与槽位路由                                      | Go LockCheck + RouteSlot (3→2优先)                                            |
+| `EquipmentRerollLockClickSlot2/3`               | 点击 2/3号锁图标                                            | `[Anchor]InspectFlag` + (135,69/93) 待校准                                    |
+| `EquipmentRerollLockPageEntered`                | 效果锁定页确认                                              | OCR 效果锁定                                                                  |
+| `EquipmentRerollLockSelectMaterial`             | 锁定材料优选（密钥优先）                                    | Go LockSelectRecognition + RouteAction                                        |
+| `EquipmentRerollLockSelectModule/Key`           | 点击 SELECT                                                 | OCR SELECT（左右 ROI 区分）                                                   |
+| `EquipmentRerollLockConfirm`                    | 锁定页确认                                                  | OCR 确认（底部蓝条）                                                          |
+| `EquipmentRerollLockNotify` / `NotifyConfirm`   | 通知二次确认                                                | OCR 通知 / 确认                                                               |
+| `EquipmentRerollLockDone`                       | 乐观写快照+清 pending                                       | Go LockDoneAction → ClickChangeEffect                                         |
+| `EquipmentRerollClickChangeEffect`              | 一级效果变更（装备详情页）                                  | OCR 效果变更                                                                  |
+| `EquipmentRerollPrepareRerollCost`              | 确认前校验库存并记录待消耗订制模块数                        | Go PrepareRerollCostAction（按当前锁定数 + Inventory 门禁）                   |
+| `EquipmentRerollConfirmChangeEffect`            | 二级确认效果变更（确认页）                                  | OCR 效果变更                                                                  |
+| `EquipmentRerollRecordRerollCost`               | 确认后正式记录本次消耗                                      | Go RecordRerollCostAction（按当前锁定数）                                     |
+| `__EquipmentRerollResultButtonsVisible`         | 决策页就绪信号                                              | OCR 效果维持                                                                  |
+| `__EquipmentRerollLocateChangedSlot1/2/3Match`  | 决策页模板定位第1/2/3变更槽标记                             | `ResultSlot.png`、0.9、index 0/1/2                                            |
+| `__EquipmentRerollResultChangedEffectSlot1/2/3` | 读变更效果（Go 复用）                                       | `[Anchor]ChangedSlot1/2/3`、`[8,0,290,0]`，覆盖词条、数值和档位解析所需百分比 |
+| `EquipmentRerollResultPage`                     | 读变更效果 + 决策路由                                       | Go ResultDecide + RouteAction（自定义配额）                                   |
+| `EquipmentRerollResultClickKeep/Accept`         | 点维持/接受（自身兜底）                                     | OCR 按钮（Keep→ConfirmChangeEffect，Accept→ReturnToDecide）                   |
+| `__EquipmentRerollLockTitle`                    | 锁定页标题（Go 复用）                                       | OCR 效果锁定                                                                  |
+| `EquipmentRerollReturnToDecide`                 | 关闭回人物页直接调度（不重扫）                              | JumpBack 关闭                                                                 |
+| `EquipmentRerollEnd`                            | 任务结束                                                    | -                                                                             |
 
 ### 8.8 Go 组件对应
 
@@ -1113,7 +1118,7 @@ EquipmentRerollMain
 | `EquipmentRerollLockDoneAction`            | `EquipmentRerollLockDone`（乐观写快照 `applyLockToSnapshot` 并清 pending）                  |
 | `EquipmentRerollPrepareRerollCostAction`   | `EquipmentRerollPrepareRerollCost`（确认前记录待扣订制模块数）                              |
 | `EquipmentRerollRecordRerollCostAction`    | `EquipmentRerollRecordRerollCost`（确认成功后把 pending 写入材料统计）                      |
-| `EquipmentRerollResultDecideRecognition`   | `EquipmentRerollResultPage`（自定义配额，读变更 + 期望成本决策）                          |
+| `EquipmentRerollResultDecideRecognition`   | `EquipmentRerollResultPage`（自定义配额，读变更 + 期望成本决策）                            |
 | `EquipmentRerollResultRouteAction`         | `EquipmentRerollResultPage`（按决策路由到维持/接受，过期一次性锁）                          |
 | `clearMonitorState` / `expireOneTimeLocks` | `taskLifecycle OnTaskerTask` 及每次结果页后（Keep/Accept）                                  |
 
@@ -1136,25 +1141,25 @@ EquipmentRerollMain
 做目标判定与锁定决策。两者共享同一套原子化 Pipeline / Go 组件（扫描、锁定、效果变更、结果页），
 通过承载点 `EquipmentRerollLockNeed.attach.mode` 切换模式：
 
-| 维度 | 角色模式（EquipmentRerollMode=Character） | 单件模式（EquipmentRerollMode=Single） |
-| --- | --- | --- |
-| 任务 / 入口 | `EquipmentReroll`（入口 `EquipmentRerollMain`） | 同一任务、同一入口（由 `attach.mode` 分流） |
-| 操作对象 | 四件装备联合调度 | 用户选定的一件（头部/臂部/身躯/腿部） |
-| 扫描范围 | 四件全扫，腿部扫完做一次物资检测 | **只扫选定那一件**，扫完即做物资检测 |
-| 目标模型 | 全局配额（-1 禁止 / 0 / 1-4，合计 1-12） | 单件目标（1-3 条需求词条，每条可限定落槽） |
-| 槽位限定 | 不限定（只看是否持有） | 每个需求词条可限定落槽（不选则任意槽位均可） |
-| 词条数量上限 | 1-12（四件 × 三槽） | 1-3（单件三槽、同效果不重复） |
-| 锁定决策 | 分配感知 + 先苦后甜 / 拿到就锁（跨装备） | 需求 <2 不锁；==2 拿到就锁（期望收益差距 DP）；==3 先苦后甜（单件内） |
-| 组合策略 | 有（分配感知、承载者流转、交换） | 无（纯单件局部目标） |
+| 维度         | 角色模式（EquipmentRerollMode=Character）       | 单件模式（EquipmentRerollMode=Single）                                |
+| ------------ | ----------------------------------------------- | --------------------------------------------------------------------- |
+| 任务 / 入口  | `EquipmentReroll`（入口 `EquipmentRerollMain`） | 同一任务、同一入口（由 `attach.mode` 分流）                           |
+| 操作对象     | 四件装备联合调度                                | 用户选定的一件（头部/臂部/身躯/腿部）                                 |
+| 扫描范围     | 四件全扫，腿部扫完做一次物资检测                | **只扫选定那一件**，扫完即做物资检测                                  |
+| 目标模型     | 全局配额（-1 禁止 / 0 / 1-4，合计 1-12）        | 单件目标（1-3 条需求词条，每条可限定落槽）                            |
+| 槽位限定     | 不限定（只看是否持有）                          | 每个需求词条可限定落槽（不选则任意槽位均可）                          |
+| 词条数量上限 | 1-12（四件 × 三槽）                             | 1-3（单件三槽、同效果不重复）                                         |
+| 锁定决策     | 分配感知 + 先苦后甜 / 拿到就锁（跨装备）        | 需求 <2 不锁；==2 拿到就锁（期望收益差距 DP）；==3 先苦后甜（单件内） |
+| 组合策略     | 有（分配感知、承载者流转、交换）                | 无（纯单件局部目标）                                                  |
 
 ### 9.2 任务选项
 
 **`EquipmentRerollMode`**（select，父级、互斥）：
 
-| case | 含义 | 嵌套子选项 | pipeline_override |
-| --- | --- | --- | --- |
-| `Character`（默认） | 洗角色词条 | 9 个效果配额 select（`EquipmentRerollQuotaElementalDamage` 等） | `attach.mode = "character"` |
-| `Single` | 洗单件词条 | `EquipmentRerollSinglePart`、`EquipmentRerollSingleWant1/2/3` | `attach.mode = "single"`；`EquipmentRerollScanDetailsPageEntered.next → EquipmentRerollSingleScanRoute`（只扫选定那一件） |
+| case                | 含义       | 嵌套子选项                                                      | pipeline_override                                                                                                         |
+| ------------------- | ---------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `Character`（默认） | 洗角色词条 | 9 个效果配额 select（`EquipmentRerollQuotaElementalDamage` 等） | `attach.mode = "character"`                                                                                               |
+| `Single`            | 洗单件词条 | `EquipmentRerollSinglePart`、`EquipmentRerollSingleWant1/2/3`   | `attach.mode = "single"`；`EquipmentRerollScanDetailsPageEntered.next → EquipmentRerollSingleScanRoute`（只扫选定那一件） |
 
 两种模式共用入口 `EquipmentRerollMain`（RuntimeQuotaCheck 计费）与扫描 + 物资检测流程；
 `EquipmentRerollAfterMaterialCheck` 读取承载点 `attach.mode` 分流到 `EquipmentRerollDecide`（角色）或
@@ -1175,8 +1180,8 @@ EquipmentRerollMain
   case = `Any`（任意槽位，默认）/ `Slot1` / `Slot2` / `Slot3`。
 - 每个 case 的 `pipeline_override` 把语义值**写死**到统一配置承载节点
   `EquipmentRerollLockNeed.attach`（顶层键，多 option 覆盖互不覆盖——不同于整体替换的 `custom_recognition_param`）：
-  - 效果 case → `attach.wantN = "<官方效果名>"`；
-  - 槽位 case → `attach.slotN = 0（任意）/ 1 / 2 / 3`。
+    - 效果 case → `attach.wantN = "<官方效果名>"`；
+    - 槽位 case → `attach.slotN = 0（任意）/ 1 / 2 / 3`。
 - Go 端 `singleTargetFromRows` 把三行组装为 `effect -> slot` 目标：空行忽略、同一效果重复选择判为非法；
   其余组件（锁定、结果页、接受路由、单件决策、扫描路由）统一经 `loadCarrierConfig(ctx)` 读取该节点配置，
   不再各自接收 target 参数。识别器按帧调用，因此一次 `Run` 内只读一次并把 `carrierConfig` 往下传。
@@ -1224,17 +1229,17 @@ EquipmentRerollMain
 
 ### 9.6 Pipeline / Go 节点对应（新增）
 
-| 节点 | 职责 | 组件 |
-| --- | --- | --- |
-| `EquipmentRerollMain` | 共用入口（RuntimeQuotaCheck 计费）→ `EquipmentRerollFlow`（两种模式同一条编排） | membership `RuntimeQuotaCheckAction`、任务选项 `EquipmentRerollMode` |
-| `EquipmentRerollSingleScanRoute` | 单件扫描起点：跳过其余三件，直接打开 `attach.part` 选定的那一件详情 | 新增 `EquipmentRerollSingleScanRouteAction` |
-| `EquipmentRerollSingleDecide` | 判断选定部位是否达标：达标→摘要/结束；目标不可达→告知用户并结束；否则打开该部位详情（重设 AfterOpen 锚点→LockGate） | 新增 `EquipmentRerollSingleDecideAction` |
-| `EquipmentRerollSingleReturnToDecide` | 单件一次效果变更后回单件决策（不再重新扫描） | - |
-| `EquipmentRerollAfterMaterialCheck` | 物资检测后路由：独立扫描→摘要；角色（mode=character）→Decide；单件（mode=single）→SingleDecide | `EquipmentRerollAfterMaterialCheckAction`（读 `attach.mode` 分流） |
-| `EquipmentRerollLockNeed` / `KeepLockCheck` | 配置承载点 + 锁定判定（单件模式：`singleDesiredLockSlot`） | `EquipmentRerollLockCheckRecognition`（`lockCheckSingle` 分支） |
-| `EquipmentRerollResultPage` | 结果页决策（单件模式：`DecideResultPageSingle`） | `EquipmentRerollResultDecideRecognition`（`decideSingle` 分支） |
-| `EquipmentRerollAfterAccept` | 接受后路由（单件模式→`EquipmentRerollSingleReturnToDecide`） | `EquipmentRerollAfterAcceptRouteAction`（读 `attach.mode`） |
-| `EquipmentRerollLockSelectMaterial` / `LockDone` / `LockRouteSlot` / `KeepLockRoute` | 材料选择 / 二次锁 / 待锁槽路由（统一经 `desiredLockSlotForConfig` 按模式回退） | 复用，内部改用模式感知的 `desiredLockSlotForCurrentMode` |
+| 节点                                                                                 | 职责                                                                                                                | 组件                                                                 |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `EquipmentRerollMain`                                                                | 共用入口（RuntimeQuotaCheck 计费）→ `EquipmentRerollFlow`（两种模式同一条编排）                                     | membership `RuntimeQuotaCheckAction`、任务选项 `EquipmentRerollMode` |
+| `EquipmentRerollSingleScanRoute`                                                     | 单件扫描起点：跳过其余三件，直接打开 `attach.part` 选定的那一件详情                                                 | 新增 `EquipmentRerollSingleScanRouteAction`                          |
+| `EquipmentRerollSingleDecide`                                                        | 判断选定部位是否达标：达标→摘要/结束；目标不可达→告知用户并结束；否则打开该部位详情（重设 AfterOpen 锚点→LockGate） | 新增 `EquipmentRerollSingleDecideAction`                             |
+| `EquipmentRerollSingleReturnToDecide`                                                | 单件一次效果变更后回单件决策（不再重新扫描）                                                                        | -                                                                    |
+| `EquipmentRerollAfterMaterialCheck`                                                  | 物资检测后路由：独立扫描→摘要；角色（mode=character）→Decide；单件（mode=single）→SingleDecide                      | `EquipmentRerollAfterMaterialCheckAction`（读 `attach.mode` 分流）   |
+| `EquipmentRerollLockNeed` / `KeepLockCheck`                                          | 配置承载点 + 锁定判定（单件模式：`singleDesiredLockSlot`）                                                          | `EquipmentRerollLockCheckRecognition`（`lockCheckSingle` 分支）      |
+| `EquipmentRerollResultPage`                                                          | 结果页决策（单件模式：`DecideResultPageSingle`）                                                                    | `EquipmentRerollResultDecideRecognition`（`decideSingle` 分支）      |
+| `EquipmentRerollAfterAccept`                                                         | 接受后路由（单件模式→`EquipmentRerollSingleReturnToDecide`）                                                        | `EquipmentRerollAfterAcceptRouteAction`（读 `attach.mode`）          |
+| `EquipmentRerollLockSelectMaterial` / `LockDone` / `LockRouteSlot` / `KeepLockRoute` | 材料选择 / 二次锁 / 待锁槽路由（统一经 `desiredLockSlotForConfig` 按模式回退）                                      | 复用，内部改用模式感知的 `desiredLockSlotForCurrentMode`             |
 
 > **复用原则**：除上述 Go 组件增加模式分支、以及新增一个扫描起点路由动作外，单件模式**不新增**打开详情、
 > 锁定页、效果变更、结果按钮等原子化节点；所有识别参数仍只维护在 Pipeline，Go 不硬编码任何识别 ROI。
@@ -1249,12 +1254,12 @@ EquipmentRerollMain
 
 与 §4.4 表同口径的“单件”直观基线（无初始锁定，目标达成即停；仅示意量级，未逐样本枚举）：
 
-| 目标 | 词条数 | 期望模块量级 |
-| --- | ---: | --- |
-| 优（任意槽） | 1 | 低（找到即停，不锁） |
-| 优@3 | 1 | 中（需刷 30% 槽，不锁保低成本） |
-| 优@3 + 攻@2 | 2 | 中高（锁优@3 后按 2 模块/刷追攻） |
-| 优@3 + 攻@2 + 装弹（任意） | 3 | 高（先苦后甜，逐步锁 3、2） |
+| 目标                       | 词条数 | 期望模块量级                      |
+| -------------------------- | -----: | --------------------------------- |
+| 优（任意槽）               |      1 | 低（找到即停，不锁）              |
+| 优@3                       |      1 | 中（需刷 30% 槽，不锁保低成本）   |
+| 优@3 + 攻@2                |      2 | 中高（锁优@3 后按 2 模块/刷追攻） |
+| 优@3 + 攻@2 + 装弹（任意） |      3 | 高（先苦后甜，逐步锁 3、2）       |
 
 > 具体期望值由 `singleExpectedCost` 按实际快照与库存计算，单个目标是否锁由
 > `singleDesiredLockSlot` 的期望收益差距决定；此处仅说明量级与策略分档，不属于运行时契约。
@@ -1270,10 +1275,10 @@ EquipmentRerollMain
 
 `costUnreachable` 是**哨兵而不是“很贵的成本”**，必须在决策入口拦截并结束任务：
 
-| 模式 | 拦截点 | 判定 | 用户提示 |
-| --- | --- | --- | --- |
+| 模式 | 拦截点                              | 判定                                                                 | 用户提示                                            |
+| ---- | ----------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------- |
 | 单件 | `EquipmentRerollSingleDecideAction` | `singleTargetUnreachable`（`singleExpectedCost >= costUnreachable`） | `tasker.equipment_reroll.single_target_unreachable` |
-| 角色 | `EquipmentRerollChoosePartAction` | `expectedModulesForQuota >= costUnreachable` | `tasker.equipment_reroll.quota_unreachable` |
+| 角色 | `EquipmentRerollChoosePartAction`   | `expectedModulesForQuota >= costUnreachable`                         | `tasker.equipment_reroll.quota_unreachable`         |
 
 配置本身非法（重复选同一词条、两条限定到同一槽、需求数不在 1-3、部位未选）时同样立即结束，
 `carrierConfig.TargetProblem` 带原因码进日志，用户侧发

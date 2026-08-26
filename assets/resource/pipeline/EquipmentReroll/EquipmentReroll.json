@@ -188,6 +188,7 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -202,7 +203,6 @@
         "post_wait_freezes": {
             "time": 150
         },
-        "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
@@ -224,6 +224,7 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -238,7 +239,6 @@
         "post_wait_freezes": {
             "time": 150
         },
-        "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
@@ -281,6 +281,7 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -296,7 +297,6 @@
             "time": 300,
             "rate_limit": 100
         },
-        "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
@@ -362,13 +362,13 @@
         "recognition": {
             "type": "DirectHit"
         },
+        "pre_delay": 0,
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "EquipmentRerollAfterMaterialCheckAction"
             }
         },
-        "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100
     },
@@ -408,10 +408,10 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
-        "pre_delay": 0,
         "post_delay": 50,
         "rate_limit": 100,
         "next": [
@@ -435,10 +435,10 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
-        "pre_delay": 0,
         "post_delay": 50,
         "rate_limit": 100,
         "next": [
@@ -462,10 +462,10 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
-        "pre_delay": 0,
         "post_delay": 50,
         "rate_limit": 100,
         "next": [
@@ -510,15 +510,15 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
-        "pre_delay": 0,
-        "post_delay": 0,
-        "rate_limit": 100,
         "post_wait_freezes": {
             "time": 100
         },
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockComplete",
             "EquipmentRerollLockNotifyConfirm"
@@ -623,6 +623,7 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
@@ -630,7 +631,6 @@
             "time": 300,
             "rate_limit": 100
         },
-        "pre_delay": 0,
         "post_delay": 100,
         "rate_limit": 100,
         "next": [
@@ -655,6 +655,7 @@
                 "threshold": 0.9
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -664,7 +665,6 @@
                 ]
             }
         },
-        "pre_delay": 0,
         "post_delay": 100,
         "rate_limit": 100,
         "next": [
@@ -872,6 +872,7 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -886,7 +887,6 @@
         "post_wait_freezes": {
             "time": 150
         },
-        "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
@@ -907,6 +907,7 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -921,7 +922,6 @@
         "post_wait_freezes": {
             "time": 150
         },
-        "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
@@ -1219,12 +1219,6 @@
     },
     "EquipmentRerollSingleDecide": {
         "desc": "单件决策：达标→摘要/结束；目标不可达→告知用户并结束；否则打开部位详情（部位与目标从承载点 attach 读取）",
-        "anchor": {
-            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
-            "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
-            "EquipmentRerollAfterOpenTorso": "EquipmentRerollLockGate",
-            "EquipmentRerollAfterOpenLegs": "EquipmentRerollLockGate"
-        },
         "recognition": {
             "type": "DirectHit"
         },
@@ -1233,6 +1227,12 @@
             "param": {
                 "custom_action": "EquipmentRerollSingleDecideAction"
             }
+        },
+        "anchor": {
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenTorso": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenLegs": "EquipmentRerollLockGate"
         },
         "next": [
             "EquipmentRerollEnd"
