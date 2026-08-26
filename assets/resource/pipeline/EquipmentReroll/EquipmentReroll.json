@@ -124,6 +124,7 @@
             }
         },
         "anchor": "EquipmentRerollInspectFlag",
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockBranch"
         ]
@@ -151,6 +152,7 @@
                 }
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockRouteSlot"
         ]
@@ -166,6 +168,7 @@
                 "custom_action": "EquipmentRerollLockRouteSlotAction"
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockClickSlot2",
             "EquipmentRerollLockClickSlot3"
@@ -197,8 +200,11 @@
             }
         },
         "post_wait_freezes": {
-            "time": 300
+            "time": 150
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockPageEntered",
             "EquipmentRerollLockClickSlot2"
@@ -230,8 +236,11 @@
             }
         },
         "post_wait_freezes": {
-            "time": 300
+            "time": 150
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockPageEntered",
             "EquipmentRerollLockClickSlot3"
@@ -253,6 +262,7 @@
                 ]
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockSelectMaterial"
         ]
@@ -283,8 +293,12 @@
             }
         },
         "post_wait_freezes": {
-            "time": 300
+            "time": 300,
+            "rate_limit": 100
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollMaterialCheckPageEntered",
             "EquipmentRerollMaterialCheckEnter"
@@ -306,6 +320,9 @@
                 ]
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollMaterialCheck"
         ]
@@ -319,6 +336,9 @@
                 "custom_recognition_param": {}
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollMaterialCheckExit"
         ]
@@ -328,6 +348,9 @@
         "recognition": {
             "type": "DirectHit"
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "[JumpBack]CommonClosePage",
             "[JumpBack]EquipmentRerollScanCloseDetails",
@@ -344,7 +367,10 @@
             "param": {
                 "custom_action": "EquipmentRerollAfterMaterialCheckAction"
             }
-        }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100
     },
     "EquipmentRerollLockSelectMaterial": {
         "desc": "选择锁定材料：自订密钥优先，不够用订制模块（Go决策）",
@@ -361,6 +387,7 @@
                 "custom_action": "EquipmentRerollLockSelectRouteAction"
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockSelectMaterial"
         ]
@@ -384,7 +411,11 @@
         "action": {
             "type": "Click"
         },
+        "pre_delay": 0,
+        "post_delay": 50,
+        "rate_limit": 100,
         "next": [
+            "EquipmentRerollLockSelectModule",
             "EquipmentRerollLockConfirm"
         ]
     },
@@ -407,7 +438,11 @@
         "action": {
             "type": "Click"
         },
+        "pre_delay": 0,
+        "post_delay": 50,
+        "rate_limit": 100,
         "next": [
+            "EquipmentRerollLockSelectKey",
             "EquipmentRerollLockConfirm"
         ]
     },
@@ -430,8 +465,12 @@
         "action": {
             "type": "Click"
         },
+        "pre_delay": 0,
+        "post_delay": 50,
+        "rate_limit": 100,
         "next": [
-            "EquipmentRerollLockNotify"
+            "EquipmentRerollLockNotify",
+            "EquipmentRerollLockConfirm"
         ]
     },
     "EquipmentRerollLockNotify": {
@@ -450,6 +489,7 @@
                 ]
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockNotifyConfirm"
         ]
@@ -473,6 +513,29 @@
         "action": {
             "type": "Click"
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "post_wait_freezes": {
+            "time": 100
+        },
+        "next": [
+            "EquipmentRerollLockComplete",
+            "EquipmentRerollLockNotifyConfirm"
+        ]
+    },
+    "EquipmentRerollLockComplete": {
+        "desc": "锁定确认后的哨兵：确认已回到详情页或效果变更确认页后，才同步锁定状态",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "EquipmentRerollLockAfterIsDetail",
+                    "EquipmentRerollLockAfterIsConfirm"
+                ]
+            }
+        },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockDone"
         ]
@@ -488,6 +551,7 @@
                 "custom_action": "EquipmentRerollLockDoneAction"
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockAfterRoute"
         ]
@@ -517,6 +581,7 @@
                 "order_by": "Score"
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockRouteSlot"
         ]
@@ -537,6 +602,7 @@
                 ]
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollKeepLockRoute"
         ]
@@ -560,6 +626,69 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": {
+            "time": 300,
+            "rate_limit": 100
+        },
+        "pre_delay": 0,
+        "post_delay": 100,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollChangeEffectPageEntered",
+            "EquipmentRerollClickChangeEffectRetry"
+        ]
+    },
+    "EquipmentRerollClickChangeEffectRetry": {
+        "desc": "详情页点击未切换时的哨兵兜底：仅确认 InspectFlag 仍在详情页才重试效果变更",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    380,
+                    240,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/InspectFlag.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    580,
+                    575
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 100,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollChangeEffectPageEntered",
+            "EquipmentRerollClickChangeEffectRetry"
+        ]
+    },
+    "EquipmentRerollChangeEffectPageEntered": {
+        "desc": "效果变更点击后的确认页哨兵：确认页面已切换后才读取并校验消耗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    190,
+                    320,
+                    70
+                ],
+                "expected": [
+                    "将.*改造效果与数值"
+                ]
+            }
+        },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollPrepareRerollCost"
         ]
@@ -576,6 +705,7 @@
                 "custom_action_param": {}
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollConfirmChangeEffect"
         ]
@@ -706,6 +836,7 @@
                 }
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollKeepLockRoute"
         ]
@@ -721,6 +852,7 @@
                 "custom_action": "EquipmentRerollKeepLockRouteSlotAction"
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollKeepClickSlot2",
             "EquipmentRerollKeepClickSlot3",
@@ -752,8 +884,11 @@
             }
         },
         "post_wait_freezes": {
-            "time": 200
+            "time": 150
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockPageEntered",
             "EquipmentRerollKeepClickSlot2"
@@ -784,8 +919,11 @@
             }
         },
         "post_wait_freezes": {
-            "time": 200
+            "time": 150
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockPageEntered",
             "EquipmentRerollKeepClickSlot3"
@@ -1029,6 +1167,7 @@
                 ]
             }
         },
+        "rate_limit": 100,
         "next": [
             "EquipmentRerollLockSelectMaterial"
         ]
@@ -1049,6 +1188,7 @@
                 ]
             }
         },
+        "rate_limit": 100,
         "next": []
     },
     "__EquipmentRerollLockKeyHeld": {
@@ -1067,6 +1207,7 @@
                 ]
             }
         },
+        "rate_limit": 100,
         "next": []
     },
     "EquipmentRerollReturnToDecide": {
