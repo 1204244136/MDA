@@ -14,16 +14,16 @@ Maa Doro Assistant
 </div>
 
 <p align="center">
-  <img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white">
-  <img alt="MaaFramework" src="https://img.shields.io/badge/MaaFramework-%2300BFFF">
-  <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blueviolet">
-  <img alt="license" src="https://img.shields.io/github/license/1204244136/MDA">
+  <img alt="Go" style="display:inline-block" src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white">
+  <img alt="MaaFramework" style="display:inline-block" src="https://img.shields.io/badge/MaaFramework-%2300BFFF">
+  <img alt="platform" style="display:inline-block" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blueviolet">
+  <img alt="license" style="display:inline-block" src="https://img.shields.io/github/license/1204244136/MDA">
   <br>
-  <img alt="release" src="https://img.shields.io/github/v/release/1204244136/MDA">
-  <img alt="commit" src="https://img.shields.io/github/commit-activity/m/1204244136/MDA">
-  <img alt="stars" src="https://img.shields.io/github/stars/1204244136/MDA?style=social">
-  <img alt="downloads" src="https://img.shields.io/github/downloads/1204244136/MDA/total?style=social">
-  <a href="https://mirrorchyan.com/zh/projects?rid=MDA&os=windows&arch=x64&channel=stable&source=mdagh-badge-en" target="_blank"><img alt="mirrorc" src="https://img.shields.io/badge/Mirror%E9%85%B1-%239af3f6?logo=countingworkspro&logoColor=4f46e5"></a>
+  <img alt="release" style="display:inline-block" src="https://img.shields.io/github/v/release/1204244136/MDA">
+  <img alt="commit" style="display:inline-block" src="https://img.shields.io/github/commit-activity/m/1204244136/MDA">
+  <img alt="stars" style="display:inline-block" src="https://img.shields.io/github/stars/1204244136/MDA?style=social">
+  <img alt="downloads" style="display:inline-block" src="https://img.shields.io/github/downloads/1204244136/MDA/total?style=social">
+  <a href="https://mirrorchyan.com/zh/projects?rid=MDA&os=windows&arch=x64&channel=stable&source=mdagh-badge-en" target="_blank"><img alt="mirrorc" style="display:inline-block" src="https://img.shields.io/badge/Mirror%E9%85%B1-%239af3f6?logo=countingworkspro&logoColor=4f46e5"></a>
 </p>
 
 MDA is a game automation assistant built on [MaaFramework](https://github.com/MaaXYZ/MaaFramework), rewritten from [DoroHelper](https://github.com/1204244136/DoroHelper). It automates daily routines and event content in the game, saving you time and effort.
