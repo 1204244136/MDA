@@ -178,7 +178,7 @@
     "option.SmallEventContent.SmallEventStory": "小活动剧情",
     "option.SmallEventContent.SmallEventMission": "小活动任务",
     "task.EquipmentReroll.label": "🔨洗词条",
-    "task.EquipmentReroll.description": "对 T10 装备执行效果变更，支持角色模式和单件模式。",
+    "task.EquipmentReroll.description": "对 T10 装备执行效果变更，支持角色模式和单件模式。\n**请在人物页（左上角有「详情资讯」）开始任务**",
     "option.EquipmentRerollMode.label": "洗词条模式",
     "option.EquipmentRerollMode.description": "角色模式：四件装备共享词条配额；单件模式：只洗选定部位，可限定词条槽位。",
     "option.EquipmentRerollMode.Character.label": "洗角色词条",

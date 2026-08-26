@@ -178,7 +178,7 @@
     "option.SmallEventContent.SmallEventStory": "Story",
     "option.SmallEventContent.SmallEventMission": "Mission",
     "task.EquipmentReroll.label": "🔨Effect Reroll",
-    "task.EquipmentReroll.description": "Changes effects on T10 equipment with Character and Single modes.",
+    "task.EquipmentReroll.description": "Changes effects on T10 equipment with Character and Single modes.\n**Start on the character page (with \"Details\" in the top-left corner).**",
     "option.EquipmentRerollMode.label": "Reroll Mode",
     "option.EquipmentRerollMode.description": "Character mode: shared affix quotas across four pieces; Single mode: reroll only the selected piece, with optional slot pinning.",
     "option.EquipmentRerollMode.Character.label": "Character Reroll",
