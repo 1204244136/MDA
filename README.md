@@ -13,38 +13,57 @@ Maa Doro Assistant
 
 </div>
 
-MDA 是一款基于 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 开发的游戏自动化辅助工具，由 [DoroHelper](https://github.com/1204244136/DoroHelper) 重写而来。
+<p align="center">
+  <img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white">
+  <img alt="MaaFramework" src="https://img.shields.io/badge/MaaFramework-%2300BFFF">
+  <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blueviolet">
+  <img alt="license" src="https://img.shields.io/github/license/1204244136/MDA">
+  <br>
+  <img alt="release" src="https://img.shields.io/github/v/release/1204244136/MDA">
+  <img alt="commit" src="https://img.shields.io/github/commit-activity/m/1204244136/MDA">
+  <img alt="stars" src="https://img.shields.io/github/stars/1204244136/MDA?style=social">
+  <img alt="downloads" src="https://img.shields.io/github/downloads/1204244136/MDA/total?style=social">
+  <a href="https://mirrorchyan.com/zh/projects?rid=MDA&os=windows&arch=x64&channel=stable&source=mdagh-badge" target="_blank"><img alt="mirrorc" src="https://img.shields.io/badge/Mirror%E9%85%B1-%239af3f6?logo=countingworkspro&logoColor=4f46e5"></a>
+</p>
+
+MDA 是一款基于 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 开发的游戏自动化辅助工具，由 [DoroHelper](https://github.com/1204244136/DoroHelper) 重写而来。它可以帮你自动完成游戏中的日常任务与活动内容，省时省力、解放双手。
 
 ---
 
-## ⚠️ 封号风险提示
+## ✨ 功能特性
 
-近期已有用户反馈，使用本软件后出现游戏账号被封禁的情况；同时也有用户反馈账号已被解封，因此相关封禁可能包含官方误操作或风控误判的情况。MDA 属于第三方自动化辅助工具，使用过程中仍可能违反游戏运营方的用户协议或风控规则。
+MDA 内置了多种任务，覆盖日常、活动与实用工具，全部可以在程序内按需开启：
 
-**请在充分了解并自行承担账号封禁、数据损失等风险后再使用本软件。**
+### 前置流程
 
----
+- 🚪 **进入大厅**：返回游戏大厅，为后续所有任务准备统一的起始界面。
 
-## 会员功能
+### 日常任务
 
-为了给大家提供更稳定、更高效的自动化体验，本项目目前由我**全职进行维护与更新**。由于持续开发、适配游戏更新以及维护项目需要投入大量的时间与精力，MDA 采取了**按会员档位提供每日运行额度**的模式，以保障项目的长期健康发展。
+- 📅 **每日奖励**：一键领取友情点、邮箱、任务、Pass 等各类每日奖励。
+- 🏠 **前哨基地**：领取防御奖励，完成派遣公告栏与突发活动。
+- 🛒 **商店**：在普通、竞技场、废铁商店中按需购买商品。
+- 💎 **付费商店**：进入付费商店，领取免费礼包等奖励。
+- 🧪 **模拟室**：自动完成普通 / 超频模拟室战斗。
+- ⚔️ **竞技场**：自动挑战新人、特殊、冠军竞技场，领取累积奖励。
+- 🗼 **无限之塔**：自动挑战各阵营的无限之塔。
+- 🎯 **拦截战**：自动挑战普通 / 异常拦截战并领取奖励。
+- 💬 **咨询**：自动咨询妮姬，领取好感度与花絮奖励。
 
-具体说明如下：
+### 周期任务
 
-- **全部功能可用**：免费用户也可以使用所有任务，不再通过 🍊 标记区分会员专属任务。
-- **每日运行额度**：不同会员档位拥有不同的每日可运行时长，默认免费档位为 **Orange Free**，每日可运行 **10 分钟**。
-- **额度刷新时间**：每日运行额度会在每天北京时间凌晨 **4 点**按当前档位刷新。
-- **赞助方式**：运行任务时，运行日志会显示当前档位、今日剩余额度以及设备绑定/订阅地址，届时可通过链接对本项目进行赞助支持。
+- 🎪 **大活动**：自动推进大活动（带 SD 小人的活动）的签到、挑战、剧情、任务与小游戏。
+- 🎫 **小活动**：自动推进小活动（不带 SD 小人的活动）的挑战、剧情与任务。
+- 🔥 **单人突击**：自动完成单人突击的关卡挑战或快速战斗。
+- 🤝 **协同作战**：自动完成协同作战并领取奖励。
 
-感谢所有开发者的贡献，以及每一位用户的理解与支持！您的赞助是我持续优化 MDA 的最大动力。
+### 实用工具
 
----
-
-## 语言适配说明
-
-MDA 的界面支持中文、英文等多种语言，但**脚本的功能目前仅适配中文游戏界面**。
-
-如果你使用英文或其他语言的游戏界面，可能会遇到识别错误、功能异常等问题。遇到报错时，请先将游戏切换到**简体中文**界面再尝试。若切换后问题仍然存在，欢迎提交反馈，我会协助排查。
+- 🎁 **开宝箱**：自动开启物品栏中的各类宝箱。
+- 📈 **账号养成**：自动进行角色突破、同步器增强等养成操作。
+- 🔨 **洗词条**：对 T10 装备自动洗词条，支持角色与单件两种模式。
+- 🗺️ **自动推图**：在地图上自动点击怪物战斗、触发机关，推进主线关卡。
+- 🔴 **清除红点**：自动清除各界面上的红点提醒。
 
 ---
 
@@ -60,9 +79,29 @@ MDA 的界面支持中文、英文等多种语言，但**脚本的功能目前�
 
 ---
 
+## 语言适配说明
+
+MDA 的界面支持中文、英文等多种语言，但**脚本的功能目前仅适配中文游戏界面**。
+
+如果你使用英文或其他语言的游戏界面，可能会遇到识别错误、功能异常等问题。遇到报错时，请先将游戏切换到**简体中文**界面再尝试。若切换后问题仍然存在，欢迎提交反馈，我们会协助排查。
+
+---
+
 ## 相关项目
 
 [BlablalinkTasker](https://github.com/1204244136/BlablalinkTasker) 是一款 Blablalink / NIKKE 社区每日任务自动化工具，支持签到、点赞、浏览和奖励兑换。完成首次登录配置后，可通过 MXU 的「特殊任务」→「自定义程序」调用项目内的 `日常运行.bat`，在运行 MDA 时一并执行。
+
+---
+
+## ⭐ Star 历史
+
+<a href="https://www.star-history.com/#1204244136/MDA&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=1204244136/MDA&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=1204244136/MDA&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=1204244136/MDA&type=Date" />
+  </picture>
+</a>
 
 ---
 

@@ -13,38 +13,57 @@ Maa Doro Assistant
 
 </div>
 
-MDA is a game automation assistant built on [MaaFramework](https://github.com/MaaXYZ/MaaFramework), rewritten from [DoroHelper](https://github.com/1204244136/DoroHelper).
+<p align="center">
+  <img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white">
+  <img alt="MaaFramework" src="https://img.shields.io/badge/MaaFramework-%2300BFFF">
+  <img alt="platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blueviolet">
+  <img alt="license" src="https://img.shields.io/github/license/1204244136/MDA">
+  <br>
+  <img alt="release" src="https://img.shields.io/github/v/release/1204244136/MDA">
+  <img alt="commit" src="https://img.shields.io/github/commit-activity/m/1204244136/MDA">
+  <img alt="stars" src="https://img.shields.io/github/stars/1204244136/MDA?style=social">
+  <img alt="downloads" src="https://img.shields.io/github/downloads/1204244136/MDA/total?style=social">
+  <a href="https://mirrorchyan.com/zh/projects?rid=MDA&os=windows&arch=x64&channel=stable&source=mdagh-badge-en" target="_blank"><img alt="mirrorc" src="https://img.shields.io/badge/Mirror%E9%85%B1-%239af3f6?logo=countingworkspro&logoColor=4f46e5"></a>
+</p>
+
+MDA is a game automation assistant built on [MaaFramework](https://github.com/MaaXYZ/MaaFramework), rewritten from [DoroHelper](https://github.com/1204244136/DoroHelper). It automates daily routines and event content in the game, saving you time and effort.
 
 ---
 
-## ⚠️ Account Ban Risk
+## ✨ Features
 
-Some users have recently reported that their game accounts were banned after using this software; some have also reported that their accounts have since been unbanned, so those bans may have included official mistakes or false positives from risk controls. MDA is a third-party automation assistant, and using it may still violate the game's terms of service or risk-control rules.
+MDA includes a variety of tasks covering dailies, events, and utilities — all of them can be toggled on in the app:
 
-**Please use this software only after fully understanding and accepting the risks, including account bans and data loss.**
+### Pre-task Flow
 
----
+- 🚪 **Enter Hall**: Return to the game hall to provide a consistent starting point for all subsequent tasks.
 
-## Member Features
+### Daily Tasks
 
-To provide a more stable and efficient automation experience, this project is currently **maintained and updated full-time**. Due to the significant time and effort required for ongoing development, adapting to game updates, and maintaining the project, MDA adopts a **daily runtime quota by membership tier** model to ensure the long-term healthy development of the project.
+- 📅 **Daily Rewards**: Claim friend points, mail, missions, Pass and other daily rewards in one go.
+- 🏠 **Outpost**: Claim defense rewards and complete dispatch board and brief encounter tasks.
+- 🛒 **Shop**: Buy what you need in the common, arena, and recycling shops.
+- 💎 **Cash Shop**: Enter the cash shop and claim free packages and other rewards.
+- 🧪 **Simulation Room**: Automatically complete normal / overclocked simulation room battles.
+- ⚔️ **Arena**: Battle in the rookie, special, and champion arenas and claim accumulated rewards.
+- 🗼 **Tribe Tower**: Automatically challenge the tribe towers of each faction.
+- 🎯 **Interception**: Automatically challenge normal / anomaly interception battles and claim rewards.
+- 💬 **Advise**: Automatically advise Nikkes and claim bond and episode rewards.
 
-Details are as follows:
+### Periodic Tasks
 
-- **All features available**: Free users can use all tasks. Tasks are no longer divided into member-only tasks with the 🍊 marker.
-- **Daily runtime quota**: Different membership tiers provide different daily runtime limits. The default free tier is **Orange Free**, with **10 minutes** of runtime per day.
-- **Quota reset time**: Daily runtime quota refreshes by tier at **4:00 AM Beijing Time (UTC+8)** every day.
-- **Sponsorship Method**: When running tasks, the run log displays your current tier, today's remaining quota, and the device binding/subscription link. You can sponsor the project through that link.
+- 🎪 **Large Event**: Automatically handle login stamps, challenges, story, missions and mini-games in large events (events with SD characters).
+- 🎫 **Small Event**: Automatically handle challenges, story and missions in small events (events without SD characters).
+- 🔥 **Solo Raid**: Automatically complete solo raid stage challenges or quick battles.
+- 🤝 **Coordinated Operations**: Automatically complete coordinated operations and claim rewards.
 
-Thank you to all contributors for their efforts, and to every user for their understanding and support! Your sponsorship is the biggest motivation for me to continuously optimize MDA.
+### Utilities
 
----
-
-## Language Compatibility
-
-MDA's interface supports multiple languages including Chinese and English, but **the script's functionality is currently only adapted for the Chinese game interface**.
-
-If you are using an English or other language game interface, you may encounter recognition errors or functional issues. If you experience errors, please switch your game to **Simplified Chinese** first and try again. If the problem persists after switching, feel free to submit feedback and I'll help investigate.
+- 🎁 **Open Lucky Boxes**: Automatically open various boxes from the inventory.
+- 📈 **Account Nurturing**: Automatically perform breakthroughs, synchro device enhancements and other nurturing operations.
+- 🔨 **Effect Reroll**: Automatically reroll effects on T10 equipment, with Character and Single modes.
+- 🗺️ **Auto Map Pushing**: Automatically click monsters to fight and trigger mechanisms to push through main stages.
+- 🔴 **Clear Red Dots**: Automatically clear red-dot notifications across supported interfaces.
 
 ---
 
@@ -57,6 +76,32 @@ Take a moment to explore the interface before running any tasks to understand th
 ### 2. Set Up Hotkeys (Recommended)
 
 Go to **Settings (top-right corner) → Hotkeys** and enable global hotkeys, in case the program becomes unresponsive and you need to exit.
+
+---
+
+## Language Compatibility
+
+MDA's interface supports multiple languages including Chinese and English, but **the script's functionality is currently only adapted for the Chinese game interface**.
+
+If you are using an English or other language game interface, you may encounter recognition errors or functional issues. If you experience errors, please switch your game to **Simplified Chinese** first and try again. If the problem persists after switching, feel free to submit feedback and we'll help investigate.
+
+---
+
+## Related Projects
+
+[BlablalinkTasker](https://github.com/1204244136/BlablalinkTasker) is a daily task automation tool for the Blablalink / NIKKE community, supporting check-ins, likes, browsing and reward redemption. After the initial login setup, you can call its `日常运行.bat` through MXU's **Special Tasks → Custom Programs** to run it together with MDA.
+
+---
+
+## ⭐ Star History
+
+<a href="https://www.star-history.com/#1204244136/MDA&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=1204244136/MDA&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=1204244136/MDA&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=1204244136/MDA&type=Date" />
+  </picture>
+</a>
 
 ---
 
