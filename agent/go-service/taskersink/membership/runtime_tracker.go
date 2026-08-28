@@ -90,18 +90,29 @@ func (t *RuntimeTracker) OnNodeAction(ctx *maa.Context, event maa.EventStatus, d
 }
 
 func (t *RuntimeTracker) postPendingStop(ctx *maa.Context) {
+	// 保持 Agent 代理调用在 MaaFramework 的回调分发生命周期内，
+	// 而不是在额度计时器 goroutine 中保留回调句柄。
+	// 仅在成功标记停止已发布时才继续，确保 PostStop 只被调用一次且仅在回调线程内。
 	if !t.takePendingStop() {
 		return
 	}
 
-	// Keep Agent proxy calls inside MaaFramework's callback dispatch lifetime
-	// instead of retaining a callback handle in the quota timer goroutine.
-	ctx.GetTasker().PostStop()
+	tasker := ctx.GetTasker()
+	if tasker == nil {
+		log.Warn().Msg("RuntimeTracker: cannot post stop, tasker is nil")
+		return
+	}
+
+	// 此调用发生在 MaaFramework 回调分发线程内，
+	// 符合 Agent 代理 FFI 契约要求。
+	tasker.PostStop()
 }
 
 func (t *RuntimeTracker) takePendingStop() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	// 确保仍处于活动状态，且停止已请求但尚未发布。
+	// 防止在停止请求和此回调之间任务可能已完成或重启的竞争条件。
 	if !t.active || !t.stopped || t.stopPosted {
 		return false
 	}

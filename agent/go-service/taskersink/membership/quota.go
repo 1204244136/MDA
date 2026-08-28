@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type quotaPool string
@@ -133,8 +135,24 @@ func saveQuotaState(path string, state quotaState) error {
 		return err
 	}
 	tempPath := temp.Name()
-	defer os.Remove(tempPath)
-	defer temp.Close()
+
+	// 清理临时文件：带重试应对 Windows 短暂文件锁；
+	// 成功路径下 tempPath 已被 MoveFileEx 移走，仅当文件确实残留时才告警。
+	cleanupTemp := func() {
+		temp.Close()
+		for i := 0; i < 3; i++ {
+			if err := os.Remove(tempPath); err == nil {
+				return
+			}
+			if i < 2 {
+				time.Sleep(10 * time.Millisecond)
+			}
+		}
+		if _, err := os.Stat(tempPath); err == nil {
+			log.Warn().Str("temp_file", tempPath).Msg("failed to cleanup temporary quota state file")
+		}
+	}
+	defer cleanupTemp()
 
 	if err := temp.Chmod(0644); err != nil {
 		return err
@@ -149,7 +167,7 @@ func saveQuotaState(path string, state quotaState) error {
 		return err
 	}
 	if err := replaceQuotaStateFile(tempPath, path); err != nil {
-		return err
+		return fmt.Errorf("failed to replace quota state file: %w", err)
 	}
 	return nil
 }
@@ -603,12 +621,15 @@ func chargeQuotaPools(status *MembershipStatus, route quotaRoute, seconds int64,
 }
 
 // addQuotaRouteUsageRealSeconds 根据任务 entry 和当前专项额度剩余动态计算倍率，
-// 并在同一次锁内完成扣费，避免每个 tick 重复读写额度状态文件。
+// 并在同一次文件锁内完成扣费，避免每个 tick 重复读写额度状态文件。
+// 注意：quotaMu 与文件锁必须按“quotaMu → 文件锁”的顺序同时持有、整体释放，
+// 与其他配额路径保持一致；若持文件锁期间再等 quotaMu，会造成锁序倒置死锁。
 func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool) (QuotaSnapshot, quotaMultiplier, bool, error) {
 	if realSeconds <= 0 {
 		snapshot, _, err := EnsureQuotaRouteAvailable(status, route)
 		return snapshot, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
 	}
+
 	quotaMu.Lock()
 	defer quotaMu.Unlock()
 	unlock, err := lockQuotaStateFile()
@@ -642,7 +663,8 @@ func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, multiplier, false, err
 	}
-	return routeSnapshotFromState(status, state, route), multiplier, exhausted, nil
+	snapshot := routeSnapshotFromState(status, state, route)
+	return snapshot, multiplier, exhausted, nil
 }
 
 func FormatMinutes(seconds int64) int64 {
