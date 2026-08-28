@@ -184,7 +184,8 @@
                                 "param": {
                                     "template": [
                                         "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1Stage.png",
-                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormal.png"
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormal.png",
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageHard.png"
                                     ]
                                 }
                             }
@@ -194,7 +195,8 @@
                                 "param": {
                                     "template": [
                                         "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1StageRepeatable.png",
-                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormalRepeatable.png"
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormalRepeatable.png",
+                                        "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageHardRepeatable.png"
                                     ]
                                 }
                             }
