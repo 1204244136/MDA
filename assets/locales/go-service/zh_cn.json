@@ -45,5 +45,6 @@
     "tasker.membership_check.renewal_reminder": "🍊 当前会员订阅还剩 %d 天，将于 %s 到期。设备绑定/续订地址: %s",
     "tasker.process_warning.title": "⚠️ 注意：检测到以下进程正在运行",
     "tasker.process_warning.recommend_1": "ℹ️ 请注意关闭 OSD 帧率显示、滤镜",
-    "tasker.process_warning.note": "💡 这些功能会干扰图像识别"
+    "tasker.process_warning.note": "💡 这些功能会干扰图像识别",
+    "tasker.custom_burst.released": "第%d轮·爆裂%d阶段 · 按%s释放"
 }

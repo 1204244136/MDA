@@ -15,11 +15,13 @@ const (
 const (
 	entryMapPushingFlow      = "MapPushingFlow"
 	entryEquipmentRerollMain = "EquipmentRerollMain"
+	entryCustomBurstMain     = "CustomBurstMain"
 )
 
 var taskTierByEntry = map[string]taskTier{
 	entryMapPushingFlow:      taskTierHigh,
 	entryEquipmentRerollMain: taskTierHigh,
+	entryCustomBurstMain:     taskTierHigh,
 }
 
 func taskTierForEntry(entry string) taskTier {

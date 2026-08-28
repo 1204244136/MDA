@@ -45,5 +45,6 @@
     "tasker.membership_check.renewal_reminder": "🍊 Your membership has %d day(s) remaining and expires on %s. Device binding/renewal URL: %s",
     "tasker.process_warning.title": "⚠️ Note: The following processes are running",
     "tasker.process_warning.recommend_1": "ℹ️ Please turn off OSD FPS overlays and filters",
-    "tasker.process_warning.note": "💡 These features interfere with image recognition"
+    "tasker.process_warning.note": "💡 These features interfere with image recognition",
+    "tasker.custom_burst.released": "Round %d · Burst stage %d · release %s"
 }

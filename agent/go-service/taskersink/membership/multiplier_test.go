@@ -18,6 +18,8 @@ func TestMultiplierForEntry(t *testing.T) {
 		{entry: "MapPushingFlow", hasSpecialQuota: false, want: 5000},
 		{entry: "EquipmentRerollMain", hasSpecialQuota: true, want: 1000},
 		{entry: "EquipmentRerollMain", hasSpecialQuota: false, want: 5000},
+		{entry: "CustomBurstMain", hasSpecialQuota: true, want: 1000},
+		{entry: "CustomBurstMain", hasSpecialQuota: false, want: 5000},
 		{entry: "DailyRewardsMain", hasSpecialQuota: false, want: 1000},
 	}
 	for _, test := range cases {

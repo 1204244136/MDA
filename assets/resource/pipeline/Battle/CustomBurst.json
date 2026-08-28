@@ -1,0 +1,488 @@
+{
+    "CustomBurstConfig": {
+        "desc": "自定义爆裂配置承载节点：选项通过 pipeline_override 写 attach 顶层键（按 key 浅合并）。r{轮}s{阶段}=角色（空=不指定）；round_count=使用轮数（默认1）",
+        "attach": {
+            "round_count": 1,
+            "r1s1": "",
+            "r1s2": "",
+            "r1s3": "",
+            "r2s1": "",
+            "r2s2": "",
+            "r2s3": "",
+            "r3s1": "",
+            "r3s2": "",
+            "r3s3": "",
+            "r4s1": "",
+            "r4s2": "",
+            "r4s3": "",
+            "r5s1": "",
+            "r5s2": "",
+            "r5s3": "",
+            "r6s1": "",
+            "r6s2": "",
+            "r6s3": ""
+        }
+    },
+    "FastBurstStage": {
+        "desc": "爆裂阶段汇总：一次识别返回Ⅰ/Ⅱ/Ⅲ颜色子节点结果",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "FastBurstHexGreen",
+                    "FastBurstHexOrange",
+                    "FastBurstHexRed"
+                ]
+            }
+        }
+    },
+    "FastBurstChargeBar": {
+        "desc": "爆裂充能条：右上角 BURST 横条的中性灰充能段（不使用绿色/红色阶段长条）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1192,
+                    293,
+                    80,
+                    5
+                ],
+                "method": 4,
+                "lower": [
+                    155,
+                    155,
+                    155
+                ],
+                "upper": [
+                    185,
+                    185,
+                    185
+                ],
+                "count": 100
+            }
+        }
+    },
+    "FastBurstAnySlot": {
+        "desc": "爆裂面板存在性汇总：任一槽位头像可见",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "FastBurstSlot1",
+                    "FastBurstSlot2",
+                    "FastBurstSlot3"
+                ]
+            }
+        }
+    },
+    "FastBurstHexGreen": {
+        "desc": "爆裂阶段Ⅰ：右上角绿色六边形（绝对位置）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1172,
+                    282,
+                    14,
+                    22
+                ],
+                "method": 4,
+                "lower": [
+                    19,
+                    135,
+                    24
+                ],
+                "upper": [
+                    79,
+                    195,
+                    84
+                ],
+                "count": 100
+            }
+        }
+    },
+    "FastBurstHexOrange": {
+        "desc": "爆裂阶段Ⅱ：右上角橙色六边形（绝对位置）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1172,
+                    282,
+                    14,
+                    22
+                ],
+                "method": 4,
+                "lower": [
+                    200,
+                    150,
+                    10
+                ],
+                "upper": [
+                    255,
+                    220,
+                    90
+                ],
+                "count": 100
+            }
+        }
+    },
+    "FastBurstHexRed": {
+        "desc": "爆裂阶段Ⅲ：右上角红色六边形（绝对位置）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1172,
+                    282,
+                    14,
+                    22
+                ],
+                "method": 4,
+                "lower": [
+                    170,
+                    30,
+                    20
+                ],
+                "upper": [
+                    235,
+                    120,
+                    80
+                ],
+                "count": 80
+            }
+        }
+    },
+    "FastBurstSlot1": {
+        "desc": "爆裂第1槽位：头像框右侧不透明灰条（绝对位置，判断是否有头像）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1262,
+                    313,
+                    10,
+                    56
+                ],
+                "method": 4,
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    62,
+                    62,
+                    62
+                ],
+                "count": 300
+            }
+        }
+    },
+    "FastBurstSlot2": {
+        "desc": "爆裂第2槽位：头像框右侧不透明灰条（绝对位置，判断是否有头像）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1262,
+                    381,
+                    10,
+                    56
+                ],
+                "method": 4,
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    62,
+                    62,
+                    62
+                ],
+                "count": 300
+            }
+        }
+    },
+    "FastBurstSlot3": {
+        "desc": "爆裂第3槽位：头像框右侧不透明灰条（绝对位置，判断是否有头像）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1262,
+                    447,
+                    10,
+                    56
+                ],
+                "method": 4,
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    62,
+                    62,
+                    62
+                ],
+                "count": 300
+            }
+        }
+    },
+    "FastBurstSlot1CDDark": {
+        "desc": "爆裂第1槽位冷却：头像框下沿固定区域为黑色（占比>=50%）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1188,
+                    367,
+                    70,
+                    5
+                ],
+                "method": 4,
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    30,
+                    30,
+                    30
+                ],
+                "count": 175
+            }
+        }
+    },
+    "FastBurstSlot2CDDark": {
+        "desc": "爆裂第2槽位冷却：头像框下沿固定区域为黑色（占比>=50%）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1188,
+                    435,
+                    70,
+                    5
+                ],
+                "method": 4,
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    30,
+                    30,
+                    30
+                ],
+                "count": 175
+            }
+        }
+    },
+    "FastBurstSlot3CDDark": {
+        "desc": "爆裂第3槽位冷却：头像框下沿固定区域为黑色（占比>=50%）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1188,
+                    501,
+                    70,
+                    5
+                ],
+                "method": 4,
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    30,
+                    30,
+                    30
+                ],
+                "count": 175
+            }
+        }
+    },
+    "FastBurstClickKeyA": {
+        "desc": "使用 MaaFramework 内置点按时长释放 A 键对应槽位角色",
+        "pre_delay": 0,
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 65
+            }
+        },
+        "post_delay": 0
+    },
+    "FastBurstClickKeyS": {
+        "desc": "使用 MaaFramework 内置点按时长释放 S 键对应槽位角色",
+        "pre_delay": 0,
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 83
+            }
+        },
+        "post_delay": 0
+    },
+    "FastBurstClickKeyD": {
+        "desc": "使用 MaaFramework 内置点按时长释放 D 键对应槽位角色",
+        "pre_delay": 0,
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 68
+            }
+        },
+        "post_delay": 0
+    },
+    "CustomBurstMain": {
+        "desc": "自定义爆裂入口：等待进入战斗画面（参考项目原有战斗识别节点 BattleCombatHudVisible）；不出现则正常超时",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "BattleCombatHudVisible"
+                ]
+            }
+        },
+        "next": [
+            "CustomBurstWaitCharge"
+        ]
+    },
+    "CustomBurstWaitCharge": {
+        "desc": "低频等待爆裂进入可检测状态：灰色充能条命中=已开始充能，进入高频检测（不是“可按键”）；阶段色(Ⅰ/Ⅱ/Ⅲ)出现=已就绪，同样进入高频。二者任一命中即切入 CustomBurstLoop",
+        "rate_limit": 300,
+        "pre_delay": 0,
+        "post_delay": 0,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "FastBurstChargeBar",
+                    "FastBurstStage"
+                ]
+            }
+        },
+        "next": [
+            "CustomBurstLoop",
+            "CustomBurstWaitCharge"
+        ]
+    },
+    "CustomBurstLoop": {
+        "desc": "循环：高频检测并释放；每1s经安全门检查暂停/结算，避免OCR占用爆裂转换窗口",
+        "rate_limit": 0,
+        "pre_delay": 0,
+        "post_delay": 0,
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "FastBurstPanelRecognition"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CustomBurstRouteAction"
+            }
+        },
+        "next": [
+            "CustomBurstReturnToLowFrequency",
+            "CustomBurstSafetyGate",
+            "CustomBurstLoop"
+        ]
+    },
+    "CustomBurstReturnToLowFrequency": {
+        "desc": "一轮爆裂结束状态门：仅在面板消失后命中一次，返回低频充能条检测",
+        "rate_limit": 0,
+        "pre_delay": 0,
+        "post_delay": 0,
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CustomBurstReturnToLowFrequencyRecognition"
+            }
+        },
+        "next": [
+            "CustomBurstWaitCharge",
+            "CustomBurstWaitSafetyGate"
+        ]
+    },
+    "CustomBurstWaitSafetyGate": {
+        "desc": "等待充能期间低频暂停/结算检查门：每1s放行一次，未到间隔立即回到等待；命中暂停/结算则结束任务",
+        "rate_limit": 0,
+        "pre_delay": 0,
+        "post_delay": 0,
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CustomBurstSafetyGateRecognition"
+            }
+        },
+        "next": [
+            "CustomBurstCheckPause",
+            "CustomBurstCheckSettle",
+            "CustomBurstWaitCharge"
+        ]
+    },
+    "CustomBurstSafetyGate": {
+        "desc": "暂停/结算低频检测门：仅每1s放行一次，未到间隔时立即回到高频爆裂循环",
+        "rate_limit": 0,
+        "pre_delay": 0,
+        "post_delay": 0,
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CustomBurstSafetyGateRecognition"
+            }
+        },
+        "next": [
+            "CustomBurstCheckPause",
+            "CustomBurstCheckSettle",
+            "CustomBurstLoop"
+        ]
+    },
+    "CustomBurstCheckPause": {
+        "desc": "检测用户是否暂停（暂停菜单标题「暂停」OCR）；命中则停止任务并输出提示",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    610,
+                    38,
+                    180,
+                    42
+                ],
+                "expected": [
+                    "暂停"
+                ]
+            }
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CustomBurst.paused"
+        },
+        "next": []
+    },
+    "CustomBurstCheckSettle": {
+        "desc": "检测战斗结算；命中则停止任务并输出提示",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "BattleSettlementEscVisible",
+                    "BattleFailedVisible"
+                ]
+            }
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CustomBurst.settled"
+        },
+        "next": []
+    }
+}

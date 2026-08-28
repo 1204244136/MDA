@@ -1,0 +1,1043 @@
+{
+    "task": [
+        {
+            "name": "CustomBurst",
+            "label": "$task.CustomBurst.label",
+            "entry": "CustomBurstMain",
+            "description": "$task.CustomBurst.description",
+            "option": [
+                "BurstRoundCount"
+            ],
+            "group": [
+                "realtime"
+            ]
+        }
+    ],
+    "option": {
+        "BurstRoundCount": {
+            "type": "select",
+            "default_case": "1",
+            "label": "$option.BurstRoundCount.label",
+            "description": "$option.BurstRoundCount.description",
+            "cases": [
+                {
+                    "name": "1",
+                    "option": [
+                        "BurstRound1Stage1",
+                        "BurstRound1Stage2",
+                        "BurstRound1Stage3"
+                    ],
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "round_count": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "2",
+                    "option": [
+                        "BurstRound1Stage1",
+                        "BurstRound1Stage2",
+                        "BurstRound1Stage3",
+                        "BurstRound2Stage1",
+                        "BurstRound2Stage2",
+                        "BurstRound2Stage3"
+                    ],
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "round_count": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "3",
+                    "option": [
+                        "BurstRound1Stage1",
+                        "BurstRound1Stage2",
+                        "BurstRound1Stage3",
+                        "BurstRound2Stage1",
+                        "BurstRound2Stage2",
+                        "BurstRound2Stage3",
+                        "BurstRound3Stage1",
+                        "BurstRound3Stage2",
+                        "BurstRound3Stage3"
+                    ],
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "round_count": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "4",
+                    "option": [
+                        "BurstRound1Stage1",
+                        "BurstRound1Stage2",
+                        "BurstRound1Stage3",
+                        "BurstRound2Stage1",
+                        "BurstRound2Stage2",
+                        "BurstRound2Stage3",
+                        "BurstRound3Stage1",
+                        "BurstRound3Stage2",
+                        "BurstRound3Stage3",
+                        "BurstRound4Stage1",
+                        "BurstRound4Stage2",
+                        "BurstRound4Stage3"
+                    ],
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "round_count": 4
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "5",
+                    "option": [
+                        "BurstRound1Stage1",
+                        "BurstRound1Stage2",
+                        "BurstRound1Stage3",
+                        "BurstRound2Stage1",
+                        "BurstRound2Stage2",
+                        "BurstRound2Stage3",
+                        "BurstRound3Stage1",
+                        "BurstRound3Stage2",
+                        "BurstRound3Stage3",
+                        "BurstRound4Stage1",
+                        "BurstRound4Stage2",
+                        "BurstRound4Stage3",
+                        "BurstRound5Stage1",
+                        "BurstRound5Stage2",
+                        "BurstRound5Stage3"
+                    ],
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "round_count": 5
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "6",
+                    "option": [
+                        "BurstRound1Stage1",
+                        "BurstRound1Stage2",
+                        "BurstRound1Stage3",
+                        "BurstRound2Stage1",
+                        "BurstRound2Stage2",
+                        "BurstRound2Stage3",
+                        "BurstRound3Stage1",
+                        "BurstRound3Stage2",
+                        "BurstRound3Stage3",
+                        "BurstRound4Stage1",
+                        "BurstRound4Stage2",
+                        "BurstRound4Stage3",
+                        "BurstRound5Stage1",
+                        "BurstRound5Stage2",
+                        "BurstRound5Stage3",
+                        "BurstRound6Stage1",
+                        "BurstRound6Stage2",
+                        "BurstRound6Stage3"
+                    ],
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "round_count": 6
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound1Stage1": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound1Stage1.label",
+            "description": "$option.BurstRound1Stage1.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s1": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s1": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s1": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s1": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound1Stage2": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound1Stage2.label",
+            "description": "$option.BurstRound1Stage2.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s2": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s2": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s2": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s2": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound1Stage3": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound1Stage3.label",
+            "description": "$option.BurstRound1Stage3.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s3": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s3": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s3": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r1s3": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound2Stage1": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound2Stage1.label",
+            "description": "$option.BurstRound2Stage1.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s1": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s1": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s1": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s1": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound2Stage2": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound2Stage2.label",
+            "description": "$option.BurstRound2Stage2.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s2": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s2": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s2": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s2": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound2Stage3": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound2Stage3.label",
+            "description": "$option.BurstRound2Stage3.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s3": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s3": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s3": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r2s3": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound3Stage1": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound3Stage1.label",
+            "description": "$option.BurstRound3Stage1.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s1": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s1": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s1": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s1": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound3Stage2": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound3Stage2.label",
+            "description": "$option.BurstRound3Stage2.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s2": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s2": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s2": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s2": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound3Stage3": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound3Stage3.label",
+            "description": "$option.BurstRound3Stage3.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s3": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s3": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s3": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r3s3": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound4Stage1": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound4Stage1.label",
+            "description": "$option.BurstRound4Stage1.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s1": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s1": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s1": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s1": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound4Stage2": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound4Stage2.label",
+            "description": "$option.BurstRound4Stage2.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s2": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s2": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s2": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s2": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound4Stage3": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound4Stage3.label",
+            "description": "$option.BurstRound4Stage3.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s3": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s3": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s3": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r4s3": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound5Stage1": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound5Stage1.label",
+            "description": "$option.BurstRound5Stage1.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s1": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s1": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s1": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s1": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound5Stage2": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound5Stage2.label",
+            "description": "$option.BurstRound5Stage2.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s2": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s2": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s2": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s2": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound5Stage3": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound5Stage3.label",
+            "description": "$option.BurstRound5Stage3.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s3": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s3": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s3": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r5s3": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound6Stage1": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound6Stage1.label",
+            "description": "$option.BurstRound6Stage1.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s1": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s1": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s1": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s1": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound6Stage2": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound6Stage2.label",
+            "description": "$option.BurstRound6Stage2.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s2": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s2": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s2": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s2": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "BurstRound6Stage3": {
+            "type": "select",
+            "default_case": "None",
+            "label": "$option.BurstRound6Stage3.label",
+            "description": "$option.BurstRound6Stage3.description",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.BurstStage.none.label",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s3": ""
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "A",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s3": "A"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "S",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s3": "S"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "D",
+                    "pipeline_override": {
+                        "CustomBurstConfig": {
+                            "attach": {
+                                "r6s3": "D"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

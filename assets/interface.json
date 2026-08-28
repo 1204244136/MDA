@@ -116,6 +116,7 @@
         "tasks/Advise.json",
         "tasks/CoordinatedOperations.json",
         "tasks/SoloRaid.json",
+        "tasks/CustomBurst.json",
         "tasks/MapPushing.json",
         "tasks/RedDotClear.json",
         "tasks/EquipmentReroll.json",
