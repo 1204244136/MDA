@@ -286,16 +286,29 @@ var burstRound = newRoundTracker()
 // configFor 在一次爆裂周期内缓存爆裂轴配置。
 // pipeline_override 在任务启动后不会动态变化，因此无需每帧读取并解析承载节点；
 // 每轮爆裂结束时由 resetLastStage 清理，避免跨周期复用配置。
-// loadBurstConfig 只在每个 taskID 首次调用时执行一次，且涉及 JSON 解析（相对较慢但非阻塞 I/O），
-// 持锁解析的开销可以接受。
+// 优化：使用双重检查锁模式减少锁竞争（高频调用场景）。
 func (t *roundTracker) configFor(ctx *maa.Context, taskID int64) burstConfig {
+	// Fast path: check without lock
 	t.mu.Lock()
-	defer t.mu.Unlock()
 	if cfg, ok := t.config[taskID]; ok {
+		t.mu.Unlock()
 		return cfg
 	}
+	t.mu.Unlock()
+
+	// Slow path: load config outside lock
 	cfg := loadBurstConfig(ctx)
+
+	// Store under lock
+	t.mu.Lock()
+	// Double-check: another goroutine might have loaded it while we were parsing
+	if existing, ok := t.config[taskID]; ok {
+		t.mu.Unlock()
+		return existing
+	}
 	t.config[taskID] = cfg
+	t.mu.Unlock()
+
 	return cfg
 }
 
