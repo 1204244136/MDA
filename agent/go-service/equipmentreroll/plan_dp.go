@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/rs/zerolog/log"
 )
 
 // costUnreachable 是"目标不可达"的哨兵成本值。
@@ -523,7 +525,18 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 	for i := 0; i < maxSlot; i++ {
 		compressedCurrent[i] = compressEffectSlot(scan.Slots[i].Effect, i, requiredSetMap, forbiddenSetMap, slotAllow)
 	}
-	result := vals[quotaStateKey(compressedCurrent)]
+	currentKey := quotaStateKey(compressedCurrent)
+	result := vals[currentKey]
+
+	// 验证映射正确性：如果结果为零但状态未完成，压缩键可能有误（不应该发生，但防止逻辑错误）。
+	if result == 0 && !partHasRequiredCompressed(compressedCurrent) {
+		log.Warn().
+			Str("component", "EquipmentReroll").
+			Strs("compressed_state", compressedCurrent[:]).
+			Str("cache_key", currentKey).
+			Msg("DP compressed state lookup returned zero for incomplete state; potential mapping error")
+	}
+
 	dpCacheMu.Lock()
 	dpCache[cacheKey] = result
 	dpCacheMu.Unlock()
@@ -531,16 +544,28 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 }
 
 // solveLinearSystem 用高斯消元（列主元）求解 Ax=b。
+// 返回解向量和求解是否成功的标志。
 func solveLinearSystem(a [][]float64, b []float64) ([]float64, bool) {
 	n := len(b)
 	if n == 0 {
 		return nil, true
 	}
+	// 保存原始系数矩阵副本：消元会原地把 a 改为单位阵，残差验证需要原始 A。
+	orig := make([][]float64, n)
+	for i := 0; i < n; i++ {
+		orig[i] = make([]float64, n)
+		copy(orig[i], a[i])
+	}
 	// 增广矩阵
 	for i := 0; i < n; i++ {
 		a[i] = append(a[i], b[i])
 	}
+
+	const epsilon = 1e-12
+
+	// 高斯消元（列主元）
 	for col := 0; col < n; col++ {
+		// 选择列主元
 		pivot := col
 		for r := col + 1; r < n; r++ {
 			if absFloat(a[r][col]) > absFloat(a[pivot][col]) {
@@ -550,19 +575,30 @@ func solveLinearSystem(a [][]float64, b []float64) ([]float64, bool) {
 		if pivot != col {
 			a[col], a[pivot] = a[pivot], a[col]
 		}
+
 		div := a[col][col]
-		if absFloat(div) < 1e-12 {
+		if absFloat(div) < epsilon {
+			// 主元接近零，矩阵奇异或数值不稳定
+			log.Warn().
+				Str("component", "EquipmentReroll").
+				Int("pivot_col", col).
+				Float64("pivot_value", div).
+				Msg("DP linear system: pivot too small, matrix may be singular")
 			return nil, false
 		}
+
+		// 归一化主元行
 		for j := col; j <= n; j++ {
 			a[col][j] /= div
 		}
+
+		// 消元
 		for r := 0; r < n; r++ {
 			if r == col {
 				continue
 			}
 			factor := a[r][col]
-			if factor == 0 {
+			if absFloat(factor) < epsilon {
 				continue
 			}
 			for j := col; j <= n; j++ {
@@ -570,11 +606,52 @@ func solveLinearSystem(a [][]float64, b []float64) ([]float64, bool) {
 			}
 		}
 	}
+
+	// 提取解
 	x := make([]float64, n)
 	for i := 0; i < n; i++ {
 		x[i] = a[i][n]
 	}
+
+	// 验证解的合理性（残差检查，使用消元前的原始系数矩阵）
+	if !verifySolutionResidual(orig, b, x, n) {
+		log.Warn().
+			Str("component", "EquipmentReroll").
+			Msg("DP linear system: solution residual too large, numerical instability detected")
+		return nil, false
+	}
+
 	return x, true
+}
+
+// verifySolutionResidual 计算最大残差 max|Ax - b| 验证解是否满足原方程，
+// 同时检查解向量的合理性（期望成本不应为负或超过 costUnreachable）。
+func verifySolutionResidual(a [][]float64, b, x []float64, n int) bool {
+	const maxResidualNorm = 1e-6
+	maxResidual := 0.0
+
+	for i := 0; i < n; i++ {
+		// 用原始系数矩阵重算 Ax，与常数项 b 对比得残差
+		sum := 0.0
+		for j := 0; j < n; j++ {
+			sum += a[i][j] * x[j]
+		}
+		residual := absFloat(sum - b[i])
+		if residual > maxResidual {
+			maxResidual = residual
+		}
+		// 解的合理性检查
+		if x[i] < -1e-6 || x[i] > costUnreachable {
+			log.Warn().
+				Str("component", "EquipmentReroll").
+				Int("row", i).
+				Float64("x_value", x[i]).
+				Msg("DP solution contains unreasonable value")
+			return false
+		}
+	}
+
+	return maxResidual < maxResidualNorm
 }
 
 func absFloat(v float64) float64 {

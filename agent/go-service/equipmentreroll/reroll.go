@@ -342,14 +342,37 @@ func isTransientUnlockText(raw string) bool {
 // 瞬时“已解除效果锁定”同样视为无效帧。
 // 返回：effects（词条名）、values（从 OCR 原文提取的数值）、raws（OCR 原文）。
 func recognizeChangedEffects(ctx *maa.Context, img image.Image) ([maxSlot]string, [maxSlot]string, [maxSlot]string, bool) {
+	if ctx == nil || img == nil {
+		return [maxSlot]string{}, [maxSlot]string{}, [maxSlot]string{}, false
+	}
+
+	// 从所有槽位提取原始 OCR 数据
+	effects, values, rawTexts, recognized := extractSlotOCRData(ctx, img)
+
+	// 检查瞬时解锁状态（必须重试）
+	if hasTransientUnlockState(rawTexts) {
+		log.Warn().
+			Str("component", "EquipmentReroll").
+			Strs("raw_slots", rawTexts[:]).
+			Msg("result page slot is in transient unlock state; retry recognition")
+		return effects, values, rawTexts, false
+	}
+
+	// 验证识别完整性
+	if !validateSlotRecognitionCompleteness(effects, values, rawTexts, recognized) {
+		return effects, values, rawTexts, false
+	}
+
+	return effects, values, rawTexts, true
+}
+
+// extractSlotOCRData 读取结果页三个槽位的 OCR 结果。
+func extractSlotOCRData(ctx *maa.Context, img image.Image) ([maxSlot]string, [maxSlot]string, [maxSlot]string, [maxSlot]bool) {
 	var effects [maxSlot]string
 	var values [maxSlot]string
 	var rawTexts [maxSlot]string
 	var recognizedFlags [maxSlot]bool
-	if ctx == nil || img == nil {
-		return effects, values, rawTexts, false
-	}
-	validCount := 0
+
 	for i, nodeName := range resultChangedEffectSlotNodes {
 		detail, err := ctx.RunRecognition(nodeName, img, nil)
 		if err != nil || detail == nil || !detail.Hit {
@@ -359,33 +382,38 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image) ([maxSlot]string
 		rawTexts[i] = raw
 		values[i] = extractPercentValue(raw)
 		recognizedFlags[i] = recognized
-		if !recognized {
-			continue
+		if recognized {
+			effects[i] = effect
 		}
-		effects[i] = effect
-		validCount++
 	}
-	// 瞬时“已解除效果锁定”出现时，当前帧不可信，返回失败让 Pipeline 重试。
+
+	return effects, values, rawTexts, recognizedFlags
+}
+
+// hasTransientUnlockState 检查是否有槽位显示瞬时解锁通知。
+func hasTransientUnlockState(rawTexts [maxSlot]string) bool {
 	for _, raw := range rawTexts {
 		if isTransientUnlockText(raw) {
-			log.Warn().
-				Str("component", "EquipmentReroll").
-				Strs("raw_slots", rawTexts[:]).
-				Msg("result page slot is in transient unlock state; retry recognition")
-			return effects, values, rawTexts, false
+			return true
 		}
 	}
+	return false
+}
+
+// validateSlotRecognitionCompleteness 确保所有槽位都被正确识别。
+// 三个槽位必须都读到官方效果或明确的“未获得”标记。
+func validateSlotRecognitionCompleteness(effects, values, rawTexts [maxSlot]string, recognized [maxSlot]bool) bool {
 	// 三个槽位都必须读到“官方效果”或明确的“未获得”，否则说明 OCR 不完整，
 	// 返回失败重试，不能把残缺文本当作空槽继续决策。
 	for i, raw := range rawTexts {
-		if raw == "" || !recognizedFlags[i] {
+		if raw == "" || !recognized[i] {
 			log.Warn().
 				Str("component", "EquipmentReroll").
 				Int("slot", i+1).
 				Str("raw", raw).
 				Strs("raw_slots", rawTexts[:]).
 				Msg("result page slot OCR incomplete; retry recognition")
-			return effects, values, rawTexts, false
+			return false
 		}
 		// 非空词条必须同时读到百分比；否则接受后无法展示数值/档位，
 		// 让当前帧重试而不是写入不完整的快照。
@@ -395,13 +423,10 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image) ([maxSlot]string
 				Int("slot", i+1).
 				Str("raw", raw).
 				Msg("result page slot value OCR incomplete; retry recognition")
-			return effects, values, rawTexts, false
+			return false
 		}
 	}
-	if validCount == 0 {
-		return effects, values, rawTexts, false
-	}
-	return effects, values, rawTexts, true
+	return true
 }
 
 // customRecognitionDetail 从 CustomAction 的 RecognitionDetail 中提取自定义识别返回的 Detail 字符串。
