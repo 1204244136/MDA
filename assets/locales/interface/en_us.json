@@ -131,7 +131,7 @@
     "task.SoloRaid.label": "🔥Solo Raid",
     "task.SoloRaid.description": "Enter the Solo Raid interface and complete stage challenge or quick battle",
     "task.CustomBurst.label": "⚡Custom Burst",
-    "task.CustomBurst.description": "During battle, detect the burst panel on the right and quickly release bursts using the character you assigned to each burst stage (Fast Burst is the built-in framework; wait for cooldown if the assigned character is on CD)",
+    "task.CustomBurst.description": "During battle, detect the burst panel on the right and quickly release bursts using the character you assigned to each burst stage\nCommon rotation: Crown + Mast: AAA|AAS|ASA|AAS|AAA|ASS",
     "task.MapPushing.label": "🗺️Auto Map Pushing",
     "task.MapPushing.description": "Must be selected separately. Click to start near monsters on the map; it will automatically click monsters for battle and trigger mechanisms",
     "task.RedDotClear.label": "🔴Clear Red Dots",

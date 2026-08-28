@@ -233,7 +233,7 @@
     "focus.CoordinatedOperationsConfirmConnectionInterrupted.Succeeded": "协同作战连接中断，已停止该任务",
     "focus.MapPushingFlow.Action.Succeeded": "自动推图已启动",
     "task.CustomBurst.label": "⚡自定义爆裂",
-    "task.CustomBurst.description": "战斗中自动检测右侧爆裂面板，按你配置的多轮爆裂轴快速释放爆裂（快速爆裂为内建框架，指定角色冷却时等待其冷却结束）",
+    "task.CustomBurst.description": "战斗中自动检测右侧爆裂面板，按你配置的多轮爆裂轴快速释放爆裂\n常用轴：皇冠+马斯特：AAA|AAS|ASA|AAS|AAA|ASS",
     "option.BurstRoundCount.label": "使用轮数",
     "option.BurstRoundCount.description": "设置本次爆裂轴用几轮（1-6），仅显示已选轮数的角色设置",
     "option.BurstRound1Stage1.label": "第1轮Ⅰ阶段角色",
