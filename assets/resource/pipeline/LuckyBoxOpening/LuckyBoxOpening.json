@@ -184,9 +184,9 @@
             "param": {
                 "roi": [
                     479,
-                    523,
+                    508,
                     323,
-                    168
+                    183
                 ],
                 "template": [
                     "Common/ConfirmWithFilledCircle.png"
