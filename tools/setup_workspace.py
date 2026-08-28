@@ -8,6 +8,7 @@ import urllib.request
 import urllib.error
 import json
 import tempfile
+from functools import cache
 from pathlib import Path
 import time
 import stat
@@ -134,8 +135,36 @@ CACHE_DIR: Path = PROJECT_BASE / ".cache"
 VERSION_FILE_NAME: str = "version.json"
 
 
+@cache
+def get_github_token() -> str:
+    """从环境变量或 GitHub CLI 获取 token，返回空串表示未配置。"""
+    for variable in ("GITHUB_TOKEN", "GH_TOKEN"):
+        token = os.environ.get(variable, "").strip()
+        if token:
+            return token
+
+    gh_path = shutil.which("gh")
+    if not gh_path:
+        return ""
+
+    try:
+        result = subprocess.run(
+            [gh_path, "auth", "token"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+    if result.returncode != 0:
+        return ""
+    return result.stdout.strip()
+
+
 def configure_token() -> None:
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    token = get_github_token()
     if token:
         print(Console.ok(t("inf_github_token_configured")))
     else:
@@ -183,7 +212,7 @@ def get_latest_release_url(
     repo: str, keywords: list[str], prerelease: bool = True
 ) -> tuple[str | None, str | None, str | None]:
     api_url = f"https://api.github.com/repos/{repo}/releases"
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    token = get_github_token()
 
     try:
         print(Console.info(t("inf_get_latest_release", repo=repo)))
