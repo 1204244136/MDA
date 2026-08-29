@@ -1,6 +1,6 @@
 {
     "LuckyBoxOpeningEnterEquipmentRelatedPage": {
-        "desc": "进入装备相关界面", //开订制模组零件
+        "desc": "进入装备相关界面", //开订制模组零件和魔方电池随机奖励
         "max_hit": 1,
         "recognition": {
             "type": "TemplateMatch",
@@ -29,12 +29,13 @@
             ]
         },
         "next": [
-            "LuckyBoxOpeningClickModuleRedDot",
+            "[JumpBack]LuckyBoxOpeningClickCustomModuleShardRedDot",
+            "[JumpBack]LuckyBoxOpeningClickCubeBatteryRandomReward",
             "CommonEndTask"
         ]
     },
-    "LuckyBoxOpeningClickModuleRedDot": {
-        "desc": "点击模组红点",
+    "LuckyBoxOpeningClickCubeBatteryRandomReward": {
+        "desc": "点击魔方电池随机奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -42,6 +43,28 @@
                     61,
                     173,
                     1170,
+                    447
+                ],
+                "template": "LuckyBoxOpening/CubeBatteryRandomReward.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LuckyBoxOpeningClickMax",
+            "LuckyBoxOpeningClickConfirm"
+        ]
+    },
+    "LuckyBoxOpeningClickCustomModuleShardRedDot": {
+        "desc": "点击模组红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    126,
+                    173,
+                    1105,
                     447
                 ],
                 "template": [
