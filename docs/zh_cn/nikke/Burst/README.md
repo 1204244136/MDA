@@ -2,9 +2,9 @@
 
 本目录集中存放 MDA "爆裂相关任务"的前期研究与后续说明文档。
 
-| 文档                                             | 内容                                       |
-| ------------------------------------------------ | ------------------------------------------ |
-| [爆裂系统研究.md](爆裂系统研究.md)               | 爆裂机制、冷却、配队规则、元素克制等原始依据 |
+| 文档                                                     | 内容                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------- |
+| [爆裂系统研究.md](爆裂系统研究.md)                       | 爆裂机制、冷却、配队规则、元素克制等原始依据                |
 | [爆裂任务策略与Agent逻辑.md](爆裂任务策略与Agent逻辑.md) | 「自定义爆裂」任务：检测坐标/阈值、选项、路由逻辑、验证结论 |
 
 ## 状态
@@ -19,8 +19,8 @@
 - **CustomBurst（自定义爆裂）= 任务**，唯一入口 `CustomBurstMain`，任务列表只导出它。
 - **FastBurst（快速爆裂）= 底层框架**，不是任务；它由 CustomBurst 内部使用，负责面板检测与快速释放。
 - 代码中如何区分：
-  - `FastBurst*`：底层框架的检测原语/汇总（`FastBurstResult`、`FastBurstPanelRecognition`、`FastBurstStage`、`FastBurstSlot*`、`FastBurstHex*` 等）与 ClickKey 原语（`FastBurstClickKey{A,S,D}`）。
-  - `CustomBurst*`：任务层的流程节点与动作（`CustomBurstMain/Loop/WaitCharge/SafetyGate/CheckPause/CheckSettle/ReturnToLowFrequency`、`CustomBurstRouteAction`、`CustomBurstSafetyGateRecognition`、`CustomBurstReturnToLowFrequencyRecognition`）。
+    - `FastBurst*`：底层框架的检测原语/汇总（`FastBurstResult`、`FastBurstPanelRecognition`、`FastBurstStage`、`FastBurstSlot*`、`FastBurstHex*` 等）与 ClickKey 原语（`FastBurstClickKey{A,S,D}`）。
+    - `CustomBurst*`：任务层的流程节点与动作（`CustomBurstMain/Loop/WaitCharge/SafetyGate/CheckPause/CheckSettle/ReturnToLowFrequency`、`CustomBurstRouteAction`、`CustomBurstSafetyGateRecognition`、`CustomBurstReturnToLowFrequencyRecognition`）。
 - Go 包：`agent/go-service/customburst`（承载整个 CustomBurst 特性，内部按上面前缀区分框架/任务）；日志 component 也分 `FastBurst`（检测）与 `CustomBurst`（任务）两档。
 
 ## 未来规划（待用户确认）

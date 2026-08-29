@@ -358,9 +358,6 @@
     },
     "CustomBurstWaitCharge": {
         "desc": "低频等待爆裂进入可检测状态：灰色充能条命中=已开始充能，进入高频检测（不是“可按键”）；阶段色(Ⅰ/Ⅱ/Ⅲ)出现=已就绪，同样进入高频。二者任一命中即切入 CustomBurstLoop",
-        "rate_limit": 300,
-        "pre_delay": 0,
-        "post_delay": 0,
         "recognition": {
             "type": "Or",
             "param": {
@@ -370,6 +367,9 @@
                 ]
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 300,
         "next": [
             "CustomBurstLoop",
             "CustomBurstWaitCharge"
@@ -377,21 +377,21 @@
     },
     "CustomBurstLoop": {
         "desc": "循环：高频检测并释放；每1s经安全门检查暂停/结算，避免OCR占用爆裂转换窗口",
-        "rate_limit": 0,
-        "pre_delay": 0,
-        "post_delay": 0,
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "FastBurstPanelRecognition"
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "CustomBurstRouteAction"
             }
         },
+        "post_delay": 0,
+        "rate_limit": 0,
         "next": [
             "CustomBurstReturnToLowFrequency",
             "CustomBurstSafetyGate",
@@ -400,15 +400,15 @@
     },
     "CustomBurstReturnToLowFrequency": {
         "desc": "一轮爆裂结束状态门：仅在面板消失后命中一次，返回低频充能条检测",
-        "rate_limit": 0,
-        "pre_delay": 0,
-        "post_delay": 0,
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "CustomBurstReturnToLowFrequencyRecognition"
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 0,
         "next": [
             "CustomBurstWaitCharge",
             "CustomBurstWaitSafetyGate"
@@ -416,15 +416,15 @@
     },
     "CustomBurstWaitSafetyGate": {
         "desc": "等待充能期间低频暂停/结算检查门：每1s放行一次，未到间隔立即回到等待；命中暂停/结算则结束任务",
-        "rate_limit": 0,
-        "pre_delay": 0,
-        "post_delay": 0,
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "CustomBurstSafetyGateRecognition"
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 0,
         "next": [
             "CustomBurstCheckPause",
             "CustomBurstCheckSettle",
@@ -433,15 +433,15 @@
     },
     "CustomBurstSafetyGate": {
         "desc": "暂停/结算低频检测门：仅每1s放行一次，未到间隔时立即回到高频爆裂循环",
-        "rate_limit": 0,
-        "pre_delay": 0,
-        "post_delay": 0,
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "CustomBurstSafetyGateRecognition"
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 0,
         "next": [
             "CustomBurstCheckPause",
             "CustomBurstCheckSettle",
@@ -464,10 +464,10 @@
                 ]
             }
         },
+        "next": [],
         "focus": {
             "Node.Recognition.Succeeded": "$focus.CustomBurst.paused"
-        },
-        "next": []
+        }
     },
     "CustomBurstCheckSettle": {
         "desc": "检测战斗结算；命中则停止任务并输出提示",
@@ -480,9 +480,9 @@
                 ]
             }
         },
+        "next": [],
         "focus": {
             "Node.Recognition.Succeeded": "$focus.CustomBurst.settled"
-        },
-        "next": []
+        }
     }
 }
