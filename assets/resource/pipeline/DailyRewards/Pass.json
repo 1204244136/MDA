@@ -37,10 +37,10 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1116,
-                    91,
-                    163,
-                    66
+                    1260,
+                    88,
+                    19,
+                    155
                 ],
                 "template": [
                     "Common/RedDot.png",
