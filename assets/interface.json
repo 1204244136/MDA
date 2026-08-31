@@ -119,6 +119,7 @@
         "tasks/CustomBurst.json",
         "tasks/MapPushing.json",
         "tasks/RedDotClear.json",
+        "tasks/FriendManagement.json",
         "tasks/EquipmentReroll.json",
         "tasks/SmallEvent.json",
         "tasks/LargeEvent.json",

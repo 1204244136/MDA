@@ -1,0 +1,185 @@
+{
+    "FriendManagementMain": {
+        "desc": "好友管理入口",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "RuntimeQuotaCheck"
+            }
+        },
+        "next": [
+            "FriendManagementEntryFlow",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "FriendManagementEntryFlow": {
+        "desc": "好友管理",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "FriendManagementAcceptFriendRequests",
+            "CommonEndTask"
+        ]
+    },
+    "FriendManagementAcceptFriendRequests": {
+        "desc": "接受好友申请",
+        "max_hit": 1,
+        "next": [
+            "FriendManagementAcceptAllFlow",
+            "FriendManagementClickManagement",
+            "FriendManagementEnterFriendPage",
+            "CommonEndTask"
+        ]
+    },
+    "FriendManagementEnterFriendPage": {
+        "desc": "进入好友页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1244,
+                    144,
+                    32,
+                    32
+                ],
+                "template": [
+                    "Common/RedDot.png",
+                    "Common/New.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "FriendManagementClickManagement",
+            "FriendManagementEnterFriendPage" //兜底
+        ]
+    },
+    "FriendManagementClickManagement": {
+        "desc": "点击好友管理",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    536,
+                    590,
+                    133,
+                    44
+                ],
+                "expected": [
+                    "好友管理"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "FriendManagementAcceptAllFlow",
+            "FriendManagementClickManagement" //兜底
+        ]
+    },
+    "FriendManagementAcceptAllFlow": {
+        "desc": "接受好友申请流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "FriendManagementAcceptAllVisible"
+                ]
+            }
+        },
+        "next": [
+            "FriendManagementAcceptAllCompletedFlow",
+            "[JumpBack]FriendManagementClickAcceptAll",
+            "[JumpBack]CommonConfirmAction"
+        ]
+    },
+    "FriendManagementAcceptAllVisible": {
+        "desc": "全部接受按钮文字可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    674,
+                    572,
+                    127,
+                    42
+                ],
+                "expected": [
+                    "全部接受"
+                ]
+            }
+        }
+    },
+    "FriendManagementAcceptAllDisabled": {
+        "desc": "全部接受按钮为灰色",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "FriendManagementAcceptAllVisible",
+                "lower": [
+                    190,
+                    190,
+                    190
+                ],
+                "upper": [
+                    219,
+                    219,
+                    219
+                ],
+                "count": 100
+            }
+        }
+    },
+    "FriendManagementAcceptAllCompletedFlow": {
+        "desc": "全部接受已完成流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "FriendManagementAcceptAllVisible",
+                    "FriendManagementAcceptAllDisabled"
+                ]
+            }
+        }
+    },
+    "FriendManagementClickAcceptAll": {
+        "desc": "点击全部接受",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    674,
+                    572,
+                    127,
+                    42
+                ],
+                "expected": [
+                    "全部接受"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    }
+}

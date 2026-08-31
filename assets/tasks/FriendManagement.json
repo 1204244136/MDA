@@ -1,0 +1,44 @@
+{
+    "task": [
+        {
+            "name": "FriendManagement",
+            "label": "$task.FriendManagement.label",
+            "entry": "FriendManagementMain",
+            "description": "$task.FriendManagement.description",
+            "doc": [
+                "$task.FriendManagement.doc"
+            ],
+            "option": [
+                "FriendManagementAcceptFriendRequests"
+            ],
+            "group": [
+                "utility"
+            ]
+        }
+    ],
+    "option": {
+        "FriendManagementAcceptFriendRequests": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.FriendManagementAcceptFriendRequests.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "FriendManagementAcceptFriendRequests": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "FriendManagementAcceptFriendRequests": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
