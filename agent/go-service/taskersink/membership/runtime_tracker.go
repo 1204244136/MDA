@@ -24,6 +24,7 @@ type RuntimeTracker struct {
 	stopCh     chan struct{}
 	stopped    bool
 	stopPosted bool
+	lease      *runtimeTrackingLease
 }
 
 var _ maa.TaskerEventSink = &RuntimeTracker{}
@@ -133,6 +134,39 @@ func (t *RuntimeTracker) requestStop(generation uint64) bool {
 func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) {
 	t.finish()
 
+	lease, acquired, err := tryAcquireRuntimeTrackingLease(detail)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Uint64("task_id", detail.TaskID).
+			Str("entry", detail.Entry).
+			Str("tasker_uuid", detail.UUID).
+			Msg("RuntimeTracker: failed to acquire runtime tracking lease")
+		tasker.PostStop()
+		return
+	}
+	if !acquired {
+		log.Warn().
+			Uint64("task_id", detail.TaskID).
+			Str("entry", detail.Entry).
+			Str("tasker_uuid", detail.UUID).
+			Msg("RuntimeTracker: duplicate quota tracker suppressed")
+		return
+	}
+	keepLease := false
+	defer func() {
+		if keepLease {
+			return
+		}
+		if err := lease.Release(); err != nil {
+			log.Warn().
+				Err(err).
+				Uint64("task_id", detail.TaskID).
+				Str("entry", detail.Entry).
+				Msg("RuntimeTracker: failed to release unused runtime tracking lease")
+		}
+	}()
+
 	status := GetMembershipStatus()
 	if status.VerificationUnavailable {
 		printMembershipVerificationUnavailable()
@@ -165,9 +199,11 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.stopCh = make(chan struct{})
 	t.stopped = false
 	t.stopPosted = false
+	t.lease = lease
 	generation := t.generation
 	stopCh := t.stopCh
 	t.mu.Unlock()
+	keepLease = true
 
 	log.Info().
 		Uint64("task_id", detail.TaskID).
@@ -206,13 +242,16 @@ func (t *RuntimeTracker) finish() {
 	route := t.route
 	status := t.status
 	entry := t.entry
+	taskID := t.taskID
 	stopCh := t.stopCh
+	lease := t.lease
 	realDelta := time.Since(t.last)
 	t.realNs += realDelta.Nanoseconds()
 	realSeconds := t.takeRealSecondsLocked(true)
 	t.active = false
 	t.status = nil
 	t.stopCh = nil
+	t.lease = nil
 	t.generation++
 	close(stopCh)
 	t.mu.Unlock()
@@ -227,6 +266,13 @@ func (t *RuntimeTracker) finish() {
 		} else {
 			multiplier = currentMultiplier
 		}
+	}
+	if err := lease.Release(); err != nil {
+		log.Warn().
+			Err(err).
+			Uint64("task_id", taskID).
+			Str("entry", entry).
+			Msg("RuntimeTracker: failed to release runtime tracking lease")
 	}
 	log.Debug().
 		Int64("real_seconds", int64(realDelta/time.Second)).
