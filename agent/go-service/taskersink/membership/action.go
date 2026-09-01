@@ -71,11 +71,10 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute) bool {
 			maafocus.Print(ctx, i18n.T("tasker.membership_check.no_special_quota_5x_multiplier"))
 		}
 		notifyOnce.Do(func() {
+			maafocus.Print(ctx, formatQuotaStatusMessage(snapshot))
 			if snapshot.UnlimitedRuntime {
-				maafocus.Print(ctx, i18n.T("tasker.membership_check.debug_unlimited"))
 				return
 			}
-			maafocus.Print(ctx, formatQuotaVerifiedMessage(snapshot))
 			maafocus.Print(ctx, fmt.Sprintf(
 				i18n.T("tasker.membership_check.sponsor"),
 				snapshot.SponsorURL,
@@ -92,7 +91,10 @@ func formatMembershipVerificationUnavailableMessage() string {
 	return i18n.T("tasker.membership_check.service_unavailable")
 }
 
-func formatQuotaVerifiedMessage(snapshot QuotaSnapshot) string {
+func formatQuotaStatusMessage(snapshot QuotaSnapshot) string {
+	if snapshot.UnlimitedRuntime {
+		return i18n.T("tasker.membership_check.debug_unlimited")
+	}
 	if snapshot.Route == quotaRouteSpecialThenRegular {
 		if snapshot.FallbackToRegular {
 			return fmt.Sprintf(
@@ -115,6 +117,7 @@ func formatQuotaVerifiedMessage(snapshot QuotaSnapshot) string {
 		snapshot.TierName,
 		FormatMinutes(snapshot.UsedSeconds),
 		FormatMinutes(snapshot.LimitSeconds),
+		FormatMinutes(snapshot.RemainingSeconds),
 	)
 }
 

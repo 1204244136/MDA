@@ -16,6 +16,7 @@ const (
 	entryMapPushingFlow      = "MapPushingFlow"
 	entryEquipmentRerollMain = "EquipmentRerollMain"
 	entryCustomBurstMain     = "CustomBurstMain"
+	entryQuotaDisplayMain    = "QuotaDisplayMain"
 )
 
 var taskTierByEntry = map[string]taskTier{
@@ -41,6 +42,10 @@ type quotaMultiplier struct {
 // 配额路由与自动推图一致（专项额度优先，再走日常额度）。
 func isHighConsumptionEntry(entry string) bool {
 	return taskTierForEntry(entry) == taskTierHigh
+}
+
+func isQuotaExemptEntry(entry string) bool {
+	return entry == entryQuotaDisplayMain
 }
 
 func multiplierForEntry(entry string, hasSpecialQuota bool) quotaMultiplier {

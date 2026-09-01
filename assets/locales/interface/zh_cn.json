@@ -150,6 +150,8 @@
     "task.FriendManagement.description": "进入好友页面，执行已启用的好友管理操作",
     "task.FriendManagement.doc": "当前支持接受全部好友申请，后续可扩展更多好友管理功能。",
     "option.FriendManagementAcceptFriendRequests.label": "接受好友申请",
+    "task.QuotaDisplay.label": "📊额度显示",
+    "task.QuotaDisplay.description": "显示今日已使用和剩余的运行额度；本任务不消耗额度",
     "task.LargeEvent.label": "🎪大活动",
     "task.LargeEvent.description": "进入大活动界面，完成相关任务。（有SD小人的活动叫做大活动）",
     "option.LargeEventTheme.label": "活动主题",

@@ -1,0 +1,17 @@
+{
+    "QuotaDisplayMain": {
+        "desc": "读取并显示当日日常运行额度",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "QuotaDisplayAction"
+            }
+        },
+        "post_delay": 0,
+        "rate_limit": 0
+    }
+}

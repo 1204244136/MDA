@@ -152,6 +152,8 @@
     "task.FriendManagement.description": "Enter the Friends page and perform enabled friend-management actions",
     "task.FriendManagement.doc": "Currently supports accepting all friend requests, with room for more friend-management features later.",
     "option.FriendManagementAcceptFriendRequests.label": "Accept Friend Requests",
+    "task.QuotaDisplay.label": "📊Quota Display",
+    "task.QuotaDisplay.description": "Show today's used and remaining runtime quota; this task does not consume quota",
     "task.LargeEvent.label": "🎪Large Event",
     "task.LargeEvent.description": "Enter the large event interface and complete related tasks. (Events with SD characters are called Large Events)",
     "option.LargeEventTheme.label": "Event Theme",

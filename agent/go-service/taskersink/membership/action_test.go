@@ -11,17 +11,30 @@ func initTestI18n() {
 	i18n.Init()
 }
 
-func TestFormatQuotaVerifiedMessageUsesUsedRuntime(t *testing.T) {
+func TestFormatQuotaStatusMessageUsesRegularQuotaSummary(t *testing.T) {
 	initTestI18n()
-	message := formatQuotaVerifiedMessage(QuotaSnapshot{
-		Route:        quotaRouteRegular,
-		TierName:     "Orange Plus",
-		LimitSeconds: 3600,
-		UsedSeconds:  600,
+	message := formatQuotaStatusMessage(QuotaSnapshot{
+		Route:            quotaRouteRegular,
+		TierName:         "Orange Plus",
+		LimitSeconds:     3600,
+		UsedSeconds:      600,
+		RemainingSeconds: 3000,
 	})
 
 	if !strings.Contains(message, "10/60") {
-		t.Fatalf("message does not show used runtime: %s", message)
+		t.Fatalf("message does not show used/total runtime: %s", message)
+	}
+	if !strings.Contains(message, "剩余约 50") && !strings.Contains(message, "about 50 minute(s) remaining") {
+		t.Fatalf("message does not show remaining runtime: %s", message)
+	}
+}
+
+func TestFormatQuotaStatusMessageUsesExistingUnlimitedText(t *testing.T) {
+	initTestI18n()
+	message := formatQuotaStatusMessage(QuotaSnapshot{UnlimitedRuntime: true})
+
+	if !strings.Contains(message, "无限运行") && !strings.Contains(message, "unlimited runtime") {
+		t.Fatalf("message does not show unlimited runtime: %s", message)
 	}
 }
 
@@ -39,9 +52,9 @@ func TestFormatQuotaDeniedMessageUsesNormalText(t *testing.T) {
 	}
 }
 
-func TestFormatQuotaVerifiedMessageUsesSpecialRoute(t *testing.T) {
+func TestFormatQuotaStatusMessageUsesSpecialRoute(t *testing.T) {
 	initTestI18n()
-	message := formatQuotaVerifiedMessage(QuotaSnapshot{
+	message := formatQuotaStatusMessage(QuotaSnapshot{
 		Route:               quotaRouteSpecialThenRegular,
 		TierName:            "Orange Plus",
 		SpecialLimitSeconds: 36000,

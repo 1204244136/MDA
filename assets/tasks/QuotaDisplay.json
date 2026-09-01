@@ -1,0 +1,13 @@
+{
+    "task": [
+        {
+            "name": "QuotaDisplay",
+            "label": "$task.QuotaDisplay.label",
+            "entry": "QuotaDisplayMain",
+            "description": "$task.QuotaDisplay.description",
+            "group": [
+                "utility"
+            ]
+        }
+    ]
+}

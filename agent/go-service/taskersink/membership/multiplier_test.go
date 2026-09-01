@@ -29,6 +29,15 @@ func TestMultiplierForEntry(t *testing.T) {
 	}
 }
 
+func TestQuotaDisplayEntryIsQuotaExempt(t *testing.T) {
+	if !isQuotaExemptEntry(entryQuotaDisplayMain) {
+		t.Fatal("QuotaDisplayMain should be quota exempt")
+	}
+	if isQuotaExemptEntry("DailyRewardsMain") {
+		t.Fatal("DailyRewardsMain should not be quota exempt")
+	}
+}
+
 func TestBillableDuration(t *testing.T) {
 	multiplier := quotaMultiplier{BasePermille: 3000, ExtraPermille: 1500}
 	if got := multiplier.billableDuration(time.Minute); got != 270*time.Second {

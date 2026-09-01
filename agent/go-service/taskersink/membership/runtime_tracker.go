@@ -133,6 +133,13 @@ func (t *RuntimeTracker) requestStop(generation uint64) bool {
 
 func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) {
 	t.finish()
+	if isQuotaExemptEntry(detail.Entry) {
+		log.Info().
+			Uint64("task_id", detail.TaskID).
+			Str("entry", detail.Entry).
+			Msg("RuntimeTracker: quota-exempt task skipped")
+		return
+	}
 
 	lease, acquired, err := tryAcquireRuntimeTrackingLease(detail)
 	if err != nil {

@@ -120,6 +120,7 @@
         "tasks/MapPushing.json",
         "tasks/RedDotClear.json",
         "tasks/FriendManagement.json",
+        "tasks/QuotaDisplay.json",
         "tasks/EquipmentReroll.json",
         "tasks/SmallEvent.json",
         "tasks/LargeEvent.json",
