@@ -24,6 +24,7 @@
         },
         "next": [
             "SmallEventEnterMainPage",
+            "[JumpBack]CommonClickEventChange",
             "CommonEndTask"
         ]
     },

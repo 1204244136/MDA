@@ -517,6 +517,28 @@
             }
         }
     },
+    "CommonClickEventChange": {
+        "desc": "点击活动轮换按钮",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    961,
+                    625,
+                    26,
+                    25
+                ],
+                "template": [
+                    "Common/EventChange.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
     "CommonEndTask": {
         "desc": "空节点，用于结束流程"
     },
