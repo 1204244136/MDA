@@ -19,7 +19,7 @@
     "option": {
         "SmallEventTheme": {
             "type": "select",
-            "default_case": "ProjectMatis",
+            "default_case": "GreatVillainUnion",
             "label": "$option.SmallEventTheme.label",
             "cases": [
                 {
@@ -125,6 +125,39 @@
                                         "SmallEvent/ProjectMatis/ProjectMatisStory1StageRepeatable.png",
                                         "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormalRepeatable.png",
                                         "SmallEvent/ProjectMatis/ProjectMatisStory2StageHardRepeatable.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "GreatVillainUnion",
+                    "label": "$option.SmallEventTheme.GreatVillainUnion",
+                    "pipeline_override": {
+                        "SmallEventEnterMainPage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionLogo.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "SmallEventClickStage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png"
                                     ]
                                 }
                             }
