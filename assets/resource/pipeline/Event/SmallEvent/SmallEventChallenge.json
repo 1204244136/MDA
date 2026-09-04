@@ -1,7 +1,13 @@
 {
     "SmallEventEnterChallenge": {
-        "desc": "小活动挑战",
+        "desc": "小活动挑战入口",
         "max_hit": 1,
+        "next": [
+            "SmallEventChallengeFlow"
+        ]
+    },
+    "SmallEventClickChallenge": {
+        "desc": "小活动挑战",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -28,14 +34,23 @@
         "post_wait_freezes": 500,
         "timeout": 60000,
         "next": [
-            "[JumpBack]SmallEventChallengeFlow",
+            "EventChallengeStagePage",
+            "SmallEventClickChallenge",
             "SmallEventGoBack"
         ]
     },
     "SmallEventChallengeFlow": {
-        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SmallEventMainPageEntered"
+                ]
+            }
+        },
         "next": [
-            "EventChallengeMain"
+            "[JumpBack]SmallEventClickChallenge",
+            "SmallEventGoBack"
         ]
     }
 }
