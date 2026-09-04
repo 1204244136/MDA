@@ -92,6 +92,14 @@ jobs:
             agent/go-service/go.mod
             agent/go-service/go.sum
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v9.0.0
+
       - name: Download MaaFramework
         uses: robinraju/release-downloader@v1
         with:
@@ -131,18 +139,12 @@ jobs:
       - name: Build Go Agent
         shell: bash
         run: |
-          cd tools/
-          python -m pip install -r ./requirements.txt
-          python ./install.py --build-go-only ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
-          cd ..
+          uv run --frozen --only-group install python tools/install.py --build-go-only ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
 
       - name: Install
         shell: bash
         run: |
-          cd tools/
-          python -m pip install -r ./requirements.txt
-          python ./install.py ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
-          cd ..
+          uv run --frozen --only-group install python tools/install.py ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
 
       - name: Integrate MXU into install directory
         if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}

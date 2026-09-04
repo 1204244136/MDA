@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 1
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: daily
+    versioning-strategy: lockfile-only

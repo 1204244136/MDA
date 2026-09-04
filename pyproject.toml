@@ -1,0 +1,36 @@
+[project]
+name = "mda"
+version = "0.0.0"
+description = "Python dependencies for MDA development scripts"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+setup-workspace = "tools.setup_workspace:main"
+build-and-install = "tools.build_and_install:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13"]
+build-backend = "uv_build"
+
+[dependency-groups]
+schema = [
+    "jsonschema==4.26.0",
+    "referencing==0.37.0",
+]
+install = [
+    "json-with-comments",
+    "jsonschema>=4.0",
+]
+scripts = [
+    { include-group = "schema" },
+    { include-group = "install" },
+]
+
+[tool.uv]
+default-groups = ["scripts"]
+package = true
+
+[tool.uv.build-backend]
+module-name = ["tools"]
+module-root = ""
