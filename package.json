@@ -6,7 +6,7 @@
         "format:check": "prettier --check \"**/*.{json,yml,yaml,md}\""
     },
     "devDependencies": {
-        "@biomejs/biome": "2.4.13",
+        "@biomejs/biome": "2.5.12",
         "@nekosu/maa-tools": "1.1.2",
         "@nekosu/prettier-plugin-maafw-sort": "1.0.6",
         "prettier": "3.5.3",
