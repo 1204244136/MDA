@@ -1028,10 +1028,11 @@ EquipmentRerollMain
 **分配感知的全局期望成本**：`expectedModulesForQuota` 现改为调用 `allocateQuotaRequired` 把全局正数配额名额分配到各件后逐件计算（见 §4.4），并使用当前 Inventory 选择密钥/模块、扣除规划中的锁定材料，避免稀缺配额被每件都要求；单件短视 DP 仍是“拿到就锁 + 先苦后甜”的简化近似（详见本条“注意”）。宏观分配的**独立验证程序**在 `agent/go-service/equipmentreroll/verification/main.go`，可 `go run ./equipmentreroll/verification` 复跑并核对 §4.4 表格。
 
 **材料计费**（已按客户端截图校准，见 `inventory.go:46-78`）：
-| 锁定 | 订制模组 | 自订密钥 |
-|------|----------|----------|
-| 0→1 | 2 | 20 |
-| 1→2 | 3 | 30 |
+
+| 锁定     | 订制模组                                      | 自订密钥 |
+| -------- | --------------------------------------------- | -------- |
+| 0→1      | 2                                             | 20       |
+| 1→2      | 3                                             | 30       |
 | 效果变更 | 0锁1 /1锁2 /2锁3 订制模组（自订密钥不可代替） |
 
 **材料消耗统计**：**库存只在腿部扫描完成后的“物资检测”流程初始化一次**（进入效果锁定页，`EquipmentRerollMaterialCheckRecognition` 读取订制模组/自订密钥「持有」→ `setInventory`，不实际锁定）。之后所有消耗（效果变更扣模块、锁定扣密钥/模块）都靠**行为记录**扣减余额（`recordRerollModuleCost` / `recordLockMaterialCost` → `decrementInventory`），不再每次 OCR。
