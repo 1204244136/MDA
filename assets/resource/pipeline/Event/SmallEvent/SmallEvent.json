@@ -45,7 +45,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            }
         },
         "next": [
             "SmallEventMainPageClickStoryArea",
