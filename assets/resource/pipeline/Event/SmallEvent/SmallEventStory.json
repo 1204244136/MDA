@@ -150,23 +150,6 @@
             "SmallEventEventStageQuickBattleFlow"
         ]
     },
-    "SmallEventStoryVisible": {
-        "desc": "小活动剧情活动页面标识",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    5,
-                    18,
-                    50,
-                    16
-                ],
-                "expected": [
-                    "剧情活动"
-                ]
-            }
-        }
-    },
     "SmallEventClickStage": {
         "desc": "小活动关卡点击",
         "recognition": {
