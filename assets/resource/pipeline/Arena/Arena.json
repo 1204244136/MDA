@@ -147,9 +147,30 @@
                 ]
             }
         },
+        "timeout": 60000,
         "next": [
+            "BattleEntered",
+            "[JumpBack]CommonPurchaseGemBlocked",
             "[JumpBack]RookieArenaClickQuickBattleToggle",
-            "BattleEntryFlow"
+            "[JumpBack]ArenaConfirmFreeBattle"
         ]
+    },
+    "ArenaConfirmFreeBattle": {
+        "desc": "确认发起免费战斗", //只在出击确认面板内点“进入战斗”；面板一关就收手，绝不回头点对手列表里的付费挑战
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "ArenaFreeBattleVisible",
+                    "BattleMainVisible",
+                    "BattleAvailable"
+                ],
+                "box_index": 1 //取“进入战斗”的识别框，避免点到面板外同区域内的对手列表行
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
     }
 }

@@ -581,6 +581,7 @@
         "timeout": 60000,
         "next": [
             "BattleEntered",
+            "[JumpBack]CommonPurchaseGemBlocked",
             "[JumpBack]CommonConfirmAction",
             "[JumpBack]BattleEnterNormalBattle"
         ]
