@@ -303,7 +303,7 @@
         "LargeEventPersonaOnFrontlineMiniGame": {
             "type": "switch",
             "default_case": "Yes",
-            "label": "$option.LargeEventWaveToYouMiniGame.label",
+            "label": "$option.LargeEventPersonaOnFrontlineMiniGame.label",
             "description": "$option.LargeEventPersonaOnFrontlineMiniGame.description",
             "cases": [
                 {
