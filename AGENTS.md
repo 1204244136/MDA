@@ -68,6 +68,16 @@
     - 审查 Pipeline 时，若发现复杂业务逻辑（状态机、决策、计算、跨节点聚合）硬写在 JSON，优先考虑挪到 Go。
     - 判断一个环节归属时，问“这是‘看到了什么/在哪里’，还是‘看到之后要做什么/怎么算’”：前者给 Pipeline，后者给 Go。
 
+## 活动主题「当前活动」路由
+
+- `LargeEventTheme` 和 `SmallEventTheme` 的首个 case 固定为 `CurrentEvent`（显示名「当前活动」），并且是该选项的 `default_case`。
+- `CurrentEvent` 的 `pipeline_override` 和 `cases[].option` 必须与**最新发布主题**的 case 逐字一致：模板路径列表、`lower` / `upper` / `count` 等颜色阈值覆盖、子选项列表全部对齐，该主题没有的覆盖项 `CurrentEvent` 也不要写。
+- 之所以需要这一项：客户端把用户选中的 case 名写进 `config\maa_pi_config.json`，只改 `default_case` 对新用户有效，老用户仍停留在旧主题；只有选了 `CurrentEvent` 的用户会在更新资源包后自动跟上最新活动。
+- 每次适配新主题时，先把新主题自己的 case 完整写好，再把 `CurrentEvent` 的 override 与子选项整体替换为新主题内容；不要沿用上一个主题，也不要留空 override。
+- `CurrentEvent` 留空等于坏掉：`LargeEventEnterMainPage` / `SmallEventEnterMainPage` 的 base 节点只有 `Common/RedDot.png` 占位模板，必须靠 override 才能识别活动入口。
+- 往期主题 case 保留各自的 `pipeline_override` 不动，供用户显式回选仍在开放的老活动。
+- `CurrentEvent` 不是主题名，locale 显示名用「当前活动」/ `Current Event`，不适用全大写约定；同时在 `zh_cn`、`en_us` 中补上 `option.{LargeEventTheme,SmallEventTheme}.CurrentEvent` 与对应 `.description`。
+
 ## 大型小活动适配
 
 - 部分归入 `SmallEvent` 的特殊大型小活动包含 `STORY I` / `STORY II` 两篇剧情，活动主页通过独立按钮切换 Story。
