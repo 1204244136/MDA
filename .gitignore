@@ -496,3 +496,12 @@ tests/maatools
 
 # WorkBuddy session artifacts
 .workbuddy/
+
+# 框架语义验证工具（刻意提交，勿忽略）
+#
+# tools/verify/ 是用 MaaFramework 公开 C API 实测 pipeline 语义的可复现工具：
+# 脚本靠 __file__ 反推仓库根，资源是仓库自带的最简 pipeline + 小样图，
+# 记录了「override 深合并」「template 整体替换」「input 值持久化」等
+# 无法从文档确认的框架行为，是活动主题路由设计的证据链。
+# 若将来需要新增宽泛规则（如 tools/*），请勿连带忽略本目录。
+!tools/verify/

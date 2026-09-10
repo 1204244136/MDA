@@ -1,0 +1,69 @@
+{
+    "SmallEvent": {
+        "desc": "验证用主题入口",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    799,
+                    571,
+                    170,
+                    68
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": []
+    },
+    "SmallEventClickStage": {
+        "desc": "验证用关卡点击",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    314,
+                    103,
+                    661,
+                    604
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": []
+    },
+    "SmallEventClickStageRepeatable": {
+        "desc": "验证用可扫荡点击",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    314,
+                    103,
+                    661,
+                    604
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": []
+    }
+}
