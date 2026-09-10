@@ -11,7 +11,7 @@
 适配新主题时只需改一处（base 节点）+ 新增该主题 case 的 override（本来就要写），
 `CurrentEvent` 的 35~40 行重复书写降为 0。
 
-**代价**：老用户 `maa_pi_config.json` 里仍是旧 case 名，需重选一次主题（已确认可接受）。
+**代价**：经核实，代价比预期小得多——配置里存的是具体 case 名，而往期主题 case 一律保留，因此**只有「所选主题被下架/重命名」的用户需要重选**；选具体主题的用户行为逐字不变，选 `CurrentEvent` 的用户自动跟随（详见第三章）。
 
 **必配护栏**：校验所有主题 case 的 `pipeline_override` 节点集合一致，防止漏覆盖导致静默继承 base。
 
@@ -84,9 +84,61 @@
 
 ---
 
-## 三、推荐方案
+## 三、用户侧影响分析
 
-### 3.1 改动内容
+改造 `base` 节点会改变所有用户的运行结果，因此必须先算清「谁受影响、谁不受影响」。结论是**绝大多数用户无感**，原因在于框架的 case 查找语义。
+
+### 3.1 框架查找语义（源码依据）
+
+`source/MaaPiCli/Impl/Configurator.cpp:447-468`：
+
+```cpp
+auto it = std::ranges::find_if(data_option.cases,
+    [&](const auto& c) { return c.name == config_option.value; });
+if (it == data_option.cases.end()) {
+    LogWarn << "case not found" << VAR(config_option.value);
+    continue;                                    // 跳过该 option 的全部 override
+}
+runtime_task.pipeline_override.emplace(it->pipeline_override);   // 命中则应用
+```
+
+配置里存的是**用户当初选中的 case 名**（不是 `default_case`，也不是"跟随"关系）。真实配置样例来自日志分析目录 `.cache/log-analysis/20260903-223806/config/maa_pi_config.json`：
+
+```json
+{"name": "SmallEvent", "option": {"SmallEventTheme": "GreatVillainUnion"}}
+```
+
+即存的是具体主题名 `GreatVillainUnion`。
+
+### 3.2 三类用户的分支结果
+
+| 配置中的值                                                           | case 是否命中 | 改 base 后的行为                              | 需要用户操作           |
+| -------------------------------------------------------------------- | ------------- | --------------------------------------------- | ---------------------- |
+| 仍在的**具体主题名**（`GreatVillainUnion`、`PersonaOnFrontline` 等） | 命中          | 应用该 case 的 override，与改动前**逐字一致** | 否                     |
+| `CurrentEvent`                                                       | 命中          | override 为空 → 落到 base → 最新主题          | 否，**这就是自动跟随** |
+| **已下架/重命名**的主题名                                            | 未命中        | 跳过全部 override → 落到 base → 最新主题      | **是，需重选主题**     |
+
+### 3.3 两个必须记住的推论
+
+- **改 `default_case` 不影响已配置的老用户。** 老用户配置里存的是具体 case 名，`default_case` 只在"新用户首次配置 / 配置里没有该 option"时生效。这解释了为什么「只把 `default_case` 改成 `CurrentEvent`」不足以让老用户跟随——必须让老用户**显式选一次** `CurrentEvent`。
+- **`CurrentEvent` 的自动跟随靠"这个 case 永远存在 + 它没有 override"。** 只要这两点成立，用户在任意版本选过一次，此后每次更新都会自动吃最新 base。这是本方案能work的根本机制。
+
+### 3.4 「已下架主题」用户的降级表现与提示必要性
+
+- 降级路径：`case not found` → `LogWarn` → `continue` → 该 option 不贡献任何 override → 最终使用 base。
+- 用户侧表现：**不是崩溃或报错**，而是"识别不到想打的老活动关卡"。缺少日志的用户几乎不可能自行定位，因此**必须由更新说明主动提示**。
+- 改造前后对比：改造前 base 是 `Common/RedDot.png` 占位，这类用户落到 base 等于**彻底坏掉**；改造后 base 是真实的最新主题模板，消费者**至少能跑最新活动**。该场景在改造后反而改善。
+- 提示只应在「确实删除了往期主题 case」时发出。**适配新主题本身不需要任何提示**，否则每次更新都要发一次无用公告，反而降低公告可信度。
+
+### 3.5 建议提示话术
+
+> 本次更新下架了往期主题活动 XXX，若你在「活动主题」中选的是它，请在任务设置里重新选择当前开放的主题（或直接选「当前活动」以后自动跟随）。
+
+---
+
+## 四、推荐方案
+
+### 4.1 改动内容
 
 **resource 侧（base 节点）**：把占位模板换成最新主题的真实模板。
 
@@ -120,7 +172,7 @@
 注意 `LargeEvent` 的 `CurrentEvent` 带 `option: ["LargeEventPersonaOnFrontlineMiniGame"]`，
 该子选项必须保留，只删 `pipeline_override`。
 
-### 3.2 适配新主题的操作流
+### 4.2 适配新主题的操作流
 
 1. 改 base 节点的 `template`（resource 侧，3 个节点）
 2. 新增该主题 case 的 `pipeline_override`（tasks 侧，本来就要写）
@@ -128,7 +180,7 @@
 
 `CurrentEvent` 完全不需要动。
 
-### 3.3 必配护栏：节点集合一致性校验
+### 4.3 必配护栏：节点集合一致性校验
 
 验证 D 暴露的真实风险。现状已存在该结构（实测扫描结果）：
 
@@ -152,7 +204,7 @@
 
 ---
 
-## 四、方案对比（最终版）
+## 五、方案对比（最终版）
 
 | 方案                  | 消除重复     | 老用户自动跟随 | 前提        | 结论                   |
 | --------------------- | ------------ | -------------- | ----------- | ---------------------- |
@@ -164,7 +216,7 @@
 
 ---
 
-## 五、对 AGENTS.md 的建议
+## 六、对 AGENTS.md 的建议
 
 替换现有「活动主题『当前活动』路由」小节：
 

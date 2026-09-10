@@ -73,7 +73,9 @@
 ### 机制
 
 - `LargeEventTheme` 和 `SmallEventTheme` 的首个 case 固定为 `CurrentEvent`（显示名「当前活动」），并且是该选项的 `default_case`。
-- 客户端把用户选中的 case 名写进 `config\maa_pi_config.json`。只改 `default_case` 对新用户有效，老用户仍停留在旧主题；只有选了 `CurrentEvent` 的用户会在更新资源包后自动跟上最新活动。
+- 客户端把用户选中的 case 名写进 `config\maa_pi_config.json`，且存的是**当时选的具体 case 名**（真实样例：`"SmallEventTheme": "GreatVillainUnion"`）。框架按 `case.name == 配置值` 精确查找，命中则应用该 case 的 override，未命中则 `LogWarn` 后跳过。由此推出两条重要结论：
+    - 只改 `default_case` 只影响**新用户**与**未配置过的用户**；已配置的老用户配置里存的是具体 case 名，不会因 `default_case` 改动而变化。
+    - 选了 `CurrentEvent` 的用户配置里存的是字符串 `"CurrentEvent"`，该 case 永久存在，因此会随 base 自动跟随最新活动——这是「当前活动」机制成立的根本原因。
 - `CurrentEvent` **不携带 `pipeline_override`**。它靠 resource 侧 base 节点承载最新主题模板来工作，用户选它即可在下次更新后自动跟随，无需重写。
 - `CurrentEvent` 不是主题名，locale 显示名用「当前活动」/ `Current Event`，不适用全大写约定；同时在 `zh_cn`、`en_us` 中补上 `option.{LargeEventTheme,SmallEventTheme}.CurrentEvent` 与对应 `.description`。
 - `CurrentEvent` 可以带 `option`（子选项列表，如 `LargeEventPersonaOnFrontlineMiniGame`），这不属于 override，必须保留。
@@ -94,6 +96,26 @@
 3. `CurrentEvent` **不动**：它没有 override，base 一改就自动跟随。
 4. 往期主题 case 的 `pipeline_override` 一律保留不动，供用户显式回选仍在开放的老活动。
 5. 跑 `npm run check:theme` 校验。
+6. **本次适配是否下架或重命名了某个往期主题 case？** 若是，见下节「用户影响与提示话术」，需要在更新说明里提示这批用户重选主题；若否，不要发提示。
+
+### 用户影响与提示话术
+
+改动前先判断自己属于哪种情况——框架在 `Configurator.cpp:447-468` 按 `case.name == 配置里的值` 查找，找不到就 `LogWarn` 后跳过该 option 的全部 override：
+
+| 用户配置里存的值                                   | 改 base 后的行为                                            | 是否要提示                 |
+| -------------------------------------------------- | ----------------------------------------------------------- | -------------------------- |
+| 某个**仍在的**具体主题名（如 `GreatVillainUnion`） | case 命中，override 照常应用，行为与改动前完全一致          | 不需要，无感               |
+| `CurrentEvent`                                     | case 命中，`pipeline_override` 为空 → 落到 base = 最新主题  | 不需要，**这就是自动跟随** |
+| **已下架主题**的名字                               | `case not found` → 跳过全部 override → 落到 base = 最新主题 | **需要，用户需重选主题**   |
+
+- 大多数用户存的是**具体主题名**（真实配置样例：`"SmallEventTheme": "GreatVillainUnion"`），因此改 base **不会打扰他们**，不要过度提示。
+- 只有「往期主题 case 被删除 / 重命名」才会让用户失配。此时该用户想打的老活动已识别不到，必须重选。
+- 提示时给可操作的信息，不要只丢结论。建议话术：
+
+    > 本次更新下架了往期主题活动 XXX，若你在「活动主题」中选的是它，请在任务设置里重新选择当前开放的主题（或直接选「当前活动」以后自动跟随）。
+
+- 反过来说：**适配新主题本身不需要任何提示**。只有「操作顺序」第 6 步确认删了 case 才提示，避免每次更新都发无用公告。
+- `case not found` 的降级是"吃 base"而非报错崩溃，所以用户侧表现为"识别不到关卡"而非程序异常，缺少日志的用户很难自己定位——这正是必须主动提示的原因。
 
 ### 护栏：`npm run check:theme`
 
