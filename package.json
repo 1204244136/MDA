@@ -3,7 +3,8 @@
         "utf8-cmd": "scripts\\utf8-cmd.cmd",
         "format": "prettier --write \"**/*.{json,yml,yaml,md}\"",
         "format:aggressive": "prettier --print-width 20 --write \"assets/resource/pipeline/**/*.json\" \"assets/tasks/**/*.json\" && prettier --write \"assets/resource/pipeline/**/*.json\" \"assets/tasks/**/*.json\"",
-        "format:check": "prettier --check \"**/*.{json,yml,yaml,md}\""
+        "format:check": "prettier --check \"**/*.{json,yml,yaml,md}\"",
+        "check:theme": "node scripts/check-theme-sync.mjs"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.12",
