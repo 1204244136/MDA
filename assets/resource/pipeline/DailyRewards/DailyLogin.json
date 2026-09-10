@@ -89,15 +89,30 @@
             "type": "ColorMatch",
             "param": {
                 "roi": "DailyLoginClaimAllButtonVisible",
+                //多段区间取并集：任一区间达到 count 即命中，避免每期活动换主题时改颜色
                 "lower": [
-                    200,
-                    200,
-                    200
+                    [
+                        200,
+                        200,
+                        200
+                    ], //白色文字，如 Daily Evil Deed
+                    [
+                        225,
+                        235,
+                        60
+                    ] //金色文字，如 HeroDays
                 ],
                 "upper": [
-                    255,
-                    255,
-                    255
+                    [
+                        255,
+                        255,
+                        255
+                    ],
+                    [
+                        245,
+                        255,
+                        95
+                    ]
                 ],
                 "count": 100
             }
