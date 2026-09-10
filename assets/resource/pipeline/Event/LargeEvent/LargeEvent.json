@@ -40,7 +40,7 @@
                     68
                 ],
                 "template": [
-                    "Common/RedDot.png" //占位，应该去task页面修改
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineLogo.png" //当前活动，随最新主题更新
                 ]
             }
         },

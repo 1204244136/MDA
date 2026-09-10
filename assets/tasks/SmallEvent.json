@@ -25,38 +25,7 @@
                 {
                     "name": "CurrentEvent",
                     "label": "$option.SmallEventTheme.CurrentEvent",
-                    "description": "$option.SmallEventTheme.CurrentEvent.description",
-                    "pipeline_override": {
-                        "SmallEventEnterMainPage": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionLogo.png"
-                                    ]
-                                }
-                            }
-                        },
-                        "SmallEventClickStage": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png",
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHard.png"
-                                    ]
-                                }
-                            }
-                        },
-                        "SmallEventClickStageRepeatable": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png",
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHardRepeatable.png"
-                                    ]
-                                }
-                            }
-                        }
-                    }
+                    "description": "$option.SmallEventTheme.CurrentEvent.description"
                 },
                 {
                     "name": "BitterSpice",

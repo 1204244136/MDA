@@ -299,7 +299,9 @@
                     604
                 ],
                 "template": [
-                    "Common/RedDot.png" //占位，应该去task页面修改
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1Stage.png", //当前活动，随最新主题更新
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormal.png",
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageHard.png"
                 ],
                 "order_by": "Vertical",
                 "index": -1
@@ -326,7 +328,9 @@
                     604
                 ],
                 "template": [
-                    "Common/RedDot.png" //占位，应该去task页面修改
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1StageRepeatable.png", //当前活动，随最新主题更新
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormalRepeatable.png",
+                    "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageHardRepeatable.png"
                 ],
                 "order_by": "Vertical",
                 "index": -1

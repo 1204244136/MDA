@@ -70,13 +70,39 @@
 
 ## 活动主题「当前活动」路由
 
+### 机制
+
 - `LargeEventTheme` 和 `SmallEventTheme` 的首个 case 固定为 `CurrentEvent`（显示名「当前活动」），并且是该选项的 `default_case`。
-- `CurrentEvent` 的 `pipeline_override` 和 `cases[].option` 必须与**最新发布主题**的 case 逐字一致：模板路径列表、`lower` / `upper` / `count` 等颜色阈值覆盖、子选项列表全部对齐，该主题没有的覆盖项 `CurrentEvent` 也不要写。
-- 之所以需要这一项：客户端把用户选中的 case 名写进 `config\maa_pi_config.json`，只改 `default_case` 对新用户有效，老用户仍停留在旧主题；只有选了 `CurrentEvent` 的用户会在更新资源包后自动跟上最新活动。
-- 每次适配新主题时，先把新主题自己的 case 完整写好，再把 `CurrentEvent` 的 override 与子选项整体替换为新主题内容；不要沿用上一个主题，也不要留空 override。
-- `CurrentEvent` 留空等于坏掉：`LargeEventEnterMainPage` / `SmallEventEnterMainPage` 的 base 节点只有 `Common/RedDot.png` 占位模板，必须靠 override 才能识别活动入口。
-- 往期主题 case 保留各自的 `pipeline_override` 不动，供用户显式回选仍在开放的老活动。
+- 客户端把用户选中的 case 名写进 `config\maa_pi_config.json`。只改 `default_case` 对新用户有效，老用户仍停留在旧主题；只有选了 `CurrentEvent` 的用户会在更新资源包后自动跟上最新活动。
+- `CurrentEvent` **不携带 `pipeline_override`**。它靠 resource 侧 base 节点承载最新主题模板来工作，用户选它即可在下次更新后自动跟随，无需重写。
 - `CurrentEvent` 不是主题名，locale 显示名用「当前活动」/ `Current Event`，不适用全大写约定；同时在 `zh_cn`、`en_us` 中补上 `option.{LargeEventTheme,SmallEventTheme}.CurrentEvent` 与对应 `.description`。
+- `CurrentEvent` 可以带 `option`（子选项列表，如 `LargeEventPersonaOnFrontlineMiniGame`），这不属于 override，必须保留。
+
+### base 节点承载最新主题
+
+- `LargeEvent` / `SmallEvent` 的以下 base 节点，其 `template` 直接写**最新主题**的真实模板，并加注释 `//当前活动，随最新主题更新`：
+    - `LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`
+    - `SmallEventEnterMainPage`、`SmallEventClickStage`、`SmallEventClickStageRepeatable`
+- 这些节点原先写 `Common/RedDot.png //占位，应该去task页面修改`，已不再需要占位——base 本身就是当前活动的真实配置。
+- `LargeEventEnterMission` 是**中性红点检测**（`Common/RedDot.png` + `Common/RedDotSP.png`），不是主题模板节点，**不要改动**。
+- `LargeEventMissionClaimed` 是**颜色阈值特例节点**（base 灰白 `[190,190,190]`~`[219,219,219]`，`ArkRanger` 覆盖为蓝紫 `[15,25,55]`~`[35,35,65]`）。它**不纳入 base 承载范围**，保持 base 原值；只有需要特例的主题才在自己的 case 里覆盖。
+
+### 适配新主题的操作顺序
+
+1. 为新主题写好完整的 case（含 `label`、`option`、三个模板类节点的 `pipeline_override`）。
+2. 把 base 节点的 `template` 换成新主题的模板列表（即把「当前活动」升级为新主题）。
+3. `CurrentEvent` **不动**：它没有 override，base 一改就自动跟随。
+4. 往期主题 case 的 `pipeline_override` 一律保留不动，供用户显式回选仍在开放的老活动。
+5. 跑 `npm run check:theme` 校验。
+
+### 护栏：`npm run check:theme`
+
+`scripts/check-theme-sync.mjs` 自动守住两条不变量，违规时退出码 1：
+
+- **断言 A**：`CurrentEvent` 不得携带非空 `pipeline_override`（否则自动跟随失效）。
+- **断言 B**：所有往期主题 case 必须逐个覆盖同一批模板类节点。漏覆盖的主题在 base 换新后会**静默继承新主题模板**，导致回选老活动时永远匹配不上且不报错——这正是护栏存在的意义。
+
+新增主题或调整 base 时，若模板类节点的集合发生变化，需同步更新脚本顶部的 `TARGETS[].expectedTemplateNodes`。
 
 ## 大型小活动适配
 
