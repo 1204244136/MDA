@@ -153,8 +153,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png",
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHard.png"
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageNormal.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageHard.png"
                                     ]
                                 }
                             }
@@ -163,8 +163,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png",
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHardRepeatable.png"
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageNormalRepeatable.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageHardRepeatable.png"
                                     ]
                                 }
                             }

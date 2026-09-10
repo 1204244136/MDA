@@ -128,8 +128,28 @@
 
 ## 大型小活动适配
 
-- 部分归入 `SmallEvent` 的特殊大型小活动包含 `STORY I` / `STORY II` 两篇剧情，活动主页通过独立按钮切换 Story。
-- 不适配 Story 切换按钮。Story 2 开放后，活动页面会自动切换到 Story 2，无需 Pipeline 额外点击；不要照搬 `LargeEvent` 的 Story 优先级或 Story 入口切换流程。
-- 关卡模板必须按实际 Story 语义命名。Story 1 使用 `{Theme}Story1Stage.png` 和 `{Theme}Story1StageRepeatable.png`；Story 2 普通难度使用 `{Theme}Story2StageNormal.png` 和 `{Theme}Story2StageNormalRepeatable.png`。不要用 `SP` 代指 Story 2。
+### 先判断：这个 SmallEvent 主题有没有 Story
+
+小活动分两类，**命名体系完全不同**，适配前先确认属于哪一类：
+
+| 类型                          | 判断依据                                  | 命名体系                                                                                 | 实例                                            |
+| ----------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **无 Story** 的普通小活动     | 活动主页没有 STORY I / STORY II 切换按钮  | `{Theme}StageNormal.png` / `{Theme}StageHard.png`                                        | `BitterSpice`、`BSideIdol`、`GreatVillainUnion` |
+| **有 Story** 的特殊大型小活动 | 活动主页有独立按钮切换 STORY I / STORY II | `{Theme}Story1Stage.png` / `{Theme}Story2StageNormal.png` / `{Theme}Story2StageHard.png` | `ProjectMatis`                                  |
+
+- **不要把 `Story1` / `Story2` 用在没有 Story 的小活动上。** `GreatVillainUnion` 曾误用这套前缀（`Story1Stage` / `Story2StageHard`），已被纠正为 `StageNormal` / `StageHard`。
+- 判据是**活动主页有没有 Story 切换按钮**，不是"有没有两批关卡"。普通小活动也可能有多个关卡，但那是同一 Story 下的关卡序号（`1-01`、`1-02`…），不是 Story。
+- `Normal` / `Hard` 指**难度模式**。同一模式下 EVENT 可点击标记的外观不同（颜色、字号、装饰），因此两种模式各自需要独立模板。Repeatable（扫荡按钮）同理，两种模式各一张。
+
+### Story 切换与覆盖
+
+- 有 Story 的活动，不适配 Story 切换按钮。Story 2 开放后，活动页面会自动切换到 Story 2，无需 Pipeline 额外点击；不要照搬 `LargeEvent` 的 Story 优先级或 Story 入口切换流程。
+- 有 Story 时，关卡模板必须按实际 Story 语义命名。Story 1 使用 `{Theme}Story1Stage.png` 和 `{Theme}Story1StageRepeatable.png`；Story 2 普通难度使用 `{Theme}Story2StageNormal.png` 和 `{Theme}Story2StageNormalRepeatable.png`。不要用 `SP` 代指 Story 2。
 - 将 Story 1、Story 2 模板共同加入 `SmallEventClickStage` 和 `SmallEventClickStageRepeatable` 的主题覆盖，由现有统一关卡流程识别并推进。
 - Story 2 Hard 未开放时，不添加 `{Theme}Story2StageHard*` 模板或配置；开放后再根据实际素材适配。
+
+### 关卡已全清（CLEAR）时截不到 EVENT
+
+- **Normal / Hard 关卡全部 CLEAR 后，关卡行显示 `CLEAR` 而不是 `EVENT`，此时无法截到该模式的 EVENT 模板。**
+- 判断图层归属时不要因为"截图里没有 EVENT"就断定模板作废。更可靠的方式是**用该模板对截图做模板匹配**：若在 ROI 内找不到高分命中（如 < 0.5），才可疑；若截图上该模式已全 CLEAR，属于正常现象。
+- 需要补某模式的模板时，必须在该模式**仍有未 CLEAR 关卡**的状态下截图。
