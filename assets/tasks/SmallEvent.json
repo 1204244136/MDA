@@ -40,7 +40,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png"
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHard.png"
                                     ]
                                 }
                             }
@@ -49,7 +50,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png"
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHardRepeatable.png"
                                     ]
                                 }
                             }
@@ -182,7 +184,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png"
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1Stage.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHard.png"
                                     ]
                                 }
                             }
@@ -191,7 +194,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png"
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory1StageRepeatable.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStory2StageHardRepeatable.png"
                                     ]
                                 }
                             }
