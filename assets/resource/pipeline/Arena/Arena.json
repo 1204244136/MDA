@@ -14,7 +14,6 @@
     },
     "ArenaClaimSpecialReward": {
         "desc": "领取累积奖励",
-        "max_hit": 1,
         "recognition": {
             "type": "OCR",
             "param": {
