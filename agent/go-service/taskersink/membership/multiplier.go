@@ -1,6 +1,9 @@
 package membership
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 const multiplierScale = 1000
 
@@ -23,6 +26,20 @@ var taskTierByEntry = map[string]taskTier{
 	entryMapPushingFlow:      taskTierHigh,
 	entryEquipmentRerollMain: taskTierHigh,
 	entryCustomBurstMain:     taskTierHigh,
+}
+
+// HighConsumptionEntries 返回所有高级任务（高消耗）的流水线入口，升序排列。
+// 返回副本，调用方改写不会污染分级表。任务描述里必须写明 5 倍额度消耗，
+// multiplier_test.go 用本函数保证「分级表 ↔ 任务描述」不会漂移。
+func HighConsumptionEntries() []string {
+	entries := make([]string, 0, len(taskTierByEntry))
+	for entry, tier := range taskTierByEntry {
+		if tier == taskTierHigh {
+			entries = append(entries, entry)
+		}
+	}
+	slices.Sort(entries)
+	return entries
 }
 
 func taskTierForEntry(entry string) taskTier {

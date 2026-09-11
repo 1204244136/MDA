@@ -1247,9 +1247,11 @@ EquipmentRerollMain
 
 ### 9.7 会员配额
 
-两种模式共用入口 `EquipmentRerollMain`，属于**高消耗**任务（`taskersink/membership/multiplier.go`
-的 `taskTierByEntry` 中 `taskTierHigh`）：非会员按 5 倍额度消耗、配额路由走专项优先
-（`quotaRouteSpecialThenRegular`）。单件模式不额外注册入口，直接复用角色模式的计费口径。
+两种模式共用入口 `EquipmentRerollMain`，属于**高级任务**（`taskersink/membership/multiplier.go`
+的 `taskTierByEntry` 中 `taskTierHigh`）：没有可用专项额度时（非会员，或专项额度已用尽）按 5 倍额度消耗、
+配额路由走专项优先（`quotaRouteSpecialThenRegular`）。单件模式不额外注册入口，直接复用角色模式的计费口径。
+高级任务的清单由 `HighConsumptionEntries()` 导出，`task_description_test.go` 据此校验这些任务的界面描述
+里写明了 5 倍额度消耗，新增高级任务时同步补描述即可，否则测试会失败。
 
 ### 9.8 数据示例（单件，期望订制模块基线）
 
