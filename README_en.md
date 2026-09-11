@@ -64,6 +64,8 @@ MDA includes a variety of tasks covering dailies, events, and utilities — all 
 - 🔨 **Effect Reroll**: Automatically reroll effects on T10 equipment, with Character and Single modes.
 - 🗺️ **Auto Map Pushing**: Automatically click monsters to fight and trigger mechanisms to push through main stages.
 - 🔴 **Clear Red Dots**: Automatically clear red-dot notifications across supported interfaces.
+- 👥 **Friend Management**: Remove long-inactive friends and accept all friend requests.
+- 📊 **Quota Display**: Show today's used and remaining run quota; this task consumes no quota.
 
 ---
 
