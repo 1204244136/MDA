@@ -23,52 +23,223 @@
             }
         },
         "next": [
-            "FriendManagementAcceptFriendRequests",
+            "[JumpBack]FriendManagementEnterFriendPage",
             "CommonEndTask"
         ]
+    },
+    "FriendManagementEnterFriendPage": {
+        "desc": "进入好友页", // 删除与接受两个功能共用的入口，只进入一次，避免回跳后重复点击入口
+        "max_hit": 1,
+        "next": [
+            "FriendManagementClickFriendEntry",
+            "CommonEndTask"
+        ]
+    },
+    "FriendManagementClickFriendEntry": {
+        "desc": "点击大厅的好友入口",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1222,
+                    162,
+                    50,
+                    34
+                ],
+                "template": [
+                    "FriendManagement/FriendEntry.png"
+                ],
+                "threshold": [
+                    0.8
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "FriendManagementOnFriendPage",
+            "FriendManagementClickFriendEntry" //兜底
+        ]
+    },
+    "FriendManagementOnFriendPage": {
+        "desc": "处于好友页", // 进入成功哨兵：好友页顶部居中的「好友」标题
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    636,
+                    76,
+                    42,
+                    26
+                ],
+                "expected": [
+                    "好友"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]FriendManagementDeleteInactiveFriends",
+            "[JumpBack]FriendManagementAcceptFriendRequests",
+            "CommonEndTask"
+        ]
+    },
+    "FriendManagementDeleteInactiveFriends": {
+        "desc": "删除长期未登录好友", // 按未登录时长由长到短排序后，循环删除第一行未登录 ≥ 10 天的好友
+        "max_hit": 1,
+        "next": [
+            "[JumpBack]FriendManagementSortFriendsByLastLogin",
+            "[JumpBack]FriendManagementEnterDeleteMode",
+            "[JumpBack]CommonConfirmAction",
+            "[JumpBack]FriendManagementDeleteOldestFriend",
+            "FriendManagementDeleteInactiveFriendsCompleted"
+        ]
+    },
+    "FriendManagementSortFriendsByLastLogin": {
+        "desc": "点击排序三角形，按未登录时长由长到短排序", // 仅当三角形为未排序态时命中，排序后自动失效，避免重复点击把顺序翻回去
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    778,
+                    174,
+                    38,
+                    28
+                ],
+                "template": [
+                    "FriendManagement/SortTriangle.png"
+                ],
+                "threshold": [
+                    0.85
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "FriendManagementEnterDeleteMode": {
+        "desc": "点击设置按钮，进入删除好友模式", // 进入删除模式后设置按钮变为关闭按钮，本节点自动失效
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    476,
+                    594,
+                    36,
+                    36
+                ],
+                "template": [
+                    "FriendManagement/SettingsButton.png"
+                ],
+                "threshold": [
+                    0.9
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "FriendManagementDeleteOldestFriend": {
+        "desc": "选中未登录最久且超过 10 天未登录的好友", // 只认「N天前」且 N≥10：正则两端锚定，避免误匹配「110天前」；「10小时前」「23小时前」不含「天」一律不算
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    742,
+                    244,
+                    64,
+                    34
+                ],
+                "expected": [
+                    "^\\d{2,}天前$"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "FriendManagementClickDeleteSelected"
+        ]
+    },
+    "FriendManagementClickDeleteSelected": {
+        "desc": "点击删除所选",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    728,
+                    604,
+                    72,
+                    26
+                ],
+                "expected": [
+                    "删除所选"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "FriendManagementDeleteInactiveFriendsCompleted": {
+        "desc": "长期未登录好友已清理完成", // 与上一条互补：第 1 行不是「≥10 天前」即视为清完。覆盖「1天前」「10小时前」「23小时前」「刚刚」等所有未满 10 天的写法（含读不到的情况），且删除分支必须正向命中才动手，绝不会凭误读误删
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    742,
+                    244,
+                    64,
+                    34
+                ],
+                "expected": [
+                    "^\\d{2,}天前$"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "FriendManagementCloseDeleteMode"
+        ]
+    },
+    "FriendManagementCloseDeleteMode": {
+        "desc": "退出删除模式", // 删除模式下左下角的设置按钮变为关闭按钮，点它恢复好友页正常模式，后续功能才能继续
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    474,
+                    592,
+                    40,
+                    40
+                ],
+                "template": [
+                    "FriendManagement/CloseButton.png"
+                ],
+                "threshold": [
+                    0.9
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
     },
     "FriendManagementAcceptFriendRequests": {
         "desc": "接受好友申请",
         "max_hit": 1,
         "next": [
-            "FriendManagementAcceptAllFlow",
             "FriendManagementClickManagement",
-            "FriendManagementEnterFriendPage",
             "CommonEndTask"
-        ]
-    },
-    "FriendManagementEnterFriendPage": {
-        "desc": "进入好友页面",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1244,
-                    144,
-                    32,
-                    32
-                ],
-                "template": [
-                    "Common/RedDot.png",
-                    "Common/New.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -20,
-                    20,
-                    0,
-                    0
-                ]
-            }
-        },
-        "post_wait_freezes": 500,
-        "next": [
-            "FriendManagementClickManagement",
-            "FriendManagementEnterFriendPage" //兜底
         ]
     },
     "FriendManagementClickManagement": {

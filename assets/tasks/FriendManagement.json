@@ -9,6 +9,7 @@
                 "$task.FriendManagement.doc"
             ],
             "option": [
+                "FriendManagementDeleteInactiveFriends",
                 "FriendManagementAcceptFriendRequests"
             ],
             "group": [
@@ -17,6 +18,29 @@
         }
     ],
     "option": {
+        "FriendManagementDeleteInactiveFriends": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.FriendManagementDeleteInactiveFriends.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "FriendManagementDeleteInactiveFriends": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "FriendManagementDeleteInactiveFriends": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
         "FriendManagementAcceptFriendRequests": {
             "type": "switch",
             "default_case": "Yes",
