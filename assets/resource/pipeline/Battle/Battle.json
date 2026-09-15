@@ -336,7 +336,7 @@
     },
     "BattleInBattleFlow": {
         "desc": "战斗中及结算",
-        "timeout": 180000,
+        "timeout": 210000,
         "next": [
             "[JumpBack]BattleSkipBossCutscene",
             "[JumpBack]BattleEnableAutoAim",
