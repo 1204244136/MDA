@@ -4,7 +4,7 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]ShopEnterBodyLabelShop",
-            "[JumpBack]BodyLabelShopPurchaseFlow",
+            "[JumpBack]ShopPurchaseFlow",
             "[JumpBack]BodyLabelShopPurchaseDiscountedItem",
             "CommonEndTask"
         ]
@@ -56,29 +56,6 @@
                 ]
             }
         }
-    },
-    "BodyLabelShopPurchaseFlow": {
-        "desc": "购买商品（与通用购买流程同构，但不点 MAX）",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    594,
-                    429,
-                    220,
-                    250
-                ],
-                "template": [
-                    "Common/ConfirmWithCircle.png"
-                ]
-            }
-        },
-        "next": [
-            "ShopPurchaseGemBlocked",
-            "ShopPurchasePriceBlocked",
-            "[JumpBack]CommonConfirmAction",
-            "CommonConfirmReward"
-        ]
     },
     "BodyLabelShopPurchaseDiscountedItem": {
         "desc": "购买打折商品",

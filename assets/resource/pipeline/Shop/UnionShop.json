@@ -4,7 +4,8 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]ShopEnterUnionShop",
-            "[JumpBack]UnionShopPurchaseFlow",
+            // 通用购买流程会点 MAX 买满：联盟商店每项一次买空 100 库存（20000 联盟晶片）
+            "[JumpBack]ShopPurchaseFlow",
             "[JumpBack]UnionShopPurchaseAssaultBattery",
             "[JumpBack]UnionShopPurchaseOnslaughtBattery",
             "[JumpBack]UnionShopPurchaseResilienceBattery",
@@ -67,29 +68,6 @@
                 ]
             }
         }
-    },
-    "UnionShopPurchaseFlow": {
-        "desc": "购买商品（与商店通用流程同构，但不点 MAX）",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    594,
-                    429,
-                    220,
-                    250
-                ],
-                "template": [
-                    "Common/ConfirmWithCircle.png"
-                ]
-            }
-        },
-        "next": [
-            "ShopPurchaseGemBlocked",
-            "ShopPurchasePriceBlocked",
-            "[JumpBack]CommonConfirmAction",
-            "CommonConfirmReward"
-        ]
     },
     "UnionShopCubeBatteryVisible": {
         "desc": "魔方电池图标可见（任一型号）",

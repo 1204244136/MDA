@@ -296,7 +296,7 @@
     "option.RecyclingShopList.AbnormalAnnualTicket": "Abnormal Annual Ticket",
     "option.UnionShop.label": "Union Shop",
     "option.UnionShopItemList.label": "Purchase Cube Batteries in the Union Shop",
-    "option.UnionShopItemList.description": "Buys 1 lot of each selected battery (200 Union Chips each); the MAX button is not used, so the 100-unit stock is not bought out at once",
+    "option.UnionShopItemList.description": "The purchase flow clicks MAX to buy the full stock: each selected battery is bought out at once (100 units, up to 20,000 Union Chips each)\n**Warning: this consumes a large amount of Union Chips, choose items with care**",
     "option.UnionShopItemList.AssaultBattery": "Assault Battery",
     "option.UnionShopItemList.OnslaughtBattery": "Onslaught Battery",
     "option.UnionShopItemList.ResilienceBattery": "Resilience Battery",
@@ -316,6 +316,6 @@
     "option.UnionShopItemList.DiffusionBattery": "Diffusion Battery",
     "option.BodyLabelShop.label": "Body Label Shop",
     "option.BodyLabelShopItemList.label": "Body Label Shop purchase list",
-    "option.BodyLabelShopItemList.description": "Every item in this shop has unlimited stock and only the first slot is a limited-time discounted item, so the list contains just \"Discounted Item\". One copy per purchase (MAX is not used)",
+    "option.BodyLabelShopItemList.description": "Every item in this shop has unlimited stock and only the first slot is a limited-time discounted item, so the list contains just \"Discounted Item\". The purchase flow clicks MAX to buy the full stock, buying out that item's remaining stock at once",
     "option.BodyLabelShopItemList.DiscountedItem": "Discounted Item"
 }

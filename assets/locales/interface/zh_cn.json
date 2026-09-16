@@ -296,7 +296,7 @@
     "option.RecyclingShopList.AbnormalAnnualTicket": "反常年券",
     "option.UnionShop.label": "联盟商店",
     "option.UnionShopItemList.label": "联盟商店购买魔方电池列表",
-    "option.UnionShopItemList.description": "每项购买 1 份（200 联盟晶片）；不点 MAX，避免一次买空 100 库存",
+    "option.UnionShopItemList.description": "购买流程会点 MAX 买满：每项一次买空 100 库存，每项最多消耗 20000 联盟晶片\n**警告：会消耗大量联盟晶片，请谨慎勾选**",
     "option.UnionShopItemList.AssaultBattery": "遗迹突击魔方电池",
     "option.UnionShopItemList.OnslaughtBattery": "战术突击魔方电池",
     "option.UnionShopItemList.ResilienceBattery": "遗迹巨熊魔方电池",
@@ -316,6 +316,6 @@
     "option.UnionShopItemList.DiffusionBattery": "遗迹分裂魔方电池",
     "option.BodyLabelShop.label": "躯体标签商店",
     "option.BodyLabelShopItemList.label": "躯体标签商店购买商品列表",
-    "option.BodyLabelShopItemList.description": "该商店商品均为无限量供应，仅 1 号位为限量打折商品，因此只提供「打折商品」一项；每次购买 1 份（不点 MAX）",
+    "option.BodyLabelShopItemList.description": "该商店商品均为无限量供应，仅 1 号位为限量打折商品，因此只提供「打折商品」一项；购买流程会点 MAX 买满，一次买空该商品的剩余库存",
     "option.BodyLabelShopItemList.DiscountedItem": "打折商品"
 }
