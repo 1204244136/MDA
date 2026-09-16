@@ -64,6 +64,7 @@
         },
         "next": [
             "[JumpBack]CommonShop",
+            "[JumpBack]UnionShop",
             "[JumpBack]ArenaShop",
             "[JumpBack]RecyclingShop",
             "CommonEndTask"

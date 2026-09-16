@@ -1,0 +1,852 @@
+{
+    "UnionShop": {
+        "desc": "联盟商店",
+        "max_hit": 1,
+        "next": [
+            "[JumpBack]ShopEnterUnionShop",
+            "[JumpBack]UnionShopPurchaseFlow",
+            "[JumpBack]UnionShopPurchaseAssaultBattery",
+            "[JumpBack]UnionShopPurchaseOnslaughtBattery",
+            "[JumpBack]UnionShopPurchaseResilienceBattery",
+            "[JumpBack]UnionShopPurchaseBastionBattery",
+            "[JumpBack]UnionShopPurchaseBoostBattery",
+            "[JumpBack]UnionShopPurchaseAugmentationBattery",
+            "[JumpBack]UnionShopPurchaseQuantumBattery",
+            "[JumpBack]UnionShopPurchaseVigorBattery",
+            "[JumpBack]UnionShopPurchaseEnduranceBattery",
+            "[JumpBack]UnionShopPurchaseHealingBattery",
+            "[JumpBack]UnionShopPurchaseTemperingBattery",
+            "[JumpBack]UnionShopPurchaseAssistBattery",
+            "[JumpBack]UnionShopPurchaseDestructionBattery",
+            "[JumpBack]UnionShopPurchasePiercingBattery",
+            "[JumpBack]UnionShopPurchaseRuptureBattery",
+            "[JumpBack]UnionShopPurchaseStealthBattery",
+            "[JumpBack]UnionShopPurchaseDiffusionBattery",
+            "CommonEndTask"
+        ]
+    },
+    "ShopEnterUnionShop": {
+        "desc": "进入联盟商店",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    255,
+                    55,
+                    390
+                ],
+                "template": [
+                    "Shop/UnionShop/UnionShopSelected.png",
+                    "Shop/UnionShop/UnionShopNotSelected.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ShopUnionShopEntered",
+            "ShopEnterUnionShop"
+        ]
+    },
+    "ShopUnionShopEntered": {
+        "desc": "处于联盟商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    68,
+                    264,
+                    119,
+                    20
+                ],
+                "expected": [
+                    "联盟商店"
+                ]
+            }
+        }
+    },
+    "UnionShopPurchaseFlow": {
+        "desc": "购买商品（与商店通用流程同构，但不点 MAX）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    594,
+                    429,
+                    220,
+                    250
+                ],
+                "template": [
+                    "Common/ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "next": [
+            "ShopPurchaseGemBlocked",
+            "ShopPurchasePriceBlocked",
+            "[JumpBack]CommonConfirmAction",
+            "CommonConfirmReward"
+        ]
+    },
+    "UnionShopCubeBatteryVisible": {
+        "desc": "魔方电池图标可见（任一型号）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": [
+                    "Shop/UnionShop/BoostBattery.png",
+                    "Shop/UnionShop/EnduranceBattery.png",
+                    "Shop/UnionShop/RuptureBattery.png",
+                    "Shop/UnionShop/AssaultBattery.png",
+                    "Shop/UnionShop/AssistBattery.png",
+                    "Shop/UnionShop/DestructionBattery.png",
+                    "Shop/UnionShop/DiffusionBattery.png",
+                    "Shop/UnionShop/HealingBattery.png",
+                    "Shop/UnionShop/PiercingBattery.png",
+                    "Shop/UnionShop/QuantumBattery.png"
+                ],
+                "threshold": 0.9
+            }
+        }
+    },
+    "AssaultBatteryColorVisible": {
+        "desc": "遗迹突击魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    532,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    110,
+                    62,
+                    62
+                ],
+                "upper": [
+                    153,
+                    105,
+                    105
+                ],
+                "count": 32
+            }
+        }
+    },
+    "UnionShopPurchaseAssaultBattery": {
+        "desc": "购买遗迹突击魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "AssaultBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "OnslaughtBatteryColorVisible": {
+        "desc": "战术突击魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    640,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    110,
+                    38,
+                    38
+                ],
+                "upper": [
+                    153,
+                    81,
+                    81
+                ],
+                "count": 61
+            }
+        }
+    },
+    "UnionShopPurchaseOnslaughtBattery": {
+        "desc": "购买战术突击魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "OnslaughtBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ResilienceBatteryColorVisible": {
+        "desc": "遗迹巨熊魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    748,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    86,
+                    110,
+                    158
+                ],
+                "upper": [
+                    129,
+                    153,
+                    201
+                ],
+                "count": 11
+            }
+        }
+    },
+    "UnionShopPurchaseResilienceBattery": {
+        "desc": "购买遗迹巨熊魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "ResilienceBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "BastionBatteryColorVisible": {
+        "desc": "战术巨熊魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    856,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    62,
+                    110
+                ],
+                "upper": [
+                    81,
+                    105,
+                    153
+                ],
+                "count": 74
+            }
+        }
+    },
+    "UnionShopPurchaseBastionBattery": {
+        "desc": "购买战术巨熊魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "BastionBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "BoostBatteryColorVisible": {
+        "desc": "遗迹促进魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    964,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    62,
+                    182,
+                    182
+                ],
+                "upper": [
+                    105,
+                    225,
+                    225
+                ],
+                "count": 16
+            }
+        }
+    },
+    "UnionShopPurchaseBoostBattery": {
+        "desc": "购买遗迹促进魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "BoostBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AugmentationBatteryColorVisible": {
+        "desc": "战术促进魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1072,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    86,
+                    62
+                ],
+                "upper": [
+                    81,
+                    129,
+                    105
+                ],
+                "count": 113
+            }
+        }
+    },
+    "UnionShopPurchaseAugmentationBattery": {
+        "desc": "购买战术促进魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "AugmentationBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "QuantumBatteryColorVisible": {
+        "desc": "遗迹量子魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1180,
+                    392,
+                    58,
+                    40
+                ],
+                "lower": [
+                    230,
+                    62,
+                    38
+                ],
+                "upper": [
+                    255,
+                    105,
+                    81
+                ],
+                "count": 12
+            }
+        }
+    },
+    "UnionShopPurchaseQuantumBattery": {
+        "desc": "购买遗迹量子魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "QuantumBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "VigorBatteryColorVisible": {
+        "desc": "体力神器魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    100,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    158,
+                    86
+                ],
+                "upper": [
+                    81,
+                    201,
+                    129
+                ],
+                "count": 7
+            }
+        }
+    },
+    "UnionShopPurchaseVigorBattery": {
+        "desc": "购买体力神器魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "VigorBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "EnduranceBatteryColorVisible": {
+        "desc": "遗迹强韧魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    208,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    110,
+                    206
+                ],
+                "upper": [
+                    81,
+                    153,
+                    249
+                ],
+                "count": 15
+            }
+        }
+    },
+    "UnionShopPurchaseEnduranceBattery": {
+        "desc": "购买遗迹强韧魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "EnduranceBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "HealingBatteryColorVisible": {
+        "desc": "遗迹治疗魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    316,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    110,
+                    86
+                ],
+                "upper": [
+                    81,
+                    153,
+                    129
+                ],
+                "count": 21
+            }
+        }
+    },
+    "UnionShopPurchaseHealingBattery": {
+        "desc": "购买遗迹治疗魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "HealingBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "TemperingBatteryColorVisible": {
+        "desc": "遗迹回火魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    424,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    62,
+                    86,
+                    110
+                ],
+                "upper": [
+                    105,
+                    129,
+                    153
+                ],
+                "count": 20
+            }
+        }
+    },
+    "UnionShopPurchaseTemperingBattery": {
+        "desc": "购买遗迹回火魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "TemperingBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AssistBatteryColorVisible": {
+        "desc": "遗迹辅助魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    532,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    206,
+                    14
+                ],
+                "upper": [
+                    81,
+                    249,
+                    57
+                ],
+                "count": 35
+            }
+        }
+    },
+    "UnionShopPurchaseAssistBattery": {
+        "desc": "购买遗迹辅助魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "AssistBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "DestructionBatteryColorVisible": {
+        "desc": "遗迹毁灭魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    640,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    182,
+                    38,
+                    14
+                ],
+                "upper": [
+                    225,
+                    81,
+                    57
+                ],
+                "count": 43
+            }
+        }
+    },
+    "UnionShopPurchaseDestructionBattery": {
+        "desc": "购买遗迹毁灭魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "DestructionBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PiercingBatteryColorVisible": {
+        "desc": "遗迹穿透魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    748,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    14,
+                    110,
+                    230
+                ],
+                "upper": [
+                    57,
+                    153,
+                    255
+                ],
+                "count": 48
+            }
+        }
+    },
+    "UnionShopPurchasePiercingBattery": {
+        "desc": "购买遗迹穿透魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "PiercingBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RuptureBatteryColorVisible": {
+        "desc": "遗迹粉碎魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    856,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    158,
+                    38,
+                    38
+                ],
+                "upper": [
+                    201,
+                    81,
+                    81
+                ],
+                "count": 21
+            }
+        }
+    },
+    "UnionShopPurchaseRuptureBattery": {
+        "desc": "购买遗迹粉碎魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "RuptureBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "StealthBatteryColorVisible": {
+        "desc": "遗迹掩体魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    964,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    38,
+                    134,
+                    62
+                ],
+                "upper": [
+                    81,
+                    177,
+                    105
+                ],
+                "count": 15
+            }
+        }
+    },
+    "UnionShopPurchaseStealthBattery": {
+        "desc": "购买遗迹掩体魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "StealthBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "DiffusionBatteryColorVisible": {
+        "desc": "遗迹分裂魔方电池配色可见",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1072,
+                    564,
+                    58,
+                    40
+                ],
+                "lower": [
+                    62,
+                    62,
+                    86
+                ],
+                "upper": [
+                    105,
+                    105,
+                    129
+                ],
+                "count": 21
+            }
+        }
+    },
+    "UnionShopPurchaseDiffusionBattery": {
+        "desc": "购买遗迹分裂魔方电池",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "UnionShopCubeBatteryVisible",
+                    "DiffusionBatteryColorVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
