@@ -160,7 +160,7 @@
     "focus.MapPushingFlow.Action.Succeeded": "Auto map pushing has started.",
     "focus.CustomBurst.paused": "User paused detected, this Custom Burst task is complete",
     "focus.CustomBurst.settled": "Battle settlement detected, this Custom Burst task is complete",
-    "option.CommonShopFreeGoods.label": "Purchase free items in the Common Shop and use free resets",
+    "option.CommonShopFreeGoods.label": "Purchase free items in the Common Shop and use free refreshes",
     "option.CommonShopCoreDustCase.label": "Use credits to purchase Core Dust Case in the Common Shop",
     "option.ArenaShopItemList.label": "Purchase items in the Arena Shop",
     "option.ArenaShopItemList.ArenaShopFireCodeManual": "H.S.T.A. Code Manual",

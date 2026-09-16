@@ -94,7 +94,7 @@
         ]
     },
     "ShopPurchaseGemBlocked": {
-        "desc": "宝珠购买阻断",
+        "desc": "珠宝购买阻断",
         "recognition": {
             "type": "And",
             "param": {

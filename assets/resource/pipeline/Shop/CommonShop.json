@@ -7,7 +7,7 @@
             "[JumpBack]ShopPurchaseFlow",
             "[JumpBack]ShopPurchaseFreeGoods",
             "[JumpBack]ShopPurchaseCoreDustCase",
-            "[JumpBack]ShopClickFreeReset",
+            "[JumpBack]ShopClickFreeRefresh",
             "CommonEndTask"
         ]
     },
@@ -97,7 +97,7 @@
             "type": "Click"
         }
     },
-    "ShopClickFreeReset": {
+    "ShopClickFreeRefresh": {
         "desc": "免费刷新",
         "recognition": {
             "type": "TemplateMatch",
@@ -109,7 +109,7 @@
                     27
                 ],
                 "template": [
-                    "Shop/CommonShop/FreeReset.png"
+                    "Shop/CommonShop/FreeRefresh.png"
                 ]
             }
         },
@@ -125,11 +125,11 @@
             }
         },
         "next": [
-            "ShopConfirmReset",
-            "ShopClickFreeReset"
+            "ShopConfirmRefresh",
+            "ShopClickFreeRefresh"
         ]
     },
-    "ShopConfirmReset": {
+    "ShopConfirmRefresh": {
         "desc": "确认刷新",
         "recognition": {
             "type": "TemplateMatch",
@@ -151,7 +151,7 @@
         "post_wait_freezes": 1000
     },
     "ShopGemVisible": {
-        "desc": "宝珠可见",
+        "desc": "珠宝可见",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
