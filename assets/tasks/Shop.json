@@ -316,10 +316,55 @@
                     }
                 },
                 {
-                    "name": "Voucher",
-                    "label": "$option.RecyclingShopList.Voucher",
+                    "name": "DarlingForADay",
+                    "label": "$option.RecyclingShopList.DarlingForADay",
                     "pipeline_override": {
-                        "ShopPurchaseVoucher": {
+                        "RecyclingShopPurchaseDarlingForADay": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ElysionVIPBuffetVoucher",
+                    "label": "$option.RecyclingShopList.ElysionVIPBuffetVoucher",
+                    "pipeline_override": {
+                        "RecyclingShopPurchaseElysionVIPBuffetVoucher": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "MissilisVIPCard",
+                    "label": "$option.RecyclingShopList.MissilisVIPCard",
+                    "pipeline_override": {
+                        "RecyclingShopPurchaseMissilisVIPCard": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "TetraVIPSpaVoucher",
+                    "label": "$option.RecyclingShopList.TetraVIPSpaVoucher",
+                    "pipeline_override": {
+                        "RecyclingShopPurchaseTetraVIPSpaVoucher": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "PilgrimSupplySetVoucher",
+                    "label": "$option.RecyclingShopList.PilgrimSupplySetVoucher",
+                    "pipeline_override": {
+                        "RecyclingShopPurchasePilgrimSupplySetVoucher": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "AbnormalAnnualTicket",
+                    "label": "$option.RecyclingShopList.AbnormalAnnualTicket",
+                    "pipeline_override": {
+                        "RecyclingShopPurchaseAbnormalAnnualTicket": {
                             "enabled": true
                         }
                     }

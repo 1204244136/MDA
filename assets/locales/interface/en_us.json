@@ -174,7 +174,6 @@
     "option.RecyclingShopList.MaintenanceKitBox": "Maintenance Kit Box",
     "option.RecyclingShopList.CuratedManufacturerArms": "Curated Manufacturer Arms",
     "option.RecyclingShopList.Gem": "Gem",
-    "option.RecyclingShopList.Voucher": "Voucher",
     "option.RecyclingShopList.UpgradeMaterials": "Upgrade Materials",
     "option.AutoBIOSSetting.label": "Auto BIOS Setting",
     "task.AutoBIOSSetting.description": "If enabled, the difficulty will be automatically set to 25 before battle (skip if already set). If disabled, the battle will be fought at the difficulty selected last time before battle.",
@@ -288,5 +287,11 @@
     "option.CommonShopProfileCustomPack.label": "Use credits to purchase Profile Custom Pack in the Common Shop",
     "option.CommonShopDarlingForADay.label": "Use credits to purchase Darling for a Day in the Common Shop",
     "option.ArenaShopItemList.ArenaShopProfileCustomPack": "Profile Custom Pack",
-    "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "Manufacturer Arms Furnace"
+    "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "Manufacturer Arms Furnace",
+    "option.RecyclingShopList.DarlingForADay": "Darling for a Day",
+    "option.RecyclingShopList.ElysionVIPBuffetVoucher": "Elysion VIP Buffet Voucher",
+    "option.RecyclingShopList.MissilisVIPCard": "Missilis VIP Card",
+    "option.RecyclingShopList.TetraVIPSpaVoucher": "Tetra VIP Spa Voucher",
+    "option.RecyclingShopList.PilgrimSupplySetVoucher": "Pilgrim Supply Set Voucher",
+    "option.RecyclingShopList.AbnormalAnnualTicket": "Abnormal Annual Ticket"
 }

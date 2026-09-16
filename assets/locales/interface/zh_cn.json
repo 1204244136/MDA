@@ -174,7 +174,6 @@
     "option.RecyclingShopList.MaintenanceKitBox": "保养工具箱",
     "option.RecyclingShopList.CuratedManufacturerArms": "企业精选武装",
     "option.RecyclingShopList.Gem": "珠宝",
-    "option.RecyclingShopList.Voucher": "礼物券",
     "option.RecyclingShopList.UpgradeMaterials": "成长材料",
     "option.AutoBIOSSetting.label": "自动难度设置",
     "task.AutoBIOSSetting.description": "开启后战斗前会将自动设置难度为25（已设置则跳过），关闭后战斗前会按上次选择的难度战斗",
@@ -288,5 +287,11 @@
     "option.CommonShopProfileCustomPack.label": "普通商店使用信用点购买简介个性化礼包",
     "option.CommonShopDarlingForADay.label": "普通商店使用信用点购买指挥官自由使用券",
     "option.ArenaShopItemList.ArenaShopProfileCustomPack": "简介个性化礼包",
-    "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "公司武器熔炉"
+    "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "公司武器熔炉",
+    "option.RecyclingShopList.DarlingForADay": "指挥官自由使用券",
+    "option.RecyclingShopList.ElysionVIPBuffetVoucher": "极乐净土VIP餐券",
+    "option.RecyclingShopList.MissilisVIPCard": "米西利斯VIP卡",
+    "option.RecyclingShopList.TetraVIPSpaVoucher": "泰特拉VIP护理券",
+    "option.RecyclingShopList.PilgrimSupplySetVoucher": "朝圣者补给套组交换券",
+    "option.RecyclingShopList.AbnormalAnnualTicket": "反常年券"
 }

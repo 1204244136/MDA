@@ -9,7 +9,12 @@
             "[JumpBack]ShopPurchaseMaintenanceKitBox",
             "[JumpBack]ShopPurchaseCuratedManufacturerArms",
             "[JumpBack]ShopPurchaseGem",
-            "[JumpBack]ShopPurchaseVoucher",
+            "[JumpBack]RecyclingShopPurchaseDarlingForADay",
+            "[JumpBack]RecyclingShopPurchaseElysionVIPBuffetVoucher",
+            "[JumpBack]RecyclingShopPurchaseMissilisVIPCard",
+            "[JumpBack]RecyclingShopPurchaseTetraVIPSpaVoucher",
+            "[JumpBack]RecyclingShopPurchasePilgrimSupplySetVoucher",
+            "[JumpBack]RecyclingShopPurchaseAbnormalAnnualTicket",
             "[JumpBack]ShopPurchaseUpgradeMaterials",
             "[JumpBack]CommonSwipeUp",
             "CommonEndTask"
@@ -142,10 +147,10 @@
             "type": "Click"
         }
     },
-    "ShopPurchaseVoucher": {
-        "desc": "购买所有礼物券",
+    "RecyclingShopPurchaseDarlingForADay": {
+        "desc": "购买指挥官自由使用券",
         "enabled": false,
-        "max_hit": 6,
+        "max_hit": 1,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -155,14 +160,112 @@
                     1222,
                     325
                 ],
-                "template": [
-                    "Shop/Voucher/DarlingForADay.png",
-                    "Shop/Voucher/ElysionVIPBuffetVoucher.png",
-                    "Shop/Voucher/MissilisVIPCard.png",
-                    "Shop/Voucher/TetraVIPSpaVoucher.png",
-                    "Shop/Voucher/PilgrimSupplySetVoucher.png",
-                    "Shop/Voucher/AbnormalAnnualTicket.png"
+                "template": "Shop/Voucher/DarlingForADay.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RecyclingShopPurchaseElysionVIPBuffetVoucher": {
+        "desc": "购买极乐净土VIP餐券",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
                 ],
+                "template": "Shop/Voucher/ElysionVIPBuffetVoucher.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RecyclingShopPurchaseMissilisVIPCard": {
+        "desc": "购买米西利斯VIP卡",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/Voucher/MissilisVIPCard.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RecyclingShopPurchaseTetraVIPSpaVoucher": {
+        "desc": "购买泰特拉VIP护理券",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/Voucher/TetraVIPSpaVoucher.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RecyclingShopPurchasePilgrimSupplySetVoucher": {
+        "desc": "购买朝圣者补给套组交换券",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/Voucher/PilgrimSupplySetVoucher.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RecyclingShopPurchaseAbnormalAnnualTicket": {
+        "desc": "购买反常年券",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": "Shop/Voucher/AbnormalAnnualTicket.png",
                 "threshold": 0.9
             }
         },
