@@ -313,5 +313,9 @@
     "option.UnionShopItemList.PiercingBattery": "遗迹穿透魔方电池",
     "option.UnionShopItemList.RuptureBattery": "遗迹粉碎魔方电池",
     "option.UnionShopItemList.StealthBattery": "遗迹掩体魔方电池",
-    "option.UnionShopItemList.DiffusionBattery": "遗迹分裂魔方电池"
+    "option.UnionShopItemList.DiffusionBattery": "遗迹分裂魔方电池",
+    "option.BodyLabelShop.label": "躯体标签商店",
+    "option.BodyLabelShopItemList.label": "躯体标签商店购买商品列表",
+    "option.BodyLabelShopItemList.description": "该商店商品均为无限量供应，仅 1 号位为限量打折商品，因此只提供「打折商品」一项；每次购买 1 份（不点 MAX）",
+    "option.BodyLabelShopItemList.DiscountedItem": "打折商品"
 }

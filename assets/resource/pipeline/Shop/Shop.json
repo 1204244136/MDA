@@ -67,6 +67,7 @@
             "[JumpBack]UnionShop",
             "[JumpBack]ArenaShop",
             "[JumpBack]RecyclingShop",
+            "[JumpBack]BodyLabelShop",
             "CommonEndTask"
         ]
     },

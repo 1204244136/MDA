@@ -313,5 +313,9 @@
     "option.UnionShopItemList.PiercingBattery": "Piercing Battery",
     "option.UnionShopItemList.RuptureBattery": "Rupture Battery",
     "option.UnionShopItemList.StealthBattery": "Stealth Battery",
-    "option.UnionShopItemList.DiffusionBattery": "Diffusion Battery"
+    "option.UnionShopItemList.DiffusionBattery": "Diffusion Battery",
+    "option.BodyLabelShop.label": "Body Label Shop",
+    "option.BodyLabelShopItemList.label": "Body Label Shop purchase list",
+    "option.BodyLabelShopItemList.description": "Every item in this shop has unlimited stock and only the first slot is a limited-time discounted item, so the list contains just \"Discounted Item\". One copy per purchase (MAX is not used)",
+    "option.BodyLabelShopItemList.DiscountedItem": "Discounted Item"
 }

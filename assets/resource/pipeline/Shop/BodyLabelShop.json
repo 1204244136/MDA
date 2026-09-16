@@ -1,0 +1,117 @@
+{
+    "BodyLabelShop": {
+        "desc": "躯体标签商店",
+        "max_hit": 1,
+        "next": [
+            "[JumpBack]ShopEnterBodyLabelShop",
+            "[JumpBack]BodyLabelShopPurchaseFlow",
+            "[JumpBack]BodyLabelShopPurchaseDiscountedItem",
+            "CommonEndTask"
+        ]
+    },
+    "ShopEnterBodyLabelShop": {
+        "desc": "进入躯体标签商店",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    255,
+                    55,
+                    390
+                ],
+                "template": [
+                    "Shop/BodyLabelShop/BodyLabelShopNotSelected.png",
+                    "Shop/BodyLabelShop/BodyLabelShopSelected.png"
+                ],
+                // 侧边栏六个页签图形高度相似，默认阈值会互相误命中，必须显式收紧。实测：
+                // 本页签自身 1.000000（未选中态）/ 0.999998（选中态）；其他商店页签在本页最高
+                // 0.999939（UnionShopNotSelected），其余 0.997227 / 0.992896 / 0.992417。
+                // 阈值取 0.999：放过自己、挡住其他页签（误点其他页签亦无害，下一轮会点回本页签）。
+                "threshold": 0.999
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ShopBodyLabelShopEntered",
+            "ShopEnterBodyLabelShop"
+        ]
+    },
+    "ShopBodyLabelShopEntered": {
+        "desc": "处于躯体标签商店",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    68,
+                    264,
+                    119,
+                    20
+                ],
+                "expected": [
+                    "躯体标签商店"
+                ]
+            }
+        }
+    },
+    "BodyLabelShopPurchaseFlow": {
+        "desc": "购买商品（与通用购买流程同构，但不点 MAX）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    594,
+                    429,
+                    220,
+                    250
+                ],
+                "template": [
+                    "Common/ConfirmWithCircle.png"
+                ]
+            }
+        },
+        "next": [
+            "ShopPurchaseGemBlocked",
+            "ShopPurchasePriceBlocked",
+            "[JumpBack]CommonConfirmAction",
+            "CommonConfirmReward"
+        ]
+    },
+    "BodyLabelShopPurchaseDiscountedItem": {
+        "desc": "购买打折商品",
+        "enabled": false,
+        "max_hit": 1,
+        // 该商店商品都是无限量供应，只有 1 号位是「限量 + 打折」的商品，且每天轮换，
+        // 因此不认商品本身，只认卡片上的打折标识（黄底白字）。整块商品区 ROI + expected
+        // 过滤后 filtered 只剩打折标识那一框（实测「40% SALE」[105,466,44,14]，其余 27 框被过滤），
+        // target_offset 把点击从标识抬到卡片中部；max_hit 1 保证一轮只买 1 份。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "expected": [
+                    ".*SALE.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        }
+    }
+}

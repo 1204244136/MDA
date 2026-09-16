@@ -9,7 +9,8 @@
                 "CommonShop",
                 "UnionShop",
                 "ArenaShop",
-                "RecyclingShop"
+                "RecyclingShop",
+                "BodyLabelShop"
             ],
             "group": [
                 "daily"
@@ -562,6 +563,51 @@
                     "label": "$option.RecyclingShopList.UpgradeMaterials",
                     "pipeline_override": {
                         "ShopPurchaseUpgradeMaterials": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ]
+        },
+        "BodyLabelShop": {
+            "type": "switch",
+            "default_case": "No",
+            "label": "$option.BodyLabelShop.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "BodyLabelShopItemList"
+                    ],
+                    "pipeline_override": {
+                        "BodyLabelShop": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BodyLabelShop": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "BodyLabelShopItemList": {
+            "type": "checkbox",
+            "default_case": [
+                "DiscountedItem"
+            ],
+            "label": "$option.BodyLabelShopItemList.label",
+            "description": "$option.BodyLabelShopItemList.description",
+            "cases": [
+                {
+                    "name": "DiscountedItem",
+                    "label": "$option.BodyLabelShopItemList.DiscountedItem",
+                    "pipeline_override": {
+                        "BodyLabelShopPurchaseDiscountedItem": {
                             "enabled": true
                         }
                     }
