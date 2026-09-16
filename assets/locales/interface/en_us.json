@@ -286,5 +286,7 @@
     "option.BurstRound6Stage3.description": "Character key (A/S/D) to release in round 6 stage 3",
     "option.BurstStage.none.label": "None",
     "option.CommonShopProfileCustomPack.label": "Use credits to purchase Profile Custom Pack in the Common Shop",
-    "option.CommonShopDarlingForADay.label": "Use credits to purchase Darling for a Day in the Common Shop"
+    "option.CommonShopDarlingForADay.label": "Use credits to purchase Darling for a Day in the Common Shop",
+    "option.ArenaShopItemList.ArenaShopProfileCustomPack": "Profile Custom Pack",
+    "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "Manufacturer Arms Furnace"
 }

@@ -225,6 +225,24 @@
                             "enabled": true
                         }
                     }
+                },
+                {
+                    "name": "ArenaShopProfileCustomPack",
+                    "label": "$option.ArenaShopItemList.ArenaShopProfileCustomPack",
+                    "pipeline_override": {
+                        "ArenaShopPurchaseProfileCustomPack": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "ArenaShopManufacturerArmsFurnace",
+                    "label": "$option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace",
+                    "pipeline_override": {
+                        "ArenaShopPurchaseManufacturerArmsFurnace": {
+                            "enabled": true
+                        }
+                    }
                 }
             ]
         },

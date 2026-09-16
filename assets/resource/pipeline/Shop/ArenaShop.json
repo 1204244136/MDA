@@ -11,6 +11,8 @@
             "[JumpBack]ShopPurchaseElectricCodeManual",
             "[JumpBack]ShopPurchaseIronCodeManual",
             "[JumpBack]ShopPurchaseCodeManualSelectionBox",
+            "[JumpBack]ArenaShopPurchaseProfileCustomPack",
+            "[JumpBack]ArenaShopPurchaseManufacturerArmsFurnace",
             "CommonEndTask"
         ]
     },
@@ -175,6 +177,52 @@
                     325
                 ],
                 "template": "Shop/ArenaShop/CodeManualSelectionBox.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ArenaShopPurchaseProfileCustomPack": {
+        "desc": "购买简介个性化礼包",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": [
+                    "Shop/CommonShop/ProfileCustomPack.png" //与普通商店同一素材，竞技场商店内实测 0.9999
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ArenaShopPurchaseManufacturerArmsFurnace": {
+        "desc": "购买公司武器熔炉",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": [
+                    "Shop/ArenaShop/ManufacturerArmsFurnace.png" //按竞技场商店网格尺寸裁剪，换位置/尺寸需另裁
+                ],
                 "threshold": 0.9
             }
         },

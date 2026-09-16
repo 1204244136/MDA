@@ -286,5 +286,7 @@
     "option.BurstRound6Stage3.description": "爆裂第6轮（Ⅲ阶段）释放的角色按键（A/S/D）",
     "option.BurstStage.none.label": "不指定",
     "option.CommonShopProfileCustomPack.label": "普通商店使用信用点购买简介个性化礼包",
-    "option.CommonShopDarlingForADay.label": "普通商店使用信用点购买指挥官自由使用券"
+    "option.CommonShopDarlingForADay.label": "普通商店使用信用点购买指挥官自由使用券",
+    "option.ArenaShopItemList.ArenaShopProfileCustomPack": "简介个性化礼包",
+    "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "公司武器熔炉"
 }
