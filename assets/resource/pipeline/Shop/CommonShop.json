@@ -7,6 +7,8 @@
             "[JumpBack]ShopPurchaseFlow",
             "[JumpBack]ShopPurchaseFreeGoods",
             "[JumpBack]ShopPurchaseCoreDustCase",
+            "[JumpBack]ShopPurchaseProfileCustomPack",
+            "[JumpBack]ShopPurchaseDarlingForADay",
             "[JumpBack]ShopClickFreeRefresh",
             "CommonEndTask"
         ]
@@ -89,6 +91,52 @@
                 ],
                 "template": [
                     "Shop/CommonShop/CoreDustCase.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ShopPurchaseProfileCustomPack": {
+        "desc": "购买简介个性化礼包",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": [
+                    "Shop/CommonShop/ProfileCustomPack.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ShopPurchaseDarlingForADay": {
+        "desc": "购买指挥官自由使用券",
+        "enabled": false,
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    58,
+                    338,
+                    1222,
+                    325
+                ],
+                "template": [
+                    "Shop/Voucher/DarlingForADay.png"
                 ],
                 "threshold": 0.9
             }

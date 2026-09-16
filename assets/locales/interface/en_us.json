@@ -284,5 +284,7 @@
     "option.BurstRound6Stage2.description": "Character key (A/S/D) to release in round 6 stage 2",
     "option.BurstRound6Stage3.label": "Round 6 stage 3 character",
     "option.BurstRound6Stage3.description": "Character key (A/S/D) to release in round 6 stage 3",
-    "option.BurstStage.none.label": "None"
+    "option.BurstStage.none.label": "None",
+    "option.CommonShopProfileCustomPack.label": "Use credits to purchase Profile Custom Pack in the Common Shop",
+    "option.CommonShopDarlingForADay.label": "Use credits to purchase Darling for a Day in the Common Shop"
 }
