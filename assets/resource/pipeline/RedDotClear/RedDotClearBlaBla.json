@@ -231,10 +231,10 @@
         "post_wait_freezes": 1000,
         "next": [
             "[JumpBack]CommonConfirmReward",
-            "BlaBlaDialoguGoBack"
+            "BlaBlaDialogueGoBack"
         ]
     },
-    "BlaBlaDialoguGoBack": {
+    "BlaBlaDialogueGoBack": {
         "desc": "BlaBla返回",
         "recognition": {
             "type": "TemplateMatch",

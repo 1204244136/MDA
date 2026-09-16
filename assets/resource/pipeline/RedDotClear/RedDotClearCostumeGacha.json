@@ -29,7 +29,7 @@
             "param": {
                 "all_of": [
                     "CostumeGachaVisible",
-                    "CostumeGachaNewOrReddot"
+                    "CostumeGachaNewOrRedDot"
                 ]
             }
         },
@@ -67,14 +67,14 @@
             }
         }
     },
-    "CostumeGachaNewOrReddot": {
+    "CostumeGachaNewOrRedDot": {
         "desc": "时装抽取有New的图标或红点",
         "recognition": {
             "type": "Or",
             "param": {
                 "any_of": [
                     "CostumeGachaNew",
-                    "CostumeGachaReddot"
+                    "CostumeGachaRedDot"
                 ]
             }
         }
@@ -97,7 +97,7 @@
             }
         }
     },
-    "CostumeGachaReddot": {
+    "CostumeGachaRedDot": {
         "desc": "时装抽取有红点",
         "recognition": {
             "type": "TemplateMatch",

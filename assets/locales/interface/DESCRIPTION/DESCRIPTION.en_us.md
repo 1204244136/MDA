@@ -1,1 +1,1 @@
-MDA Nikke Assistant, actively in development!
+MDA NIKKE Assistant, actively in development!

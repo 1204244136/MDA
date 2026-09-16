@@ -45,11 +45,11 @@
             }
         },
         "next": [
-            "AccountNurturingCubeEnhancementArkflow",
+            "AccountNurturingCubeEnhancementArkFlow",
             "AccountNurturingCubeEnhancementEnterArk" //兜底
         ]
     },
-    "AccountNurturingCubeEnhancementArkflow": {
+    "AccountNurturingCubeEnhancementArkFlow": {
         "desc": "魔方强化方舟流程",
         "recognition": {
             "type": "And",
@@ -92,10 +92,10 @@
             }
         },
         "next": [
-            "AccountNurturingCubeEnhancementLostSectorflow"
+            "AccountNurturingCubeEnhancementLostSectorFlow"
         ]
     },
-    "AccountNurturingCubeEnhancementLostSectorflow": {
+    "AccountNurturingCubeEnhancementLostSectorFlow": {
         "desc": "魔方强化迷失地区流程",
         "recognition": {
             "type": "OCR",
@@ -144,10 +144,10 @@
             }
         },
         "next": [
-            "AccountNurturingCubeEnhancementEnterHarmonyCubeflow"
+            "AccountNurturingCubeEnhancementEnterHarmonyCubeFlow"
         ]
     },
-    "AccountNurturingCubeEnhancementEnterHarmonyCubeflow": {
+    "AccountNurturingCubeEnhancementEnterHarmonyCubeFlow": {
         "desc": "魔方强化调和魔方流程",
         "recognition": {
             "type": "OCR",

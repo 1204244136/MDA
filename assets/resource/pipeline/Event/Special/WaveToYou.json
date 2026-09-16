@@ -88,10 +88,10 @@
             "type": "Click"
         },
         "next": [
-            "WaveToYouMiniGameClickESC"
+            "WaveToYouMiniGameClickEsc"
         ]
     },
-    "WaveToYouMiniGameClickESC": {
+    "WaveToYouMiniGameClickEsc": {
         "desc": "小游戏点击ESC",
         "recognition": {
             "type": "OCR",
@@ -120,7 +120,7 @@
         },
         "next": [
             "WaveToYouMiniGameClickFinish",
-            "WaveToYouMiniGameClickESC" //兜底
+            "WaveToYouMiniGameClickEsc" //兜底
         ]
     },
     "WaveToYouMiniGameClickFinish": {

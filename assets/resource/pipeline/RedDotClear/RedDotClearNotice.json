@@ -107,7 +107,7 @@
             ]
         },
         "next": [
-            "RedDotClearNoticenClickBlank"
+            "RedDotClearNoticeClickBlank"
         ]
     },
     "RedDotClearNoticeRedDotClickTop": {
@@ -141,7 +141,7 @@
             "RedDotClearNoticeScrollUp"
         ]
     },
-    "RedDotClearNoticenClickBlank": {
+    "RedDotClearNoticeClickBlank": {
         "desc": "公告点击空白",
         "action": {
             "type": "Click",
