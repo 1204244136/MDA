@@ -171,7 +171,7 @@
         }
     },
     "ShopPurchaseUpgradeMaterials": {
-        "desc": "购买所有养成材料",
+        "desc": "购买所有成长材料",
         "enabled": false,
         "max_hit": 7,
         "recognition": {

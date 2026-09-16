@@ -1,6 +1,6 @@
 {
     "BriefEncounter": {
-        "desc": "突发活动",
+        "desc": "突发剧情",
         "max_hit": 1,
         "next": [
             "OutpostEnterBriefEncounter",
@@ -8,7 +8,7 @@
         ]
     },
     "OutpostEnterBriefEncounter": {
-        "desc": "进入突发活动",
+        "desc": "进入突发剧情",
         "recognition": {
             "type": "And",
             "param": {
@@ -136,7 +136,7 @@
         }
     },
     "BriefEncounterRepeatFlow": {
-        "desc": "再次执行突发活动",
+        "desc": "再次执行突发剧情",
         "recognition": {
             "type": "And",
             "param": {
