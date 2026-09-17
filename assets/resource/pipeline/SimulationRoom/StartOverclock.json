@@ -115,6 +115,7 @@
     },
     "SimulationRoomScrollOverclockOptionsUp": {
         "desc": "模拟室超频向上滑动",
+        "max_hit": 20,
         "action": {
             "type": "Swipe",
             "param": {
