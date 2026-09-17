@@ -1,21 +1,25 @@
 <#
 .SYNOPSIS
-    手机端 16:9 显示适配：临时设置逻辑分辨率（可选屏幕常亮），并在宿主程序退出后自动还原。
+    手机端 16:9 显示适配：临时设置逻辑分辨率（可选屏幕常亮），任务结束或宿主退出后自动还原。
 
 .DESCRIPTION
     pipeline 的识别基准是 1280x720（16:9）。多数手机屏幕是 20:9，
     直接截图时框架会按短边等比缩放得到 1600x720，ROI 无法对齐。
     本脚本用 `wm size <竖屏形状的 16:9 覆盖值>` 让游戏按 16:9 渲染
-    （横屏旋转后正好是 1920x1080），并且**在宿主程序（MXU 等）退出后自动还原**，
+    （横屏旋转后正好是 1920x1080），并在**任务结束或宿主程序（MXU 等）退出后自动还原**，
     避免手机停留在异常分辨率上。
 
     两种动作：
       设置（默认）      设置分辨率（可选屏幕常亮）→ 启动后台守护进程 → 立即退出
       -Restore          还原分辨率与屏幕常亮（可随时手动执行）
-      守护进程          由「设置」自动拉起：等待宿主进程退出后执行还原
+      守护进程          由「设置」自动拉起，满足任一条件即还原：
+                          1. MXU 状态接口显示所有实例 is_running 均为 false（任务结束/被终止）
+                          2. 宿主进程退出
+                          3. 等待任务开始超时（默认 300 秒）
+                          4. 守护时长超过上限（默认 24 小时）
 
     推荐用法：把「设置」加为 MXU 的**前置程序**。
-    注意 MXU 没有后置钩子，所以还原由本脚本的守护进程负责；若守护进程被强杀，
+    MXU 没有后置钩子，因此还原由本脚本的守护进程负责；若守护进程被强杀，
     重启手机同样可恢复（wm size 覆盖值不跨重启）。
 
 .PARAMETER Adb
@@ -43,6 +47,21 @@
 .PARAMETER MaxWatchHours
     守护进程最长等待时长，默认 24 小时，超时也会还原。
 
+.PARAMETER MxuApiUrl
+    用于判断「任务是否还在运行」的 MXU 状态接口，默认
+    http://127.0.0.1:12701/api/maa/state（MXU 默认 Web 端口 12701）。
+    任务结束（所有实例 is_running 均为 false）后即还原；接口不可达时自动回退为
+    「仅监视宿主进程退出」。
+
+.PARAMETER StopDebounceSec
+    判定「任务已结束」所需的持续时间，默认 8 秒，避免任务间隙误还原。
+
+.PARAMETER StartTimeoutSec
+    等待任务开始的最长时间，默认 300 秒；超时视为未真正启动，直接还原。
+
+.PARAMETER NoApi
+    不查询 MXU 状态接口，只按宿主进程退出还原。
+
 .PARAMETER StateFile
     记录变更的状态文件，默认放在临时目录。
 
@@ -65,6 +84,10 @@ param(
     [int]$WatchPid = 0,
     [switch]$NoWatch,
     [int]$MaxWatchHours = 24,
+    [string]$MxuApiUrl = 'http://127.0.0.1:12701/api/maa/state',
+    [int]$StopDebounceSec = 8,
+    [int]$StartTimeoutSec = 300,
+    [switch]$NoApi,
     [string]$StateFile = (Join-Path $env:TEMP 'mda-phone-display.state.json')
 )
 
@@ -158,23 +181,76 @@ function Invoke-Restore {
     return 0
 }
 
-# 守护模式：等宿主退出后还原
-if ($Restore -and $WatchPid -gt 0) {
+# 守护模式：任务结束或宿主退出后还原
+if ($Restore -and ($WatchPid -gt 0 -or -not $NoApi)) {
     $deadline = (Get-Date).ToUniversalTime().AddHours($MaxWatchHours)
-    Write-Log "守护进程已启动：等待宿主进程 $WatchPid 退出（最长 $MaxWatchHours 小时）"
+    $startDeadline = (Get-Date).AddSeconds($StartTimeoutSec)
+    $useApi = -not $NoApi
+    $started = $false
+    $stoppedSince = $null
+    $apiFailStreak = 0
+    Write-Log "守护进程已启动：等待任务开始（最长 $StartTimeoutSec 秒），任务结束或宿主退出后自动还原"
+
     while ($true) {
-        if (-not (Get-Process -Id $WatchPid -ErrorAction SilentlyContinue)) {
-            Write-Log "宿主进程 $WatchPid 已退出，开始还原"
-            break
-        }
         if ((Get-Date).ToUniversalTime() -gt $deadline) {
             Write-Log "等待超时（$MaxWatchHours 小时），强制还原"
             break
         }
+        if ($WatchPid -gt 0 -and -not (Get-Process -Id $WatchPid -ErrorAction SilentlyContinue)) {
+            Write-Log "宿主进程 $WatchPid 已退出，开始还原"
+            break
+        }
+
+        if ($useApi) {
+            $anyRunning = $null
+            try {
+                $snapshot = Invoke-RestMethod -Uri $MxuApiUrl -TimeoutSec 3
+                $apiFailStreak = 0
+                $anyRunning = $false
+                if ($snapshot.instances) {
+                    foreach ($inst in $snapshot.instances.PSObject.Properties) {
+                        if ($inst.Value.is_running) { $anyRunning = $true }
+                    }
+                }
+            }
+            catch {
+                $apiFailStreak++
+                if ($apiFailStreak -eq 5) {
+                    Write-Log "状态接口不可达：$MxuApiUrl（$($_.Exception.Message)）"
+                    if (-not $started) {
+                        $useApi = $false
+                        Write-Log "回退为「仅监视宿主进程退出」"
+                    }
+                }
+            }
+
+            if ($null -ne $anyRunning) {
+                if ($anyRunning) {
+                    if (-not $started) { Write-Log "检测到任务已开始运行" }
+                    $started = $true
+                    $stoppedSince = $null
+                }
+                elseif ($started) {
+                    if (-not $stoppedSince) {
+                        $stoppedSince = Get-Date
+                    }
+                    elseif (((Get-Date) - $stoppedSince).TotalSeconds -ge $StopDebounceSec) {
+                        Write-Log "任务已结束（连续 $StopDebounceSec 秒无运行中实例），开始还原"
+                        break
+                    }
+                }
+                elseif ((Get-Date) -gt $startDeadline) {
+                    Write-Log "等待任务开始超时（$StartTimeoutSec 秒），按未真正启动处理，开始还原"
+                    break
+                }
+            }
+        }
+
         Start-Sleep -Seconds 2
     }
+
     try { $null = Assert-Device } catch { Write-Log "还原时设备不可用：$($_.Exception.Message)"; exit 1 }
-    exit (Invoke-Restore -Reason '宿主退出')
+    exit (Invoke-Restore -Reason '任务结束或宿主退出')
 }
 
 Assert-Device
@@ -229,8 +305,10 @@ $shell = (Get-Process -Id $PID).Path
 $watchArgs = @(
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath,
     '-Adb', $Adb, '-Serial', $Serial, '-Restore', '-WatchPid', "$hostPid",
-    '-MaxWatchHours', "$MaxWatchHours", '-StateFile', $StateFile
+    '-MaxWatchHours', "$MaxWatchHours", '-StateFile', $StateFile,
+    '-MxuApiUrl', $MxuApiUrl, '-StopDebounceSec', "$StopDebounceSec", '-StartTimeoutSec', "$StartTimeoutSec"
 )
+if ($NoApi) { $watchArgs += '-NoApi' }
 Start-Process -FilePath $shell -ArgumentList $watchArgs -WindowStyle Hidden | Out-Null
-Write-Log "已启动守护进程（PID $hostPid 退出后自动还原）。立即还原可用：-Restore"
+Write-Log "已启动守护进程：任务结束或宿主进程（PID $hostPid）退出后自动还原；立即还原可用 -Restore"
 exit 0
