@@ -27,10 +27,7 @@
                 {
                     "name": "CurrentEvent",
                     "label": "$option.LargeEventTheme.CurrentEvent",
-                    "description": "$option.LargeEventTheme.CurrentEvent.description",
-                    "option": [
-                        "LargeEventPersonaOnFrontlineMiniGame"
-                    ]
+                    "description": "$option.LargeEventTheme.CurrentEvent.description"
                 },
                 {
                     "name": "ArkRanger",
@@ -205,6 +202,39 @@
                                         "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory1StageRepeatable.png",
                                         "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageNormalRepeatable.png",
                                         "LargeEvent/PersonaOnFrontline/PersonaOnFrontlineStory2StageHardRepeatable.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "CoinRushShowdown",
+                    "label": "$option.LargeEventTheme.CoinRushShowdown",
+                    "pipeline_override": {
+                        "LargeEventEnterMainPage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownLogo.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventClickStoryStage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1Stage.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventClickStoryStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1StageRepeatable.png"
                                     ]
                                 }
                             }
