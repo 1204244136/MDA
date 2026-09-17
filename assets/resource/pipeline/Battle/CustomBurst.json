@@ -42,9 +42,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1192,
+                    1032,
                     293,
-                    80,
+                    248,
                     5
                 ],
                 "method": 4,
@@ -81,9 +81,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1172,
+                    1012,
                     282,
-                    14,
+                    268,
                     22
                 ],
                 "method": 4,
@@ -107,9 +107,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1172,
+                    1012,
                     282,
-                    14,
+                    268,
                     22
                 ],
                 "method": 4,
@@ -133,9 +133,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1172,
+                    1012,
                     282,
-                    14,
+                    268,
                     22
                 ],
                 "method": 4,
@@ -159,9 +159,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1262,
+                    1102,
                     313,
-                    10,
+                    178,
                     56
                 ],
                 "method": 4,
@@ -185,9 +185,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1262,
+                    1102,
                     381,
-                    10,
+                    178,
                     56
                 ],
                 "method": 4,
@@ -211,9 +211,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1262,
+                    1102,
                     447,
-                    10,
+                    178,
                     56
                 ],
                 "method": 4,
@@ -237,9 +237,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1188,
+                    1028,
                     367,
-                    70,
+                    252,
                     5
                 ],
                 "method": 4,
@@ -263,9 +263,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1188,
+                    1028,
                     435,
-                    70,
+                    252,
                     5
                 ],
                 "method": 4,
@@ -289,9 +289,9 @@
             "type": "ColorMatch",
             "param": {
                 "roi": [
-                    1188,
+                    1028,
                     501,
-                    70,
+                    252,
                     5
                 ],
                 "method": 4,

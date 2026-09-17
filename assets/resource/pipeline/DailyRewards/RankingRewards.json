@@ -47,9 +47,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1244,
+                    1084,
                     90,
-                    34,
+                    196,
                     33
                 ],
                 "template": [
@@ -80,9 +80,9 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    1201,
+                    1041,
                     670,
-                    52,
+                    239,
                     19
                 ],
                 "expected": [

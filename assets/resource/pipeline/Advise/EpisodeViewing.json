@@ -5,9 +5,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1250,
+                    1090,
                     648,
-                    27,
+                    190,
                     27
                 ],
                 "template": [
