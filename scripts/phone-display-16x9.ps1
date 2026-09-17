@@ -23,10 +23,12 @@
     重启手机同样可恢复（wm size 覆盖值不跨重启）。
 
 .PARAMETER Adb
-    adb.exe 的完整路径（必填）。
+    adb.exe 的路径。可省略：依次尝试 `-Adb` → 环境变量 `MDA_ADB_PATH` → PATH 里的 `adb`
+    → 常见安装位置（%LOCALAPPDATA%\Android\Sdk\platform-tools 等）。
 
 .PARAMETER Serial
-    设备序列号，即 `adb devices` 输出第一列（必填）。
+    设备序列号。可省略：依次尝试 `-Serial` → 环境变量 `MDA_ADB_SERIAL` →
+    `adb devices` 中**唯一**已授权设备（多设备时会报错并列出候选）。
 
 .PARAMETER Size
     竖屏形状的覆盖尺寸，默认 1080x1920（游戏横屏旋转后为 1920x1080）。
@@ -39,7 +41,11 @@
     只执行还原，不做设置。
 
 .PARAMETER WatchPid
-    内部使用：等待该进程退出后再还原（由「设置」自动传入宿主进程 PID）。
+    内部使用：守护进程要监视的宿主进程 PID（由「设置」自动传入）。
+
+.PARAMETER Watch
+    内部使用：进入守护模式（等待任务结束/宿主退出后还原）。由「设置」自动拉起，
+    手工执行 `-Restore` 不会进入守护模式，而是立即还原。
 
 .PARAMETER NoWatch
     不启动守护进程（之后需手动 -Restore，或重启手机）。
@@ -66,22 +72,25 @@
     记录变更的状态文件，默认放在临时目录。
 
 .EXAMPLE
-    # 作为 MXU 前置程序：程序填 pwsh.exe，参数填下面这一行
-    #   -NoProfile -ExecutionPolicy Bypass -File "<MDA目录>\scripts\phone-display-16x9.ps1" -Adb "<adb.exe 路径>" -Serial "<设备序列号>" -KeepScreenOn
-    # 把 <...> 换成自己的路径与序列号（序列号可用 `adb devices` 查看）
+    # 作为 MXU 前置程序（推荐）：程序填 pwsh.exe，参数填下面这一行
+    #   -NoProfile -ExecutionPolicy Bypass -File "<MDA目录>\scripts\phone-display-16x9.ps1" -KeepScreenOn
+    # adb 与设备会自动探测：adb 取自 PATH（或 MDA_ADB_PATH），设备取 adb devices 中唯一已授权设备。
+    # 需要固定指定时再追加 -Adb "<adb.exe 路径>" -Serial "<序列号>"。
 
 .EXAMPLE
-    # 手动还原
-    pwsh -File scripts/phone-display-16x9.ps1 -Adb "<adb.exe 路径>" -Serial "<设备序列号>" -Restore
+    # 手动设置 / 手动还原
+    pwsh -File scripts/phone-display-16x9.ps1 -KeepScreenOn
+    pwsh -File scripts/phone-display-16x9.ps1 -Restore
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)][string]$Adb,
-    [Parameter(Mandatory = $true)][string]$Serial,
+    [string]$Adb = '',
+    [string]$Serial = '',
     [string]$Size = '1080x1920',
     [switch]$KeepScreenOn,
     [switch]$Restore,
     [int]$WatchPid = 0,
+    [switch]$Watch,
     [switch]$NoWatch,
     [int]$MaxWatchHours = 24,
     [string]$MxuApiUrl = 'http://127.0.0.1:12701/api/maa/state',
@@ -98,9 +107,67 @@ function Write-Log {
     Write-Host ("[phone-display] " + $Message)
 }
 
+# 解析 adb 路径：显式参数 → MDA_ADB_PATH → PATH → 注册表里的 PATH（进程环境可能过期）→ 常见安装位置
+function Resolve-AdbPath {
+    param([string]$Given)
+    if ($Given -and (Test-Path -LiteralPath $Given)) { return $Given }
+
+    if ($env:MDA_ADB_PATH -and (Test-Path -LiteralPath $env:MDA_ADB_PATH)) { return $env:MDA_ADB_PATH }
+
+    $cmd = Get-Command adb -ErrorAction SilentlyContinue
+    if ($cmd -and $cmd.Source) { return $cmd.Source }
+
+    # 宿主进程环境可能是在改 PATH 之前启动的，再读一遍注册表里的用户级/系统级 PATH
+    foreach ($scope in @('User', 'Machine')) {
+        try {
+            $regPath = [Environment]::GetEnvironmentVariable('Path', $scope)
+        }
+        catch {
+            $regPath = $null
+        }
+        if (-not $regPath) { continue }
+        foreach ($dir in ($regPath -split ';')) {
+            if (-not $dir) { continue }
+            $candidate = Join-Path $dir.Trim() 'adb.exe'
+            if (Test-Path -LiteralPath $candidate) { return $candidate }
+        }
+    }
+
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe'),
+        (Join-Path $env:ProgramFiles 'Android\platform-tools\adb.exe'),
+        (Join-Path ${env:ProgramFiles(x86)} 'Android\platform-tools\adb.exe'),
+        (Join-Path $env:USERPROFILE 'platform-tools\adb.exe')
+    )
+    foreach ($c in $candidates) {
+        if ($c -and (Test-Path -LiteralPath $c)) { return $c }
+    }
+
+    throw "找不到 adb：请把 platform-tools 加入 PATH、设置环境变量 MDA_ADB_PATH，或用 -Adb 指定 adb.exe 路径。"
+}
+
+# 解析设备序列号：显式参数 → MDA_ADB_SERIAL → adb devices 中唯一已授权设备
+function Resolve-Serial {
+    param([string]$Given, [string]$AdbPath)
+    if ($Given) { return $Given }
+    if ($env:MDA_ADB_SERIAL) { return $env:MDA_ADB_SERIAL }
+
+    $raw = (& $AdbPath devices 2>&1 | ForEach-Object { "$_" }) -join "`n"
+    $devices = @()
+    foreach ($line in ($raw -split "`r?`n")) {
+        if ($line -match '^(\S+)\s+device\s*$') { $devices += $Matches[1] }
+    }
+
+    if ($devices.Count -eq 1) { return $devices[0] }
+    if ($devices.Count -eq 0) {
+        throw "没有已授权的设备。adb devices 输出：`n$raw`n请确认已插好数据线、手机已允许 USB 调试（或先用 -Serial 指定）。"
+    }
+    throw ("检测到多台设备：" + ($devices -join ', ') + "。请用 -Serial 指定，或设置环境变量 MDA_ADB_SERIAL。")
+}
+
 function Invoke-Adb {
     param([string[]]$AdbArgs)
-    $output = & $Adb -s $Serial @AdbArgs 2>&1
+    $output = & $script:Adb -s $script:Serial @AdbArgs 2>&1
     $code = $LASTEXITCODE
     return [pscustomobject]@{
         Code   = $code
@@ -181,8 +248,14 @@ function Invoke-Restore {
     return 0
 }
 
-# 守护模式：任务结束或宿主退出后还原
-if ($Restore -and ($WatchPid -gt 0 -or -not $NoApi)) {
+# ---- 解析 adb 与设备（参数可省略）----
+$Adb = Resolve-AdbPath -Given $Adb
+$Serial = Resolve-Serial -Given $Serial -AdbPath $Adb
+Write-Log "adb：$Adb"
+Write-Log "设备：$Serial"
+
+# 守护模式：任务结束或宿主退出后还原（由「设置」以 -Watch 拉起，不要手工加）
+if ($Watch -and $Restore) {
     $deadline = (Get-Date).ToUniversalTime().AddHours($MaxWatchHours)
     $startDeadline = (Get-Date).AddSeconds($StartTimeoutSec)
     $useApi = -not $NoApi
@@ -304,7 +377,7 @@ if ($hostPid -le 0) {
 $shell = (Get-Process -Id $PID).Path
 $watchArgs = @(
     '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath,
-    '-Adb', $Adb, '-Serial', $Serial, '-Restore', '-WatchPid', "$hostPid",
+    '-Watch', '-Restore', '-WatchPid', "$hostPid", '-Adb', $Adb, '-Serial', $Serial,
     '-MaxWatchHours', "$MaxWatchHours", '-StateFile', $StateFile,
     '-MxuApiUrl', $MxuApiUrl, '-StopDebounceSec', "$StopDebounceSec", '-StartTimeoutSec', "$StartTimeoutSec"
 )
