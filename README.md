@@ -118,6 +118,14 @@ MDA 的识别基准是 1280x720（16:9）。多数手机屏幕是 20:9，直接�
 
 **adb 路径与设备序列号不需要手填**：adb 依次从 `-Adb` → 环境变量 `MDA_ADB_PATH` → 进程 PATH → 注册表 PATH → 常见安装位置（`%LOCALAPPDATA%\Android\Sdk\platform-tools` 等）查找；设备取 `adb devices` 中**唯一**已授权设备（多台时会报错列出候选）。要固定指定时再加 `-Adb "<路径>" -Serial "<序列号>"`，或设置环境变量 `MDA_ADB_PATH` / `MDA_ADB_SERIAL`。
 
+**部分机型需要额外权限（脚本已自动处理）**：MIUI / HyperOS 等厂商 ROM 会锁住 `wm size` 的写入，此时 `wm size` 会抛 `SecurityException`，表现为「设置分辨率失败」。脚本检测到权限被拒后，会自动执行
+
+```powershell
+adb shell pm grant com.android.shell android.permission.WRITE_SECURE_SETTINGS
+```
+
+并重试一次 `wm size`。也可以手动执行这条命令解锁（该授权**不跨重启**，重启手机后脚本会再次自动授予）。
+
 不放心可以先手动还原一次确认效果：
 
 ```powershell
@@ -128,6 +136,7 @@ pwsh -File "<MDA 目录>\scripts\phone-display-16x9.ps1" -Restore
 
 - 尺寸**不要填 `1920x1080`**：横屏形状的覆盖值在竖屏面板上会让游戏画面错位
 - `wm size` 的覆盖值**不跨重启**；守护进程被强杀时重启手机即可恢复，也可随时手动 `-Restore`
+- `WRITE_SECURE_SETTINGS` 授权同样**不跨重启**，重启手机后脚本会自动重新授予，无需手动操作
 - 脚本不含任何固定路径与序列号：adb 与设备自动探测，参数与环境变量都可覆盖
 
 > 手机端左右贴边元素（左上角返回键、左侧功能列等）的识别窗口，已经按挖孔安全区导致的偏移加宽过，不需要额外配置。
