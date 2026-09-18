@@ -342,7 +342,15 @@ func defaultSpecialPeriodRuntimeMinutes(tierCode string) int {
 }
 
 func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
-	client := &http.Client{Timeout: httpTimeout}
+	transport := &http.Transport{
+		Proxy:               resolveSystemProxy,
+		ForceAttemptHTTP2:   true,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   httpTimeout,
+	}
 	payload, err := json.Marshal(deviceCode)
 	if err != nil {
 		return nil, err
