@@ -22,6 +22,12 @@
     MXU 没有后置钩子，因此还原由本脚本的守护进程负责；若守护进程被强杀，
     重启手机同样可恢复（wm size 覆盖值不跨重启）。
 
+    权限自愈：
+    部分厂商 ROM（MIUI / HyperOS 等）会锁住 `wm size` 的写入，执行时会抛
+    SecurityException（用户反馈「手机把 wm size 锁了」）。脚本检测到权限被拒后，
+    会自动执行 `pm grant com.android.shell android.permission.WRITE_SECURE_SETTINGS`
+    并重试一次。该授权不跨重启，重启手机后脚本会再次自动授予。
+
 .PARAMETER Adb
     adb.exe 的路径。可省略：依次尝试 `-Adb` → 环境变量 `MDA_ADB_PATH` → PATH 里的 `adb`
     → 常见安装位置（%LOCALAPPDATA%\Android\Sdk\platform-tools 等）。
@@ -185,8 +191,76 @@ function Assert-Device {
     }
 }
 
+# 部分厂商 ROM（常见于 MIUI / HyperOS 等）把 wm size 的写入权限锁住，
+# shell 执行 `wm size` 会抛 SecurityException。此时给 shell 授予
+# WRITE_SECURE_SETTINGS 即可解锁（授权随 adb shell 生效，重启手机后需重新授予）。
+$script:ShellPkg = 'com.android.shell'
+$script:ShellPerm = 'android.permission.WRITE_SECURE_SETTINGS'
+$script:PermGrantAttempted = $false
+$script:PermGrantOk = $false
+$script:PermHintShown = $false
+
+function Test-PermissionError {
+    param([string]$Output)
+    if (-not $Output) { return $false }
+    # PowerShell 的 -match 默认不区分大小写，覆盖 SecurityException / Permission denial 等写法
+    return ($Output -match 'SecurityException' -or
+        $Output -match 'permission denial' -or
+        $Output -match 'permission denied' -or
+        $Output -match 'not allowed')
+}
+
+function Grant-ShellSecureSettings {
+    if ($script:PermGrantAttempted) { return $script:PermGrantOk }
+    $script:PermGrantAttempted = $true
+
+    $grant = Invoke-Adb @('shell', 'pm', 'grant', $script:ShellPkg, $script:ShellPerm)
+    if ($grant.Code -eq 0 -and $grant.Output -notmatch 'Exception|Error|denied') {
+        $script:PermGrantOk = $true
+        Write-Log "已为 $($script:ShellPkg) 授予 WRITE_SECURE_SETTINGS（设备锁定了 wm size，需此权限才能改分辨率）"
+        return $true
+    }
+
+    $script:PermGrantOk = $false
+    Write-Log "授予 WRITE_SECURE_SETTINGS 失败：$($grant.Output)"
+    return $false
+}
+
+# 执行 shell 命令；若因权限被拒，先补授 WRITE_SECURE_SETTINGS 再重试一次
+# 注意：部分 ROM 的 wm 会把 SecurityException 打到输出里但退出码仍为 0，
+# 因此这里不看退出码、只看输出是否命中权限拒绝对待。
+function Invoke-ShellWithPerm {
+    param([string[]]$ShellArgs, [string]$Label = 'shell')
+    $res = Invoke-Adb (@('shell') + $ShellArgs)
+    $denied = Test-PermissionError -Output $res.Output
+    if (-not $denied) { return $res }
+
+    if (-not $script:PermGrantAttempted) {
+        Write-Log "$Label 被权限拒绝（$($res.Output -replace "`n", ' / ')），尝试授予 WRITE_SECURE_SETTINGS 后重试"
+    }
+    if (-not (Grant-ShellSecureSettings)) {
+        # 只提示一次：该机型可能不允许给 shell 授权，需用户手动处理
+        if (-not $script:PermHintShown) {
+            $script:PermHintShown = $true
+            Write-Log "无法自动解锁。可手动执行：adb -s $Serial shell pm grant $($script:ShellPkg) $($script:ShellPerm)；若仍失败，请关闭手机的「分辨率锁定 / 显示大小锁定」类设置。"
+        }
+        return $res
+    }
+
+    $retry = Invoke-Adb (@('shell') + $ShellArgs)
+    if ($retry.Code -eq 0 -and -not (Test-PermissionError -Output $retry.Output)) { return $retry }
+    Write-Log "授权后仍失败：$($retry.Output -replace "`n", ' / ')"
+    return $retry
+}
+
+# wm 子命令（size / density 等）走同一套权限自愈
+function Invoke-Wm {
+    param([string[]]$WmArgs)
+    return Invoke-ShellWithPerm -ShellArgs (@('wm') + $WmArgs) -Label 'wm'
+}
+
 function Get-ScreenState {
-    $size = Invoke-Adb @('shell', 'wm', 'size')
+    $size = Invoke-Wm @('size')
     $stayOn = Invoke-Adb @('shell', 'settings', 'get', 'global', 'stay_on_while_plugged_in')
     return [pscustomobject]@{
         Size   = $size.Output
@@ -226,10 +300,10 @@ function Invoke-Restore {
             if ($state.KeepScreenOn -and $null -ne $state.OldStayOn) {
                 $old = "$($state.OldStayOn)"
                 if ($old -eq '' -or $old -eq 'null') {
-                    $r = Invoke-Adb @('shell', 'settings', 'delete', 'global', 'stay_on_while_plugged_in')
+                    $r = Invoke-ShellWithPerm -ShellArgs @('settings', 'delete', 'global', 'stay_on_while_plugged_in') -Label 'settings delete'
                 }
                 else {
-                    $r = Invoke-Adb @('shell', 'settings', 'put', 'global', 'stay_on_while_plugged_in', $old)
+                    $r = Invoke-ShellWithPerm -ShellArgs @('settings', 'put', 'global', 'stay_on_while_plugged_in', $old) -Label 'settings put'
                 }
                 Write-Log "屏幕常亮已恢复为原值（$old）"
                 $changed = $true
@@ -237,14 +311,17 @@ function Invoke-Restore {
         }
         Remove-Item -LiteralPath $StateFile -Force -ErrorAction SilentlyContinue
     }
-    $res = Invoke-Adb @('shell', 'wm', 'size', 'reset')
-    if ($res.Code -ne 0) {
+    $res = Invoke-Wm @('size', 'reset')
+    if ($res.Code -ne 0 -or (Test-PermissionError -Output $res.Output)) {
         Write-Log "还原失败：$($res.Output)"
         return 1
     }
-    $after = Invoke-Adb @('shell', 'wm', 'size')
+    $after = Invoke-Wm @('size')
     Write-Log "分辨率已还原（$Reason）。当前状态：$($after.Output -replace "`n", ' / ')"
     if (-not $changed) { Write-Log "（没有记录到需要恢复的屏幕常亮设置）" }
+    if ($script:PermGrantOk) {
+        Write-Log "提示：本次为 $($script:ShellPkg) 授予的 WRITE_SECURE_SETTINGS 不跨重启，重启手机后脚本会自动重新授予。"
+    }
     return 0
 }
 
@@ -336,16 +413,16 @@ if ($Restore) {
 $before = Get-ScreenState
 Write-Log "当前：$($before.Size -replace "`n", ' / ')"
 
-$res = Invoke-Adb @('shell', 'wm', 'size', $Size)
-if ($res.Code -ne 0) {
-    throw "设置分辨率失败：$($res.Output)"
+$res = Invoke-Wm @('size', $Size)
+if ($res.Code -ne 0 -or (Test-PermissionError -Output $res.Output)) {
+    throw "设置分辨率失败：$($res.Output)`n脚本已自动尝试 `pm grant $($script:ShellPkg) $($script:ShellPerm)`；若仍失败，请手动执行该命令，或关闭手机的「分辨率锁定 / 显示大小锁定」类设置。"
 }
 
 if ($KeepScreenOn) {
-    $null = Invoke-Adb @('shell', 'svc', 'power', 'stayon', 'true')
+    $null = Invoke-ShellWithPerm -ShellArgs @('svc', 'power', 'stayon', 'true') -Label 'svc power stayon'
 }
 
-$after = Invoke-Adb @('shell', 'wm', 'size')
+$after = Invoke-Wm @('size')
 if ($after.Output -notmatch [regex]::Escape($Size)) {
     Write-Log "⚠ 未确认到 Override size=$Size，当前：$($after.Output -replace "`n", ' / ')"
 }
@@ -359,6 +436,8 @@ $state = [pscustomobject]@{
     Size         = $Size
     KeepScreenOn = [bool]$KeepScreenOn
     OldStayOn    = $before.StayOn
+    GrantAttempted = $script:PermGrantAttempted
+    GrantOk        = $script:PermGrantOk
     AppliedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
 }
 $state | ConvertTo-Json | Set-Content -LiteralPath $StateFile -Encoding UTF8
