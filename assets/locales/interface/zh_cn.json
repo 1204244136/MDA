@@ -3,6 +3,8 @@
     "contact.file": "locales/CONTACT.zh_cn.md",
     "controller.ADB.description": "支持安卓模拟器和实体安卓设备",
     "controller.ADB.label": "安卓端",
+    "controller.Anti-ACE.description": "前台控制。鼠标输入经 Interception 驱动注入，不抢占鼠标，用于解决部分环境下模拟鼠标输入无效的问题。需先安装 Interception 驱动并以管理员权限运行；键盘输入仍用 Seize 方式发送全局按键",
+    "controller.Anti-ACE.label": "Anti-ACE",
     "controller.Win32-Front.description": "前台控制。需要游戏窗口保持在最前且不被遮挡，会完全抢占鼠标",
     "controller.Win32-Front.label": "电脑端-前台",
     "controller.Win32-Window-Background.description": "纯后台控制器。支持游戏最小化，不抢占鼠标。但会导致游戏窗口乱飞，不影响使用，建议将游戏最小化以避免干扰",

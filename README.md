@@ -81,21 +81,29 @@ MDA 内置了多种任务，覆盖日常、活动与实用工具，全部可以�
 
 进入 **右上角「设置」→「快捷键」**，开启全局快捷键。以防程序卡死时无法退出。
 
-### 3. 安装Interception模拟点击驱动
-使用前需要先安装 [Interception 驱动](https://github.com/oblitum/interception)：
+### 3. 安装 Interception 模拟点击驱动
+
+「Anti-ACE」控制器的鼠标输入通过 [Interception 驱动](https://github.com/oblitum/interception) 注入，用于解决部分环境下模拟鼠标输入无效的问题。**只有选择该控制器时才需要安装**，其余控制器无需安装。
 
 1. 下载 Interception 官方 Release。
 2. 以**管理员身份**打开 CMD / Windows Terminal。
 3. 进入 `command line installer` 目录并执行：
-   ```bat
-   install-interception.exe /install
-4. 重启电脑
-5. 卸载驱动即执行：
-   ```bat
-   install-interception.exe /uninstall
 
+    ```bat
+    install-interception.exe /install
+    ```
 
-### 3. 手机端 16:9 适配（Android 真机）
+4. 重启电脑。
+
+如需卸载驱动，执行：
+
+```bat
+install-interception.exe /uninstall
+```
+
+> 该方式需要管理员权限，且宿主程序通常需要与游戏相同或更高的权限级别才能生效。
+
+### 4. 手机端 16:9 适配（Android 真机）
 
 MDA 的识别基准是 1280x720（16:9）。多数手机屏幕是 20:9，直接截图时框架会按短边等比缩放得到 1600x720，ROI 对不上，表现为「识别不到界面 / 点不中按钮」。
 
