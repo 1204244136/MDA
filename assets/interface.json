@@ -52,7 +52,7 @@
                 "class_regex": "UnityWndClass",
                 "window_regex": "(NIKKE|勝利女神：妮姬)",
                 "screencap": "ScreenDC",
-                "mouse": "Seize",
+                "mouse": "Interception",
                 "keyboard": "Seize"
             },
             "permission_required": true
