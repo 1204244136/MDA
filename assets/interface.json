@@ -53,7 +53,7 @@
                 "window_regex": "(NIKKE|勝利女神：妮姬)",
                 "screencap": "ScreenDC",
                 "mouse": "Interception",
-                "keyboard": "Seize"
+                "keyboard": "Interception"
             },
             "permission_required": true
         },
