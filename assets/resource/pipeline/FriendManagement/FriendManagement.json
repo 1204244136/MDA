@@ -41,9 +41,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1062,
+                    1222,
                     162,
-                    218,
+                    50,
                     34
                 ],
                 "template": [

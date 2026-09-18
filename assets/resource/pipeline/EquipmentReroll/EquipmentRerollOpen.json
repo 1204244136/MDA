@@ -5,9 +5,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    908,
+                    1068,
                     476,
-                    372,
+                    167,
                     153
                 ],
                 "template": [
@@ -65,9 +65,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    908,
+                    1068,
                     476,
-                    372,
+                    167,
                     153
                 ],
                 "template": [
@@ -125,9 +125,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    908,
+                    1068,
                     476,
-                    372,
+                    167,
                     153
                 ],
                 "template": [
@@ -185,9 +185,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    908,
+                    1068,
                     476,
-                    372,
+                    167,
                     153
                 ],
                 "template": [

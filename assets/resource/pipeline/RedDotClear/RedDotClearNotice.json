@@ -28,9 +28,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1031,
+                    1191,
                     10,
-                    249,
+                    16,
                     16
                 ],
                 "template": [

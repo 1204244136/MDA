@@ -28,9 +28,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1082,
+                    1242,
                     7,
-                    198,
+                    37,
                     35
                 ],
                 "template": [
@@ -140,7 +140,7 @@
                 "roi": [
                     2,
                     14,
-                    217,
+                    57,
                     23
                 ],
                 "expected": [
