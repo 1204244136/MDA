@@ -3,7 +3,7 @@
     "contact.file": "locales/CONTACT.en_us.md",
     "controller.ADB.description": "Supports Android emulators and physical Android devices.",
     "controller.ADB.label": "Android",
-    "controller.Anti-ACE.description": "Foreground control. Mouse input is injected through the Interception driver and does not seize the mouse, which fixes ineffective simulated mouse input in some environments. The Interception driver and administrator privileges are required; keyboard input still uses the Seize method to send global key events.",
+    "controller.Anti-ACE.description": "Requires the Interception driver to be installed first. Fixes ineffective mouse clicks in some environments.",
     "controller.Anti-ACE.label": "Anti-ACE",
     "controller.Win32-Front.description": "Foreground control. Requires the game window to remain in the foreground and unobstructed; will fully grab the mouse.",
     "controller.Win32-Front.label": "PC-Foreground",

@@ -83,7 +83,7 @@ MDA 内置了多种任务，覆盖日常、活动与实用工具，全部可以�
 
 ### 3. 安装 Interception 模拟点击驱动
 
-「Anti-ACE」控制器的鼠标输入通过 [Interception 驱动](https://github.com/oblitum/interception) 注入，用于解决部分环境下模拟鼠标输入无效的问题。**只有选择该控制器时才需要安装**，其余控制器无需安装。
+「Anti-ACE」控制器需先安装 [Interception 驱动](https://github.com/oblitum/interception)，用于解决部分环境下鼠标点击失效的问题。**只有选择该控制器时才需要安装**，其余控制器无需安装。
 
 1. 下载 Interception 官方 Release。
 2. 以**管理员身份**打开 CMD / Windows Terminal。
