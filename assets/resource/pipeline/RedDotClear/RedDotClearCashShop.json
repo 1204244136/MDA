@@ -65,6 +65,7 @@
             }
         },
         "next": [
+            "[JumpBack]CashShopConsumeLimitFlow", //日服进入付费商店会弹出消费限制弹窗，先处理再清红点
             "RedDotClearClickCashShopNew"
         ]
     },

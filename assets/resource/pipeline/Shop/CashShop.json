@@ -31,6 +31,7 @@
             "type": "Click"
         },
         "next": [
+            "[JumpBack]CashShopConsumeLimitFlow", //日服进入付费商店会弹出消费限制弹窗，先处理再确认是否已进入商店
             "CashShopCornerFlow",
             "HallEnterCashShop"
         ]
@@ -63,8 +64,86 @@
             }
         },
         "next": [
+            "[JumpBack]CashShopConsumeLimitFlow", //弹窗可能比页面稍晚出现，进入商店页后再兜底一次
             "ShopChooseOrdinaryPackage"
         ]
+    },
+    "CashShopConsumeLimitVisible": {
+        "desc": "消费限制弹窗可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    165,
+                    170,
+                    40
+                ],
+                "expected": [
+                    "消费限制"
+                ]
+            }
+        }
+    },
+    "CashShopConsumeLimitFlow": {
+        "desc": "消费限制弹窗流程",
+        "max_hit": 1, //护栏：每个任务只处理一次，避免确认点击无效时被外层 [JumpBack] 反复重入
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CashShopConsumeLimitVisible"
+                ]
+            }
+        },
+        "next": [
+            "CashShopConsumeLimitChooseAgeOver20" //单向链：选年龄 → 确认。两节点的识别条件在点击后仍成立，放进 jump_back 回跳列表会反复命中
+        ]
+    },
+    "CashShopConsumeLimitChooseAgeOver20": {
+        "desc": "选择20岁以上",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    480,
+                    435,
+                    140,
+                    40
+                ],
+                "expected": [
+                    "20岁以上"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CashShopConsumeLimitConfirm" //点完年龄直接去点确认，不回跳
+        ]
+    },
+    "CashShopConsumeLimitConfirm": {
+        "desc": "消费限制弹窗确认",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    630,
+                    528,
+                    150,
+                    48
+                ],
+                "template": [
+                    "Common/ConfirmWithCircle.png",
+                    "Common/ConfirmWithCircle2.png"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500, //等「选中年龄」后的确认按钮从禁用态激活
+        "action": {
+            "type": "Click"
+        }
     },
     "ShopChooseOrdinaryPackage": {
         "desc": "选择普通礼包",
