@@ -163,8 +163,6 @@
     "focus.MapPushingFlow.Action.Succeeded": "Auto map pushing has started.",
     "focus.CustomBurst.paused": "User paused detected, this Custom Burst task is complete",
     "focus.CustomBurst.settled": "Battle settlement detected, this Custom Burst task is complete",
-    "option.CommonShopFreeGoods.label": "Purchase free items in the Common Shop and use free refreshes",
-    "option.CommonShopCoreDustCase.label": "Use credits to purchase Core Dust Case in the Common Shop",
     "option.ArenaShopItemList.label": "Purchase items in the Arena Shop",
     "option.ArenaShopItemList.ArenaShopFireCodeManual": "H.S.T.A. Code Manual",
     "option.ArenaShopItemList.ArenaShopWaterCodeManual": "P.S.I.D. Code Manual",
@@ -287,8 +285,6 @@
     "option.BurstRound6Stage3.label": "Round 6 stage 3 character",
     "option.BurstRound6Stage3.description": "Character key (A/S/D) to release in round 6 stage 3",
     "option.BurstStage.none.label": "None",
-    "option.CommonShopProfileCustomPack.label": "Use credits to purchase Profile Custom Pack in the Common Shop",
-    "option.CommonShopDarlingForADay.label": "Use credits to purchase Darling for a Day in the Common Shop",
     "option.ArenaShopItemList.ArenaShopProfileCustomPack": "Profile Custom Pack",
     "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "Manufacturer Arms Furnace",
     "option.RecyclingShopList.DarlingForADay": "Darling for a Day",
@@ -322,5 +318,11 @@
     "option.BodyLabelShopItemList.description": "Every item in this shop has unlimited stock and only the first slot is a limited-time discounted item, so the list contains just \"Discounted Item\". The purchase flow clicks MAX to buy the full stock, buying out that item's remaining stock at once",
     "option.BodyLabelShopItemList.DiscountedItem": "Discounted Item",
     "option.LargeEventCoinRushShowdownMiniGame.label": "Mini Game",
-    "option.LargeEventCoinRushShowdownMiniGame.description": "This feature only works in foreground mode"
+    "option.LargeEventCoinRushShowdownMiniGame.description": "This feature only works in foreground mode",
+    "option.CommonShopItemList.label": "Purchase items",
+    "option.CommonShopItemList.description": "Free items include free refreshes; paid items cost credits",
+    "option.CommonShopItemList.FreeGoods": "Free items",
+    "option.CommonShopItemList.CoreDustCase": "Core Dust Case",
+    "option.CommonShopItemList.ProfileCustomPack": "Profile Custom Pack",
+    "option.CommonShopItemList.DarlingForADay": "Darling for a Day"
 }

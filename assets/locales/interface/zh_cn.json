@@ -163,8 +163,6 @@
     "focus.MapPushingFlow.Action.Succeeded": "自动推图已启动",
     "focus.CustomBurst.paused": "检测到用户暂停，本次「自定义爆裂」任务完成",
     "focus.CustomBurst.settled": "检测到战斗结算，本次「自定义爆裂」任务完成",
-    "option.CommonShopFreeGoods.label": "普通商店购买免费商品并使用免费刷新次数",
-    "option.CommonShopCoreDustCase.label": "普通商店使用信用点购买芯尘盒",
     "option.ArenaShopItemList.label": "竞技商店购买商品列表",
     "option.ArenaShopItemList.ArenaShopFireCodeManual": "H.S.T.A.代码手册",
     "option.ArenaShopItemList.ArenaShopWaterCodeManual": "P.S.I.D.代码手册",
@@ -287,8 +285,6 @@
     "option.BurstRound6Stage3.label": "第6轮Ⅲ阶段角色",
     "option.BurstRound6Stage3.description": "爆裂第6轮（Ⅲ阶段）释放的角色按键（A/S/D）",
     "option.BurstStage.none.label": "不指定",
-    "option.CommonShopProfileCustomPack.label": "普通商店使用信用点购买简介个性化礼包",
-    "option.CommonShopDarlingForADay.label": "普通商店使用信用点购买指挥官自由使用券",
     "option.ArenaShopItemList.ArenaShopProfileCustomPack": "简介个性化礼包",
     "option.ArenaShopItemList.ArenaShopManufacturerArmsFurnace": "公司武器熔炉",
     "option.RecyclingShopList.DarlingForADay": "指挥官自由使用券",
@@ -322,5 +318,11 @@
     "option.BodyLabelShopItemList.description": "该商店商品均为无限量供应，仅 1 号位为限量打折商品，因此只提供「打折商品」一项；购买流程会点 MAX 买满，一次买空该商品的剩余库存",
     "option.BodyLabelShopItemList.DiscountedItem": "打折商品",
     "option.LargeEventCoinRushShowdownMiniGame.label": "小游戏",
-    "option.LargeEventCoinRushShowdownMiniGame.description": "该功能仅前台模式生效"
+    "option.LargeEventCoinRushShowdownMiniGame.description": "该功能仅前台模式生效",
+    "option.CommonShopItemList.label": "购买商品",
+    "option.CommonShopItemList.description": "免费商品含免费刷新，付费商品消耗信用点",
+    "option.CommonShopItemList.FreeGoods": "免费商品",
+    "option.CommonShopItemList.CoreDustCase": "芯尘盒",
+    "option.CommonShopItemList.ProfileCustomPack": "简介个性化礼包",
+    "option.CommonShopItemList.DarlingForADay": "指挥官自由使用券"
 }

@@ -58,6 +58,7 @@
     },
     "ShopPurchaseFreeGoods": {
         "desc": "购买免费商品",
+        "enabled": false,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -78,6 +79,7 @@
     },
     "ShopPurchaseCoreDustCase": {
         "desc": "购买芯尘盒",
+        "enabled": false,
         "max_hit": 2,
         "recognition": {
             "type": "TemplateMatch",
@@ -146,6 +148,7 @@
     },
     "ShopClickFreeRefresh": {
         "desc": "免费刷新",
+        "enabled": false,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
