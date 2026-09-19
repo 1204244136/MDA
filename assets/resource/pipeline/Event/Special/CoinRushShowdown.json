@@ -1,0 +1,280 @@
+{
+    "LargeEventCoinRushShowdownMiniGame": {
+        "desc": "小游戏",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                //roi 收在右下角，排除地图中央同名的「小游戏」标签
+                "roi": [
+                    730,
+                    548,
+                    85,
+                    40
+                ],
+                "expected": [
+                    ".*小游戏.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "LargeEventCoinRushShowdownMiniGameFlow"
+        ]
+    },
+    "LargeEventCoinRushShowdownMiniGameFlow": {
+        "desc": "小游戏流程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    585,
+                    225,
+                    75,
+                    45
+                ],
+                "expected": [
+                    ".*剩余时间.*"
+                ]
+            }
+        },
+        "next": [
+            "CoinRushShowdownMiniGameClickStart"
+        ]
+    },
+    "CoinRushShowdownMiniGameClickStart": {
+        "desc": "小游戏点击开始",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                //锚点「每日奖励」：位于 START 艺术字左下方，几何关系固定
+                "roi": [
+                    540,
+                    580,
+                    80,
+                    35
+                ],
+                "expected": [
+                    ".*每日奖励.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                //偏移至中央 START 艺术字中心，避开艺术字识别的大小写抖动
+                "target_offset": [
+                    63,
+                    -88,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 200,
+        "next": [
+            "CoinRushShowdownMiniGameSelectNikke",
+            "CoinRushShowdownMiniGameClickStart" //兜底
+        ]
+    },
+    "CoinRushShowdownMiniGameSelectNikke": {
+        "desc": "小游戏选择妮姬",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    575,
+                    45,
+                    120,
+                    45
+                ],
+                "expected": [
+                    ".*选择妮姬.*"
+                ]
+            }
+        },
+        "next": [
+            "CoinRushShowdownMiniGameClickBattleStart"
+        ]
+    },
+    "CoinRushShowdownMiniGameClickBattleStart": {
+        "desc": "小游戏点击开始游戏",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    570,
+                    620,
+                    140,
+                    70
+                ],
+                "expected": [
+                    "(?i).*?start.*?" //艺术字大小写不稳定
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CoinRushShowdownMiniGamePlay",
+            "CoinRushShowdownMiniGameClickBattleStart" //兜底
+        ]
+    },
+    "CoinRushShowdownMiniGamePlay": {
+        "desc": "小游戏游玩",
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 32 //空格，切换人物行进方向
+            }
+        },
+        //间隔需足够大，让人物走出一段距离扫怪
+        "post_delay": 3000,
+        "next": [
+            "CoinRushShowdownMiniGameCheckPoint",
+            "CoinRushShowdownMiniGameResultReturn",
+            "CoinRushShowdownMiniGamePlay"
+        ]
+    },
+    "CoinRushShowdownMiniGameCheckPoint": {
+        "desc": "小游戏检查积分",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    573,
+                    10,
+                    160,
+                    41
+                ],
+                "expected": [
+                    "^(?:[4-9]\\d{3}|[1-9]\\d{4,})$" //每日奖励满分为 4000
+                ],
+                "replace": [
+                    [
+                        "[,，]",
+                        ""
+                    ],
+                    [
+                        "[.．]",
+                        ""
+                    ]
+                ]
+            }
+        },
+        "next": [
+            "CoinRushShowdownMiniGameClickPause"
+        ]
+    },
+    "CoinRushShowdownMiniGameClickPause": {
+        "desc": "小游戏点击暂停",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    780,
+                    37,
+                    60,
+                    40
+                ],
+                "expected": [
+                    "ESC"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                //ESC 文字在暂停图标下方，需上移点到图标
+                "target_offset": [
+                    0,
+                    -26,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            //此处不可兜底：暂停弹窗上仍显示 ESC，兜底回本节点会反复点击暂停图标。
+            //依靠 next 列表自身的重试等待「快速完成」加载即可。
+            "CoinRushShowdownMiniGameClickQuickComplete"
+        ]
+    },
+    "CoinRushShowdownMiniGameClickQuickComplete": {
+        "desc": "小游戏点击快速完成",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    420,
+                    95,
+                    50
+                ],
+                "expected": [
+                    "快速完成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CoinRushShowdownMiniGameResultReturn",
+            "CoinRushShowdownMiniGameClickQuickComplete" //兜底
+        ]
+    },
+    "CoinRushShowdownMiniGameResultReturn": {
+        "desc": "小游戏结算返回",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                //角色心数耗尽会自行 GAME OVER，此时从结算画面退出
+                "roi": [
+                    530,
+                    650,
+                    90,
+                    55
+                ],
+                "expected": [
+                    "返回"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CoinRushShowdownMiniGameEventGoBack",
+            "CoinRushShowdownMiniGameResultReturn" //兜底
+        ]
+    },
+    "CoinRushShowdownMiniGameEventGoBack": {
+        "desc": "小游戏返回至主页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    12,
+                    658,
+                    88,
+                    38
+                ],
+                "expected": [
+                    "返回"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LargeEventMainPageEntered",
+            "[JumpBack]CommonConfirmAction"
+        ]
+    }
+}

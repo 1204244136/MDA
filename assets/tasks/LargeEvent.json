@@ -211,6 +211,9 @@
                 {
                     "name": "CoinRushShowdown",
                     "label": "$option.LargeEventTheme.CoinRushShowdown",
+                    "option": [
+                        "LargeEventCoinRushShowdownMiniGame"
+                    ],
                     "pipeline_override": {
                         "LargeEventEnterMainPage": {
                             "recognition": {
@@ -312,6 +315,32 @@
                                 "[JumpBack]LargeEventEnterChallenge",
                                 "[JumpBack]LargeEventEnterStory",
                                 "[JumpBack]PersonaOnFrontlineMiniGame",
+                                "[JumpBack]LargeEventEnterMission",
+                                "CommonEndTask"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "No"
+                }
+            ]
+        },
+        "LargeEventCoinRushShowdownMiniGame": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.LargeEventCoinRushShowdownMiniGame.label",
+            "description": "$option.LargeEventCoinRushShowdownMiniGame.description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LargeEventMainPageFlow": {
+                            "next": [
+                                "[JumpBack]LargeEventEnterLoginStamp",
+                                "[JumpBack]LargeEventEnterChallenge",
+                                "[JumpBack]LargeEventEnterStory",
+                                "[JumpBack]LargeEventCoinRushShowdownMiniGame",
                                 "[JumpBack]LargeEventEnterMission",
                                 "CommonEndTask"
                             ]

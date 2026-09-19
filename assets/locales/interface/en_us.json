@@ -320,5 +320,7 @@
     "option.BodyLabelShop.label": "Body Label Shop",
     "option.BodyLabelShopItemList.label": "Body Label Shop purchase list",
     "option.BodyLabelShopItemList.description": "Every item in this shop has unlimited stock and only the first slot is a limited-time discounted item, so the list contains just \"Discounted Item\". The purchase flow clicks MAX to buy the full stock, buying out that item's remaining stock at once",
-    "option.BodyLabelShopItemList.DiscountedItem": "Discounted Item"
+    "option.BodyLabelShopItemList.DiscountedItem": "Discounted Item",
+    "option.LargeEventCoinRushShowdownMiniGame.label": "Mini Game",
+    "option.LargeEventCoinRushShowdownMiniGame.description": "This feature only works in foreground mode"
 }

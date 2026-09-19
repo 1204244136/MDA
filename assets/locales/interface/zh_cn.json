@@ -320,5 +320,7 @@
     "option.BodyLabelShop.label": "躯体标签商店",
     "option.BodyLabelShopItemList.label": "躯体标签商店购买商品列表",
     "option.BodyLabelShopItemList.description": "该商店商品均为无限量供应，仅 1 号位为限量打折商品，因此只提供「打折商品」一项；购买流程会点 MAX 买满，一次买空该商品的剩余库存",
-    "option.BodyLabelShopItemList.DiscountedItem": "打折商品"
+    "option.BodyLabelShopItemList.DiscountedItem": "打折商品",
+    "option.LargeEventCoinRushShowdownMiniGame.label": "小游戏",
+    "option.LargeEventCoinRushShowdownMiniGame.description": "该功能仅前台模式生效"
 }
