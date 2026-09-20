@@ -5,10 +5,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// EquipmentRerollAfterMaterialCheckAction 在“物资检测”（进入效果锁定页读取材料库存）退出后做最终路由：
+// EquipmentRerollAfterMaterialCheckAction 在四件装备扫描完成（详情页已关闭）后做最终路由：
 //   - 独立运行装备扫描（入口 EquipmentRerollScanMain，仅调试用）→ EquipmentRerollFinalSummary → EquipmentRerollEnd；
 //   - 洗词条任务角色模式（mode=character）→ EquipmentRerollDecide（进入角色级决策）；
 //   - 洗词条任务单件模式（mode=single）→ EquipmentRerollSingleDecide（进入单件决策）。
+//
+// 材料库存不再由扫描末尾的独立“物资检测”读取，改为在进入效果锁定页时顺便读一次，
+// 因此本节点只承担扫描后的模式分流。
 //
 // 角色/单件是同一任务 EquipmentReroll（入口 EquipmentRerollMain）下的互斥模式，
 // 模式由承载点 EquipmentRerollLockNeed 的 attach.mode 决定（属于“复杂逻辑”，故用 Go 判定）。

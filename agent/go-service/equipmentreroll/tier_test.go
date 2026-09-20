@@ -94,8 +94,8 @@ func TestBuildFinalSummaryMessage(t *testing.T) {
 		}
 	}
 	setInventory(taskID, Inventory{CustomModules: 154, CustomLockKeys: 1920})
-	recordRerollModuleCost(taskID, 6)
-	recordLockMaterialCost(taskID, "自订密钥", 0)
+	setPendingRerollCost(taskID, MaterialUsage{CustomModules: 6, CustomLockKeys: 20, RerollModules: 6})
+	commitPendingRerollCost(taskID)
 	msg := buildFinalSummaryMessage(taskID)
 	for _, want := range []string{"【装备详情】", "头部:\n蓄力伤害增加 11.81%（T11）", "（空槽位）", "【消耗材料】", "订制模块 6", "自订密钥 2"} {
 		if !strings.Contains(msg, want) {

@@ -45,18 +45,20 @@ func (a *ScanBeginAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 }
 
 // scanNextItems 返回当前部位扫描完成后的路由：
-//   - 单件模式：只扫用户选定的那一件，扫完直接“物资检测”（不再链到下一部位）；
+//   - 单件模式：只扫用户选定的那一件，扫完即关闭详情页并进入决策；
 //   - 角色模式非腿部：关闭详情页 → 打开下一部位详情；
-//   - 角色模式腿部：先“物资检测”（进入效果锁定页读取材料库存），退出后由
-//     EquipmentRerollAfterMaterialCheck 分支：独立扫描 → 结束；洗词条任务 → 对应模式的决策。
+//   - 角色模式腿部：关闭详情页后由 EquipmentRerollAfterMaterialCheck 分支：
+//     独立扫描 → 结束；洗词条任务 → 对应模式的决策。
+//
+// 材料库存不再由扫描末尾的独立“物资检测”读取——新版客户端装备详情页的词条行已不可点击，
+// 旧路径（点词条进效果锁定页）会一直点不动而卡死；改为在进入效果锁定页时顺便读一次。
 //
 // 注意：中间切换部位的“关闭”必须用 [JumpBack] 回跳父节点后再打开下一部位。
 func scanNextItems(part string, single bool) ([]maa.NextItem, bool) {
-	// 物资检测点击的是“当前已打开详情页”的第一槽，与具体部位无关，
-	// 因此单件模式在自己那一件上做物资检测与腿部一样有效。
 	if single || part == "腿部" {
 		return []maa.NextItem{
-			{Name: "EquipmentRerollMaterialCheckEnter"},
+			{Name: "[JumpBack]EquipmentRerollScanCloseDetails"},
+			{Name: "EquipmentRerollAfterMaterialCheck"},
 		}, true
 	}
 	nextByPart := map[string]string{
@@ -113,8 +115,8 @@ func buildPartEffectsMessage(part string, scan partScan, key string) string {
 }
 
 // EquipmentRerollScanRouteAction 全量扫描路由：扫描完最后一个槽位后
-// 检查洗词条任务的前置条件（所有槽位必须无锁），再展示该部位扫描摘要
-// （词条 / 数值 / 锁定）并把流程路由到下一部位；独立扫描入口保留原有观察行为。
+// 执行细粒度的已有锁前置检查（合规且符合锁定策略的已有锁予以保留，冲突/非法锁报错拦截），
+// 再展示该部位扫描摘要（词条 / 数值 / 锁定）并把流程路由到下一部位；独立扫描入口保留原有观察行为。
 type EquipmentRerollScanRouteAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollScanRouteAction{}
@@ -150,25 +152,28 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 	}
 
 	if !isStandaloneScanEntry(ctx, arg) {
-		if slot, lock, found := firstExistingLock(scan); found {
-			lockLabel := lockDisplayLabel(lock)
+		res := validatePreexistingLocks(ctx, arg.TaskID, part, scan)
+		if !res.Passed {
 			log.Error().
 				Str("component", "EquipmentReroll").
 				Int64("task_id", arg.TaskID).
 				Str("part", part).
-				Int("slot", slot).
-				Str("lock", lock.String()).
-				Msg("precheck found an existing equipment lock; task failed")
+				Str("message", res.Message).
+				Msg("precheck found invalid equipment lock; task failed")
 			// 通过标准输出发送提示，避免为一次失败通知创建临时 Go focus 节点并污染 Maa 日志。
-			maafocus.PrintLargeContentTrimNewline(fmt.Sprintf(
-				i18n.T("tasker.equipment_reroll.preexisting_lock"),
-				part,
-				slot,
-				lockLabel,
-			))
+			maafocus.PrintLargeContentTrimNewline(res.Message)
 			// CustomAction 返回 false 即表示当前任务失败；不要再调用 PostStop，
 			// 否则 Maa 会额外创建“停止任务”的伪任务。
 			return false
+		}
+		if res.IsInfo && res.Message != "" {
+			log.Info().
+				Str("component", "EquipmentReroll").
+				Int64("task_id", arg.TaskID).
+				Str("part", part).
+				Str("message", res.Message).
+				Msg("precheck validated existing equipment lock")
+			maafocus.Print(ctx, res.Message)
 		}
 	}
 

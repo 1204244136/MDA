@@ -78,7 +78,7 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 	part, ok := chooseBestPartForQuota(parts, quota, equipmentParts)
 	if !ok {
 		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("no part selected by global lookahead; end task")
-		if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: "EquipmentRerollEnd"}}); err != nil {
+		if err := routeEquipmentRerollEnd(ctx, arg.CurrentTaskName); err != nil {
 			log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route end after no selected part")
 			return false
 		}

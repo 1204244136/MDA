@@ -116,9 +116,17 @@ type monitorState struct {
 	Parts                map[string]partScan
 	NextSlot             int
 	Materials            MaterialUsage
-	PendingRerollCost    int       // 已准备确认、尚未写入 Materials 的订制模块数
-	Inventory            Inventory // 任务级材料余额（前置“获取材料库存”初始化，之后由行为扣减）
-	InventoryInitialized bool      // Inventory 是否已被前置任务初始化
+	PreviousLocks        previousLockSettings // 只信任本任务最近实际使用的设置，不读取跨任务历史
+	PendingResult        *pendingResult
+	ResultSource         *rerollResultSource // 本轮结果对应的变更前快照，不随单次锁解除而变化
+	PendingRerollCost    MaterialUsage       // 确认页读取的总费用，结果页出现后才入账
+	Inventory            Inventory           // 任务级材料余额（效果锁定页或确认页读取，之后由行为扣减）
+	InventoryInitialized bool                // 两种材料持有量是否都已读到（效果锁定页可一次读全）
+	// ModulesHeldKnown / KeysHeldKnown 分别记录两种材料持有量各自是否读到过。
+	// 效果变更确认页只显示本轮费用涉及的订制模块持有量，因此必须按材料独立跟踪：
+	// 只认 InventoryInitialized 会让「本轮无需锁定」的流程永远拿不到库存。
+	ModulesHeldKnown bool
+	KeysHeldKnown    bool
 }
 
 var (
@@ -126,17 +134,33 @@ var (
 	states  = make(map[int64]monitorState)
 )
 
-// setInventory 初始化/更新任务级材料库存（前置“获取材料库存”OCR 到的一次性初始值）。
+// setInventory 全量初始化任务级材料库存（效果锁定页一次读到两种材料持有量）。
 func setInventory(taskID int64, inv Inventory) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	state := states[taskID]
 	state.Inventory = inv
 	state.InventoryInitialized = true
+	state.ModulesHeldKnown = true
+	state.KeysHeldKnown = true
 	states[taskID] = state
 }
 
-// getInventory 读取任务级材料余额。只有前置任务已初始化过才返回 ok=true。
+// setInventoryModules 只写入订制模块持有量（效果变更确认页「持有材料」行）。
+//
+// 确认页在无密钥费用时不会显示自订密钥持有量，因此这里不能把密钥一并标记为已知；
+// 已由效果锁定页读到的密钥持有量保持不变。
+func setInventoryModules(taskID int64, modules int) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	state.Inventory.CustomModules = modules
+	state.ModulesHeldKnown = true
+	states[taskID] = state
+}
+
+// getInventory 读取任务级材料余额。两种材料都读到过才返回 ok=true。
+// 锁定决策需要两种材料齐全来判断用密钥还是模块，因此这里保持全量语义。
 func getInventory(taskID int64) (Inventory, bool) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
@@ -147,30 +171,27 @@ func getInventory(taskID int64) (Inventory, bool) {
 	return state.Inventory, true
 }
 
-// decrementInventory 在记录一次消耗时相应地扣减材料余额（按行为推导，不再 OCR）。
-func decrementInventory(taskID int64, material string, cost int) {
-	if cost <= 0 {
-		return
-	}
+// getModulesHeld 返回已知的订制模块持有量（效果锁定页全量读取或确认页兜底同步）。
+// 从未读到过时返回 ok=false —— 调用方必须区分「没读到」与「读到 0」。
+func getModulesHeld(taskID int64) (int, bool) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
-	state := states[taskID]
-	if !state.InventoryInitialized {
-		return
+	state, ok := states[taskID]
+	if !ok || !state.ModulesHeldKnown {
+		return 0, false
 	}
-	switch material {
-	case "订制模块":
-		state.Inventory.CustomModules -= cost
-		if state.Inventory.CustomModules < 0 {
-			state.Inventory.CustomModules = 0
-		}
-	default:
-		state.Inventory.CustomLockKeys -= cost
-		if state.Inventory.CustomLockKeys < 0 {
-			state.Inventory.CustomLockKeys = 0
-		}
+	return state.Inventory.CustomModules, true
+}
+
+// getKeysHeld 返回已知的自订密钥持有量；从未读到过时返回 ok=false。
+func getKeysHeld(taskID int64) (int, bool) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state, ok := states[taskID]
+	if !ok || !state.KeysHeldKnown {
+		return 0, false
 	}
-	states[taskID] = state
+	return state.Inventory.CustomLockKeys, true
 }
 
 // allResults 汇总识别结果（best + filtered + all）供遍历使用。
@@ -243,84 +264,58 @@ func clearMonitorState(taskID int64) {
 	stateMu.Unlock()
 }
 
-// recordRerollModuleCost 累加一次“效果变更”消耗的订制模块（累计日志 + 行为扣减库存余额）。
-func recordRerollModuleCost(taskID int64, modules int) {
-	if modules <= 0 {
-		return
-	}
-	stateMu.Lock()
-	state := states[taskID]
-	state.Materials.CustomModules += modules
-	state.Materials.RerollModules += modules
-	state.PendingRerollCost = 0
-	states[taskID] = state
-	stateMu.Unlock()
-	decrementInventory(taskID, "订制模块", modules)
-}
-
-// setPendingRerollCost 在效果变更确认前记录“待消耗”的订制模块数。
-func setPendingRerollCost(taskID int64, modules int) {
-	if modules <= 0 {
-		return
-	}
+// setPendingRerollCost 暂存本轮费用，不提前消耗库存。
+func setPendingRerollCost(taskID int64, cost MaterialUsage) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	state := states[taskID]
-	state.PendingRerollCost = modules
+	state.PendingRerollCost = cost
+	state.PendingResult = nil
+	state.ResultSource = nil
 	states[taskID] = state
 }
 
-// consumePendingRerollCost 读取并清空待记录的订制模块数。
-func consumePendingRerollCost(taskID int64) int {
+// commitPendingRerollCost 在结果页出现后原子扣费；缺失费用不猜测，重复调用不重复扣费。
+func commitPendingRerollCost(taskID int64) bool {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	state := states[taskID]
 	cost := state.PendingRerollCost
-	state.PendingRerollCost = 0
-	states[taskID] = state
-	return cost
-}
-
-// flushPendingRerollCost 在成功结束前把未消费的待记录消耗补入 Materials。
-func flushPendingRerollCost(taskID int64) {
-	stateMu.Lock()
-	defer stateMu.Unlock()
-	state := states[taskID]
-	if state.PendingRerollCost > 0 {
-		state.Materials.CustomModules += state.PendingRerollCost
-		state.Materials.RerollModules += state.PendingRerollCost
-		state.PendingRerollCost = 0
-		states[taskID] = state
+	if cost.CustomModules <= 0 {
+		return false
 	}
+	state.Materials.CustomModules += cost.CustomModules
+	state.Materials.CustomLockKeys += cost.CustomLockKeys
+	state.Materials.RerollModules += cost.RerollModules
+	state.Materials.LockModules += cost.LockModules
+	// 只在确实读到过持有量时才扣减余额。未读到库存时流程仍会继续执行（由游戏侧
+	// 兜底校验），此时不能凭猜测填值，更不能把余额扣成负数。
+	if state.ModulesHeldKnown {
+		state.Inventory.CustomModules -= cost.CustomModules
+	}
+	if state.KeysHeldKnown {
+		state.Inventory.CustomLockKeys -= cost.CustomLockKeys
+	}
+	state.PreviousLocks = previousLockSettings{Part: state.Part}
+	state.ResultSource = nil
+	if scan, ok := state.Parts[state.Part]; ok {
+		state.ResultSource = &rerollResultSource{Part: state.Part, Scan: scan}
+		for i, slot := range scan.Slots {
+			state.PreviousLocks.Locks[i] = slot.Lock
+		}
+	}
+	state.PendingRerollCost = MaterialUsage{}
+	states[taskID] = state
+	return true
 }
 
 func clearPendingRerollCost(taskID int64) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	state := states[taskID]
-	state.PendingRerollCost = 0
+	state.PendingRerollCost = MaterialUsage{}
+	state.ResultSource = nil
 	states[taskID] = state
-}
-
-// recordLockMaterialCost 累加一次“效果锁定”消耗的材料（累计日志 + 行为扣减库存余额）。
-// lockIndex 为该装备当前已有锁数量（0=第一把锁，1=第二把锁）。
-func recordLockMaterialCost(taskID int64, material string, lockIndex int) {
-	cost := LockCost(material, lockIndex)
-	if cost <= 0 {
-		return
-	}
-	stateMu.Lock()
-	state := states[taskID]
-	switch material {
-	case "订制模块":
-		state.Materials.CustomModules += cost
-		state.Materials.LockModules += cost
-	default:
-		state.Materials.CustomLockKeys += cost
-	}
-	states[taskID] = state
-	stateMu.Unlock()
-	decrementInventory(taskID, material, cost)
 }
 
 // GetMaterialUsage 返回当前任务累计的材料消耗。
@@ -381,6 +376,9 @@ func setCurrentPart(taskID int64, part string) error {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	state := states[taskID]
+	if state.Part != part {
+		state.ResultSource = nil
+	}
 	state.Part = part
 	states[taskID] = state
 	return nil

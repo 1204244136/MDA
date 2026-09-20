@@ -121,10 +121,9 @@ func TestInventoryBehaviorTracking(t *testing.T) {
 		t.Fatalf("initialized inventory mismatch: %+v", inv)
 	}
 
-	// 行为扣减：效果变更扣模块；锁定扣密钥/模块。
-	recordRerollModuleCost(tid, 3)
-	recordLockMaterialCost(tid, "自订密钥", 0) // 0→1 密钥 20
-	recordLockMaterialCost(tid, "订制模块", 1) // 1→2 模块 3
+	// 结果页出现后提交页面总费用（包括本轮锁定费用）。
+	setPendingRerollCost(tid, MaterialUsage{CustomModules: 6, CustomLockKeys: 20, RerollModules: 3, LockModules: 3})
+	commitPendingRerollCost(tid)
 
 	inv, _ = getInventory(tid)
 	if inv.CustomModules != 760-3-3 {

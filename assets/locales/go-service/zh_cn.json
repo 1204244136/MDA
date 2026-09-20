@@ -12,6 +12,16 @@
     "tasker.equipment_reroll.lock_permanent": "（永久锁）",
     "tasker.equipment_reroll.lock_one_time": "（一次性锁）",
     "tasker.equipment_reroll.preexisting_lock": "⚠️ 洗词条前置检查发现%s第%d号槽已有锁定%s。任务开始时所有槽位都必须无锁，锁只能由脚本添加；任务失败，流程已停止，请先解除已有锁后重试。",
+    "tasker.equipment_reroll.preexisting_lock_all_locked": "⚠️ 洗词条前置检查发现%s三个槽位均已锁定。全锁状态下无法进行效果变更；任务失败，流程已停止，请解除至少一个槽位的锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_empty": "⚠️ 洗词条前置检查发现%s第%d号槽锁定了空槽位。任务失败，流程已停止，请解除该锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_slot1": "⚠️ 洗词条前置检查发现%s第 1 号槽已有锁定%s。1 号槽基础出现率最高，锁 1 追 2/3 槽会使重洗成本倍增，严重违背策略；该部位尚未达成目标，任务已停止。请解除 1 号槽锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_not_target": "⚠️ 洗单件词条前置检查发现%s第%d号槽锁定了【%s】%s。该词条不是当前单件的目标词条，且锁定后无法洗掉；任务已停止，请解除该锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_slot_conflict": "⚠️ 洗单件词条前置检查发现%s第%d号槽锁定了【%s】%s。该槽位与你配置的槽位限定冲突，目标无法达成；任务已停止，请调整槽位限定或解除锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_forbidden": "⚠️ 洗角色词条前置检查发现%s第%d号槽锁定了【%s】%s。该词条被配置为禁止词条，锁定后无法移除导致目标不可达；任务已停止，请解除该锁定或调整配额后重试。",
+    "tasker.equipment_reroll.preexisting_lock_unwanted": "⚠️ 洗角色词条前置检查发现%s第%d号槽锁定了【%s】%s。该词条未被配置为需求词条，已有锁定会导致重洗成本上升；任务已停止，请解除该锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_strategy_mismatch": "⚠️ 洗词条前置检查发现%s第%d号槽已有锁定【%s】%s。当前锁定策略（先苦后甜或无需锁定）不建议在此状态下锁定该槽位，继续重洗会导致材料消耗倍增；任务已停止，请先解除该锁定后重试。",
+    "tasker.equipment_reroll.preexisting_lock_accepted": "ℹ️ %s第%d号槽已有锁定【%s】%s符合当前洗词条策略（如果要洗此装备第一步即锁定该词条），已直接保留并继续流程。",
+    "tasker.equipment_reroll.preexisting_lock_satisfied": "ℹ️ %s已有锁定且已满足词条目标，无需继续洗练，锁定已保留。",
     "tasker.equipment_reroll.single_part_invalid": "⚠️ 洗单件词条：未选择要洗的部位，任务已结束。请在任务选项中选择头部/臂部/身躯/腿部。",
     "tasker.equipment_reroll.single_target_invalid": "⚠️ 洗单件词条：需求词条配置不合法，任务已结束。请检查是否重复选择了同一个词条，或把两个词条限定到了同一个槽位（需求 1-3 条）。",
     "tasker.equipment_reroll.single_target_unreachable": "⚠️ 洗单件词条：%s 现有的锁定与槽位限定冲突，目标不可能达成，任务已结束。锁定的词条无法解锁也不会换槽，请调整槽位限定或更换部位。",
@@ -45,5 +55,9 @@
     "tasker.process_warning.title": "⚠️ 注意：检测到以下进程正在运行",
     "tasker.process_warning.recommend_1": "ℹ️ 请注意关闭 OSD 帧率显示、滤镜",
     "tasker.process_warning.note": "💡 这些功能会干扰图像识别",
-    "tasker.custom_burst.released": "第%d轮·爆裂%d阶段 · 按%s释放"
+    "tasker.custom_burst.released": "第%d轮·爆裂%d阶段 · 按%s释放",
+    "tasker.equipment_reroll.confirm_not_advanced": "⚠️ 效果变更确认后未进入结果页，可能是材料不足、按钮未生效或页面异常。任务已停止，请检查当前页面和材料余额后重试。",
+    "tasker.equipment_reroll.reload_locks_verify_failed": "⚠️ 加载先前锁定设置后，未能在限定重试次数内确认实际锁位与计划一致。为避免在未知锁定状态下继续消耗材料，任务已停止，请检查锁位后重试。",
+    "tasker.equipment_reroll.lock_abort_page_unknown": "⚠️ 放弃锁定并关闭锁定页后，未能识别效果变更确认页或装备详情页。任务已停止，请返回装备详情页后重试。",
+    "tasker.equipment_reroll.operation_failed": "⚠️ 装备改造流程进入无法恢复的页面状态，任务已停止，请检查当前页面后重试。"
 }

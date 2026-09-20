@@ -1,0 +1,399 @@
+{
+    "EquipmentRerollReloadLocks": {
+        "desc": "完整历史锁计划与本轮策略一致且库存已知足够时，才点击亮蓝的加载按钮",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__EquipmentRerollReloadLocksPlan",
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollPreviousLockSettings",
+                    "__EquipmentRerollReloadLocksBlue"
+                ],
+                "box_index": 2
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 100,
+        "timeout": 3000,
+        "next": [
+            "EquipmentRerollReloadLocksDone",
+            "__EquipmentRerollRetryGateReloadLocksDone"
+        ]
+    },
+    "EquipmentRerollReloadLocksDone": {
+        "desc": "确认实际三槽锁状态与计划一致后同步快照，再读取本轮总费用",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollReloadLocksVerifyRecognition"
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollReloadLocksDoneAction"
+            }
+        },
+        "post_delay": 0,
+        "timeout": 3000,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollPrepareRerollCost"
+        ]
+    },
+    "__EquipmentRerollReloadLocksEnabled": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollPreviousLockSettings",
+                    "__EquipmentRerollReloadLocksBlue"
+                ],
+                "box_index": 1
+            }
+        }
+    },
+    "__EquipmentRerollReloadLocksBlue": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "__EquipmentRerollPreviousLockSettings",
+                "method": 40,
+                "lower": [
+                    85,
+                    140,
+                    150
+                ],
+                "upper": [
+                    115,
+                    255,
+                    255
+                ],
+                "count": 80
+            }
+        }
+    },
+    "__EquipmentRerollReloadLocksPlan": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollReloadLocksPlanRecognition"
+            }
+        }
+    },
+    "__EquipmentRerollRetryGateReloadLocksDone": {
+        "desc": "重试闸门：加载历史锁后有界等待实际锁位与计划一致，耗尽后显式失败",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "reload_locks_done",
+                    "retry": "EquipmentRerollReloadLocksDone",
+                    "give_up": "EquipmentRerollReloadLocksFailed",
+                    "next": [
+                        "EquipmentRerollReloadLocksDone",
+                        "__EquipmentRerollRetryGateReloadLocksDone"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "EquipmentRerollReloadLocksFailed": {
+        "desc": "历史锁加载后无法验证实际锁位，停止任务避免未知状态下继续消耗",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "reload_locks_verify_failed"
+                }
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot1LockBlue": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    236,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    85,
+                    110,
+                    100
+                ],
+                "upper": [
+                    115,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot1LockOrange": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    236,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    0,
+                    110,
+                    100
+                ],
+                "upper": [
+                    30,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot1LockGray": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    236,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    0,
+                    0,
+                    110
+                ],
+                "upper": [
+                    179,
+                    25,
+                    160
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot2LockBlue": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    263,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    85,
+                    110,
+                    100
+                ],
+                "upper": [
+                    115,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot2LockOrange": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    263,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    0,
+                    110,
+                    100
+                ],
+                "upper": [
+                    30,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot2LockGray": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    263,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    0,
+                    0,
+                    110
+                ],
+                "upper": [
+                    179,
+                    25,
+                    160
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot3LockBlue": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    290,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    85,
+                    110,
+                    100
+                ],
+                "upper": [
+                    115,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot3LockOrange": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    290,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    0,
+                    110,
+                    100
+                ],
+                "upper": [
+                    30,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot3LockGray": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    773,
+                    290,
+                    24,
+                    24
+                ],
+                "method": 40,
+                "lower": [
+                    0,
+                    0,
+                    110
+                ],
+                "upper": [
+                    179,
+                    25,
+                    160
+                ],
+                "count": 20
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot1Empty": {
+        "desc": "空词条槽不显示锁图标，明确识别未获得效果才视作未锁定",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    236,
+                    205,
+                    27
+                ],
+                "expected": "未获得效果"
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot2Empty": {
+        "desc": "空词条槽不显示锁图标，明确识别未获得效果才视作未锁定",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    263,
+                    205,
+                    27
+                ],
+                "expected": "未获得效果"
+            }
+        }
+    },
+    "__EquipmentRerollConfirmSlot3Empty": {
+        "desc": "空词条槽不显示锁图标，明确识别未获得效果才视作未锁定",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    290,
+                    205,
+                    27
+                ],
+                "expected": "未获得效果"
+            }
+        }
+    }
+}

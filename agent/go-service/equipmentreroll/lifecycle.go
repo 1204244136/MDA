@@ -35,19 +35,23 @@ func (s *taskLifecycle) OnTaskerTask(_ *maa.Tasker, event maa.EventStatus, detai
 		clearMonitorState(int64(detail.TaskID))
 		clearPendingLock(int64(detail.TaskID))
 		clearDPCaches()
+		clearRetryGates()
 	case maa.EventStatusSucceeded:
 		// 完整洗词条任务的最终详情由 EquipmentRerollFinalSummaryAction 通过 focus 输出；
 		// 独立装备检测已在各部位扫描完成时实时输出，这里只记录材料消耗。
-		flushPendingRerollCost(int64(detail.TaskID))
+		// 成功结束也不能把尚未执行的费用当作已消费。
+		clearPendingRerollCost(int64(detail.TaskID))
 		logMaterialConsumption(int64(detail.TaskID), detail.Entry)
 		clearMonitorState(int64(detail.TaskID))
 		clearPendingLock(int64(detail.TaskID))
 		clearDPCaches()
+		clearRetryGates()
 	case maa.EventStatusFailed:
 		// 失败可能发生在确认按钮尚未点击时，pending 成本不能计入使用量。
 		clearPendingRerollCost(int64(detail.TaskID))
 		clearMonitorState(int64(detail.TaskID))
 		clearPendingLock(int64(detail.TaskID))
 		clearDPCaches()
+		clearRetryGates()
 	}
 }

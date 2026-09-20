@@ -1,0 +1,140 @@
+{
+    "__EquipmentRerollLockConfirmEnabled": {
+        "desc": "已选择锁定材料时确认按钮变蓝；灰色按钮不能推进",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    485,
+                    590,
+                    70,
+                    25
+                ],
+                "method": 40,
+                "lower": [
+                    85,
+                    140,
+                    150
+                ],
+                "upper": [
+                    115,
+                    255,
+                    255
+                ],
+                "count": 900
+            }
+        }
+    },
+    "__EquipmentRerollLockConfirmText": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    590,
+                    585,
+                    100,
+                    45
+                ],
+                "expected": "确认"
+            }
+        }
+    },
+    "__EquipmentRerollCostModule": {
+        "desc": "只在黑色消耗汇总条找模组图标，排除下方库存和上方必要数量",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    610,
+                    487,
+                    100,
+                    32
+                ],
+                "template": "EquipmentReroll/CostModule.png",
+                "threshold": 0.8
+            }
+        }
+    },
+    "__EquipmentRerollCostKey": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    655,
+                    487,
+                    65,
+                    32
+                ],
+                "template": "EquipmentReroll/CostKey.png",
+                "threshold": 0.8
+            }
+        }
+    },
+    "__EquipmentRerollCostModuleCount": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollCostModule",
+                "roi_offset": [
+                    20,
+                    -3,
+                    4,
+                    6
+                ],
+                "expected": "^\\d+$"
+            }
+        }
+    },
+    "__EquipmentRerollCostKeyCount": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollCostKey",
+                "roi_offset": [
+                    24,
+                    -3,
+                    4,
+                    6
+                ],
+                "expected": "^\\d+$"
+            }
+        }
+    },
+    "__EquipmentRerollHeldLabel": {
+        "desc": "确认页「持有材料」文字，仅用于相对定位右侧持有数量",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    505,
+                    240,
+                    45
+                ],
+                "expected": "持有材料"
+            }
+        }
+    },
+    "__EquipmentRerollConfirmHeldModule": {
+        "desc": "持有材料标签右侧的模组库存；先执行标签定位，限定第一种材料数字区域，归一化千位分隔符（逗号可能被 OCR 读成点）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollHeldLabel",
+                "roi_offset": [
+                    50,
+                    -4,
+                    40,
+                    10
+                ],
+                "expected": "^\\d+$",
+                "replace": [
+                    [
+                        "[.,，]",
+                        ""
+                    ]
+                ]
+            }
+        }
+    }
+}

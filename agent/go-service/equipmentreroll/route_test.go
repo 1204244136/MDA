@@ -27,21 +27,58 @@ func TestResultRouteTarget(t *testing.T) {
 	}
 }
 
+func TestShouldContinueCurrentPartAfterAccept(t *testing.T) {
+	mk := func(effects [maxSlot]string, locks [maxSlot]SlotLock) partScan {
+		return partScanFromArrays(effects, [maxSlot]string{}, locks)
+	}
+
+	t.Run("character keeps current globally best part", func(t *testing.T) {
+		quota := map[string]int{TargetEffectElementalDamage: 4, "防御力增加": -1}
+		parts := map[string]partScan{
+			"头部": mk([maxSlot]string{TargetEffectElementalDamage, "防御力增加", ""}, [maxSlot]SlotLock{}),
+			"臂部": mk([maxSlot]string{TargetEffectElementalDamage, TargetEffectAttackIncrease, ""}, [maxSlot]SlotLock{}),
+			"身躯": mk([maxSlot]string{TargetEffectElementalDamage, TargetEffectAttackIncrease, ""}, [maxSlot]SlotLock{}),
+			"腿部": mk([maxSlot]string{TargetEffectElementalDamage, TargetEffectAttackIncrease, ""}, [maxSlot]SlotLock{}),
+		}
+		cfg := carrierConfig{Mode: rerollModeCharacter, Quota: quota}
+		if !shouldContinueCurrentPartAfterAccept("头部", cfg, parts) {
+			t.Fatal("current globally best part should continue without closing its page")
+		}
+		if shouldContinueCurrentPartAfterAccept("臂部", cfg, parts) {
+			t.Fatal("non-best current part should return to character page for reselection")
+		}
+	})
+
+	t.Run("single continues only while target remains reachable and incomplete", func(t *testing.T) {
+		target := parseSingleTarget(map[string]int{TargetEffectElementalDamage: 0})
+		cfg := carrierConfig{Mode: rerollModeSingle, Part: "头部", Target: target}
+		parts := map[string]partScan{"头部": mk([maxSlot]string{"", "", ""}, [maxSlot]SlotLock{})}
+		if !shouldContinueCurrentPartAfterAccept("头部", cfg, parts) {
+			t.Fatal("incomplete reachable single target should continue on current page")
+		}
+		parts["头部"] = mk([maxSlot]string{TargetEffectElementalDamage, "", ""}, [maxSlot]SlotLock{})
+		if shouldContinueCurrentPartAfterAccept("头部", cfg, parts) {
+			t.Fatal("satisfied single target should return to decision and finish")
+		}
+	})
+}
+
 func TestLockRouteTargets(t *testing.T) {
+	// 新版客户端装备详情页的词条行已不可点击，锁定统一改走“点效果变更 → 确认页”，
+	// 因此无论待锁槽位是多少，路由目标都应是 EquipmentRerollClickChangeEffect。
 	tests := []struct {
 		name string
 		slot int
-		want string
 	}{
-		{name: "slot 2", slot: 2, want: "EquipmentRerollLockClickSlot2"},
-		{name: "slot 3", slot: 3, want: "EquipmentRerollLockClickSlot3"},
-		{name: "no slot", slot: 0, want: "EquipmentRerollClickChangeEffect"},
-		{name: "invalid slot", slot: 1, want: "EquipmentRerollClickChangeEffect"},
+		{name: "slot 0", slot: 0},
+		{name: "slot 1", slot: 1},
+		{name: "slot 2", slot: 2},
+		{name: "slot 3", slot: 3},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := lockRouteTarget(tt.slot); got != tt.want {
-				t.Fatalf("lockRouteTarget(%d) = %q, want %q", tt.slot, got, tt.want)
+			if got := lockRouteTarget(tt.slot); got != "EquipmentRerollClickChangeEffect" {
+				t.Fatalf("lockRouteTarget(%d) = %q, want EquipmentRerollClickChangeEffect", tt.slot, got)
 			}
 		})
 	}
@@ -121,19 +158,21 @@ func TestScanNextItemsSingleModeStopsAfterSelectedPart(t *testing.T) {
 			t.Fatalf("scanNextItems(%q, false) = %+v, want close + %s", part, items, wantNext)
 		}
 	}
+	// 材料库存改为进入效果锁定页时顺便读取，扫描末尾不再跑独立的“物资检测”，
+	// 腿部扫完直接关闭详情页并进入决策分流。
 	items, ok := scanNextItems("腿部", false)
-	if !ok || len(items) != 1 || items[0].Name != "EquipmentRerollMaterialCheckEnter" {
+	if !ok || len(items) != 2 || items[0].Name != "[JumpBack]EquipmentRerollScanCloseDetails" || items[1].Name != "EquipmentRerollAfterMaterialCheck" {
 		t.Fatalf("character mode legs route = %+v", items)
 	}
 
-	// 单件模式：任意部位扫完都直接进物资检测，不再链到下一件。
+	// 单件模式：任意部位扫完都直接关闭详情页进入决策，不再链到下一件。
 	for _, part := range equipmentParts {
 		items, ok := scanNextItems(part, true)
 		if !ok {
 			t.Fatalf("scanNextItems(%q, true) not ok", part)
 		}
-		if len(items) != 1 || items[0].Name != "EquipmentRerollMaterialCheckEnter" {
-			t.Fatalf("single mode %q route = %+v, want material check only", part, items)
+		if len(items) != 2 || items[0].Name != "[JumpBack]EquipmentRerollScanCloseDetails" || items[1].Name != "EquipmentRerollAfterMaterialCheck" {
+			t.Fatalf("single mode %q route = %+v, want close + after material check", part, items)
 		}
 	}
 
@@ -183,8 +222,8 @@ func TestBuildFinalSummaryMessageForRouting(t *testing.T) {
 		}
 	}
 	setInventory(completeTaskID, Inventory{CustomModules: 7, CustomLockKeys: 40})
-	recordRerollModuleCost(completeTaskID, 3)
-	recordLockMaterialCost(completeTaskID, "自订密钥", 0)
+	setPendingRerollCost(completeTaskID, MaterialUsage{CustomModules: 3, CustomLockKeys: 20, RerollModules: 3})
+	commitPendingRerollCost(completeTaskID)
 
 	got := buildFinalSummaryMessage(completeTaskID)
 	for _, want := range []string{"【装备详情】", "头部:", "腿部:", "攻击力增加", "【消耗材料】", "订制模块 3", "自订密钥 2"} {

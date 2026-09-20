@@ -613,9 +613,33 @@ func TestDesiredLockPlanUsesFallbackMaterial(t *testing.T) {
 		"身躯": partScanFromArrays([maxSlot]string{TargetEffectAttackIncrease, "", ""}, [maxSlot]string{}, [maxSlot]SlotLock{}),
 		"腿部": partScanFromArrays([maxSlot]string{TargetEffectElementalDamage, "", ""}, [maxSlot]string{}, [maxSlot]SlotLock{}),
 	}
-	slot, material, ok := desiredLockPlanForInventory(parts, "头部", quota, Inventory{CustomModules: 5}, "自订密钥")
-	if !ok || material != "订制模块" || slot == 0 {
-		t.Fatalf("unaffordable key should produce an affordable module lock plan, slot=%d material=%q ok=%v", slot, material, ok)
+	slot, material, outcome := desiredLockPlanForInventory(parts, "头部", quota, Inventory{CustomModules: 5}, "自订密钥")
+	if outcome != lockPlanLock || material != "订制模块" || slot == 0 {
+		t.Fatalf("unaffordable key should produce an affordable module lock plan, slot=%d material=%q outcome=%v", slot, material, outcome)
+	}
+}
+
+// TestDesiredLockPlanOutcomeDistinguishesNotNeeded 验证「策略不需要锁」与「材料不足」
+// 被区分开：前者不能报成材料不足，否则会把排查方向带偏（实机日志曾出现该误导）。
+func TestDesiredLockPlanOutcomeDistinguishesNotNeeded(t *testing.T) {
+	quota := map[string]int{TargetEffectElementalDamage: 4}
+	// 头部三槽都没有配额内词条：该部位当前无需锁定，而非材料不足。
+	parts := map[string]partScan{
+		"头部": partScanFromArrays([maxSlot]string{"命中率增加", "防御力增加", ""}, [maxSlot]string{}, [maxSlot]SlotLock{}),
+		"臂部": partScanFromArrays([maxSlot]string{TargetEffectElementalDamage, "", ""}, [maxSlot]string{}, [maxSlot]SlotLock{}),
+		"身躯": partScanFromArrays([maxSlot]string{TargetEffectElementalDamage, "", ""}, [maxSlot]string{}, [maxSlot]SlotLock{}),
+		"腿部": partScanFromArrays([maxSlot]string{TargetEffectElementalDamage, "", ""}, [maxSlot]string{}, [maxSlot]SlotLock{}),
+	}
+	if _, _, outcome := desiredLockPlanForInventory(parts, "头部", quota, optimisticLockInventory, ""); outcome != lockPlanNotNeeded {
+		t.Fatalf("part with no quotable affix should report lockPlanNotNeeded, got %v", outcome)
+	}
+	// 材料为零时才是真正付不起。
+	if _, _, outcome := desiredLockPlanForInventory(parts, "臂部", quota, Inventory{}, ""); outcome != lockPlanUnaffordable {
+		t.Fatalf("zero inventory should report lockPlanUnaffordable, got %v", outcome)
+	}
+	// 快照缺失属于未知，既不是不需要锁也不是材料不足。
+	if _, _, outcome := desiredLockPlanForInventory(parts, "不存在", quota, optimisticLockInventory, ""); outcome != lockPlanUnknown {
+		t.Fatalf("missing part snapshot should report lockPlanUnknown, got %v", outcome)
 	}
 }
 

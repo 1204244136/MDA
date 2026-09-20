@@ -31,7 +31,7 @@
         ]
     },
     "EquipmentRerollFlow": {
-        "desc": "洗词条编排：先识别装备（角色模式四件 / 单件模式仅选定一件，扫描末尾做一次物资检测），再按模式决策与执行效果变更",
+        "desc": "洗词条编排：先识别装备（角色模式四件 / 单件模式仅选定一件），再按模式决策与执行效果变更；材料库存进入锁定页或确认页后读取",
         "next": [
             "EquipmentRerollScanMain"
         ]
@@ -158,7 +158,7 @@
         ]
     },
     "EquipmentRerollLockRouteSlot": {
-        "desc": "根据待锁槽位路由到 Slot2/3 点击",
+        "desc": "锁定路由（Go）：新版客户端装备详情页词条行已不可点击，统一改走「点效果变更 → 确认页」，再由确认页的 KeepLock 分支完成锁定",
         "recognition": {
             "type": "DirectHit"
         },
@@ -170,165 +170,26 @@
         },
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollLockClickSlot2",
-            "EquipmentRerollLockClickSlot3"
-        ]
-    },
-    "EquipmentRerollLockClickSlot2": {
-        "desc": "点击 2号槽（整行）进入锁定页（Flag锚点整行，框高收窄贴合槽位）",
-        "recognition": {
-            "type": "DirectHit",
-            "param": {
-                "roi": "[Anchor]EquipmentRerollInspectFlag",
-                "roi_offset": [
-                    -90,
-                    69,
-                    300,
-                    2
-                ]
-            }
-        },
-        "pre_delay": 0,
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    30,
-                    3,
-                    -60,
-                    -6
-                ]
-            }
-        },
-        "post_wait_freezes": {
-            "time": 150
-        },
-        "post_delay": 0,
-        "rate_limit": 100,
-        "next": [
-            "EquipmentRerollLockPageEntered",
-            "EquipmentRerollLockClickSlot2"
-        ]
-    },
-    "EquipmentRerollLockClickSlot3": {
-        "desc": "点击 3号槽（整行）进入锁定页（3号优先，框高收窄避免压到下方效果变更按钮）",
-        "recognition": {
-            "type": "DirectHit",
-            "param": {
-                "roi": "[Anchor]EquipmentRerollInspectFlag",
-                "roi_offset": [
-                    -90,
-                    93,
-                    300,
-                    2
-                ]
-            }
-        },
-        "pre_delay": 0,
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    30,
-                    3,
-                    -60,
-                    -6
-                ]
-            }
-        },
-        "post_wait_freezes": {
-            "time": 150
-        },
-        "post_delay": 0,
-        "rate_limit": 100,
-        "next": [
-            "EquipmentRerollLockPageEntered",
-            "EquipmentRerollLockClickSlot3"
+            "EquipmentRerollClickChangeEffect"
         ]
     },
     "EquipmentRerollLockPageEntered": {
-        "desc": "原子节点：确认进入效果锁定页（OCR 标题“效果锁定”）。与“锁词条”解耦，真锁流程由 LockSelectMaterial 承接",
+        "desc": "原子节点：确认进入效果锁定页（复用 __EquipmentRerollLockTitle，ROI 单点维护）",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    618,
-                    147,
-                    73,
-                    28
-                ],
-                "expected": [
-                    "效果锁定"
+                "any_of": [
+                    "__EquipmentRerollLockTitle"
                 ]
             }
         },
-        "rate_limit": 100,
-        "next": [
-            "EquipmentRerollLockSelectMaterial"
-        ]
-    },
-    "EquipmentRerollMaterialCheckEnter": {
-        "desc": "腿部扫描完成后“物资检测”入口（纯 Pipeline）：点击必出的第一槽（slot1，100% 出词条）进入效果锁定页；若未进入（识别失败）则再次点击（兜底）",
-        "recognition": {
-            "type": "DirectHit",
-            "param": {
-                "roi": "[Anchor]EquipmentRerollInspectFlag",
-                "roi_offset": [
-                    -90,
-                    45,
-                    300,
-                    2
-                ]
-            }
-        },
-        "pre_delay": 0,
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    30,
-                    3,
-                    -60,
-                    -6
-                ]
-            }
-        },
-        "post_wait_freezes": {
-            "time": 300,
-            "rate_limit": 100
-        },
-        "post_delay": 0,
-        "rate_limit": 100,
-        "next": [
-            "EquipmentRerollMaterialCheckPageEntered",
-            "EquipmentRerollMaterialCheckEnter"
-        ]
-    },
-    "EquipmentRerollMaterialCheckPageEntered": {
-        "desc": "物资检测：OCR 确认进入效果锁定页（复用 __EquipmentRerollLockTitle）",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    618,
-                    147,
-                    73,
-                    28
-                ],
-                "expected": [
-                    "效果锁定"
-                ]
-            }
-        },
-        "pre_delay": 0,
-        "post_delay": 0,
         "rate_limit": 100,
         "next": [
             "EquipmentRerollMaterialCheck"
         ]
     },
     "EquipmentRerollMaterialCheck": {
-        "desc": "物资检测：读取效果锁定页的材料持有数量初始化 Inventory 余额（记录逻辑→Go；不实际锁定），随后退出",
+        "desc": "进入效果锁定页时顺便读一次材料持有量初始化库存余额（读不到则跳过初始化，不阻断锁定流程）",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -340,25 +201,101 @@
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollMaterialCheckExit"
+            "EquipmentRerollLockSelectMaterial"
         ]
     },
-    "EquipmentRerollMaterialCheckExit": {
-        "desc": "物资检测退出（纯 Pipeline）：用 [JumpBack]CommonClosePage 关闭效果锁定页，再用 [JumpBack]EquipmentRerollScanCloseDetails 关闭腿部详情页，进入 EquipmentRerollAfterMaterialCheck 路由",
+    "EquipmentRerollLockAbort": {
+        "desc": "放弃锁定：先清理待锁状态并关闭效果锁定页，再按实际返回页面继续",
         "recognition": {
             "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollLockAbortAction"
+            }
+        },
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "EquipmentRerollLockAbortAfterClose"
+        ]
+    },
+    "EquipmentRerollLockAbortAfterClose": {
+        "desc": "关闭锁定页后的页面分流：确认页直接读取费用，详情页重新进入效果变更",
+        "pre_delay": 0,
+        "post_delay": 0,
+        "timeout": 5000,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollLockAbortOnConfirmPage",
+            "EquipmentRerollLockAbortOnDetailsPage"
+        ],
+        "on_error": [
+            "EquipmentRerollLockAbortFailed"
+        ]
+    },
+    "EquipmentRerollLockAbortOnConfirmPage": {
+        "desc": "放弃锁定后返回效果变更确认页，不再重复锁定，直接读取本轮费用",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
+            }
         },
         "pre_delay": 0,
         "post_delay": 0,
         "rate_limit": 100,
         "next": [
-            "[JumpBack]CommonClosePage",
-            "[JumpBack]EquipmentRerollScanCloseDetails",
-            "EquipmentRerollAfterMaterialCheck"
+            "EquipmentRerollPrepareRerollCost"
         ]
     },
+    "EquipmentRerollLockAbortOnDetailsPage": {
+        "desc": "兼容旧页面层级：放弃锁定后若返回装备详情页，则重新进入效果变更",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    380,
+                    240,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/InspectFlag.png"
+                ],
+                "threshold": 0.9,
+                "order_by": "Score"
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollClickChangeEffect"
+        ]
+    },
+    "EquipmentRerollLockAbortFailed": {
+        "desc": "关闭锁定页后无法确认所在页面，显式失败并提示用户",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "lock_abort_page_unknown"
+                }
+            }
+        }
+    },
     "EquipmentRerollAfterMaterialCheck": {
-        "desc": "物资检测退出后路由（Go）：独立检测→结束；角色→Decide；单件→SingleDecide",
+        "desc": "四件扫描完成（详情页已关闭）后路由（Go）：独立检测→结束；角色→Decide；单件→SingleDecide",
         "recognition": {
             "type": "DirectHit"
         },
@@ -389,7 +326,7 @@
         },
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollLockSelectMaterial"
+            "__EquipmentRerollRetryGateLockSelectMaterial"
         ]
     },
     "EquipmentRerollLockSelectModule": {
@@ -415,8 +352,8 @@
         "post_delay": 50,
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollLockSelectModule",
-            "EquipmentRerollLockConfirm"
+            "EquipmentRerollLockConfirm",
+            "__EquipmentRerollRetryGateLockSelectModule"
         ]
     },
     "EquipmentRerollLockSelectKey": {
@@ -442,24 +379,21 @@
         "post_delay": 50,
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollLockSelectKey",
-            "EquipmentRerollLockConfirm"
+            "EquipmentRerollLockConfirm",
+            "__EquipmentRerollRetryGateLockSelectKey"
         ]
     },
     "EquipmentRerollLockConfirm": {
         "desc": "点击锁定页底部“确认”（启用前灰色，SELECT后变蓝）",
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "roi": [
-                    460,
-                    544,
-                    359,
-                    80
+                "all_of": [
+                    "__EquipmentRerollLockTitle",
+                    "__EquipmentRerollLockConfirmEnabled",
+                    "__EquipmentRerollLockConfirmText"
                 ],
-                "expected": [
-                    "确认"
-                ]
+                "box_index": 2
             }
         },
         "pre_delay": 0,
@@ -469,59 +403,8 @@
         "post_delay": 50,
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollLockNotify",
-            "EquipmentRerollLockConfirm"
-        ]
-    },
-    "EquipmentRerollLockNotify": {
-        "desc": "二次确认弹窗：通知“为固定所选效果，将进行锁定。确定要进行吗？”（确认页后重入偏暗需freeze）",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    601,
-                    196,
-                    75,
-                    29
-                ],
-                "expected": [
-                    "通知"
-                ]
-            }
-        },
-        "rate_limit": 100,
-        "next": [
-            "EquipmentRerollLockNotifyConfirm"
-        ]
-    },
-    "EquipmentRerollLockNotifyConfirm": {
-        "desc": "点击通知弹窗“确认”完成上锁，返回详情页（同步快照）",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    650,
-                    433,
-                    150,
-                    34
-                ],
-                "expected": [
-                    "确认"
-                ]
-            }
-        },
-        "pre_delay": 0,
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": {
-            "time": 100
-        },
-        "post_delay": 0,
-        "rate_limit": 100,
-        "next": [
             "EquipmentRerollLockComplete",
-            "EquipmentRerollLockNotifyConfirm"
+            "__EquipmentRerollRetryGateLockConfirm"
         ]
     },
     "EquipmentRerollLockComplete": {
@@ -530,8 +413,8 @@
             "type": "Or",
             "param": {
                 "any_of": [
-                    "EquipmentRerollLockAfterIsDetail",
-                    "EquipmentRerollLockAfterIsConfirm"
+                    "EquipmentRerollLockAfterIsConfirm",
+                    "EquipmentRerollLockAfterIsDetail"
                 ]
             }
         },
@@ -587,18 +470,12 @@
         ]
     },
     "EquipmentRerollLockAfterIsConfirm": {
-        "desc": "确认页特征：效果变更说明文字（确认页有、详情页无）",
+        "desc": "确认页特征：顶部蓝底白字的效果变更大标题（限制顶部 ROI）",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    500,
-                    190,
-                    320,
-                    70
-                ],
-                "expected": [
-                    "将.*改造效果与数值"
+                "any_of": [
+                    "__EquipmentRerollChangeEffectTitle"
                 ]
             }
         },
@@ -669,35 +546,33 @@
         "rate_limit": 100,
         "next": [
             "EquipmentRerollChangeEffectPageEntered",
-            "EquipmentRerollClickChangeEffectRetry"
+            "__EquipmentRerollRetryGateClickChangeEffectRetry"
         ]
     },
     "EquipmentRerollChangeEffectPageEntered": {
         "desc": "效果变更点击后的确认页哨兵：确认页面已切换后才读取并校验消耗",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    500,
-                    190,
-                    320,
-                    70
-                ],
-                "expected": [
-                    "将.*改造效果与数值"
+                "any_of": [
+                    "__EquipmentRerollChangeEffectTitle"
                 ]
             }
         },
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollPrepareRerollCost"
+            "EquipmentRerollKeepLockGate"
         ]
     },
     "EquipmentRerollPrepareRerollCost": {
-        "desc": "效果变更确认前校验库存并记录待消耗订制模块数（按当前锁定数计费）",
+        "desc": "确认页读取本轮模组/密钥总费用并校验库存，暂存但不扣费",
         "recognition": {
-            "type": "DirectHit"
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollCostRecognition"
+            }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Custom",
             "param": {
@@ -705,15 +580,22 @@
                 "custom_action_param": {}
             }
         },
+        "post_delay": 0,
         "rate_limit": 100,
         "next": [
             "EquipmentRerollConfirmChangeEffect"
         ]
     },
     "EquipmentRerollRecordRerollCost": {
-        "desc": "确认成功后记录本次效果变更消耗的订制模块（按当前锁定数计费）",
+        "desc": "结果页已出现后同时扣记本轮模组和密钥，仅记账一次",
         "recognition": {
-            "type": "DirectHit"
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__EquipmentRerollResultPageTitle",
+                    "__EquipmentRerollResultButtonsVisible"
+                ]
+            }
         },
         "action": {
             "type": "Custom",
@@ -722,31 +604,31 @@
                 "custom_action_param": {}
             }
         },
+        "timeout": 5000,
         "next": [
             "__EquipmentRerollResultButtonsVisible"
         ]
     },
     "EquipmentRerollConfirmChangeEffect": {
-        "desc": "在消耗材料确认页确认效果变更（按锁定数计费：0锁1/1锁2/2锁3 订制模块）",
+        "desc": "确认效果变更页后，相对加载锁定设置区域定位底部按钮，避免命中顶部同名标题",
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "roi": [
-                    470,
-                    510,
-                    340,
-                    50
+                "all_of": [
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollPreviousLockSettings",
+                    "__EquipmentRerollChangeEffectButton"
                 ],
-                "expected": [
-                    "效果变更"
-                ]
+                "box_index": 2
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
         "next": [
-            "EquipmentRerollRecordRerollCost"
+            "EquipmentRerollRecordRerollCost",
+            "__EquipmentRerollRetryGateConfirmChangeEffect"
         ]
     },
     "EquipmentRerollResultPage": {
@@ -762,16 +644,18 @@
                 }
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "EquipmentRerollResultRouteAction"
             }
         },
+        "post_delay": 0,
         "timeout": 4000,
         "rate_limit": 200,
         "next": [
-            "EquipmentRerollResultPage"
+            "__EquipmentRerollRetryGateResultPage"
         ]
     },
     "EquipmentRerollResultClickKeep": {
@@ -790,35 +674,64 @@
                 ]
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 500
+            "time": 150
         },
+        "post_delay": 100,
         "next": [
-            "EquipmentRerollResultClickKeep",
-            "EquipmentRerollKeepLockGate"
+            "EquipmentRerollKeepLossMaxTierWarning",
+            "EquipmentRerollKeepLockGate",
+            "__EquipmentRerollRetryGateResultClickKeep"
         ]
     },
     "EquipmentRerollKeepLockGate": {
-        "desc": "结果页维持后的确认页哨兵：识别确认页独有说明文字“将按照指定概率变更所有改造效果与数值”，避免结果页右侧“效果变更”按钮误判",
+        "desc": "结果页维持后的确认页哨兵：OCR 限定顶部大标题，排除下方同名操作按钮",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    500,
-                    190,
-                    320,
-                    70
-                ],
-                "expected": [
-                    "将.*改造效果与数值"
+                "any_of": [
+                    "__EquipmentRerollChangeEffectTitle"
                 ]
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
         "rate_limit": 200,
         "next": [
+            "EquipmentRerollSyncInventory",
+            "EquipmentRerollConfirmPageBranch"
+        ]
+    },
+    "EquipmentRerollSyncInventory": {
+        "desc": "确认页兜底同步材料持有量（Go）：本轮无需锁定时流程不经过效果锁定页，靠这里补齐库存。必须挂在确认页哨兵之后（页面归属由挂载点保证）；识别到持有量才命中，未命中时由哨兵直接进入确认页分支",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "EquipmentRerollSyncInventoryRecognition",
+                "custom_recognition_param": {}
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollConfirmPageBranch"
+        ]
+    },
+    "EquipmentRerollConfirmPageBranch": {
+        "desc": "确认页处理链入口：载入历史锁 → 锁定判定 → 读取本轮费用。确认页后续链只在这里维护一处",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollReloadLocks",
             "EquipmentRerollKeepLockCheck",
             "EquipmentRerollPrepareRerollCost"
         ]
@@ -836,6 +749,8 @@
                 }
             }
         },
+        "pre_delay": 0,
+        "post_delay": 0,
         "rate_limit": 100,
         "next": [
             "EquipmentRerollKeepLockRoute"
@@ -846,12 +761,14 @@
         "recognition": {
             "type": "DirectHit"
         },
+        "pre_delay": 0,
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "EquipmentRerollKeepLockRouteSlotAction"
             }
         },
+        "post_delay": 0,
         "rate_limit": 100,
         "next": [
             "EquipmentRerollKeepClickSlot2",
@@ -860,16 +777,15 @@
         ]
     },
     "EquipmentRerollKeepClickSlot2": {
-        "desc": "效果变更确认页点击 2号槽进入锁定页（固定坐标）",
+        "desc": "效果变更确认页点击 2号槽进入锁定页（顶部大标题定位，相对槽位坐标）",
         "recognition": {
-            "type": "DirectHit",
+            "type": "And",
             "param": {
-                "roi": [
-                    495,
-                    283,
-                    300,
-                    20
-                ]
+                "all_of": [
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot2"
+                ],
+                "box_index": 1
             }
         },
         "pre_delay": 0,
@@ -891,20 +807,19 @@
         "rate_limit": 100,
         "next": [
             "EquipmentRerollLockPageEntered",
-            "EquipmentRerollKeepClickSlot2"
+            "__EquipmentRerollRetryGateKeepClickSlot2"
         ]
     },
     "EquipmentRerollKeepClickSlot3": {
-        "desc": "效果变更确认页点击 3号槽进入锁定页（固定坐标）",
+        "desc": "效果变更确认页点击 3号槽进入锁定页（顶部大标题定位，相对槽位坐标）",
         "recognition": {
-            "type": "DirectHit",
+            "type": "And",
             "param": {
-                "roi": [
-                    494,
-                    310,
-                    302,
-                    20
-                ]
+                "all_of": [
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot3"
+                ],
+                "box_index": 1
             }
         },
         "pre_delay": 0,
@@ -926,7 +841,7 @@
         "rate_limit": 100,
         "next": [
             "EquipmentRerollLockPageEntered",
-            "EquipmentRerollKeepClickSlot3"
+            "__EquipmentRerollRetryGateKeepClickSlot3"
         ]
     },
     "EquipmentRerollResultClickAccept": {
@@ -945,6 +860,52 @@
                 ]
             }
         },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 150
+        },
+        "post_delay": 100,
+        "next": [
+            "EquipmentRerollLossMaxTierWarning",
+            "EquipmentRerollAfterAccept",
+            "__EquipmentRerollRetryGateResultClickAccept"
+        ]
+    },
+    "EquipmentRerollLossMaxTierWarning": {
+        "desc": "效果变更后的最高阶段效果警告；任务目标是词条效果，按正常流程确认继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    260,
+                    250,
+                    80
+                ],
+                "expected": [
+                    "丧失最高阶段效果"
+                ]
+            }
+        },
+        "next": [
+            "EquipmentRerollLossMaxTierConfirm"
+        ]
+    },
+    "EquipmentRerollLossMaxTierConfirm": {
+        "desc": "确认继续效果变更，确认按钮限定在警告弹窗底部右侧",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "EquipmentRerollLossMaxTierWarning",
+                    "__EquipmentRerollLossMaxTierConfirmButton"
+                ],
+                "box_index": 1
+            }
+        },
         "action": {
             "type": "Click"
         },
@@ -952,21 +913,44 @@
             "time": 400
         },
         "next": [
-            "EquipmentRerollResultClickAccept",
-            "EquipmentRerollAfterAccept"
+            "EquipmentRerollAfterAccept",
+            "__EquipmentRerollRetryGateLossMaxTierConfirm"
         ]
     },
-    "EquipmentRerollAfterAccept": {
-        "desc": "接受变更后分流：当前部位仍缺目标词条 → 留在确认页进 KeepLockGate 继续锁定/重洗；已达标 → 返回人物页重新调度",
+    "__EquipmentRerollLossMaxTierConfirmButton": {
         "recognition": {
-            "type": "DirectHit"
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    440,
+                    130,
+                    65
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        }
+    },
+    "EquipmentRerollAfterAccept": {
+        "desc": "确认已回到效果变更确认页后，提交接受结果并按最新快照决定继续当前装备或返回重调度",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
+            }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "EquipmentRerollAfterAcceptRouteAction"
             }
         },
+        "post_delay": 0,
         "next": [
             "EquipmentRerollKeepLockGate",
             "EquipmentRerollReturnToDecide"
@@ -993,7 +977,7 @@
         "timeout": 5000,
         "rate_limit": 100,
         "next": [
-            "__EquipmentRerollLocateChangedSlot1Match"
+            "EquipmentRerollResultPage"
         ]
     },
     "__EquipmentRerollLocateChangedSlot1Match": {
@@ -1014,14 +998,7 @@
                 "order_by": "Vertical",
                 "index": 0
             }
-        },
-        "pre_delay": 0,
-        "anchor": "EquipmentRerollChangedSlot1",
-        "post_delay": 0,
-        "rate_limit": 200,
-        "next": [
-            "__EquipmentRerollLocateChangedSlot2Match"
-        ]
+        }
     },
     "__EquipmentRerollLocateChangedSlot2Match": {
         "desc": "决策页模板匹配第2变更槽标记",
@@ -1041,14 +1018,7 @@
                 "order_by": "Vertical",
                 "index": 1
             }
-        },
-        "pre_delay": 0,
-        "anchor": "EquipmentRerollChangedSlot2",
-        "post_delay": 0,
-        "rate_limit": 200,
-        "next": [
-            "__EquipmentRerollLocateChangedSlot3Match"
-        ]
+        }
     },
     "__EquipmentRerollLocateChangedSlot3Match": {
         "desc": "决策页模板匹配第3变更槽标记",
@@ -1068,14 +1038,7 @@
                 "order_by": "Vertical",
                 "index": 2
             }
-        },
-        "pre_delay": 0,
-        "anchor": "EquipmentRerollChangedSlot3",
-        "post_delay": 0,
-        "rate_limit": 200,
-        "next": [
-            "EquipmentRerollResultPage"
-        ]
+        }
     },
     "__EquipmentRerollResultPageTitle": {
         "desc": "内部识别：确认效果变更结果页（OPTION CHANGE 标题），仅供 Go 复用",
@@ -1095,11 +1058,11 @@
         }
     },
     "__EquipmentRerollResultChangedEffectSlot1": {
-        "desc": "内部识别：读取结果页变更效果第1栏（引用第1变更槽锚点，精确位置），仅供 Go 复用",
+        "desc": "内部识别：第1变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": "[Anchor]EquipmentRerollChangedSlot1",
+                "roi": "__EquipmentRerollLocateChangedSlot1Match",
                 "roi_offset": [
                     8,
                     0,
@@ -1114,11 +1077,11 @@
         }
     },
     "__EquipmentRerollResultChangedEffectSlot2": {
-        "desc": "内部识别：读取结果页变更效果第2栏（引用第2变更槽锚点，精确位置），仅供 Go 复用",
+        "desc": "内部识别：第2变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": "[Anchor]EquipmentRerollChangedSlot2",
+                "roi": "__EquipmentRerollLocateChangedSlot2Match",
                 "roi_offset": [
                     8,
                     0,
@@ -1133,11 +1096,11 @@
         }
     },
     "__EquipmentRerollResultChangedEffectSlot3": {
-        "desc": "内部识别：读取结果页变更效果第3栏（引用第3变更槽锚点，精确位置），仅供 Go 复用",
+        "desc": "内部识别：第3变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": "[Anchor]EquipmentRerollChangedSlot3",
+                "roi": "__EquipmentRerollLocateChangedSlot3Match",
                 "roi_offset": [
                     8,
                     0,
@@ -1151,16 +1114,326 @@
             }
         }
     },
+    "__EquipmentRerollRetryGateLockSelectMaterial": {
+        "desc": "重试闸门：效果锁定页没进来时本节点会被反复命中，超限后放弃锁定、退回效果变更",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "lock_select_material",
+                    "retry": "EquipmentRerollLockSelectMaterial",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockSelectMaterial",
+                        "__EquipmentRerollRetryGateLockSelectMaterial"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateLockSelectModule": {
+        "desc": "重试闸门：订制模块 SELECT 点不动时超限放弃锁定",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "lock_select_module",
+                    "retry": "EquipmentRerollLockSelectModule",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockConfirm",
+                        "EquipmentRerollLockSelectModule",
+                        "__EquipmentRerollRetryGateLockSelectModule"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateLockSelectKey": {
+        "desc": "重试闸门：自订密钥 SELECT 点不动时超限放弃锁定",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "lock_select_key",
+                    "retry": "EquipmentRerollLockSelectKey",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockConfirm",
+                        "EquipmentRerollLockSelectKey",
+                        "__EquipmentRerollRetryGateLockSelectKey"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateLockConfirm": {
+        "desc": "重试闸门：锁定页确认按钮点不动时超限放弃锁定",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "lock_confirm",
+                    "retry": "EquipmentRerollLockConfirm",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockComplete",
+                        "EquipmentRerollLockConfirm",
+                        "__EquipmentRerollRetryGateLockConfirm"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateKeepClickSlot2": {
+        "desc": "重试闸门：效果变更确认页 2 号槽点不动（例如该页词条不可点击）时超限放弃锁定",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "keep_click_slot2",
+                    "retry": "EquipmentRerollKeepClickSlot2",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockPageEntered",
+                        "EquipmentRerollKeepClickSlot2",
+                        "__EquipmentRerollRetryGateKeepClickSlot2"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateKeepClickSlot3": {
+        "desc": "重试闸门：效果变更确认页 3 号槽点不动时超限放弃锁定",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "keep_click_slot3",
+                    "retry": "EquipmentRerollKeepClickSlot3",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockPageEntered",
+                        "EquipmentRerollKeepClickSlot3",
+                        "__EquipmentRerollRetryGateKeepClickSlot3"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateClickChangeEffectRetry": {
+        "desc": "重试闸门：详情页效果变更点不动时超限直接失败，避免无限点击",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "click_change_effect_retry",
+                    "retry": "EquipmentRerollClickChangeEffectRetry",
+                    "next": [
+                        "EquipmentRerollChangeEffectPageEntered",
+                        "EquipmentRerollClickChangeEffectRetry",
+                        "__EquipmentRerollRetryGateClickChangeEffectRetry"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateResultClickKeep": {
+        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "result_click_keep",
+                    "retry": "EquipmentRerollResultClickKeep",
+                    "next": [
+                        "EquipmentRerollKeepLossMaxTierWarning",
+                        "EquipmentRerollKeepLockGate",
+                        "EquipmentRerollResultClickKeep",
+                        "__EquipmentRerollRetryGateResultClickKeep"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateResultClickAccept": {
+        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "result_click_accept",
+                    "retry": "EquipmentRerollResultClickAccept",
+                    "next": [
+                        "EquipmentRerollLossMaxTierWarning",
+                        "EquipmentRerollAfterAccept",
+                        "EquipmentRerollResultClickAccept",
+                        "__EquipmentRerollRetryGateResultClickAccept"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateLossMaxTierConfirm": {
+        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "loss_max_tier_confirm",
+                    "retry": "EquipmentRerollLossMaxTierConfirm",
+                    "next": [
+                        "EquipmentRerollAfterAccept",
+                        "EquipmentRerollLossMaxTierConfirm",
+                        "__EquipmentRerollRetryGateLossMaxTierConfirm"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateResultPage": {
+        "desc": "重试闸门：结果页决策原地打转时超限直接失败",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "result_page",
+                    "retry": "EquipmentRerollResultPage",
+                    "next": [
+                        "EquipmentRerollResultPage",
+                        "__EquipmentRerollRetryGateResultPage"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "__EquipmentRerollRetryGateConfirmChangeEffect": {
+        "desc": "重试闸门：确认后未进入结果页时有界重试，耗尽后按材料不足或页面异常显式失败",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "confirm_change_effect",
+                    "retry": "EquipmentRerollConfirmChangeEffect",
+                    "give_up": "EquipmentRerollConfirmChangeEffectFailed",
+                    "next": [
+                        "EquipmentRerollRecordRerollCost",
+                        "EquipmentRerollConfirmChangeEffect",
+                        "__EquipmentRerollRetryGateConfirmChangeEffect"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "EquipmentRerollConfirmChangeEffectFailed": {
+        "desc": "确认效果变更后未进入结果页，清理暂存费用并显式失败",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "confirm_not_advanced"
+                }
+            }
+        }
+    },
     "__EquipmentRerollLockTitle": {
         "desc": "效果锁定页标题识别（布局固定，roi 单点维护；主流程与 Go 复用同一节点）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    618,
-                    147,
-                    73,
-                    28
+                    610,
+                    115,
+                    110,
+                    45
                 ],
                 "expected": [
                     "效果锁定"
@@ -1173,7 +1446,7 @@
         ]
     },
     "__EquipmentRerollLockModuleHeld": {
-        "desc": "效果锁定页：订制模组「持有 N」数量（获取库存时 Go 解析；ROI 覆盖持有数字，布局固定单点维护）",
+        "desc": "效果锁定页持有量：只接受数字，排除拆分 OCR 的持有标签，归一化千位分隔符",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1183,8 +1456,12 @@
                     100,
                     30
                 ],
-                "expected": [
-                    ".*"
+                "expected": "^\\d+$",
+                "replace": [
+                    [
+                        "[.,，]",
+                        ""
+                    ]
                 ]
             }
         },
@@ -1192,7 +1469,7 @@
         "next": []
     },
     "__EquipmentRerollLockKeyHeld": {
-        "desc": "效果锁定页：自订密钥「持有 N」数量（获取库存时 Go 解析；ROI 覆盖持有数字）",
+        "desc": "效果锁定页持有量：只接受数字，排除拆分 OCR 的持有标签，归一化千位分隔符",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1202,8 +1479,12 @@
                     100,
                     30
                 ],
-                "expected": [
-                    ".*"
+                "expected": "^\\d+$",
+                "replace": [
+                    [
+                        "[.,，]",
+                        ""
+                    ]
                 ]
             }
         },
@@ -1212,6 +1493,8 @@
     },
     "EquipmentRerollReturnToDecide": {
         "desc": "一次效果变更完成：关闭页面回到人物页，基于已刷新的快照直接重新调度（不再全量扫描四件装备）",
+        "pre_delay": 0,
+        "post_delay": 0,
         "next": [
             "[JumpBack]CommonClosePage",
             "EquipmentRerollDecide"
@@ -1240,9 +1523,75 @@
     },
     "EquipmentRerollSingleReturnToDecide": {
         "desc": "单件一次变更完成：关闭回单件决策（不重扫）",
+        "pre_delay": 0,
+        "post_delay": 0,
         "next": [
             "[JumpBack]CommonClosePage",
             "EquipmentRerollSingleDecide"
         ]
+    },
+    "EquipmentRerollKeepLossMaxTierWarning": {
+        "desc": "效果维持也可能放弃候选最高阶段数值；确认后保留原效果，不提交候选快照",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "EquipmentRerollLossMaxTierWarning"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "EquipmentRerollKeepLossMaxTierConfirm"
+        ]
+    },
+    "EquipmentRerollKeepLossMaxTierConfirm": {
+        "desc": "确认维持原效果的最高阶段警告，返回维持后的确认页",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "EquipmentRerollLossMaxTierWarning",
+                    "__EquipmentRerollLossMaxTierConfirmButton"
+                ],
+                "box_index": 1
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 400
+        },
+        "next": [
+            "EquipmentRerollKeepLockGate",
+            "__EquipmentRerollRetryGateKeepLossMaxTierConfirm"
+        ]
+    },
+    "__EquipmentRerollRetryGateKeepLossMaxTierConfirm": {
+        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "keep_loss_max_tier_confirm",
+                    "retry": "EquipmentRerollKeepLossMaxTierConfirm",
+                    "next": [
+                        "EquipmentRerollKeepLockGate",
+                        "EquipmentRerollKeepLossMaxTierConfirm",
+                        "__EquipmentRerollRetryGateKeepLossMaxTierConfirm"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
     }
 }

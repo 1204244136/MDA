@@ -23,11 +23,14 @@ import (
 // partAll 表示一次判断四件装备是否全部达标。
 const partAll = "all"
 
+// routeEquipmentRerollEnd 把流程引向任务结束。
+// 统一先经过 EquipmentRerollFinalSummary（其 next 即 EquipmentRerollEnd），否则
+// 「材料不足」「配额不可达」这类提前结束在用户侧只表现为任务成功，拿不到任何原因。
 func routeEquipmentRerollEnd(ctx *maa.Context, currentTaskName string) error {
 	if ctx == nil {
 		return fmt.Errorf("task context is nil")
 	}
-	return ctx.OverrideNext(currentTaskName, []maa.NextItem{{Name: "EquipmentRerollEnd"}})
+	return ctx.OverrideNext(currentTaskName, []maa.NextItem{{Name: "EquipmentRerollFinalSummary"}})
 }
 
 // 结果页决策通过 CustomRecognitionResult.Detail 传递业务意图（decision），
@@ -178,7 +181,7 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 		return nil, false
 	}
 
-	changed, changedValues, changedRaw, ok := recognizeChangedEffects(ctx, arg.Img)
+	changed, changedValues, changedRaw, ok := recognizeChangedEffects(ctx, arg.Img, resultSourceForTask(arg.TaskID))
 	if !ok {
 		log.Warn().
 			Str("component", "EquipmentReroll").
@@ -230,7 +233,7 @@ func (r *EquipmentRerollResultDecideRecognition) decideSingle(arg *maa.CustomRec
 	current := scan.Effects()
 	decision := DecideResultPageSingle(changed, scan, t)
 	if decision == ResultDecisionAccept {
-		updatePartEffects(arg.TaskID, part, changed, changedValues)
+		stageAcceptedResult(arg.TaskID, part, changed, changedValues)
 	}
 	expireOneTimeLocks(arg.TaskID, part)
 
@@ -303,7 +306,7 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 		decision = DecideResultPageQuota(current, changed, scan, quota)
 	}
 	if decision == ResultDecisionAccept {
-		updatePartEffects(arg.TaskID, part, changed, changedValues)
+		stageAcceptedResult(arg.TaskID, part, changed, changedValues)
 	}
 	expireOneTimeLocks(arg.TaskID, part)
 
@@ -339,15 +342,33 @@ func isTransientUnlockText(raw string) bool {
 // （决策页沿用之前的锚点方案，不使用 Flag offset）。
 // 槽位读到官方效果或"未获得效果"都有效；其他任何非空但未识别的文本（如 OCR 截断的
 // “击增加]”）都不能当作空槽，必须让整次识别失败并重试，避免因漏读目标词条导致误决策。
-// 瞬时“已解除效果锁定”同样视为无效帧。
+// 本轮已锁且快照完整的槽位沿用快照；未锁槽的瞬时“已解除效果锁定”仍视为无效帧。
 // 返回：effects（词条名）、values（从 OCR 原文提取的数值）、raws（OCR 原文）。
-func recognizeChangedEffects(ctx *maa.Context, img image.Image) ([maxSlot]string, [maxSlot]string, [maxSlot]string, bool) {
+func recognizeChangedEffects(ctx *maa.Context, img image.Image, source partScan) ([maxSlot]string, [maxSlot]string, [maxSlot]string, bool) {
 	if ctx == nil || img == nil {
 		return [maxSlot]string{}, [maxSlot]string{}, [maxSlot]string{}, false
 	}
 
-	// 从所有槽位提取原始 OCR 数据
-	effects, values, rawTexts, recognized := extractSlotOCRData(ctx, img)
+	// 已锁槽不调用 OCR，避免等待其“已解除效果锁定”提示消失。
+	effects, values, rawTexts, recognized := extractSlotOCRData(source, func(nodeName string) (string, string, string, bool) {
+		// 仅为需要 OCR 的槽定位标记；基础识别参数仍由 Pipeline 声明。
+		for i, node := range resultChangedEffectSlotNodes {
+			if node != nodeName {
+				continue
+			}
+			locator, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollLocateChangedSlot%dMatch", i+1), img, nil)
+			if err != nil || locator == nil || !locator.Hit {
+				return "", "", "", false
+			}
+			break
+		}
+		detail, err := ctx.RunRecognition(nodeName, img, nil)
+		if err != nil || detail == nil || !detail.Hit {
+			return "", "", "", false
+		}
+		effect, raw, recognized := firstRecognizedEffect(detail)
+		return effect, extractPercentValue(raw), raw, recognized
+	})
 
 	// 检查瞬时解锁状态（必须重试）
 	if hasTransientUnlockState(rawTexts) {
@@ -366,21 +387,25 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image) ([maxSlot]string
 	return effects, values, rawTexts, true
 }
 
-// extractSlotOCRData 读取结果页三个槽位的 OCR 结果。
-func extractSlotOCRData(ctx *maa.Context, img image.Image) ([maxSlot]string, [maxSlot]string, [maxSlot]string, [maxSlot]bool) {
+// extractSlotOCRData 合并本轮锁定快照与未锁槽 OCR；不完整快照回退到实际识别。
+func extractSlotOCRData(source partScan, readSlot func(string) (string, string, string, bool)) ([maxSlot]string, [maxSlot]string, [maxSlot]string, [maxSlot]bool) {
 	var effects [maxSlot]string
 	var values [maxSlot]string
 	var rawTexts [maxSlot]string
 	var recognizedFlags [maxSlot]bool
 
 	for i, nodeName := range resultChangedEffectSlotNodes {
-		detail, err := ctx.RunRecognition(nodeName, img, nil)
-		if err != nil || detail == nil || !detail.Hit {
+		slot := source.Slots[i]
+		effect, valid := normalizeEffect(slot.Effect)
+		if (slot.Lock == LockPermanent || slot.Lock == LockOneTime) && valid && effect != "" && extractPercentValue(slot.Value) != "" {
+			effects[i], values[i] = effect, slot.Value
+			rawTexts[i] = fmt.Sprintf("【%s】%s（沿用本轮锁定快照）", effect, slot.Value)
+			recognizedFlags[i] = true
 			continue
 		}
-		effect, raw, recognized := firstRecognizedEffect(detail)
+		effect, value, raw, recognized := readSlot(nodeName)
 		rawTexts[i] = raw
-		values[i] = extractPercentValue(raw)
+		values[i] = value
 		recognizedFlags[i] = recognized
 		if recognized {
 			effects[i] = effect
@@ -461,7 +486,8 @@ func resultRouteTarget(detail string) string {
 
 // EquipmentRerollResultRouteAction 根据 EquipmentRerollResultDecideRecognition 返回的决策
 // 路由到对应的点击节点：效果维持（返回效果变更详情页继续洗同一件）
-// 或效果变更（接受变更后回人物页重扫调度）。决策通过 Detail JSON 传递，不依赖坐标。
+// 或效果变更（接受后由 AfterAccept 按最新快照决定继续当前装备或返回重调度）。
+// 决策通过 Detail JSON 传递，不依赖坐标。
 type EquipmentRerollResultRouteAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollResultRouteAction{}
@@ -472,6 +498,7 @@ func (a *EquipmentRerollResultRouteAction) Run(ctx *maa.Context, arg *maa.Custom
 		return false
 	}
 
+	resetTaskRetryGates(arg.TaskID)
 	target := resultRouteTarget(customRecognitionDetail(arg))
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route result page decision")
@@ -485,12 +512,29 @@ func (a *EquipmentRerollResultRouteAction) Run(ctx *maa.Context, arg *maa.Custom
 	return true
 }
 
-// EquipmentRerollAfterAcceptRouteAction 在点击“效果变更”后分流：
-//   - 当前部位仍未满足目标 → 不关闭确认页，直接回 EquipmentRerollKeepLockGate 继续锁定/重洗；
-//   - 当前部位已满足目标 → 返回人物页重新调度。
-//
-// 注意：接受变更后实际停在“效果变更确认页”，因此不能回详情页 LockGate，应复用 Keep 分支的确认页锁定/重洗流程。
-// 这样避免“洗同一件还要先关闭再重新打开详情页”的冗余动作。
+// shouldContinueCurrentPartAfterAccept 判断接受阶段性进展后，当前装备是否仍是下一轮目标。
+// 角色模式复用全局选装算法，单件模式则在目标仍可达且尚未满足时继续当前装备。
+func shouldContinueCurrentPartAfterAccept(current string, cfg carrierConfig, parts map[string]partScan) bool {
+	scan, ok := parts[current]
+	if !ok {
+		return false
+	}
+	if cfg.isSingle() {
+		return cfg.Part == current && cfg.singleTargetOK() &&
+			singlePartNeedsReroll(scan, cfg.Target) && !singleTargetUnreachable(scan, cfg.Target)
+	}
+
+	quota := cfg.resolveQuota(nil)
+	if !quotaIsValid(quota) || len(parts) != len(equipmentParts) {
+		return false
+	}
+	best, ok := chooseBestPartForQuota(parts, quota, equipmentParts)
+	return ok && best == current
+}
+
+// EquipmentRerollAfterAcceptRouteAction 在页面哨兵确认接受完成后提交候选快照并输出本件效果。
+// 若全局选装仍选择当前装备，则直接从当前确认页继续；仅在目标装备变化、达标或
+// 不可继续时关闭页面并重新调度。
 type EquipmentRerollAfterAcceptRouteAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollAfterAcceptRouteAction{}
@@ -501,7 +545,11 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 		return false
 	}
 
-	// 结果页决策已在识别阶段更新快照；接受按钮完成后立即输出当前部位，
+	if !commitAcceptedResult(arg.TaskID) {
+		log.Error().Int64("task_id", arg.TaskID).Msg("accepted result has no matching pending snapshot")
+		return false
+	}
+	// 页面哨兵确认接受完成后才提交快照并输出当前部位，
 	// 让用户能实时看到本次效果变更后的三条词条，再继续后续调度。
 	if part, ok := currentEffectPart(arg.TaskID); ok {
 		if scan, ok := GetPartScan(arg.TaskID, part); ok {
@@ -515,20 +563,31 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 			Msg("accepted result part is missing; skip user-facing effect summary")
 	}
 
-	// 单件模式：接受后回单件决策（关闭页面 → SingleDecide 判断是否达标）；与角色模式保持一致的调度语义。
-	targetNode := "EquipmentRerollReturnToDecide"
-	if loadCarrierConfig(ctx).isSingle() {
-		targetNode = "EquipmentRerollSingleReturnToDecide"
+	cfg := loadCarrierConfig(ctx)
+	part, partOK := currentEffectPart(arg.TaskID)
+	parts := getScannedParts(arg.TaskID)
+	next := []maa.NextItem{{Name: "EquipmentRerollReturnToDecide"}}
+	if cfg.isSingle() {
+		next[0].Name = "EquipmentRerollSingleReturnToDecide"
+	}
+	if partOK && shouldContinueCurrentPartAfterAccept(part, cfg, parts) {
+		// 接受后稳定停在效果变更确认页，直接复用维持分支继续锁定/重洗。
+		next = []maa.NextItem{{Name: "EquipmentRerollKeepLockGate"}}
 	}
 
-	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: targetNode}}); err != nil {
+	if err := ctx.OverrideNext(arg.CurrentTaskName, next); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route after-accept")
 		return false
+	}
+	targets := make([]string, 0, len(next))
+	for _, item := range next {
+		targets = append(targets, item.Name)
 	}
 	log.Info().
 		Str("component", "EquipmentReroll").
 		Int64("task_id", arg.TaskID).
-		Str("target", targetNode).
+		Str("part", part).
+		Strs("targets", targets).
 		Msg("after-accept routed")
 	return true
 }

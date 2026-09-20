@@ -1,0 +1,76 @@
+{
+    "__EquipmentRerollChangeEffectTitle": {
+        "desc": "OCR 定位顶部蓝底白字的大标题“效果变更”，限定顶部区域以排除底部同名按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    610,
+                    90,
+                    120,
+                    100
+                ],
+                "expected": "效果变更"
+            }
+        }
+    },
+    "__EquipmentRerollPreviousLockSettings": {
+        "desc": "加载先前锁定设置区域（仅定位，不自动点击；载入行为需与本轮锁定计划一致）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    515,
+                    440,
+                    250,
+                    185
+                ],
+                "expected": "加载先前的锁定设置"
+            }
+        }
+    },
+    "__EquipmentRerollChangeEffectButton": {
+        "desc": "相对加载设置文字定位底部效果变更按钮，不受材料区域高度影响",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollPreviousLockSettings",
+                "roi_offset": [
+                    -120,
+                    27,
+                    220,
+                    35
+                ],
+                "expected": "效果变更"
+            }
+        }
+    },
+    "__EquipmentRerollChangeEffectSlot2": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": "__EquipmentRerollChangeEffectTitle",
+                "roi_offset": [
+                    -128,
+                    117,
+                    241,
+                    2
+                ]
+            }
+        }
+    },
+    "__EquipmentRerollChangeEffectSlot3": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": "__EquipmentRerollChangeEffectTitle",
+                "roi_offset": [
+                    -128,
+                    144,
+                    241,
+                    2
+                ]
+            }
+        }
+    }
+}

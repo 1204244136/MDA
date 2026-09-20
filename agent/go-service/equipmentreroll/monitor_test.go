@@ -118,7 +118,7 @@ func TestScanNextItems(t *testing.T) {
 		{name: "head", part: "头部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenArmsDetails"},
 		{name: "arm", part: "臂部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenTorsoDetails"},
 		{name: "body", part: "身躯", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenLegsDetails"},
-		{name: "leg goes to material check", part: "腿部", wantCount: 1, wantFirst: "EquipmentRerollMaterialCheckEnter"},
+		{name: "leg closes details then routes", part: "腿部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollAfterMaterialCheck"},
 		{name: "unknown part", part: "未知", wantCount: 0},
 	}
 
@@ -219,7 +219,7 @@ func TestClearPendingRerollCostDoesNotRecordUsage(t *testing.T) {
 	clearMonitorState(taskID)
 	t.Cleanup(func() { clearMonitorState(taskID) })
 
-	setPendingRerollCost(taskID, 2)
+	setPendingRerollCost(taskID, MaterialUsage{CustomModules: 2, RerollModules: 2})
 	clearPendingRerollCost(taskID)
 	usage, ok := GetMaterialUsage(taskID)
 	if !ok {
@@ -280,10 +280,10 @@ func TestMaterialUsageAccumulation(t *testing.T) {
 	clearMonitorState(taskID)
 	t.Cleanup(func() { clearMonitorState(taskID) })
 
-	recordRerollModuleCost(taskID, 1)
-	recordRerollModuleCost(taskID, 2)
-	recordLockMaterialCost(taskID, "自订密钥", 0)
-	recordLockMaterialCost(taskID, "订制模块", 0)
+	setPendingRerollCost(taskID, MaterialUsage{CustomModules: 1, RerollModules: 1})
+	commitPendingRerollCost(taskID)
+	setPendingRerollCost(taskID, MaterialUsage{CustomModules: 4, CustomLockKeys: 20, RerollModules: 2, LockModules: 2})
+	commitPendingRerollCost(taskID)
 
 	usage, ok := GetMaterialUsage(taskID)
 	if !ok {
