@@ -42,7 +42,8 @@
             }
         },
         "next": [
-            "CoinRushShowdownMiniGameClickStart"
+            "CoinRushShowdownMiniGameClickStart",
+            "CoinRushShowdownMiniGameEventGoBack"
         ]
     },
     "CoinRushShowdownMiniGameClickStart": {
