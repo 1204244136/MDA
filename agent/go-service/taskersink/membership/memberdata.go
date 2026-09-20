@@ -125,13 +125,14 @@ type MembershipStatus struct {
 }
 
 var (
-	cachedStatus      *MembershipStatus
-	cachedStatusMu    sync.RWMutex
-	cachedStatusTime  time.Time
-	membershipCheckMu sync.Mutex
-	cachedDeviceCode  DeviceCodeV7
-	deviceCodeCached  bool
-	deviceCodeMu      sync.Mutex
+	cachedStatus         *MembershipStatus
+	cachedStatusMu       sync.RWMutex
+	cachedStatusTime     time.Time
+	cachedStatusDuration time.Duration
+	membershipCheckMu    sync.Mutex
+	cachedDeviceCode     DeviceCodeV7
+	deviceCodeCached     bool
+	deviceCodeMu         sync.Mutex
 )
 
 const (
@@ -164,7 +165,11 @@ func GetMembershipStatus() *MembershipStatus {
 func getCachedStatus() *MembershipStatus {
 	cachedStatusMu.RLock()
 	defer cachedStatusMu.RUnlock()
-	if cachedStatus == nil || time.Since(cachedStatusTime) >= cacheExpiry {
+	expiry := cachedStatusDuration
+	if expiry <= 0 {
+		expiry = cacheExpiry
+	}
+	if cachedStatus == nil || time.Since(cachedStatusTime) >= expiry {
 		return nil
 	}
 	return cachedStatus
@@ -247,9 +252,18 @@ func checkMembership() *MembershipStatus {
 			cacheStatus(status)
 			return status
 		}
+		if cached, ok := loadPersistentMemberStatus(deviceCode); ok {
+			log.Warn().
+				Str("tier", cached.Tier).
+				Str("expires_on", cached.ExpiresOn).
+				Msg("Membership verification unavailable, using persistent cached status within grace period")
+			cacheStatusWithDuration(cached, 5*time.Minute)
+			return cached
+		}
 		log.Warn().Err(err).Msg("Membership verification unavailable, using Orange Free quota until service recovers")
 		status := *defaultStatus
 		status.VerificationUnavailable = true
+		cacheStatusWithDuration(&status, 2*time.Minute)
 		return &status
 	}
 
@@ -257,6 +271,10 @@ func checkMembership() *MembershipStatus {
 		log.Info().Int("score", response.Score).Msg("No matching member device found, using Orange Free quota")
 		cacheStatus(defaultStatus)
 		return defaultStatus
+	}
+
+	if response.IsMember {
+		savePersistentMemberStatus(deviceCode, response)
 	}
 
 	status := statusFromResponse(response, deviceCode)
@@ -275,9 +293,14 @@ func checkMembership() *MembershipStatus {
 }
 
 func cacheStatus(status *MembershipStatus) {
+	cacheStatusWithDuration(status, cacheExpiry)
+}
+
+func cacheStatusWithDuration(status *MembershipStatus, duration time.Duration) {
 	cachedStatusMu.Lock()
 	cachedStatus = status
 	cachedStatusTime = time.Now()
+	cachedStatusDuration = duration
 	cachedStatusMu.Unlock()
 }
 
@@ -357,6 +380,7 @@ func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
 	}
 
 	var lastErr error
+	fallbackTried := false
 	for attempt := 1; attempt <= maxFetchAttempts; attempt++ {
 		startedAt := time.Now()
 		status, statusCode, err := fetchMemberStatusOnce(client, payload)
@@ -383,6 +407,18 @@ func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
 		if !shouldRetryFetch(statusCode, err) || attempt == maxFetchAttempts {
 			break
 		}
+
+		if !fallbackTried {
+			req, _ := http.NewRequest("POST", MemberStatusURL, nil)
+			if fallbackProxy := detectFallbackProxy(req); fallbackProxy != nil {
+				log.Info().
+					Str("fallback_proxy", fallbackProxy.String()).
+					Msg("Attempting retry using detected local fallback proxy")
+				transport.Proxy = http.ProxyURL(fallbackProxy)
+				fallbackTried = true
+			}
+		}
+
 		time.Sleep(time.Duration(attempt*300) * time.Millisecond)
 	}
 

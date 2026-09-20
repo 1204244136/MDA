@@ -11,3 +11,7 @@ import (
 func resolveSystemProxy(req *http.Request) (*url.URL, error) {
 	return http.ProxyFromEnvironment(req)
 }
+
+func detectFallbackProxy(req *http.Request) *url.URL {
+	return nil
+}
