@@ -204,8 +204,29 @@
             "CommonClosePage",
             "[JumpBack]CommonGoBack",
             "[JumpBack]CommonTouchToContinue",
-            "[JumpBack]CommonClickBlank"
+            "[JumpBack]RedDotClearArchivesDismissIntro"
         ]
+    },
+    "RedDotClearArchivesDismissIntro": {
+        "desc": "未检测到左上角活动地区哨兵时，点击画面内空白处跳过首次活动封面",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LargeEventMainPageEntered"
+                ]
+            }
+        },
+        "inverse": true,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    640,
+                    650
+                ]
+            }
+        }
     },
     "ArchivesRedDotClickTop": {
         "desc": "档案馆顶部点击红点",
