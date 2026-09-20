@@ -80,21 +80,21 @@
     - 选了 `CurrentEvent` 的用户配置里存的是字符串 `"CurrentEvent"`，该 case 永久存在，因此会随 base 自动跟随最新活动——这是「当前活动」机制成立的根本原因。
 - `CurrentEvent` **不携带 `pipeline_override`**。它靠 resource 侧 base 节点承载最新主题模板来工作，用户选它即可在下次更新后自动跟随，无需重写。
 - `CurrentEvent` 不是主题名，locale 显示名用「当前活动」/ `Current Event`，不适用全大写约定；同时在 `zh_cn`、`en_us` 中补上 `option.{LargeEventTheme,SmallEventTheme}.CurrentEvent` 与对应 `.description`。
-- `CurrentEvent` 可以带 `option`（子选项列表，如 `LargeEventPersonaOnFrontlineMiniGame`），这不属于 override，必须保留。
 
 ### base 节点承载最新主题
 
-- `LargeEvent` / `SmallEvent` 的以下 base 节点，其 `template` 直接写**最新主题**的真实模板，并加注释 `//当前活动，随最新主题更新`：
-    - `LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`
-    - `SmallEventEnterMainPage`、`SmallEventClickStage`、`SmallEventClickStageRepeatable`
-- 这些节点原先写 `Common/RedDot.png //占位，应该去task页面修改`，已不再需要占位——base 本身就是当前活动的真实配置。
+- `LargeEvent` / `SmallEvent` 的以下 base 节点直接写**最新主题**的真实配置，并加注释 `//当前活动，随最新主题更新`：
+    - 模板类节点：`LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`、`SmallEventEnterMainPage`、`SmallEventClickStage`、`SmallEventClickStageRepeatable`
+    - 小游戏路由节点：`LargeEventMiniGame`（若最新活动支持小游戏，其 `next` 写最新主题的真实小游戏入口，如 `LargeEventCoinRushShowdownMiniGame` 并接 `CommonEndTask`；若不支持则直接写 `["CommonEndTask"]`）。
+- **`CurrentEvent` 与小游戏机制**：`CurrentEvent` **不携带 `pipeline_override`**，因此当前活动是否跑小游戏**100% 依赖 base 节点的 `LargeEventMiniGame`**！
+- **防止往期主题静默继承小游戏**：因为 base 节点的 `LargeEventMiniGame` 承载了最新主题的小游戏，**所有往期主题 case（包括不支持小游戏的主题如 `StarAnis`、`Other`）必须在各自的 `pipeline_override` 中全量覆盖 `LargeEventMiniGame`**（有小游戏的覆写为自己的小游戏入口+`CommonEndTask`，无小游戏的覆写为 `["CommonEndTask"]`）。漏覆写会导致回选老活动时误跑当前活动的小游戏。
 - `LargeEventEnterMission` 是**中性红点检测**（`Common/RedDot.png` + `Common/RedDotSP.png`），不是主题模板节点，**不要改动**。
 - `LargeEventMissionClaimed` 是**颜色阈值特例节点**（base 灰白 `[190,190,190]`~~`[219,219,219]`，`ArkRanger` 覆盖为蓝紫 `[15,25,55]`~~`[35,35,65]`）。它**不纳入 base 承载范围**，保持 base 原值；只有需要特例的主题才在自己的 case 里覆盖。
 
 ### 适配新主题的操作顺序
 
-1. 为新主题写好完整的 case（含 `label`、`option`、三个模板类节点的 `pipeline_override`）。
-2. 把 base 节点的 `template` 换成新主题的模板列表（即把「当前活动」升级为新主题）。
+1. 为新主题写好完整的 case（含 `label`、三个模板类节点的 `pipeline_override`，以及 `LargeEventMiniGame` 的 override）。
+2. 把 base 节点的 `template` 和 `LargeEventMiniGame` 换成新主题的配置（即把「当前活动」升级为新主题；若新活动无小游戏则 `LargeEventMiniGame` 写 `["CommonEndTask"]`）。
 3. `CurrentEvent` **不动**：它没有 override，base 一改就自动跟随。
 4. 往期主题 case 的 `pipeline_override` 一律保留不动，供用户显式回选仍在开放的老活动。
 5. 跑 `npm run check:theme` 校验。
@@ -121,10 +121,11 @@
 
 ### 护栏：`npm run check:theme`
 
-`scripts/check-theme-sync.mjs` 自动守住两条不变量，违规时退出码 1：
+`scripts/check-theme-sync.mjs` 自动守住三条不变量，违规时退出码 1：
 
 - **断言 A**：`CurrentEvent` 不得携带非空 `pipeline_override`（否则自动跟随失效）。
 - **断言 B**：所有往期主题 case 必须逐个覆盖同一批模板类节点。漏覆盖的主题在 base 换新后会**静默继承新主题模板**，导致回选老活动时永远匹配不上且不报错——这正是护栏存在的意义。
+- **断言 C**：所有往期主题 case（含 `Other`）必须显式覆盖 `LargeEventMiniGame` 的 `next` 数组。漏覆盖的主题会**静默继承最新主题的小游戏**，导致在老活动中误识别当前小游戏。
 
 新增主题或调整 base 时，若模板类节点的集合发生变化，需同步更新脚本顶部的 `TARGETS[].expectedTemplateNodes`。
 

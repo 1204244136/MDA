@@ -157,7 +157,9 @@ runtime_task.pipeline_override.emplace(it->pipeline_override);   // 命中则应
 
 同样处理 `SmallEventClickStage`、`SmallEventClickStageRepeatable`（LargeEvent 对应三个节点同理）。
 
-**tasks 侧（`CurrentEvent`）**：删除 `pipeline_override`，保留 `label` 与 `option` 子选项。
+此外，大活动的 `LargeEventMiniGame` 也是 base 承载节点之一：若最新大活动支持小游戏，其 `next` 指向最新主题的真实小游戏入口并接 `CommonEndTask`；若不支持则直接为 `CommonEndTask`。
+
+**tasks 侧（`CurrentEvent`）**：删除 `pipeline_override`，保留 `label` 与 `description`。小游戏已统一提升为常驻顶层任务选项 `LargeEventMiniGame`，不再作为主题下的子选项。
 
 ```diff
   {
@@ -169,13 +171,10 @@ runtime_task.pipeline_override.emplace(it->pipeline_override);   // 命中则应
   }
 ```
 
-注意 `LargeEvent` 的 `CurrentEvent` 带 `option: ["LargeEventPersonaOnFrontlineMiniGame"]`，
-该子选项必须保留，只删 `pipeline_override`。
-
 ### 4.2 适配新主题的操作流
 
-1. 改 base 节点的 `template`（resource 侧，3 个节点）
-2. 新增该主题 case 的 `pipeline_override`（tasks 侧，本来就要写）
+1. 改 base 节点的 `template`（resource 侧，3 个模板节点）及 `LargeEventMiniGame`（若新主题有小游戏则指向新小游戏，若无则接 `CommonEndTask`）
+2. 新增该主题 case 的 `pipeline_override`（tasks 侧，覆盖 3 个模板节点与 `LargeEventMiniGame`）
 3. 跑 `npm run check:theme` 自检
 
 `CurrentEvent` 完全不需要动。
@@ -184,21 +183,22 @@ runtime_task.pipeline_override.emplace(it->pipeline_override);   // 命中则应
 
 验证 D 暴露的真实风险。现状已存在该结构（实测扫描结果）：
 
-| 活动       | case                                      | 覆盖节点数                                 |
-| ---------- | ----------------------------------------- | ------------------------------------------ |
-| SmallEvent | 全部主题                                  | 3（一致）                                  |
-| LargeEvent | **ArkRanger**                             | **4**（额外含 `LargeEventMissionClaimed`） |
-| LargeEvent | StarAnis / WaveToYou / PersonaOnFrontline | 3                                          |
+| 活动       | case                                      | 覆盖节点数                                                                   |
+| ---------- | ----------------------------------------- | ---------------------------------------------------------------------------- |
+| SmallEvent | 全部主题                                  | 3（一致）                                                                    |
+| LargeEvent | **ArkRanger**                             | **5**（含 3 个模板节点 + `LargeEventMiniGame` + `LargeEventMissionClaimed`） |
+| LargeEvent | StarAnis / WaveToYou / PersonaOnFrontline | 4（含 3 个模板节点 + `LargeEventMiniGame`）                                  |
 
-现在无害，因为 `LargeEventMissionClaimed` 的 base 是中性默认值（`ColorMatch` 默认阈值）。
-**一旦 base 改成最新主题的值**，`StarAnis` 等主题就会静默继承 `PersonaOnFrontline` 的阈值 —— 真 bug。
+特别注意：
+
+1. `LargeEventMissionClaimed` 的 base 是中性默认值（`ColorMatch` 默认阈值），不纳入 base 承载范围。
+2. **`LargeEventMiniGame` 必须全量覆盖**：因为 base 承载了最新主题的小游戏，所有往期主题 case（包括不支持小游戏的主题如 `StarAnis`、`Other`）必须在各自的 `pipeline_override` 中覆盖 `LargeEventMiniGame`（有小游戏接自己的小游戏，无小游戏接 `CommonEndTask`），防止回选老活动时静默继承最新小游戏。
 
 护栏逻辑（`scripts/check-theme-sync.mjs`）：
 
-1. 对每个活动，收集所有主题 case 的 `pipeline_override` 节点名集合。
-2. 断言各主题的节点集合**完全一致**（允许多余，不允许缺失）。
-3. 若不一致，列出「哪个主题缺哪个节点」，提示补全。
-4. 额外校验：`CurrentEvent` **不应**含 `pipeline_override`。
+1. 对每个活动，断言各往期主题必须覆盖全部 `expectedTemplateNodes`。
+2. 对 `LargeEventTheme`，断言各主题 case（除 `CurrentEvent`）必须显式覆盖 `LargeEventMiniGame`。
+3. 额外校验：`CurrentEvent` **不应**含 `pipeline_override`。
 
 挂到 `package.json`：`"check:theme": "node scripts/check-theme-sync.mjs"`，进 CI。
 

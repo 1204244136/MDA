@@ -51,6 +51,9 @@ const TARGETS = [
             "LargeEventClickStoryStage",
             "LargeEventClickStoryStageRepeatable",
         ],
+        expectedRoutingNodes: [
+            "LargeEventMiniGame",
+        ],
     },
 ];
 
@@ -176,6 +179,26 @@ for (const target of TARGETS) {
                     `${missing.join(", ")}。` +
                     `base 承载最新主题后，这些主题会静默继承新模板导致识别失败。`,
             );
+        }
+    }
+
+    // ---- 断言 C：路由类节点覆盖校验（如 LargeEventMiniGame）----
+    if (target.expectedRoutingNodes && target.expectedRoutingNodes.length > 0) {
+        // 检查范围包括 pastThemes 以及 Other（除了 CurrentEvent 之外的全部 case）
+        const casesToCheck = cases.filter((c) => c.name !== "CurrentEvent").map((c) => c.name);
+        for (const nodeName of target.expectedRoutingNodes) {
+            const missing = casesToCheck.filter((name) => {
+                const po = byName.get(name)?.pipeline_override ?? {};
+                const node = po[nodeName];
+                return !node || !Array.isArray(node.next) || node.next.length === 0;
+            });
+            if (missing.length > 0) {
+                errors.push(
+                    `[${target.optionName}] 节点 "${nodeName}" 未被以下主题 case 显式覆盖 next：` +
+                        `${missing.join(", ")}。` +
+                        `base 承载最新主题小游戏后，未覆盖的主题会静默继承导致误跑当前活动小游戏。`,
+                );
+            }
         }
     }
 
