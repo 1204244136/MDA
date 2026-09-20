@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -48,7 +49,14 @@ func resolveSystemProxy(req *http.Request) (*url.URL, error) {
 		return nil, nil
 	}
 
-	return parseWindowsProxyServer(req.URL.Scheme, serverStr)
+	proxyURL, err := parseWindowsProxyServer(req.URL.Scheme, serverStr)
+	if err == nil && proxyURL != nil {
+		log.Debug().
+			Str("proxy", proxyURL.String()).
+			Str("host", req.URL.Host).
+			Msg("Using Windows system proxy for membership verification")
+	}
+	return proxyURL, err
 }
 
 func isProxyOverridden(hostname string, override string) bool {
@@ -75,7 +83,7 @@ func isProxyOverridden(hostname string, override string) bool {
 		if strings.HasPrefix(p, "*.") && strings.HasSuffix(lowerHost, p[1:]) {
 			return true
 		}
-		if strings.HasPrefix(lowerHost, p) {
+		if strings.HasSuffix(p, "*") && strings.HasPrefix(lowerHost, strings.TrimSuffix(p, "*")) {
 			return true
 		}
 	}
@@ -98,11 +106,15 @@ func parseWindowsProxyServer(scheme string, serverStr string) (*url.URL, error) 
 			}
 		}
 		if target == "" {
-			// 如果没有找到特定 scheme 的代理，尝试 http=
+			// 如果没有找到特定 scheme 的代理，尝试 http= 或 socks=
 			for _, entry := range entries {
 				e := strings.TrimSpace(entry)
 				if strings.HasPrefix(strings.ToLower(e), "http=") {
 					target = e[5:]
+					break
+				}
+				if strings.HasPrefix(strings.ToLower(e), "socks=") {
+					target = "socks5://" + e[6:]
 					break
 				}
 			}

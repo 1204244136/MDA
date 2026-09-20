@@ -14,6 +14,7 @@ func TestParseWindowsProxyServer(t *testing.T) {
 		{"https", "http=127.0.0.1:8080;https=127.0.0.1:7897", "http://127.0.0.1:7897"},
 		{"http", "http=127.0.0.1:8080;https=127.0.0.1:7897", "http://127.0.0.1:8080"},
 		{"https", "http=127.0.0.1:8080", "http://127.0.0.1:8080"},
+		{"https", "socks=127.0.0.1:7890", "socks5://127.0.0.1:7890"},
 		{"https", "socks5://127.0.0.1:1080", "socks5://127.0.0.1:1080"},
 		{"https", "", ""},
 	}
@@ -45,6 +46,10 @@ func TestIsProxyOverridden(t *testing.T) {
 		{"doropay.top", "<local>;*.top", true},
 		{"doropay.top", "<local>;doropay.top", true},
 		{"doropay.top", "<local>;api.doropay.top", false},
+		{"doropay.top", "doro", false},
+		{"doropay.top", "doro*", true},
+		{"192.168.1.100", "192.168.*", true},
+		{"192.168.1.100", "10.*", false},
 		{"127.0.0.1", "<local>", true},
 	}
 
