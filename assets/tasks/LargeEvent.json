@@ -11,6 +11,7 @@
                 "LargeEventLoginStamp",
                 "LargeEventChallenge",
                 "LargeEventStory",
+                "LargeEventMiniGame",
                 "LargeEventMission"
             ],
             "group": [
@@ -32,9 +33,6 @@
                 {
                     "name": "ArkRanger",
                     "label": "$option.LargeEventTheme.ArkRanger",
-                    "option": [
-                        "LargeEventArkRangerMiniGame"
-                    ],
                     "pipeline_override": {
                         "LargeEventEnterMainPage": {
                             "recognition": {
@@ -66,6 +64,12 @@
                                     ]
                                 }
                             }
+                        },
+                        "LargeEventMiniGame": {
+                            "next": [
+                                "LargeEventArkRangerMiniGame",
+                                "CommonEndTask"
+                            ]
                         },
                         "LargeEventMissionClaimed": {
                             "recognition": {
@@ -124,15 +128,17 @@
                                     ]
                                 }
                             }
+                        },
+                        "LargeEventMiniGame": {
+                            "next": [
+                                "CommonEndTask"
+                            ]
                         }
                     }
                 },
                 {
                     "name": "WaveToYou",
                     "label": "$option.LargeEventTheme.WaveToYou",
-                    "option": [
-                        "LargeEventWaveToYouMiniGame"
-                    ],
                     "pipeline_override": {
                         "LargeEventEnterMainPage": {
                             "recognition": {
@@ -165,15 +171,18 @@
                                     ]
                                 }
                             }
+                        },
+                        "LargeEventMiniGame": {
+                            "next": [
+                                "LargeEventWaveToYouMiniGame",
+                                "CommonEndTask"
+                            ]
                         }
                     }
                 },
                 {
                     "name": "PersonaOnFrontline",
                     "label": "$option.LargeEventTheme.PersonaOnFrontline",
-                    "option": [
-                        "LargeEventPersonaOnFrontlineMiniGame"
-                    ],
                     "pipeline_override": {
                         "LargeEventEnterMainPage": {
                             "recognition": {
@@ -205,15 +214,18 @@
                                     ]
                                 }
                             }
+                        },
+                        "LargeEventMiniGame": {
+                            "next": [
+                                "PersonaOnFrontlineMiniGame",
+                                "CommonEndTask"
+                            ]
                         }
                     }
                 },
                 {
                     "name": "CoinRushShowdown",
                     "label": "$option.LargeEventTheme.CoinRushShowdown",
-                    "option": [
-                        "LargeEventCoinRushShowdownMiniGame"
-                    ],
                     "pipeline_override": {
                         "LargeEventEnterMainPage": {
                             "recognition": {
@@ -241,114 +253,25 @@
                                     ]
                                 }
                             }
+                        },
+                        "LargeEventMiniGame": {
+                            "next": [
+                                "LargeEventCoinRushShowdownMiniGame",
+                                "CommonEndTask"
+                            ]
                         }
                     }
                 },
                 {
                     "name": "Other",
-                    "label": "$option.LargeEventTheme.Other"
-                }
-            ]
-        },
-        "LargeEventArkRangerMiniGame": {
-            "type": "switch",
-            "default_case": "Yes",
-            "label": "$option.LargeEventArkRangerMiniGame.label",
-            "cases": [
-                {
-                    "name": "Yes",
+                    "label": "$option.LargeEventTheme.Other",
                     "pipeline_override": {
-                        "LargeEventMainPageFlow": {
+                        "LargeEventMiniGame": {
                             "next": [
-                                "[JumpBack]LargeEventEnterLoginStamp",
-                                "[JumpBack]LargeEventEnterChallenge",
-                                "[JumpBack]LargeEventEnterStory",
-                                "[JumpBack]LargeEventEnterMission",
-                                "[JumpBack]LargeEventArkRangerMiniGame",
                                 "CommonEndTask"
                             ]
                         }
                     }
-                },
-                {
-                    "name": "No"
-                }
-            ]
-        },
-        "LargeEventWaveToYouMiniGame": {
-            "type": "switch",
-            "default_case": "Yes",
-            "label": "$option.LargeEventWaveToYouMiniGame.label",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "LargeEventMainPageFlow": {
-                            "next": [
-                                "[JumpBack]LargeEventEnterLoginStamp",
-                                "[JumpBack]LargeEventEnterChallenge",
-                                "[JumpBack]LargeEventEnterStory",
-                                "[JumpBack]LargeEventWaveToYouMiniGame",
-                                "[JumpBack]LargeEventEnterMission",
-                                "CommonEndTask"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "No"
-                }
-            ]
-        },
-        "LargeEventPersonaOnFrontlineMiniGame": {
-            "type": "switch",
-            "default_case": "Yes",
-            "label": "$option.LargeEventPersonaOnFrontlineMiniGame.label",
-            "description": "$option.LargeEventPersonaOnFrontlineMiniGame.description",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "LargeEventMainPageFlow": {
-                            "next": [
-                                "[JumpBack]LargeEventEnterLoginStamp",
-                                "[JumpBack]LargeEventEnterChallenge",
-                                "[JumpBack]LargeEventEnterStory",
-                                "[JumpBack]PersonaOnFrontlineMiniGame",
-                                "[JumpBack]LargeEventEnterMission",
-                                "CommonEndTask"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "No"
-                }
-            ]
-        },
-        "LargeEventCoinRushShowdownMiniGame": {
-            "type": "switch",
-            "default_case": "Yes",
-            "label": "$option.LargeEventCoinRushShowdownMiniGame.label",
-            "description": "$option.LargeEventCoinRushShowdownMiniGame.description",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "LargeEventMainPageFlow": {
-                            "next": [
-                                "[JumpBack]LargeEventEnterLoginStamp",
-                                "[JumpBack]LargeEventEnterChallenge",
-                                "[JumpBack]LargeEventEnterStory",
-                                "[JumpBack]LargeEventCoinRushShowdownMiniGame",
-                                "[JumpBack]LargeEventEnterMission",
-                                "CommonEndTask"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "No"
                 }
             ]
         },
@@ -421,6 +344,29 @@
                 }
             ]
         },
+        "LargeEventMiniGame": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.LargeEventContent.LargeEventMiniGame",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LargeEventMiniGame": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "LargeEventMiniGame": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
         "LargeEventMission": {
             "type": "switch",
             "default_case": "Yes",
@@ -457,6 +403,7 @@
                                 "[JumpBack]LargeEventEnterLoginStamp",
                                 "[JumpBack]LargeEventEnterChallenge",
                                 "[JumpBack]LargeEventEnterStory",
+                                "[JumpBack]LargeEventMiniGame",
                                 "[JumpBack]LargeEventEnterMission",
                                 "[JumpBack]LargeEventStarAnisClickMerchBag",
                                 "CommonEndTask"

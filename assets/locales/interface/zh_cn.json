@@ -324,5 +324,6 @@
     "option.CommonShopItemList.FreeGoods": "免费商品",
     "option.CommonShopItemList.CoreDustCase": "芯尘盒",
     "option.CommonShopItemList.ProfileCustomPack": "简介个性化礼包",
-    "option.CommonShopItemList.DarlingForADay": "指挥官自由使用券"
+    "option.CommonShopItemList.DarlingForADay": "指挥官自由使用券",
+    "option.LargeEventContent.LargeEventMiniGame": "大活动小游戏"
 }

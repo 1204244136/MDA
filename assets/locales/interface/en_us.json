@@ -324,5 +324,6 @@
     "option.CommonShopItemList.FreeGoods": "Free items",
     "option.CommonShopItemList.CoreDustCase": "Core Dust Case",
     "option.CommonShopItemList.ProfileCustomPack": "Profile Custom Pack",
-    "option.CommonShopItemList.DarlingForADay": "Darling for a Day"
+    "option.CommonShopItemList.DarlingForADay": "Darling for a Day",
+    "option.LargeEventContent.LargeEventMiniGame": "Mini Game"
 }

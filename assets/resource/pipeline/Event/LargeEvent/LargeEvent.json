@@ -109,7 +109,16 @@
             "[JumpBack]LargeEventEnterLoginStamp",
             "[JumpBack]LargeEventEnterChallenge",
             "[JumpBack]LargeEventEnterStory",
+            "[JumpBack]LargeEventMiniGame",
             "[JumpBack]LargeEventEnterMission",
+            "CommonEndTask"
+        ]
+    },
+    "LargeEventMiniGame": {
+        "desc": "大活动小游戏",
+        "max_hit": 1,
+        "next": [
+            "LargeEventCoinRushShowdownMiniGame", //当前活动，随最新主题更新
             "CommonEndTask"
         ]
     },
