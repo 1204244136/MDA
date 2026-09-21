@@ -334,6 +334,6 @@
     "option.EquipmentRerollValueTargets.description": "Single piece: 0 ignores an effect; 1–15 sets its minimum tier. Set at least one target. Missing effects stop the task. Tier is not equipment enhancement level.",
     "option.EquipmentRerollValueTargets.invalid": "Enter an integer from 0 to 15",
     "option.EquipmentRerollValueTotalTargets.label": "Character minimum total tiers",
-    "option.EquipmentRerollValueTotalTargets.description": "Sum matching effect tiers across four pieces. 0 ignores; 1–60 sets the minimum total. Four copies range from 4 to 60; missing copies contribute 0. With n copies the maximum is 15×n. Unreachable targets stop the task. Individual pieces need not have equal tiers. Default elemental damage total: 44.",
+    "option.EquipmentRerollValueTotalTargets.description": "Sum of matching effect tiers across four pieces (0 ignores, 1–60 target). Stops once the total reaches target, or if a target exceeds the attainable cap (max T15 per piece).",
     "option.EquipmentRerollValueTotalTargets.invalid": "Enter an integer from 0 to 60"
 }

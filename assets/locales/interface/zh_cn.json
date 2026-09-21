@@ -334,6 +334,6 @@
     "option.EquipmentRerollValueTargets.description": "单件目标：0 忽略，1～15 为该效果最低 T 档。至少设置一项；缺失目标效果时停止。T 档不是装备强化等级。",
     "option.EquipmentRerollValueTargets.invalid": "请输入 0～15 的整数",
     "option.EquipmentRerollValueTotalTargets.label": "角色最低总 T 档",
-    "option.EquipmentRerollValueTotalTargets.description": "分别累加四件装备中同名效果的 T 档。0 忽略，1～60 为最低总 T；四条的自然范围为 4～60，缺失效果贡献 0。只有 n 条时最高 15×n，目标超出时停止；不强制每件均匀达标。默认优越代码总 T44。",
+    "option.EquipmentRerollValueTotalTargets.description": "四件装备同名效果的 T 档总和（0 忽略，1～60 为目标）。总和达标即止；若目标超出当前词条上限（单件最高 T15）则停止。",
     "option.EquipmentRerollValueTotalTargets.invalid": "请输入 0～60 的整数"
 }
