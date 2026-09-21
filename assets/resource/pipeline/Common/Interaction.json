@@ -392,13 +392,15 @@
     "CommonFreeStateFlow": {
         "desc": "自由状态响应流程",
         "recognition": {
-            "type": "And",
+            "type": "Or",
             "param": {
-                "all_of": [
-                    "CommonNoticeVisible"
+                "any_of": [
+                    "CommonNoticeVisible",
+                    "CommonClosePage"
                 ]
             }
         },
+        "timeout": 5000,
         "next": [
             "[JumpBack]CommonClosePage",
             "CommonEndTask"
@@ -469,9 +471,9 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": 500,
         "next": [
-            "CommonFreeStateFlow",
-            "[Anchor]NeedCheck"
+            "CommonFreeStateFlow"
         ]
     },
     "CommonClickHall": {
