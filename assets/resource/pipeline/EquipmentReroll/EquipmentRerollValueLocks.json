@@ -5,7 +5,9 @@
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollValueLocksVerifyRecognition",
-                "custom_recognition_param": {"initial": true}
+                "custom_recognition_param": {
+                    "initial": true
+                }
             }
         },
         "pre_delay": 0,
@@ -21,7 +23,9 @@
         "next": [
             "EquipmentRerollValueVerifyReady"
         ],
-        "on_error": ["EquipmentRerollValuePlanFailed"]
+        "on_error": [
+            "EquipmentRerollValuePlanFailed"
+        ]
     },
     "EquipmentRerollValueVerifyReady": {
         "recognition": {
