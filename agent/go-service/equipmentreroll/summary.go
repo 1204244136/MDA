@@ -68,5 +68,8 @@ func buildFinalSummaryMessage(taskID int64) string {
 	sb.WriteString("\n【消耗材料】")
 	sb.WriteString(fmt.Sprintf("\n订制模块 %d", usage.CustomModules))
 	sb.WriteString(fmt.Sprintf("\n自订密钥 %d", usage.CustomLockKeys))
+	if luck := buildLuckMessage(taskID, parts, usage); luck != "" {
+		sb.WriteString("\n" + luck)
+	}
 	return sb.String()
 }

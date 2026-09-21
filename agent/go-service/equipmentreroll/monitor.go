@@ -116,6 +116,7 @@ type monitorState struct {
 	Parts                map[string]partScan
 	NextSlot             int
 	Materials            MaterialUsage
+	InitialEstimate      *rerollEstimate      // 首次扫描的期望与目标，保留到任务结束。
 	PreviousLocks        previousLockSettings // 只信任本任务最近实际使用的设置，不读取跨任务历史
 	PendingResult        *pendingResult
 	ValuePlan            *valuePlan // 当前一轮已冻结的完整锁方案，确认/释放后才更新快照。

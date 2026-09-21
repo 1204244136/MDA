@@ -3,6 +3,7 @@ package equipmentreroll
 import (
 	"fmt"
 	"math"
+	"math/rand/v2"
 
 	"github.com/1204244136/MDA/agent/go-service/pkg/i18n"
 	"github.com/rs/zerolog/log"
@@ -60,8 +61,15 @@ func initialModuleEstimate(parts map[string]partScan, cfg carrierConfig) (float6
 	return cost, nil
 }
 
-func initialEstimateMessage(parts map[string]partScan, cfg carrierConfig) string {
+func initialEstimateMessage(taskID int64, parts map[string]partScan, cfg carrierConfig) string {
 	cost, err := initialModuleEstimate(parts, cfg)
+	stateMu.Lock()
+	state := states[taskID]
+	if state.InitialEstimate == nil {
+		state.InitialEstimate = &rerollEstimate{Modules: cost, Config: cfg, Valid: err == nil, Flavor: rand.IntN(luckFlavorCount)}
+		states[taskID] = state
+	}
+	stateMu.Unlock()
 	if err != nil {
 		log.Warn().Err(err).Str("component", "EquipmentReroll").
 			Str("operation", string(cfg.Operation)).Str("mode", string(cfg.Mode)).

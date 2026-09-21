@@ -181,7 +181,7 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 	maafocus.Print(ctx, buildPartEffectsMessage(part, scan, "tasker.equipment_reroll.effects"))
 	cfg := loadCarrierConfig(ctx)
 	if shouldReportInitialEstimate(standalone, part, cfg) {
-		maafocus.Print(ctx, initialEstimateMessage(getScannedParts(arg.TaskID), cfg))
+		maafocus.Print(ctx, initialEstimateMessage(arg.TaskID, getScannedParts(arg.TaskID), cfg))
 	}
 
 	next, ok := scanNextItems(part, cfg.isSingle())
