@@ -41,6 +41,15 @@
                 ]
             }
         },
+        "post_wait_freezes": { //等待小游戏页面完全加载
+            "time": 2000,
+            "target": [
+                454,
+                466,
+                389,
+                237
+            ]
+        },
         "next": [
             "CoinRushShowdownMiniGameClickStart",
             "CoinRushShowdownMiniGameEventGoBack"
