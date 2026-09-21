@@ -2,6 +2,37 @@ package equipmentreroll
 
 import "testing"
 
+func TestValueReloadLocksBothModes(t *testing.T) {
+	for _, mode := range []rerollMode{rerollModeSingle, rerollModeCharacter} {
+		t.Run(string(mode), func(t *testing.T) {
+			cfg := valueTestConfig()
+			cfg.Mode = mode
+			cfg.ValueTargets = valueTarget{"攻击力增加": 11, "优越代码伤害增加": 11}
+			parts := map[string]partScan{}
+			for _, part := range equipmentParts {
+				parts[part] = partScan{Slots: [maxSlot]slotScanData{valueTestSlot("暴击率增加", 1, LockNone)}}
+			}
+			parts["头部"] = partScan{Slots: [maxSlot]slotScanData{
+				valueTestSlot("攻击力增加", 11, LockNone),
+				valueTestSlot("优越代码伤害增加", 1, LockNone),
+			}}
+			inv := Inventory{CustomModules: 100, CustomLockKeys: 1000}
+			plan, err := planValueRerollWithInventory(parts, cfg, inv, "头部")
+			if err != nil || plan.Locks[0] != LockOneTime {
+				t.Fatalf("expected reusable first-slot lock: %+v %v", plan, err)
+			}
+			history := previousLockSettings{Part: "头部", Locks: plan.Locks}
+			if _, ok := reusableLockPlan(cfg, parts, "头部", inv, history); !ok {
+				t.Fatal("matching value plan must reuse historical locks")
+			}
+			history.Locks[2] = LockOneTime
+			if _, ok := reusableLockPlan(cfg, parts, "头部", inv, history); ok {
+				t.Fatal("extra historical lock must not be restored")
+			}
+		})
+	}
+}
+
 func reloadFixture() (carrierConfig, map[string]partScan, previousLockSettings) {
 	cfg := carrierConfig{Mode: rerollModeSingle, Part: "头部", Target: singleTarget{Want: map[string]int{"攻击力增加": 0, "优越代码伤害增加": 0}}}
 	scan := partScan{}

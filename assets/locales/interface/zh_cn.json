@@ -124,7 +124,7 @@
     "option.AccountNurturingCubeEnhancement.label": "魔方强化",
     "option.AccountNurturingRecycleRoomUpgrade.label": "循环室升级",
     "task.EquipmentReroll.label": "🔨洗词条",
-    "task.EquipmentReroll.description": "对 T10 装备执行效果变更，支持角色模式和单件模式。\n**请在人物页（左上角有「详情资讯」）开始任务**\n**本任务为高级任务：没有可用专项额度时，按 5 倍额度消耗**",
+    "task.EquipmentReroll.description": "支持洗词条效果和洗词条数值，每类均有角色模式和单件模式。数值重洗保持效果种类不变，按最低 T 档目标重洗，可消耗订制模块和锁定材料。\n**请在人物页（左上角有「详情资讯」）开始任务**\n**本任务为高级任务：没有可用专项额度时，按 5 倍额度消耗**",
     "option.EquipmentRerollMode.label": "洗词条模式",
     "option.EquipmentRerollMode.description": "角色模式：四件装备共享词条配额；单件模式：只洗选定部位，可限定词条槽位。",
     "option.EquipmentRerollMode.Character.label": "洗角色词条",
@@ -325,5 +325,15 @@
     "option.CommonShopItemList.CoreDustCase": "芯尘盒",
     "option.CommonShopItemList.ProfileCustomPack": "简介个性化礼包",
     "option.CommonShopItemList.DarlingForADay": "指挥官自由使用券",
-    "option.LargeEventContent.LargeEventMiniGame": "大活动小游戏"
+    "option.LargeEventContent.LargeEventMiniGame": "大活动小游戏",
+    "option.EquipmentRerollOperation.label": "重洗内容",
+    "option.EquipmentRerollOperation.Effect": "洗词条效果",
+    "option.EquipmentRerollOperation.Value": "洗词条数值",
+    "option.EquipmentRerollOperation.Value.description": "保持效果种类不变。角色按四件同名效果总 T 达标，单件按本件 T 达标。按预计完成全部目标的材料成本选择装备、锁方案及结果，必要时免费解锁。可能接受某项数值下降、目标缺口扩大，以换取整体预计成本降低，不保证每项数值只升不降。",
+    "option.EquipmentRerollValueTargets.label": "最低数值档位",
+    "option.EquipmentRerollValueTargets.description": "单件目标：0 忽略，1～15 为该效果最低 T 档。至少设置一项；缺失目标效果时停止。T 档不是装备强化等级。",
+    "option.EquipmentRerollValueTargets.invalid": "请输入 0～15 的整数",
+    "option.EquipmentRerollValueTotalTargets.label": "角色最低总 T 档",
+    "option.EquipmentRerollValueTotalTargets.description": "分别累加四件装备中同名效果的 T 档。0 忽略，1～60 为最低总 T；四条的自然范围为 4～60，缺失效果贡献 0。只有 n 条时最高 15×n，目标超出时停止；不强制每件均匀达标。默认优越代码总 T44。",
+    "option.EquipmentRerollValueTotalTargets.invalid": "请输入 0～60 的整数"
 }

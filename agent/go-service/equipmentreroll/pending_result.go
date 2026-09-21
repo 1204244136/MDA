@@ -24,6 +24,16 @@ type pendingResult struct {
 	Values  [maxSlot]string
 }
 
+// stageResultDecision 是效果/数值、角色/单件共用的结果暂存原语。
+// 接受按钮完成前不提交；一次性锁在已经产生结果后过期，与是否接受无关。
+func stageResultDecision(taskID int64, part string, decision ResultDecision, effects, values [maxSlot]string) {
+	if decision == ResultDecisionAccept {
+		stageAcceptedResult(taskID, part, effects, values)
+	}
+	expireOneTimeLocks(taskID, part)
+	clearValuePlan(taskID)
+}
+
 func stageAcceptedResult(taskID int64, part string, effects, values [maxSlot]string) {
 	stateMu.Lock()
 	defer stateMu.Unlock()

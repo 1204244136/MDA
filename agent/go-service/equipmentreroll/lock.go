@@ -99,6 +99,10 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 	}
 	// 全部任务选项统一从承载点读取；一次 Run 只读一次，往下传给分支使用。
 	cfg := loadCarrierConfig(ctx)
+	if cfg.isValue() {
+		// 数值模式只在确认页冻结及执行完整锁方案，不在详情页提前加锁。
+		return nil, false
+	}
 	if cfg.isSingle() {
 		return r.lockCheckSingle(arg, params, cfg)
 	}
@@ -262,6 +266,10 @@ func desiredLockSlotForConfig(cfg carrierConfig, taskID int64, part string) (int
 		return 0, false
 	}
 	material := lockMaterialForTask(taskID, part)
+	if cfg.isValue() {
+		slot, _, ok := valueLockSelection(taskID)
+		return slot, ok
+	}
 	if cfg.isSingle() {
 		if !cfg.singleTargetOK() {
 			return 0, false
@@ -324,7 +332,7 @@ func (a *EquipmentRerollLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.Cust
 		}
 	}
 	// 护栏：目标槽已锁，不能再“上锁”，转去效果变更。
-	if slot == 2 || slot == 3 {
+	if slot >= minSlot && slot <= maxSlot {
 		if p, ok2 := currentEffectPart(arg.TaskID); ok2 {
 			if scan, kok := GetPartScan(arg.TaskID, p); kok && scan.Slots[slot-1].Lock != LockNone {
 				log.Warn().Str("component", "EquipmentReroll").Int("slot", slot).Msg("target slot already locked; go change effect instead of re-lock")
@@ -377,6 +385,23 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 	if err != nil || titleDetail == nil || !titleDetail.Hit {
 		log.Debug().Str("component", "EquipmentReroll").Msg("lock page title not found")
 		return nil, false
+	}
+
+	if loadCarrierConfig(ctx).isValue() {
+		selectedSlot, selectedMaterial, ok := valueLockSelection(arg.TaskID)
+		if !ok {
+			log.Error().Msg("value lock plan is no longer affordable; stop before consuming materials")
+			return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: `{"material_code":0}`}, true
+		}
+		if slot != selectedSlot {
+			return nil, false
+		}
+		code := 2
+		if selectedMaterial == "订制模块" {
+			code = 1
+		}
+		setPendingLock(arg.TaskID, slot, selectedMaterial)
+		return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: fmt.Sprintf(`{"material_code":%d}`, code)}, true
 	}
 
 	// 用前置“获取材料库存”初始化、并由行为扣减的库存余额决策材料（不再每次 OCR）。
@@ -572,6 +597,8 @@ var _ maa.CustomActionRunner = &EquipmentRerollKeepLockRouteSlotAction{}
 
 func keepLockRouteTarget(slot int) string {
 	switch slot {
+	case 1:
+		return "EquipmentRerollKeepClickSlot1"
 	case 2:
 		return "EquipmentRerollKeepClickSlot2"
 	case 3:
@@ -594,7 +621,7 @@ func (a *EquipmentRerollKeepLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.
 		}
 	}
 	// 护栏：目标槽已锁，则无需再锁，转去准备记录消耗（确认页刷新）。
-	if slot == 2 || slot == 3 {
+	if slot >= minSlot && slot <= maxSlot {
 		if p, ok2 := currentEffectPart(arg.TaskID); ok2 {
 			if scan, kok := GetPartScan(arg.TaskID, p); kok && scan.Slots[slot-1].Lock != LockNone {
 				log.Warn().Str("component", "EquipmentReroll").Int("slot", slot).Msg("keep-lock target already locked; skip re-lock")

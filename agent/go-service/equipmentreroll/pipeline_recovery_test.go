@@ -54,7 +54,8 @@ func TestLockAbortRestoresByObservedPage(t *testing.T) {
 func TestDangerousClicksHaveBoundedFailureRoutes(t *testing.T) {
 	mainNodes := loadRecoveryPipeline(t, "EquipmentReroll.json")
 	confirm := mainNodes["EquipmentRerollConfirmChangeEffect"]
-	if len(confirm.Next) != 2 || confirm.Next[0] != "EquipmentRerollRecordRerollCost" || confirm.Next[1] != "__EquipmentRerollRetryGateConfirmChangeEffect" {
+	if len(confirm.Next) != 1 || confirm.Next[0] != "EquipmentRerollRecordRerollCost" ||
+		len(confirm.OnError) != 1 || confirm.OnError[0] != "__EquipmentRerollRetryGateConfirmChangeEffect" {
 		t.Fatalf("confirm change effect next = %v", confirm.Next)
 	}
 	confirmGate := mainNodes["__EquipmentRerollRetryGateConfirmChangeEffect"].Action.Param.CustomParam

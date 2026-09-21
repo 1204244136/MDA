@@ -21,12 +21,13 @@ type scanSlotParam struct {
 
 // slotScanResult 单个槽位扫描得到的词条 / 数值 / 锁定 / 档位。
 type slotScanResult struct {
-	Effect    string // 规范化后的官方效果名称（空 = 空槽 / 未获得效果）
-	Value     string // 数值（OCR 校准后，精确到档位表数值）
-	Tier      int    // 效果数值档位（1~15，来自 mapping；0=未确认）
-	Lock      SlotLock
-	RawEffect string // 词条区域 OCR 原文
-	RawValue  string // 数值区域 OCR 原文
+	Effect          string // 规范化后的官方效果名称（空 = 空槽 / 未获得效果）
+	Value           string // 数值（OCR 校准后，精确到档位表数值）
+	Tier            int    // 效果数值档位（1~15，来自 mapping；0=未确认）
+	Lock            SlotLock
+	RawEffect       string   // 词条区域 OCR 原文
+	RawValue        string   // 数值区域 OCR 原文
+	ValueCandidates []string // 首次 OCR 的全部原文；未命中 expected 时也保留供诊断
 }
 
 // EquipmentRerollScanSlotRecognition 全量扫描单个槽位三要素（词条 / 数值 / 锁定）。
@@ -73,6 +74,16 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 		return nil, false
 	}
 
+	// 数值模式必须在离开当前槽位前取得完整数据；返回未命中交给 Pipeline
+	// 的 timeout/rate_limit 有界重试，失败快照不得提交。
+	if loadCarrierConfig(ctx).isValue() && !valueScanReady(scan) {
+		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).
+			Str("part", part).Int("slot", params.Slot).Str("raw_effect", scan.RawEffect).
+			Str("raw_value", scan.RawValue).Strs("value_candidates", scan.ValueCandidates).
+			Msg("value scan incomplete; retry current slot before committing snapshot")
+		return nil, false
+	}
+
 	if _, err := recordEffect(arg.TaskID, recordEffectParam{
 		Slot:   params.Slot,
 		Part:   part,
@@ -102,6 +113,7 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 		Str("lock", scan.Lock.String()).
 		Str("raw_effect", scan.RawEffect).
 		Str("raw_value", scan.RawValue).
+		Strs("value_candidates", scan.ValueCandidates).
 		Msg("equipment slot scanned")
 
 	// 把“带档位的数值”作为结构化识别 detail 返回，供 maafw.log 诊断。
@@ -117,15 +129,16 @@ func buildScanSlotDetail(part string, slot int, scan slotScanResult) string {
 		msg = fmt.Sprintf("%s %s", scan.Effect, display)
 	}
 	detail := map[string]any{
-		"part":       part,
-		"slot":       slot,
-		"effect":     scan.Effect,
-		"value":      display,
-		"tier":       scan.Tier,
-		"value_tier": display,
-		"raw_value":  scan.RawValue,
-		"lock":       scan.Lock.String(),
-		"message":    msg,
+		"part":             part,
+		"slot":             slot,
+		"effect":           scan.Effect,
+		"value":            display,
+		"tier":             scan.Tier,
+		"value_tier":       display,
+		"raw_value":        scan.RawValue,
+		"value_candidates": scan.ValueCandidates,
+		"lock":             scan.Lock.String(),
+		"message":          msg,
 	}
 	b, _ := json.Marshal(detail)
 	return string(b)
@@ -145,13 +158,27 @@ func scanSlotByPipeline(ctx *maa.Context, img image.Image, slot int) slotScanRes
 	}
 
 	valueDetail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dValueOCR", slot), img, nil)
-	if err == nil && valueDetail != nil {
+	result.ValueCandidates = rawOCRCandidates(valueDetail)
+	if err == nil && valueDetail != nil && valueDetail.Hit {
 		result.Value = firstRawOCRText(valueDetail)
 		result.RawValue = result.Value
 		// 档位校准：用映射表修正 OCR 数值（输出精确档位值）。
 		if tier, calibrated, ok := resolveEffectTier(result.Effect, result.Value); ok {
 			result.Value = calibrated
 			result.Tier = tier
+		}
+	}
+	if result.Effect != "" && result.Tier == 0 {
+		// Pipeline 仅纠正已知的百分号尾字符误读；仍使用原档位容差校验。
+		fallback, fallbackErr := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dValuePercentOCR", slot), img, nil)
+		if fallbackErr == nil && fallback != nil && fallback.Hit {
+			raw := firstRawOCRText(fallback)
+			if tier, calibrated, ok := resolveEffectTier(result.Effect, raw); ok {
+				result.RawValue = raw
+				result.Value, result.Tier = calibrated, tier
+				log.Debug().Int("slot", slot).Strs("value_candidates", result.ValueCandidates).
+					Str("value", calibrated).Msg("scan value recovered by percent OCR fallback")
+			}
 		}
 	}
 
@@ -177,4 +204,27 @@ func valueTierDisplay(value string, tier int) string {
 		return value
 	}
 	return fmt.Sprintf("%s（T%d）", value, tier)
+}
+
+func valueScanReady(scan slotScanResult) bool {
+	if scan.Effect == "" {
+		return isUnobtainedEffect(scan.RawEffect) && scan.Value == "" && scan.Lock == LockNone
+	}
+	return scan.Tier > 0
+}
+
+// rawOCRCandidates 不把未通过 expected 的内容当数值，只保留诊断证据。
+func rawOCRCandidates(detail *maa.RecognitionDetail) []string {
+	var texts []string
+	seen := map[string]bool{}
+	for _, result := range allResults(detail) {
+		if result == nil {
+			continue
+		}
+		if ocr, ok := result.AsOCR(); ok && ocr.Text != "" && !seen[ocr.Text] {
+			texts = append(texts, ocr.Text)
+			seen[ocr.Text] = true
+		}
+	}
+	return texts
 }

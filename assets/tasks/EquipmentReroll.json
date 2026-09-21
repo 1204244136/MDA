@@ -6,7 +6,7 @@
             "entry": "EquipmentRerollMain",
             "description": "$task.EquipmentReroll.description",
             "option": [
-                "EquipmentRerollMode"
+                "EquipmentRerollOperation"
             ],
             "group": [
                 "utility"
@@ -14,6 +14,640 @@
         }
     ],
     "option": {
+        "EquipmentRerollOperation": {
+            "type": "select",
+            "label": "$option.EquipmentRerollOperation.label",
+            "default_case": "Effect",
+            "cases": [
+                {
+                    "name": "Effect",
+                    "label": "$option.EquipmentRerollOperation.Effect",
+                    "option": [
+                        "EquipmentRerollMode"
+                    ],
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "operation": "effect"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Value",
+                    "label": "$option.EquipmentRerollOperation.Value",
+                    "description": "$option.EquipmentRerollOperation.Value.description",
+                    "option": [
+                        "EquipmentRerollValueMode"
+                    ],
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "operation": "value"
+                            }
+                        },
+                        "EquipmentRerollRecordRerollCost": {
+                            "pre_delay": 0,
+                            "post_delay": 0,
+                            "next": [
+                                "EquipmentRerollResultPage"
+                            ]
+                        },
+                        "__EquipmentRerollLocateFlag": {
+                            "timeout": 1500,
+                            "on_error": [
+                                "EquipmentRerollValueScanFailed"
+                            ]
+                        },
+                        "EquipmentRerollScanSlot1": {
+                            "timeout": 1500,
+                            "on_error": [
+                                "EquipmentRerollValueScanFailed"
+                            ]
+                        },
+                        "EquipmentRerollScanSlot2": {
+                            "timeout": 1500,
+                            "on_error": [
+                                "EquipmentRerollValueScanFailed"
+                            ]
+                        },
+                        "EquipmentRerollConfirmPageBranch": {
+                            "timeout": 5000,
+                            "next": [
+                                "EquipmentRerollValuePrepare"
+                            ],
+                            "on_error": [
+                                "EquipmentRerollValuePlanFailed"
+                            ]
+                        },
+                        "EquipmentRerollReloadLocksDone": {
+                            "timeout": 5000,
+                            "next": [
+                                "EquipmentRerollValuePrepare"
+                            ],
+                            "on_error": [
+                                "EquipmentRerollValuePlanFailed"
+                            ]
+                        },
+                        "EquipmentRerollLockConfirm": {
+                            "timeout": 5000,
+                            "next": [
+                                "EquipmentRerollValueVerifyChange"
+                            ],
+                            "on_error": [
+                                "EquipmentRerollValuePlanFailed"
+                            ]
+                        },
+                        "EquipmentRerollLockAbortOnConfirmPage": {
+                            "next": [
+                                "EquipmentRerollValuePlanFailed"
+                            ]
+                        },
+                        "__EquipmentRerollChangeEffectTitle": {
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        570,
+                                        100,
+                                        150,
+                                        65
+                                    ],
+                                    "expected": "重新设置数值"
+                                }
+                            }
+                        },
+                        "__EquipmentRerollChangeEffectButton": {
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "expected": "重新设置数值"
+                                }
+                            }
+                        },
+                        "__EquipmentRerollCostModule": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        610,
+                                        469,
+                                        100,
+                                        32
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollCostKey": {
+                            "recognition": {
+                                "type": "TemplateMatch",
+                                "param": {
+                                    "roi": [
+                                        655,
+                                        469,
+                                        65,
+                                        32
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollHeldLabel": {
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        540,
+                                        487,
+                                        240,
+                                        45
+                                    ]
+                                }
+                            }
+                        },
+                        "EquipmentRerollClickChangeEffect": {
+                            "recognition": {
+                                "type": "And",
+                                "param": {
+                                    "all_of": [
+                                        "__EquipmentRerollValueDetailsPage",
+                                        "__EquipmentRerollValueDetailsButton"
+                                    ],
+                                    "box_index": 1
+                                }
+                            }
+                        },
+                        "EquipmentRerollClickChangeEffectRetry": {
+                            "recognition": {
+                                "type": "And",
+                                "param": {
+                                    "all_of": [
+                                        "__EquipmentRerollValueDetailsPage",
+                                        "__EquipmentRerollValueDetailsButton"
+                                    ],
+                                    "box_index": 1
+                                }
+                            },
+                            "action": {
+                                "type": "Click",
+                                "param": {
+                                    "target": true
+                                }
+                            }
+                        },
+                        "__EquipmentRerollChangeEffectSlot1": {
+                            "recognition": {
+                                "type": "DirectHit",
+                                "param": {
+                                    "roi": [
+                                        490,
+                                        217,
+                                        310,
+                                        27
+                                    ],
+                                    "roi_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot1LockBlue": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        218,
+                                        24,
+                                        24
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot1LockOrange": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        218,
+                                        24,
+                                        24
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot1LockGray": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        218,
+                                        24,
+                                        24
+                                    ],
+                                    "count": 90
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot1Empty": {
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        540,
+                                        218,
+                                        205,
+                                        27
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollChangeEffectSlot2": {
+                            "recognition": {
+                                "type": "DirectHit",
+                                "param": {
+                                    "roi": [
+                                        490,
+                                        244,
+                                        310,
+                                        27
+                                    ],
+                                    "roi_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot2LockBlue": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        245,
+                                        24,
+                                        24
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot2LockOrange": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        245,
+                                        24,
+                                        24
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot2LockGray": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        245,
+                                        24,
+                                        24
+                                    ],
+                                    "count": 90
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot2Empty": {
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        540,
+                                        245,
+                                        205,
+                                        27
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollChangeEffectSlot3": {
+                            "recognition": {
+                                "type": "DirectHit",
+                                "param": {
+                                    "roi": [
+                                        490,
+                                        271,
+                                        310,
+                                        27
+                                    ],
+                                    "roi_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot3LockBlue": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        272,
+                                        24,
+                                        24
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot3LockOrange": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        272,
+                                        24,
+                                        24
+                                    ]
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot3LockGray": {
+                            "recognition": {
+                                "type": "ColorMatch",
+                                "param": {
+                                    "roi": [
+                                        773,
+                                        272,
+                                        24,
+                                        24
+                                    ],
+                                    "count": 90
+                                }
+                            }
+                        },
+                        "__EquipmentRerollConfirmSlot3Empty": {
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        540,
+                                        272,
+                                        205,
+                                        27
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollValueMode": {
+            "type": "select",
+            "label": "$option.EquipmentRerollMode.label",
+            "default_case": "Character",
+            "cases": [
+                {
+                    "name": "Character",
+                    "label": "$option.EquipmentRerollMode.Character.label",
+                    "option": [
+                        "EquipmentRerollValueTotalTargets"
+                    ],
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "mode": "character"
+                            }
+                        },
+                        "EquipmentRerollScanDetailsPageEntered": {
+                            "next": [
+                                "EquipmentRerollOpenHeadDetails"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Single",
+                    "label": "$option.EquipmentRerollMode.Single.label",
+                    "option": [
+                        "EquipmentRerollSinglePart",
+                        "EquipmentRerollValueTargets"
+                    ],
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "mode": "single"
+                            }
+                        },
+                        "EquipmentRerollScanDetailsPageEntered": {
+                            "next": [
+                                "EquipmentRerollSingleScanRoute"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollValueTotalTargets": {
+            "type": "input",
+            "label": "$option.EquipmentRerollValueTotalTargets.label",
+            "description": "$option.EquipmentRerollValueTotalTargets.description",
+            "inputs": [
+                {
+                    "name": "ElementalDamage",
+                    "label": "$option.EquipmentRerollQuota.affix.ElementalDamage.label",
+                    "default": "44",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "AttackIncrease",
+                    "label": "$option.EquipmentRerollQuota.affix.AttackIncrease.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "MaxAmmo",
+                    "label": "$option.EquipmentRerollQuota.affix.MaxAmmo.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "CritDamage",
+                    "label": "$option.EquipmentRerollQuota.affix.CritDamage.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "CritRate",
+                    "label": "$option.EquipmentRerollQuota.affix.CritRate.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "ChargeSpeed",
+                    "label": "$option.EquipmentRerollQuota.affix.ChargeSpeed.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "ChargeDamage",
+                    "label": "$option.EquipmentRerollQuota.affix.ChargeDamage.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "HitRate",
+                    "label": "$option.EquipmentRerollQuota.affix.HitRate.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                },
+                {
+                    "name": "Defense",
+                    "label": "$option.EquipmentRerollQuota.affix.Defense.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|[1-5][0-9]|60)$",
+                    "pattern_msg": "$option.EquipmentRerollValueTotalTargets.invalid"
+                }
+            ],
+            "pipeline_override": {
+                "EquipmentRerollLockNeed": {
+                    "attach": {
+                        "value_tier_优越代码伤害增加": "{ElementalDamage}",
+                        "value_tier_攻击力增加": "{AttackIncrease}",
+                        "value_tier_最大装弹数增加": "{MaxAmmo}",
+                        "value_tier_暴击伤害增加": "{CritDamage}",
+                        "value_tier_暴击率增加": "{CritRate}",
+                        "value_tier_蓄力速度增加": "{ChargeSpeed}",
+                        "value_tier_蓄力伤害增加": "{ChargeDamage}",
+                        "value_tier_命中率增加": "{HitRate}",
+                        "value_tier_防御力增加": "{Defense}"
+                    }
+                }
+            }
+        },
+        "EquipmentRerollValueTargets": {
+            "type": "input",
+            "label": "$option.EquipmentRerollValueTargets.label",
+            "description": "$option.EquipmentRerollValueTargets.description",
+            "inputs": [
+                {
+                    "name": "ElementalDamage",
+                    "label": "$option.EquipmentRerollQuota.affix.ElementalDamage.label",
+                    "default": "11",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "AttackIncrease",
+                    "label": "$option.EquipmentRerollQuota.affix.AttackIncrease.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "MaxAmmo",
+                    "label": "$option.EquipmentRerollQuota.affix.MaxAmmo.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "CritDamage",
+                    "label": "$option.EquipmentRerollQuota.affix.CritDamage.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "CritRate",
+                    "label": "$option.EquipmentRerollQuota.affix.CritRate.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "ChargeSpeed",
+                    "label": "$option.EquipmentRerollQuota.affix.ChargeSpeed.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "ChargeDamage",
+                    "label": "$option.EquipmentRerollQuota.affix.ChargeDamage.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "HitRate",
+                    "label": "$option.EquipmentRerollQuota.affix.HitRate.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                },
+                {
+                    "name": "Defense",
+                    "label": "$option.EquipmentRerollQuota.affix.Defense.label",
+                    "default": "0",
+                    "pipeline_type": "int",
+                    "verify": "^(?:[0-9]|1[0-5])$",
+                    "pattern_msg": "$option.EquipmentRerollValueTargets.invalid"
+                }
+            ],
+            "pipeline_override": {
+                "EquipmentRerollLockNeed": {
+                    "attach": {
+                        "value_tier_优越代码伤害增加": "{ElementalDamage}",
+                        "value_tier_攻击力增加": "{AttackIncrease}",
+                        "value_tier_最大装弹数增加": "{MaxAmmo}",
+                        "value_tier_暴击伤害增加": "{CritDamage}",
+                        "value_tier_暴击率增加": "{CritRate}",
+                        "value_tier_蓄力速度增加": "{ChargeSpeed}",
+                        "value_tier_蓄力伤害增加": "{ChargeDamage}",
+                        "value_tier_命中率增加": "{HitRate}",
+                        "value_tier_防御力增加": "{Defense}"
+                    }
+                }
+            }
+        },
         "EquipmentRerollQuotaElementalDamage": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.ElementalDamage.label",

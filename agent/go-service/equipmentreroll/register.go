@@ -7,6 +7,21 @@ import (
 
 // Register registers EquipmentReroll custom actions and recognitions.
 func Register() {
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollValuePrepareAction", &EquipmentRerollValuePrepareAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register value prepare")
+	}
+	if err := maa.AgentServerRegisterCustomRecognition("EquipmentRerollValueLocksVerifyRecognition", &EquipmentRerollValueLocksVerifyRecognition{}); err != nil {
+		log.Error().Err(err).Msg("failed to register value lock verification")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollValueLocksDoneAction", &EquipmentRerollValueLocksDoneAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register value lock commit")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollConfigCheckAction", &EquipmentRerollConfigCheckAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollConfigCheckAction")
+	}
+	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollValueDecideAction", &EquipmentRerollValueDecideAction{}); err != nil {
+		log.Error().Err(err).Msg("failed to register EquipmentRerollValueDecideAction")
+	}
 	if err := maa.AgentServerRegisterCustomAction("EquipmentRerollFailAction", &EquipmentRerollFailAction{}); err != nil {
 		log.Error().Err(err).Msg("failed to register EquipmentRerollFailAction")
 	}

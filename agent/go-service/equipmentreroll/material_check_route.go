@@ -35,7 +35,15 @@ func (a *EquipmentRerollAfterMaterialCheckAction) Run(ctx *maa.Context, arg *maa
 		return false
 	}
 	cfg := loadCarrierConfig(ctx)
-	target := materialCheckRouteTarget(isStandaloneScanEntry(ctx, arg), cfg.isSingle())
+	standalone := isStandaloneScanEntry(ctx, arg)
+	target := materialCheckRouteTarget(standalone, cfg.isSingle())
+	if !standalone {
+		if err := cfg.validateOperation(); err != nil {
+			log.Error().Err(err).Msg("invalid reroll operation")
+			return false
+		}
+		target = rerollDecisionTarget(cfg)
+	}
 	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Str("target", target).Msg("failed to route after material check")
 		return false

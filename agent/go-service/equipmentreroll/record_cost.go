@@ -127,6 +127,13 @@ func (a *EquipmentRerollPrepareRerollCostAction) Run(ctx *maa.Context, arg *maa.
 		return false
 	}
 	modules, modulesKnown := getModulesHeld(arg.TaskID)
+	if loadCarrierConfig(ctx).isValue() {
+		plan, ok := currentValuePlan(arg.TaskID)
+		if !ok || cost.CustomModules != plan.FirstModules || cost.CustomLockKeys != plan.FirstKeys {
+			log.Error().Interface("plan", plan).Interface("actual_cost", cost).Msg("value cost differs from frozen plan; refusing consumption")
+			return false
+		}
+	}
 	keys, keysKnown := getKeysHeld(arg.TaskID)
 	if guardRerollCost(arg.TaskID, cost) == costGuardInsufficient {
 		log.Warn().

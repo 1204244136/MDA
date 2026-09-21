@@ -199,6 +199,29 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 
 	// 全部任务选项统一从承载点读取；一次 Run 只读一次。
 	cfg := loadCarrierConfig(ctx)
+	if err := cfg.validateOperation(); err != nil {
+		log.Error().Err(err).Msg("invalid result decision config")
+		return nil, false
+	}
+	if cfg.isValue() {
+		parts := getScannedParts(arg.TaskID)
+		if source := resultSourceForTask(arg.TaskID); source != (partScan{}) {
+			parts[part] = source // 同轮重试仍按实际受保护的锁验证。
+		}
+		decision, currentCost, candidateCost, err := evaluateValueResult(parts, part, changed, changedValues, cfg)
+		if err != nil {
+			log.Warn().Err(err).Msg("value result is inconsistent; retry recognition")
+			return nil, false
+		}
+		stageResultDecision(arg.TaskID, part, decision, changed, changedValues)
+		log.Info().Int64("task_id", arg.TaskID).Str("part", part).
+			Interface("current_slots", parts[part].Slots).Interface("targets", cfg.ValueTargets).
+			Strs("changed_values", changedValues[:]).Strs("raw_changed", changedRaw[:]).
+			Float64("current_remaining_modules", currentCost).
+			Float64("candidate_remaining_modules", candidateCost).
+			Str("decision", decision.String()).Msg("value result remaining cost compared")
+		return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: resultDecisionDetail(decision)}, true
+	}
 	if cfg.isSingle() {
 		return r.decideSingle(arg, part, changed, changedValues, changedRaw, cfg)
 	}
@@ -231,11 +254,13 @@ func (r *EquipmentRerollResultDecideRecognition) decideSingle(arg *maa.CustomRec
 	t := cfg.Target
 
 	current := scan.Effects()
-	decision := DecideResultPageSingle(changed, scan, t)
-	if decision == ResultDecisionAccept {
-		stageAcceptedResult(arg.TaskID, part, changed, changedValues)
+	candidate := scan
+	for i := range candidate.Slots {
+		candidate.Slots[i].Effect = changed[i]
+		candidate.Slots[i].Value = changedValues[i]
 	}
-	expireOneTimeLocks(arg.TaskID, part)
+	decision := decideSingleCandidate(scan, candidate, t)
+	stageResultDecision(arg.TaskID, part, decision, changed, changedValues)
 
 	log.Info().
 		Str("component", "EquipmentReroll").
@@ -247,19 +272,10 @@ func (r *EquipmentRerollResultDecideRecognition) decideSingle(arg *maa.CustomRec
 		Strs("raw_changed", changedRaw[:]).
 		Str("decision", decision.String()).
 		Float64("current_cost", singleExpectedCost(scan, t)).
-		Float64("candidate_cost", singleExpectedCostOfEffects(changed, scan, t)).
+		Float64("candidate_cost", singleExpectedCost(candidate, t)).
 		Msg("single equipment result page decision made")
 
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: resultDecisionDetail(decision)}, true
-}
-
-// singleExpectedCostOfEffects 构造把 changed 写入快照后的候选扫描，并计算单件期望成本。
-func singleExpectedCostOfEffects(changed [maxSlot]string, scan partScan, t singleTarget) float64 {
-	cand := scan
-	for i := range cand.Slots {
-		cand.Slots[i].Effect = changed[i]
-	}
-	return singleExpectedCost(cand, t)
 }
 
 func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomRecognitionArg, params resultDecideParam, part string, changed, changedValues, changedRaw [maxSlot]string) (*maa.CustomRecognitionResult, bool) {
@@ -305,10 +321,7 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 		// 全局快照缺失时的降级路径（单件期望成本比较）。
 		decision = DecideResultPageQuota(current, changed, scan, quota)
 	}
-	if decision == ResultDecisionAccept {
-		stageAcceptedResult(arg.TaskID, part, changed, changedValues)
-	}
-	expireOneTimeLocks(arg.TaskID, part)
+	stageResultDecision(arg.TaskID, part, decision, changed, changedValues)
 
 	log.Info().
 		Str("component", "EquipmentReroll").
@@ -515,6 +528,10 @@ func (a *EquipmentRerollResultRouteAction) Run(ctx *maa.Context, arg *maa.Custom
 // shouldContinueCurrentPartAfterAccept 判断接受阶段性进展后，当前装备是否仍是下一轮目标。
 // 角色模式复用全局选装算法，单件模式则在目标仍可达且尚未满足时继续当前装备。
 func shouldContinueCurrentPartAfterAccept(current string, cfg carrierConfig, parts map[string]partScan) bool {
+	if cfg.isValue() {
+		plan, err := planValueReroll(parts, cfg)
+		return err == nil && !plan.Satisfied && plan.Part == current
+	}
 	scan, ok := parts[current]
 	if !ok {
 		return false
@@ -570,7 +587,15 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 	if cfg.isSingle() {
 		next[0].Name = "EquipmentRerollSingleReturnToDecide"
 	}
-	if partOK && shouldContinueCurrentPartAfterAccept(part, cfg, parts) {
+	if cfg.isValue() {
+		next[0].Name = "EquipmentRerollValueReturnToDecide"
+	}
+	keepCurrent := partOK && shouldContinueCurrentPartAfterAccept(part, cfg, parts)
+	if cfg.isValue() && partOK {
+		plan, err := planValueRerollWithInventory(parts, cfg, valueInventory(arg.TaskID), "")
+		keepCurrent = err == nil && !plan.Satisfied && plan.Part == part
+	}
+	if keepCurrent {
 		// 接受后稳定停在效果变更确认页，直接复用维持分支继续锁定/重洗。
 		next = []maa.NextItem{{Name: "EquipmentRerollKeepLockGate"}}
 	}

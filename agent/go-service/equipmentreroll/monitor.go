@@ -118,6 +118,8 @@ type monitorState struct {
 	Materials            MaterialUsage
 	PreviousLocks        previousLockSettings // 只信任本任务最近实际使用的设置，不读取跨任务历史
 	PendingResult        *pendingResult
+	ValuePlan            *valuePlan // 当前一轮已冻结的完整锁方案，确认/释放后才更新快照。
+	ValueLockObservation *valueLockObservation
 	ResultSource         *rerollResultSource // 本轮结果对应的变更前快照，不随单次锁解除而变化
 	PendingRerollCost    MaterialUsage       // 确认页读取的总费用，结果页出现后才入账
 	Inventory            Inventory           // 任务级材料余额（效果锁定页或确认页读取，之后由行为扣减）
@@ -378,6 +380,8 @@ func setCurrentPart(taskID int64, part string) error {
 	state := states[taskID]
 	if state.Part != part {
 		state.ResultSource = nil
+		state.ValuePlan = nil
+		state.ValueLockObservation = nil
 	}
 	state.Part = part
 	states[taskID] = state

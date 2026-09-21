@@ -1,0 +1,145 @@
+{
+    "EquipmentRerollValueScanFailed": {
+        "desc": "数值模式扫描重试超时，停止任务并保留当前装备现场",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "value_scan"
+                }
+            }
+        }
+    },
+    "__EquipmentRerollValueDetailsPage": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    460,
+                    380,
+                    240,
+                    130
+                ],
+                "template": [
+                    "EquipmentReroll/InspectFlag.png"
+                ],
+                "threshold": 0.9
+            }
+        }
+    },
+    "__EquipmentRerollValueDetailsButton": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    500,
+                    360,
+                    170
+                ],
+                "expected": "重新设置数值"
+            }
+        }
+    },
+    "EquipmentRerollValueDecide": {
+        "desc": "数值重洗角色/单件共用决策：达标走摘要，否则打开选定部位进入共用锁定及重洗链",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollValueDecideAction"
+            }
+        },
+        "anchor": {
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenTorso": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenLegs": "EquipmentRerollLockGate"
+        },
+        "next": [
+            "EquipmentRerollFinalSummary"
+        ]
+    },
+    "EquipmentRerollValueReturnToDecide": {
+        "desc": "数值重洗完成：关闭页面回人物页，基于已提交快照重新调度",
+        "pre_delay": 0,
+        "post_delay": 0,
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "EquipmentRerollValueDecide"
+        ]
+    },
+    "EquipmentRerollKeepClickSlot1": {
+        "desc": "共用确认页第1槽锁定入口，效果策略不选择本槽，数值策略可保护已达标高值",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot1"
+                ],
+                "box_index": 1
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    4,
+                    -60,
+                    -8
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 150
+        },
+        "post_delay": 0,
+        "rate_limit": 100,
+        "next": [
+            "EquipmentRerollLockPageEntered",
+            "__EquipmentRerollRetryGateKeepClickSlot1"
+        ]
+    },
+    "__EquipmentRerollChangeEffectSlot1": {
+        "recognition": {
+            "type": "DirectHit",
+            "param": {
+                "roi": "__EquipmentRerollChangeEffectTitle",
+                "roi_offset": [
+                    -128,
+                    90,
+                    241,
+                    2
+                ]
+            }
+        }
+    },
+    "__EquipmentRerollRetryGateKeepClickSlot1": {
+        "desc": "共用第1槽锁定有界重试；超限放弃锁定",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "keep_click_slot1",
+                    "retry": "EquipmentRerollKeepClickSlot1",
+                    "give_up": "EquipmentRerollLockAbort",
+                    "next": [
+                        "EquipmentRerollLockPageEntered",
+                        "EquipmentRerollKeepClickSlot1",
+                        "__EquipmentRerollRetryGateKeepClickSlot1"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    }
+}

@@ -151,7 +151,8 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 		return false
 	}
 
-	if !isStandaloneScanEntry(ctx, arg) {
+	standalone := isStandaloneScanEntry(ctx, arg)
+	if !standalone {
 		res := validatePreexistingLocks(ctx, arg.TaskID, part, scan)
 		if !res.Passed {
 			log.Error().
@@ -178,8 +179,12 @@ func (a *EquipmentRerollScanRouteAction) Run(ctx *maa.Context, arg *maa.CustomAc
 	}
 
 	maafocus.Print(ctx, buildPartEffectsMessage(part, scan, "tasker.equipment_reroll.effects"))
+	cfg := loadCarrierConfig(ctx)
+	if shouldReportInitialEstimate(standalone, part, cfg) {
+		maafocus.Print(ctx, initialEstimateMessage(getScannedParts(arg.TaskID), cfg))
+	}
 
-	next, ok := scanNextItems(part, loadCarrierConfig(ctx).isSingle())
+	next, ok := scanNextItems(part, cfg.isSingle())
 	if !ok {
 		log.Error().Str("component", "EquipmentReroll").Str("part", part).Msg("no next node for equipment part")
 		return false

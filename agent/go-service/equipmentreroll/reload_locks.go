@@ -2,7 +2,6 @@ package equipmentreroll
 
 import (
 	"encoding/json"
-	"fmt"
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 	"github.com/rs/zerolog/log"
 )
@@ -20,7 +19,11 @@ func reusableLockPlan(cfg carrierConfig, parts map[string]partScan, part string,
 	if !ok || part != previous.Part {
 		return empty, false
 	}
-	if cfg.isSingle() {
+	if cfg.isValue() {
+		if cfg.validateOperation() != nil || (cfg.isSingle() && cfg.Part != part) {
+			return empty, false
+		}
+	} else if cfg.isSingle() {
 		if cfg.Part != part || !cfg.singleTargetOK() || len(cfg.Target.Want) == 0 {
 			return empty, false
 		}
@@ -43,6 +46,10 @@ func reusableLockPlan(cfg carrierConfig, parts map[string]partScan, part string,
 		}
 	}
 	copyParts := make(map[string]partScan, len(parts))
+	if cfg.isValue() {
+		plan, err := planValueRerollWithInventory(parts, cfg, inv, part)
+		return plan.Locks, err == nil && !plan.Satisfied && len(plan.Release) == 0 && plan.Locks == previous.Locks
+	}
 	for p, s := range parts {
 		copyParts[p] = s
 	}
@@ -65,7 +72,7 @@ func reusableLockPlan(cfg carrierConfig, parts map[string]partScan, part string,
 		if !need {
 			break
 		}
-		if slot < 2 || slot > 3 || scan.Slots[slot-1].Lock != LockNone || material != "自订密钥" {
+		if slot < minSlot || slot > maxSlot || (!cfg.isValue() && slot == 1) || scan.Slots[slot-1].Lock != LockNone || material != "自订密钥" {
 			return empty, false
 		}
 		inv.CustomLockKeys -= LockCost(material, countLocks(scan))
@@ -123,34 +130,11 @@ func (r *EquipmentRerollReloadLocksVerifyRecognition) Run(ctx *maa.Context, arg 
 	if err != nil || title == nil || !title.Hit {
 		return nil, false
 	}
-	var actual [maxSlot]SlotLock
-	for i := range actual {
-		var hits [3]bool
-		for j, color := range []string{"Blue", "Orange", "Gray"} {
-			detail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollConfirmSlot%dLock%s", i+1, color), arg.Img, nil)
-			if err != nil || detail == nil {
-				return nil, false
-			}
-			hits[j] = detail.Hit
-		}
-		if hits[0] && hits[1] {
-			return nil, false
-		}
-		if !hits[0] && !hits[1] && !hits[2] {
-			// 空词条槽不显示锁图标；必须明确识别“未获得效果”，
-			// 不能把任意锁标记识别失败都当成未锁定。
-			empty, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollConfirmSlot%dEmpty", i+1), arg.Img, nil)
-			if err != nil || empty == nil || !empty.Hit {
-				log.Debug().Int64("task_id", arg.TaskID).Int("slot", i+1).Msg("reload lock slot has neither a lock marker nor an empty effect label")
-				return nil, false
-			}
-		}
-		if hits[0] {
-			actual[i] = LockPermanent
-		} else if hits[1] {
-			actual[i] = LockOneTime
-		}
+	actual, valid := readConfirmLocks(ctx, arg.Img)
+	if !valid {
+		return nil, false
 	}
+
 	if actual != planned {
 		log.Debug().Int64("task_id", arg.TaskID).Interface("expected", planned).Interface("actual", actual).Msg("waiting for previous locks to be restored")
 		return nil, false

@@ -4,6 +4,28 @@ import (
 	"testing"
 )
 
+func TestValueScanReady(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		scan slotScanResult
+		want bool
+	}{
+		{"valid", slotScanResult{Effect: "优越代码伤害增加", Value: "12.34%", Tier: 3}, true},
+		{"missing value", slotScanResult{Effect: "优越代码伤害增加"}, false},
+		{"invalid tier", slotScanResult{Effect: "优越代码伤害增加", Value: "99.99%"}, false},
+		{"OCR missing is not empty slot", slotScanResult{}, false},
+		{"confirmed empty", slotScanResult{RawEffect: "未获得效果"}, true},
+		{"inconsistent empty", slotScanResult{RawEffect: "未获得效果", Value: "12.34%"}, false},
+		{"locked empty", slotScanResult{RawEffect: "未获得效果", Lock: LockPermanent}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := valueScanReady(tc.scan); got != tc.want {
+				t.Fatalf("valueScanReady(%+v)=%v", tc.scan, got)
+			}
+		})
+	}
+}
+
 func TestRecordEffectStoresValueAndLock(t *testing.T) {
 	const taskID int64 = 3001
 	clearMonitorState(taskID)

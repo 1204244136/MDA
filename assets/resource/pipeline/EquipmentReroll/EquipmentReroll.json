@@ -31,7 +31,13 @@
         ]
     },
     "EquipmentRerollFlow": {
-        "desc": "洗词条编排：先识别装备（角色模式四件 / 单件模式仅选定一件），再按模式决策与执行效果变更；材料库存进入锁定页或确认页后读取",
+        "desc": "共用编排：校验大类与模式，扫描角色四件或选定单件，再分发效果/数值决策",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollConfigCheckAction"
+            }
+        },
         "next": [
             "EquipmentRerollScanMain"
         ]
@@ -610,7 +616,7 @@
         ]
     },
     "EquipmentRerollConfirmChangeEffect": {
-        "desc": "确认效果变更页后，相对加载锁定设置区域定位底部按钮，避免命中顶部同名标题",
+        "desc": "确认页点击后等待局部动画稳定及结果页哨兵；仅等待超时才允许有界重试，避免过渡帧重复点击",
         "recognition": {
             "type": "And",
             "param": {
@@ -626,8 +632,24 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                460,
+                180,
+                360,
+                380
+            ],
+            "rate_limit": 100,
+            "timeout": 4000
+        },
+        "post_delay": 0,
+        "timeout": 5000,
+        "rate_limit": 200,
         "next": [
-            "EquipmentRerollRecordRerollCost",
+            "EquipmentRerollRecordRerollCost"
+        ],
+        "on_error": [
             "__EquipmentRerollRetryGateConfirmChangeEffect"
         ]
     },

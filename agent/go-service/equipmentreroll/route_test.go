@@ -93,7 +93,8 @@ func TestKeepLockRouteTargets(t *testing.T) {
 		{name: "slot 2", slot: 2, want: "EquipmentRerollKeepClickSlot2"},
 		{name: "slot 3", slot: 3, want: "EquipmentRerollKeepClickSlot3"},
 		{name: "no slot", slot: 0, want: "EquipmentRerollPrepareRerollCost"},
-		{name: "invalid slot", slot: 1, want: "EquipmentRerollPrepareRerollCost"},
+		{name: "value first slot", slot: 1, want: "EquipmentRerollKeepClickSlot1"},
+		{name: "invalid slot", slot: 4, want: "EquipmentRerollPrepareRerollCost"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -123,8 +123,8 @@
     "option.AccountNurturingSynchroDeviceEnhance.label": "Synchro Device Enhancement",
     "option.AccountNurturingCubeEnhancement.label": "Cube Enhancement",
     "option.AccountNurturingRecycleRoomUpgrade.label": "Recycling Room Upgrade",
-    "task.EquipmentReroll.label": "🔨Effect Reroll",
-    "task.EquipmentReroll.description": "Changes effects on T10 equipment with Character and Single modes.\n**Start on the character page (with \"Details\" in the top-left corner).**\n**Advanced task: consumes runtime quota at 5x when no special quota is available**",
+    "task.EquipmentReroll.label": "🔨Equipment Reroll",
+    "task.EquipmentReroll.description": "Supports effect and value rerolls, each with Character and Single modes. Value rerolls preserve effect types and pursue minimum tier targets, spending Custom Modules and lock materials as needed.\n**Start on the character page (with \"Details\" in the top-left corner).**\n**Advanced task: consumes runtime quota at 5x when no special quota is available**",
     "option.EquipmentRerollMode.label": "Reroll Mode",
     "option.EquipmentRerollMode.description": "Character mode: shared affix quotas across four pieces; Single mode: reroll only the selected piece, with optional slot pinning.",
     "option.EquipmentRerollMode.Character.label": "Character Reroll",
@@ -325,5 +325,15 @@
     "option.CommonShopItemList.CoreDustCase": "Core Dust Case",
     "option.CommonShopItemList.ProfileCustomPack": "Profile Custom Pack",
     "option.CommonShopItemList.DarlingForADay": "Darling for a Day",
-    "option.LargeEventContent.LargeEventMiniGame": "Mini Game"
+    "option.LargeEventContent.LargeEventMiniGame": "Mini Game",
+    "option.EquipmentRerollOperation.label": "Reroll content",
+    "option.EquipmentRerollOperation.Effect": "Reroll effects",
+    "option.EquipmentRerollOperation.Value": "Reroll values",
+    "option.EquipmentRerollOperation.Value.description": "Keep effect types unchanged. Character targets sum matching tiers across four pieces; single targets apply to one piece. Select gear, locks and results by the estimated material cost of completing all targets, unlocking for free when useful. A lower value or larger deficit for one target may be accepted to reduce the overall estimated cost; individual values are not guaranteed to only increase.",
+    "option.EquipmentRerollValueTargets.label": "Minimum value tiers",
+    "option.EquipmentRerollValueTargets.description": "Single piece: 0 ignores an effect; 1–15 sets its minimum tier. Set at least one target. Missing effects stop the task. Tier is not equipment enhancement level.",
+    "option.EquipmentRerollValueTargets.invalid": "Enter an integer from 0 to 15",
+    "option.EquipmentRerollValueTotalTargets.label": "Character minimum total tiers",
+    "option.EquipmentRerollValueTotalTargets.description": "Sum matching effect tiers across four pieces. 0 ignores; 1–60 sets the minimum total. Four copies range from 4 to 60; missing copies contribute 0. With n copies the maximum is 15×n. Unreachable targets stop the task. Individual pieces need not have equal tiers. Default elemental damage total: 44.",
+    "option.EquipmentRerollValueTotalTargets.invalid": "Enter an integer from 0 to 60"
 }

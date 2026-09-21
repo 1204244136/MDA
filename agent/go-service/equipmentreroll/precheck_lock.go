@@ -48,6 +48,10 @@ func validatePreexistingLocks(ctx *maa.Context, taskID int64, part string, scan 
 	}
 
 	cfg := loadCarrierConfig(ctx)
+	if cfg.isValue() {
+		// 数值任务在完整范围扫描后统一校验；不能套用效果任务“禁止锁第1槽”策略。
+		return PrecheckLockResult{Passed: true}
+	}
 	if cfg.isSingle() {
 		return validateSinglePreexistingLocks(part, scan, cfg.Target, lockMaterialForTask(taskID, part))
 	}

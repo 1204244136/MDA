@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 )
@@ -33,6 +34,16 @@ func TestReloadLocksOfflineIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if os.Getenv("MDA_VALUE_SAMPLE") == "unlock" {
+		// 用户原图保留无损；只在离线识别输入中按项目 1280×720 基准缩放。
+		scaled := image.NewRGBA(image.Rect(0, 0, 1280, 720))
+		for y := 0; y < 720; y++ {
+			for x := 0; x < 1280; x++ {
+				scaled.Set(x, y, img.At(x*img.Bounds().Dx()/1280, y*img.Bounds().Dy()/720))
+			}
+		}
+		img = scaled
+	}
 	res, err := maa.NewResource()
 	if err != nil {
 		t.Fatal(err)
@@ -56,6 +67,9 @@ func TestReloadLocksOfflineIntegration(t *testing.T) {
 	if err := res.RegisterCustomRecognition("EquipmentRerollReloadLocksVerifyRecognition", &EquipmentRerollReloadLocksVerifyRecognition{}); err != nil {
 		t.Fatal(err)
 	}
+	if err := res.RegisterCustomRecognition("EquipmentRerollValueLocksVerifyRecognition", &EquipmentRerollValueLocksVerifyRecognition{}); err != nil {
+		t.Fatal(err)
+	}
 	if err := res.RegisterCustomRecognition("ReloadOfflineProbe", &reloadOfflineRecognition{probe: &reloadOfflineProbe{t: t, img: img}}); err != nil {
 		t.Fatal(err)
 	}
@@ -72,6 +86,20 @@ type reloadOfflineProbe struct {
 
 func (p *reloadOfflineProbe) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 	t := p.t
+	if os.Getenv("MDA_VALUE_SAMPLE") == "unlock" {
+		for _, node := range []string{"__EquipmentRerollUnlockTitle", "__EquipmentRerollUnlockMessage", "__EquipmentRerollUnlockConfirmText", "EquipmentRerollValueUnlockConfirm"} {
+			d, err := ctx.RunRecognition(node, p.img, nil)
+			if err != nil || d == nil || !d.Hit {
+				t.Errorf("unlock sample did not match %s: %v", node, err)
+				return false
+			}
+		}
+		// 只识别，不执行确认或解锁点击。
+		return true
+	}
+	if sample := os.Getenv("MDA_VALUE_SAMPLE"); sample != "" {
+		return p.verifyValueSample(ctx, arg, sample)
+	}
 	if os.Getenv("MDA_RESULT_LOCKED_SOURCE") == "1" {
 		// 23:12 故障结果页第三槽被解除锁定提示遮挡；本轮锁定快照可直接补全。
 		var source partScan
@@ -181,6 +209,258 @@ func (p *reloadOfflineProbe) Run(ctx *maa.Context, arg *maa.CustomActionArg) boo
 }
 
 type reloadOfflineRecognition struct{ probe *reloadOfflineProbe }
+
+// verifyValueSample 复用已有离线回放流程，只替换样本和断言，不创建控制器或点击。
+func (p *reloadOfflineProbe) verifyValueSample(ctx *maa.Context, arg *maa.CustomActionArg, sample string) bool {
+	t := p.t
+	// 离线测试没有 PI 客户端，直接应用实际 Value case 的覆盖来模拟选项生效。
+	if err := ctx.OverridePipeline(loadValueOptionOverrides(t)); err != nil {
+		t.Errorf("value option override failed: %v", err)
+		return false
+	}
+	if sample == "prepare" {
+		return p.verifyValuePrepare(ctx, arg.TaskID)
+	}
+	if sample == "locks-bright" || sample == "locks-dark" {
+		actual, ok := readConfirmLocks(ctx, p.img)
+		if sample == "locks-bright" {
+			if !ok || actual != ([maxSlot]SlotLock{LockNone, LockOneTime, LockPermanent}) {
+				t.Errorf("bright locks: %v %v", actual, ok)
+				return false
+			}
+		} else if ok {
+			t.Errorf("dark colored locks misread as unlocked: %v", actual)
+			return false
+		}
+		for i := 1; i <= 3; i++ {
+			d, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollConfirmSlot%dLockGray", i), p.img, nil)
+			if err != nil || d == nil || d.Hit != (i == 1) {
+				t.Errorf("gray icon %d: %+v %v", i, d, err)
+				return false
+			}
+		}
+		return true
+	}
+	checkNode := func(name string, want bool) bool {
+		detail, err := ctx.RunRecognition(name, p.img, nil)
+		if err != nil || detail == nil || detail.Hit != want {
+			t.Errorf("%s hit=%+v error=%v", name, detail, err)
+			return false
+		}
+		if want {
+			t.Logf("%s: box=%v", name, detail.Box)
+		}
+		return true
+	}
+	if !checkNode("EquipmentRerollClickChangeEffect", false) {
+		return false
+	}
+	if !checkNode("EquipmentRerollValueUnlockConfirm", false) {
+		return false
+	}
+	if sample == "confirm" {
+		for _, name := range []string{"__EquipmentRerollChangeEffectTitle", "__EquipmentRerollPreviousLockSettings", "__EquipmentRerollChangeEffectButton", "EquipmentRerollConfirmChangeEffect", "EquipmentRerollKeepClickSlot1", "EquipmentRerollKeepClickSlot2", "EquipmentRerollKeepClickSlot3"} {
+			if !checkNode(name, true) {
+				return false
+			}
+		}
+		if !checkNode("__EquipmentRerollResultPageTitle", false) {
+			return false
+		}
+		cost, ok := readRerollCost(ctx, p.img, partScan{})
+		if !ok || cost.CustomModules != 1 || cost.CustomLockKeys != 0 {
+			t.Errorf("cost=%+v ok=%v", cost, ok)
+			return false
+		}
+		for slot := 1; slot <= 3; slot++ {
+			if !checkNode(fmt.Sprintf("__EquipmentRerollConfirmSlot%dLockGray", slot), true) {
+				return false
+			}
+		}
+		id := arg.TaskID
+		defer clearMonitorState(id)
+		_ = setCurrentPart(id, "头部")
+		updatePartEffects(id, "头部", [maxSlot]string{"攻击力增加"}, [maxSlot]string{"7.59%"})
+		applyLockToSnapshot(id, "头部", 1, "订制模块")
+		setInventory(id, Inventory{100, 200})
+		storeValuePlan(id, valuePlan{Part: "头部", FirstModules: 1})
+		setPendingLock(id, 1, valueReleaseMaterial)
+		verified, err := ctx.RunRecognition("EquipmentRerollValueVerifyChange", p.img, nil)
+		if err != nil || verified == nil || !verified.Hit {
+			t.Errorf("gray locks did not verify release: %v", err)
+			return false
+		}
+		doneArg := &maa.CustomActionArg{TaskID: id, RecognitionDetail: verified}
+		if !(&EquipmentRerollValueLocksDoneAction{}).Run(ctx, doneArg) {
+			t.Error("verified release commit failed")
+			return false
+		}
+		if (&EquipmentRerollValueLocksDoneAction{}).Run(ctx, doneArg) {
+			t.Error("release committed twice")
+			return false
+		}
+		scan, _ := GetPartScan(id, "头部")
+		inv, _ := getInventory(id)
+		if scan.Slots[0].Lock != LockNone || inv != (Inventory{100, 200}) {
+			t.Error("release changed inventory or failed to clear lock")
+			return false
+		}
+		if !checkNode("EquipmentRerollValueVerifyReady", true) {
+			return false
+		}
+		storeValuePlan(id, valuePlan{Part: "头部", Locks: [maxSlot]SlotLock{LockPermanent}})
+		if !checkNode("EquipmentRerollValueVerifyReady", false) {
+			return false
+		}
+		return true
+	}
+	if sample != "result" {
+		t.Errorf("unknown value sample %q", sample)
+		return false
+	}
+	for _, name := range []string{"__EquipmentRerollResultPageTitle", "EquipmentRerollResultClickKeep", "EquipmentRerollResultClickAccept"} {
+		if !checkNode(name, true) {
+			return false
+		}
+	}
+	if !checkNode("__EquipmentRerollChangeEffectTitle", false) {
+		return false
+	}
+	effects, values, _, ok := recognizeChangedEffects(ctx, p.img, partScan{})
+	if !ok || effects != ([maxSlot]string{"优越代码伤害增加", "暴击伤害增加", "攻击力增加"}) || values != ([maxSlot]string{"23.56%", "6.64%", "11.11%"}) {
+		t.Errorf("result effects=%v values=%v ok=%v", effects, values, ok)
+		return false
+	}
+	id := arg.TaskID
+	defer clearMonitorState(id)
+	_ = setCurrentPart(id, "头部")
+	updatePartEffects(id, "头部", effects, [maxSlot]string{"22.15%", "12.52%", "9.70%"})
+	if err := ctx.OverridePipeline(map[string]any{carrierNode: map[string]any{"attach": map[string]any{"operation": "value", "mode": "single", "part": "头部", "value_tier_优越代码伤害增加": 12, "value_tier_攻击力增加": 11}}}); err != nil {
+		t.Error(err)
+		return false
+	}
+	result, hit := (&EquipmentRerollResultDecideRecognition{}).Run(ctx, &maa.CustomRecognitionArg{TaskID: id, Img: p.img, CustomRecognitionParam: "{}"})
+	if !hit || result.Detail != resultDecisionDetail(ResultDecisionAccept) {
+		t.Errorf("value decision=%+v hit=%v", result, hit)
+		return false
+	}
+	before, _ := GetPartScan(id, "头部")
+	if before.Slots[0].Value != "22.15%" {
+		t.Error("candidate committed before confirmation")
+		return false
+	}
+	if !(&EquipmentRerollAfterAcceptRouteAction{}).Run(ctx, &maa.CustomActionArg{TaskID: id, CurrentTaskName: "EquipmentRerollAfterAccept"}) {
+		t.Error("after accept route failed")
+		return false
+	}
+	after, _ := GetPartScan(id, "头部")
+	if after.Slots[0].Value != values[0] {
+		t.Error("accepted values not committed")
+		return false
+	}
+	raw, err := ctx.GetNodeJSON("EquipmentRerollAfterAccept")
+	var node struct {
+		Next []struct {
+			Name string `json:"name"`
+		} `json:"next"`
+	}
+	if err != nil || json.Unmarshal([]byte(raw), &node) != nil || len(node.Next) != 1 || node.Next[0].Name != "EquipmentRerollKeepLockGate" {
+		t.Errorf("unexpected continue route: %s error=%v", raw, err)
+		return false
+	}
+	return true
+}
+
+// verifyValuePrepare 回放故障确认页，验证资源动作接线及角色/单件的初始化链路。
+// 仅调用无点击的规划动作；不执行 next 中的锁变更或重洗。
+func (p *reloadOfflineProbe) verifyValuePrepare(ctx *maa.Context, id int64) bool {
+	t := p.t
+	defer clearMonitorState(id)
+	for _, mode := range []string{"character", "single"} {
+		clearMonitorState(id)
+		parts, _ := valueLogTestParts()
+		stateMu.Lock()
+		states[id] = monitorState{Part: "身躯", Parts: parts}
+		stateMu.Unlock()
+		// 限制为一轮无锁预算，避免测试依赖期望策略对新增锁的选择。
+		setInventory(id, Inventory{CustomModules: 1})
+		target := 15
+		if mode == "character" {
+			target = 60
+		}
+		if err := ctx.OverridePipeline(map[string]any{carrierNode: map[string]any{"attach": map[string]any{
+			"operation": "value", "mode": mode, "part": "身躯", "value_tier_攻击力增加": target,
+		}}}); err != nil {
+			t.Error(err)
+			return false
+		}
+		if _, ok := currentValuePlan(id); ok {
+			t.Error("plan exists before prepare")
+			return false
+		}
+		first, err := ctx.RunRecognition("EquipmentRerollValuePrepare", p.img, nil)
+		if err != nil || first == nil || first.Hit {
+			t.Errorf("%s accepted initial single frame: %+v %v", mode, first, err)
+			return false
+		}
+		time.Sleep(220 * time.Millisecond)
+		verified, err := ctx.RunRecognition("EquipmentRerollValuePrepare", p.img, nil)
+		if err != nil || verified == nil || !verified.Hit {
+			t.Errorf("%s initial locks did not stabilize: %+v %v", mode, verified, err)
+			return false
+		}
+		raw, err := ctx.GetNodeJSON("EquipmentRerollValuePrepare")
+		var node struct {
+			Action struct {
+				Type  string `json:"type"`
+				Param struct {
+					CustomAction string `json:"custom_action"`
+				} `json:"param"`
+			} `json:"action"`
+		}
+		if err != nil || json.Unmarshal([]byte(raw), &node) != nil || node.Action.Type != "Custom" || node.Action.Param.CustomAction != "EquipmentRerollValuePrepareAction" {
+			t.Errorf("loaded prepare node lost its action: %s (%v)", raw, err)
+			return false
+		}
+		if !(&EquipmentRerollValuePrepareAction{}).Run(ctx, &maa.CustomActionArg{TaskID: id, CurrentTaskName: "EquipmentRerollValuePrepare", RecognitionDetail: verified}) {
+			t.Errorf("%s prepare action failed", mode)
+			return false
+		}
+		plan, ok := currentValuePlan(id)
+		if !ok || plan.Part != "身躯" || plan.Locks != ([maxSlot]SlotLock{}) {
+			t.Errorf("%s did not freeze unlocked plan: %+v", mode, plan)
+			return false
+		}
+		ready, err := ctx.RunRecognition("EquipmentRerollValueVerifyReady", p.img, nil)
+		// 新方案与两帧视觉证据一致时不再重复锁识别；已有方案不能复用旧证据。
+		for _, want := range []string{"EquipmentRerollPrepareRerollCost", "EquipmentRerollValueVerifyReady"} {
+			raw, e := ctx.GetNodeJSON("EquipmentRerollValuePrepare")
+			var routed struct {
+				Next []struct {
+					Name string `json:"name"`
+				} `json:"next"`
+			}
+			if e != nil || json.Unmarshal([]byte(raw), &routed) != nil || len(routed.Next) != 1 || routed.Next[0].Name != want {
+				t.Errorf("%s prepare route want %s: %s (%v)", mode, want, raw, e)
+				return false
+			}
+			if !(&EquipmentRerollValuePrepareAction{}).Run(ctx, &maa.CustomActionArg{TaskID: id, CurrentTaskName: "EquipmentRerollValuePrepare"}) {
+				t.Error("existing plan preparation failed")
+				return false
+			}
+		}
+		if err != nil || ready == nil || !ready.Hit {
+			t.Errorf("%s ready verification failed: %+v %v", mode, ready, err)
+			return false
+		}
+		if inv, _ := getInventory(id); inv != (Inventory{CustomModules: 1}) {
+			t.Error("preparation consumed inventory")
+			return false
+		}
+		t.Logf("%s: initial recognition -> prepare action -> frozen plan -> ready passed", mode)
+	}
+	return true
+}
 
 func (r *reloadOfflineRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognitionArg) (*maa.CustomRecognitionResult, bool) {
 	return &maa.CustomRecognitionResult{Box: arg.Roi}, r.probe.Run(ctx, &maa.CustomActionArg{TaskID: arg.TaskID})

@@ -2,6 +2,7 @@ package equipmentreroll
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
@@ -15,6 +16,8 @@ import (
 // 互相覆盖（参见 MaaFramework source/MaaFramework/Resource/PipelineParser.cpp）。
 //
 // attach 键约定：
+//   - operation：      "effect"（默认）/ "value"，与 mode 正交；
+//   - value_tier_<效果名>：数值目标最低 T 档（0 忽略 / 1~15 门槛）；
 //   - mode：           "character"（洗角色词条，默认）/ "single"（洗单件词条）；
 //   - part：           单件模式要洗的部位（"头部"/"臂部"/"身躯"/"腿部"）；
 //   - want1/2/3：      单件模式的需求词条效果名（空串表示该行不需求）；
@@ -46,6 +49,11 @@ const (
 
 // carrierConfig 是从承载点解析出的任务配置。
 type carrierConfig struct {
+	// Operation 与 Mode 正交；空值兼容已有洗效果配置。
+	Operation rerollOperation
+	// ValueTargets 是效果名 -> 最低数值档位；不复用效果配额和单件槽位目标。
+	ValueTargets  valueTarget
+	ConfigProblem string
 	// Mode 洗词条模式；attach.mode 缺失时按 rerollModeCharacter 处理（兼容旧配置）。
 	Mode rerollMode
 	// Part 单件模式要洗的部位；角色模式为空串。
@@ -84,8 +92,14 @@ func loadCarrierConfig(ctx *maa.Context) carrierConfig {
 	}
 	raw, err := ctx.GetNodeJSON(carrierNode)
 	if err != nil {
+		cfg.ConfigProblem = err.Error()
 		return cfg
 	}
+	return parseCarrierConfig(raw)
+}
+
+func parseCarrierConfig(raw string) carrierConfig {
+	cfg := carrierConfig{Mode: rerollModeCharacter}
 	// attach 用 RawMessage 承接：quota_<效果名> 是动态键，无法用固定字段表达。
 	var data struct {
 		Attach      map[string]json.RawMessage `json:"attach"`
@@ -98,11 +112,36 @@ func loadCarrierConfig(ctx *maa.Context) carrierConfig {
 		} `json:"recognition"`
 	}
 	if err := json.Unmarshal([]byte(raw), &data); err != nil {
+		cfg.ConfigProblem = err.Error()
 		return cfg
 	}
+	if operation, exists := data.Attach["operation"]; exists {
+		if err := json.Unmarshal(operation, &cfg.Operation); err != nil {
+			cfg.ConfigProblem = "invalid operation type"
+		}
+	}
+	cfg.ValueTargets = make(valueTarget)
+	for key, value := range data.Attach {
+		if !strings.HasPrefix(key, "value_tier_") {
+			continue
+		}
+		var tier int
+		if err := json.Unmarshal(value, &tier); err != nil {
+			cfg.ConfigProblem = fmt.Sprintf("invalid tier: %s", key)
+			continue
+		}
+		if tier != 0 {
+			cfg.ValueTargets[strings.TrimPrefix(key, "value_tier_")] = tier
+		}
+	}
 
-	if mode := strings.TrimSpace(attachString(data.Attach, "mode")); mode != "" {
-		cfg.Mode = rerollMode(mode)
+	if rawMode, exists := data.Attach["mode"]; exists {
+		var mode string
+		if err := json.Unmarshal(rawMode, &mode); err != nil {
+			cfg.ConfigProblem = "invalid mode type"
+		} else if mode = strings.TrimSpace(mode); mode != "" {
+			cfg.Mode = rerollMode(mode)
+		}
 	}
 	cfg.Part = strings.TrimSpace(attachString(data.Attach, "part"))
 

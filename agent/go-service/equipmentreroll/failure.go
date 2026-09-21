@@ -15,6 +15,10 @@ type equipmentRerollFailParam struct {
 
 func equipmentRerollFailureKey(reason string) string {
 	switch reason {
+	case "value_scan":
+		return "tasker.equipment_reroll.value_scan_failed"
+	case "value_lock_plan":
+		return "tasker.equipment_reroll.value_lock_plan_failed"
 	case "confirm_not_advanced":
 		return "tasker.equipment_reroll.confirm_not_advanced"
 	case "reload_locks_verify_failed":
@@ -42,6 +46,7 @@ func (a *EquipmentRerollFailAction) Run(ctx *maa.Context, arg *maa.CustomActionA
 	}
 	clearPendingLock(arg.TaskID)
 	clearPendingRerollCost(arg.TaskID)
+	clearValuePlan(arg.TaskID)
 	resetTaskRetryGates(arg.TaskID)
 	message := i18n.T(equipmentRerollFailureKey(params.Reason))
 	maafocus.PrintLargeContentTrimNewline(message)
