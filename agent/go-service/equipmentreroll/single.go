@@ -243,7 +243,13 @@ func DecideResultPageSingle(changed [maxSlot]string, currentScan partScan, t sin
 	cand := currentScan
 	for i := range cand.Slots {
 		cand.Slots[i].Effect = changed[i]
+		cand.Slots[i].Value = ""
 	}
+	return decideSingleCandidate(currentScan, cand, t)
+}
+
+// decideSingleCandidate 允许真实结果传入数值，使整组重复概率与候选快照一致。
+func decideSingleCandidate(currentScan, cand partScan, t singleTarget) ResultDecision {
 	curCost := singleExpectedCost(currentScan, t)
 	candCost := singleExpectedCost(cand, t)
 	if candCost < curCost-1e-6 {

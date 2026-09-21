@@ -292,6 +292,7 @@ func DecideResultPageQuota(current, changed [maxSlot]string, currentScan partSca
 	changedScan := currentScanE
 	for i := range changedScan.Slots {
 		changedScan.Slots[i].Effect = changed[i]
+		changedScan.Slots[i].Value = ""
 	}
 	currentCost := partExpectedCostForRequired(currentScanE, quota, required, "")
 	changedCost := partExpectedCostForRequired(changedScan, quota, required, "")

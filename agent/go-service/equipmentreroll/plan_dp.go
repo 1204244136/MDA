@@ -73,6 +73,7 @@ func dpCacheKeyCore(scan partScan, quota map[string]int, required, forbidden []s
 	var b strings.Builder
 	for i := 0; i < maxSlot; i++ {
 		b.WriteString(scan.Slots[i].Effect)
+		b.WriteString(scan.Slots[i].Value)
 		b.WriteByte('|')
 		b.WriteString(strconv.Itoa(int(scan.Slots[i].Lock)))
 		b.WriteByte(';')
@@ -120,6 +121,7 @@ func partsCacheKey(parts map[string]partScan, quota map[string]int) string {
 		b.WriteByte('=')
 		for i := 0; i < maxSlot; i++ {
 			b.WriteString(scan.Slots[i].Effect)
+			b.WriteString(scan.Slots[i].Value)
 			b.WriteByte('|')
 			b.WriteString(strconv.Itoa(int(scan.Slots[i].Lock)))
 			b.WriteByte(';')
@@ -283,35 +285,6 @@ type compressedOutcome struct {
 	prob   float64
 }
 
-// enumerateCompressedOutcomes 枚举未锁定槽位的压缩结果，并按压缩向量聚合概率。
-// lockedEffects 为该件锁定槽位所持效果，一并计入排除池（见 enumerateSlotOutcomes）。
-// slotAllow 非空时按槽位压缩（需求效果只允许出现在限定槽位，其余槽位按 other 处理）。
-func enumerateCompressedOutcomes(unlocked []int, required, forbidden map[string]bool, lockedEffects []string, slotAllow map[string]map[int]bool) []compressedOutcome {
-	raw := enumerateSlotOutcomes(unlocked, lockedEffects)
-	aggregated := make(map[string]*compressedOutcome)
-	for _, outcome := range raw {
-		values := make([]string, len(unlocked))
-		for i, slot := range unlocked {
-			values[i] = compressEffectSlot(outcome.effects[slot], slot, required, forbidden, slotAllow)
-		}
-		key := strings.Join(values, "\x00")
-		if existing, ok := aggregated[key]; ok {
-			existing.prob += outcome.prob
-		} else {
-			aggregated[key] = &compressedOutcome{values: values, prob: outcome.prob}
-		}
-	}
-	result := make([]compressedOutcome, 0, len(aggregated))
-	for _, outcome := range aggregated {
-		result = append(result, *outcome)
-	}
-	return result
-}
-
-func quotaStateKey(effects [maxSlot]string) string {
-	return strings.Join(effects[:], "\x00")
-}
-
 // expectedModulesForPartAllocated 用“分配感知”的 required 集合计算单件期望成本（宏观分配口径）。
 // required 应由 allocateQuotaRequired 给出，避免稀缺配额（配额<件数）被每件都要求。
 func expectedModulesForPartAllocated(scan partScan, quota map[string]int, required []string, lockSlot int) float64 {
@@ -403,139 +376,16 @@ func expectedModulesForPartCore(scan partScan, quota map[string]int, required, f
 		return costUnreachable
 	}
 
-	// 枚举压缩状态：空槽、每个必需效果、每个禁止效果、other。
-	values := make([]string, 0, len(required)+len(forbidden)+2)
-	values = append(values, "")
-	values = append(values, required...)
-	for _, effect := range forbidden {
-		values = append(values, forbiddenLabel(effect))
-	}
-	values = append(values, otherEffectLabel)
-
-	var states [][maxSlot]string
-	var rec func(idx int, cur [maxSlot]string)
-	rec = func(idx int, cur [maxSlot]string) {
-		if idx == maxSlot {
-			states = append(states, cur)
-			return
-		}
-		if locked[idx] {
-			cur[idx] = compressEffectSlot(scan.Slots[idx].Effect, idx, requiredSetMap, forbiddenSetMap, slotAllow)
-			rec(idx+1, cur)
-			return
-		}
-		for _, value := range values {
-			cur[idx] = value
-			rec(idx+1, cur)
-		}
-	}
-	rec(0, [maxSlot]string{})
-
-	partHasRequiredCompressed := func(state [maxSlot]string) bool {
-		for _, effect := range required {
-			found := false
-			allow := slotAllow[effect]
-			for i, value := range state {
-				if value != effect {
-					continue
-				}
-				if len(allow) == 0 || allow[i] {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return false
-			}
-		}
-		for _, effect := range forbidden {
-			label := forbiddenLabel(effect)
-			for _, value := range state {
-				if value == label {
-					return false
-				}
-			}
-		}
-		return true
-	}
-
-	vals := make(map[string]float64, len(states))
-	for _, state := range states {
-		key := quotaStateKey(state)
-		if partHasRequiredCompressed(state) {
-			vals[key] = 0
-		} else {
-			vals[key] = costUnreachable
-		}
-	}
-
-	// 锁定槽位所持效果计入排除池（同件不重复效果，锁定即占用名额）。
-	lockedEffects := make([]string, 0, len(locked))
-	for i := 0; i < maxSlot; i++ {
+	lockedEffects := make([]string, 0, maxSlot)
+	for i := range locked {
 		if locked[i] && scan.Slots[i].Effect != "" {
 			lockedEffects = append(lockedEffects, scan.Slots[i].Effect)
 		}
 	}
-	outcomes := enumerateCompressedOutcomes(unlocked, requiredSetMap, forbiddenSetMap, lockedEffects, slotAllow)
-	rerollCost := float64(RerollModuleCost(activeLocks))
-
-	// 用线性方程组精确求解期望成本，替代价值迭代。
-	incomplete := make([][maxSlot]string, 0)
-	incompleteIndex := make(map[string]int)
-	for _, state := range states {
-		key := quotaStateKey(state)
-		if vals[key] != 0 {
-			incompleteIndex[key] = len(incomplete)
-			incomplete = append(incomplete, state)
-		}
-	}
-	n := len(incomplete)
-	if n > 0 {
-		a := make([][]float64, n)
-		b := make([]float64, n)
-		for i, state := range incomplete {
-			a[i] = make([]float64, n)
-			a[i][i] = 1
-			b[i] = rerollCost
-			for _, outcome := range outcomes {
-				next := state
-				for j, slot := range unlocked {
-					next[slot] = outcome.values[j]
-				}
-				if idx, ok := incompleteIndex[quotaStateKey(next)]; ok {
-					a[i][idx] -= outcome.prob
-				}
-				// 完成态 V=0，不贡献
-			}
-		}
-		x, solvable := solveLinearSystem(a, b)
-		if !solvable {
-			// 不可达状态会产生奇异矩阵；不要把未求出的增广列值当成有效成本。
-			return costUnreachable
-		}
-		for i, state := range incomplete {
-			vals[quotaStateKey(state)] = x[i]
-		}
-	}
-
-	// 用压缩后的当前状态查表：vals 的 key 是压缩状态（空/必需/禁止/other），
-	// 若直接用原始词条名（如“命中率增加”压缩为 other）查询，key 不匹配会取到
-	// map 零值 0，导致 DP 误判“当前装备已完成、期望成本为 0”，锁定决策失效。
-	compressedCurrent := [maxSlot]string{}
-	for i := 0; i < maxSlot; i++ {
-		compressedCurrent[i] = compressEffectSlot(scan.Slots[i].Effect, i, requiredSetMap, forbiddenSetMap, slotAllow)
-	}
-	currentKey := quotaStateKey(compressedCurrent)
-	result := vals[currentKey]
-
-	// 验证映射正确性：如果结果为零但状态未完成，压缩键可能有误（不应该发生，但防止逻辑错误）。
-	if result == 0 && !partHasRequiredCompressed(compressedCurrent) {
-		log.Warn().
-			Str("component", "EquipmentReroll").
-			Strs("compressed_state", compressedCurrent[:]).
-			Str("cache_key", currentKey).
-			Msg("DP compressed state lookup returned zero for incomplete state; potential mapping error")
-	}
+	outcomes := enumerateSlotOutcomes(unlocked, lockedEffects)
+	result := effectFirstPassageCost(scan, unlocked, outcomes, func(effects [maxSlot]string) bool {
+		return partHasRequiredAndNoForbiddenSlot(effects, requiredSetMap, forbiddenSetMap, slotAllow)
+	}, float64(RerollModuleCost(activeLocks)))
 
 	dpCacheMu.Lock()
 	dpCache[cacheKey] = result
@@ -1151,7 +1001,7 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 		// 本件负责的配额效果（分配感知）：outcomes 按压缩状态枚举（空/必需/禁止/other）。
 		required := assigned[part]
 		forbidden := forbiddenEffects(quota)
-		outcomes := enumerateCompressedOutcomes(unlocked, requiredSet(required), forbiddenSet(forbidden), lockedEffects, nil)
+		outcomes := conditionedEffectOutcomes(scan, unlocked, lockedEffects, requiredSet(required), forbiddenSet(forbidden), nil)
 
 		// 其余三件在当前分配下的基础成本与 required（结果间复用）。
 		type qBase struct {
@@ -1182,6 +1032,7 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 				}
 				// 未获得效果时槽位应变为空，而不是保留旧效果
 				newScan.Slots[slot].Effect = v
+				newScan.Slots[slot].Value = "" // 合成效果候选的数值未知，使用档位碰撞率边缘化。
 			}
 			// 本件自身成本（分配感知）：required 集合不随本件结果变化（近似）。
 			_, costP := bestLockSlotAndCostForRequired(newScan, quota, assigned[part], "")
