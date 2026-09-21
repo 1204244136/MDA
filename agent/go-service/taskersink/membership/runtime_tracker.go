@@ -24,6 +24,7 @@ type RuntimeTracker struct {
 	stopCh     chan struct{}
 	stopped    bool
 	stopPosted bool
+	stopNotice string
 	lease      *runtimeTrackingLease
 }
 
@@ -97,11 +98,21 @@ func (t *RuntimeTracker) postPendingStop(ctx *maa.Context) {
 	if !t.takePendingStop() {
 		return
 	}
+	t.mu.Lock()
+	notice := t.stopNotice
+	t.stopNotice = ""
+	t.mu.Unlock()
 
 	tasker := ctx.GetTasker()
 	if tasker == nil {
 		log.Warn().Msg("RuntimeTracker: cannot post stop, tasker is nil")
 		return
+	}
+	if notice != "" {
+		// The timer goroutine cannot safely call Agent proxy APIs. Deliver the
+		// quota notice through the Focus channel while already inside a Maa
+		// callback, before stopping the task.
+		maafocus.Print(ctx, notice)
 	}
 
 	// 此调用发生在 MaaFramework 回调分发线程内，
@@ -122,12 +133,17 @@ func (t *RuntimeTracker) takePendingStop() bool {
 }
 
 func (t *RuntimeTracker) requestStop(generation uint64) bool {
+	return t.requestStopWithNotice(generation, "")
+}
+
+func (t *RuntimeTracker) requestStopWithNotice(generation uint64, notice string) bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if !t.active || t.generation != generation || t.stopped {
 		return false
 	}
 	t.stopped = true
+	t.stopNotice = notice
 	return true
 }
 
@@ -206,6 +222,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	t.stopCh = make(chan struct{})
 	t.stopped = false
 	t.stopPosted = false
+	t.stopNotice = ""
 	t.lease = lease
 	generation := t.generation
 	stopCh := t.stopCh
@@ -384,8 +401,7 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 		// timer goroutine: Agent proxy calls must stay inside MaaFramework's
 		// callback dispatch lifetime (see postPendingStop). The actual PostStop
 		// is delivered by the next Node callback via takePendingStop.
-		if t.requestStop(generation) {
-			printQuotaExhausted(snapshot)
+		if t.requestStopWithNotice(generation, formatQuotaDeniedMessage(snapshot)) {
 			log.Warn().
 				Uint64("task_id", taskID).
 				Str("entry", entry).
@@ -399,8 +415,11 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 		return snapshot, false
 	}
 
-	if t.requestStop(generation) {
-		printQuotaExhausted(snapshot)
+	if t.requestStopWithNotice(generation, formatQuotaDeniedMessage(snapshot)) {
+		log.Warn().
+			Uint64("task_id", taskID).
+			Str("entry", entry).
+			Msg("RuntimeTracker: quota exhausted, terminating task")
 	}
 	return snapshot, false
 }
