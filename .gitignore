@@ -505,3 +505,13 @@ tests/maatools
 # 无法从文档确认的框架行为，是活动主题路由设计的证据链。
 # 若将来需要新增宽泛规则（如 tools/*），请勿连带忽略本目录。
 !tools/verify/
+
+# EquipmentReroll 本地调试脚手架与策略评估产物（保留正式回归测试及运行时模板）
+/.local/equipmentreroll/
+/agent/go-service/equipmentreroll/scan_ocr_integration_test.go
+/agent/go-service/equipmentreroll/value_evaluation_test.go
+/agent/go-service/equipmentreroll/value_evaluation_extended_test.go
+/agent/go-service/equipmentreroll/testdata/value/
+/docs/zh_cn/nikke/EquipmentReroll/value-evaluation-*.json
+/docs/zh_cn/nikke/EquipmentReroll/数值策略离线评估-*.md
+/docs/zh_cn/nikke/EquipmentReroll/数值策略扩展评估-*.md
