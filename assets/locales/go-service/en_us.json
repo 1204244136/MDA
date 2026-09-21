@@ -48,7 +48,7 @@
     "tasker.membership_check.denied_special": "🍊 Current tier %s, special quota (%d minutes in this period) and regular quota (%d minutes today) are both exhausted; task stopped. Device binding/subscription URL: %s",
     "tasker.membership_check.debug_unlimited": "🍊 Debug builds have unlimited runtime and skip membership checks.",
     "tasker.membership_check.service_unavailable": "🍊 Membership verification service is temporarily unavailable. Continuing with Orange Free quota.",
-    "tasker.membership_check.no_special_quota_5x_multiplier": "🍊 No special quota available; this advanced task consumes runtime quota at 5x.",
+    "tasker.membership_check.no_special_quota_5x_multiplier": "🍊 No event or special quota is available for this task; this advanced task consumes runtime quota at 5x only when using regular quota.",
     "tasker.membership_check.update_required": "🍊 This MDA version is no longer supported. Please update to %s or later before running tasks.",
     "tasker.membership_check.renewal_reminder": "🍊 Your membership has %d day(s) remaining and expires on %s. Device binding/renewal URL: %s",
     "tasker.quota_display.failed": "🍊 Unable to read the local quota record. Check the logs and retry.",
@@ -118,5 +118,8 @@
     "tasker.equipment_reroll.luck_outlier": "Off the Deep End",
     "tasker.equipment_reroll.luck_outlier_1": "Over five times the estimate... this gear might legitimately be cursed.",
     "tasker.equipment_reroll.luck_outlier_2": "Modules evaporated into thin air. A true bottomless pit of a reroll.",
-    "tasker.equipment_reroll.luck_outlier_3": "Maximum pain. Finishing this today was pure brute-force willpower."
+    "tasker.equipment_reroll.luck_outlier_3": "Maximum pain. Finishing this today was pure brute-force willpower.",
+    "tasker.membership_check.verified_event": "🍊 About %d minutes of event quota are available for this task and will be consumed first.",
+    "tasker.quota_display.all_tasks": "All tasks",
+    "tasker.quota_display.event": "🎁 Event quota (%s): about %d minutes remaining."
 }

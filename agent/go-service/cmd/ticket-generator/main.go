@@ -30,9 +30,11 @@ const (
 var generatorBeijingLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
 
 type generatorInput struct {
-	SponsorURL string
-	ValidDays  int
-	RefillType membership.QuotaRefillType
+	DurationSeconds int64
+	TaskEntry       string
+	SponsorURL      string
+	ValidDays       int
+	RefillType      membership.QuotaRefillType
 }
 
 type packageData struct {
@@ -59,6 +61,8 @@ var coupon = membership.QuotaRefillCoupon{
 	ValidDays: {{ .Coupon.ValidDays }},
 	RefillType: membership.QuotaRefillType({{ printf "%q" .Coupon.RefillType }}),
 	SponsorURL: {{ printf "%q" .Coupon.SponsorURL }},
+ DurationSeconds: {{ .Coupon.DurationSeconds }},
+ TaskEntry: {{ printf "%q" .Coupon.TaskEntry }},
 }
 
 const validThrough = {{ printf "%q" .ValidThrough }}
@@ -67,11 +71,12 @@ const scopeLabel = {{ printf "%q" .ScopeLabel }}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("MDA 流量重置券")
+	fmt.Println("MDA 额度兑换券")
 	fmt.Println("识别码:", coupon.ID)
-	fmt.Println("重置类型:", refillLabel)
+	fmt.Println("票券类型:", refillLabel)
 	fmt.Println("适用范围:", scopeLabel)
-	fmt.Printf("有效期: %s 至 %s（含）\n", coupon.IssuedOn, validThrough)
+ if coupon.RefillType == membership.QuotaRefillTypeEvent { fmt.Printf("活动额度：%d 分钟；任务入口：%s（空表示不限任务）\n", coupon.DurationSeconds/60, coupon.TaskEntry) }
+	fmt.Printf("兑换有效期: %s 至 %s（含）\n", coupon.IssuedOn, validThrough)
 	fmt.Println()
 	if !waitForConfirmation(reader, "按回车键兑换...") {
 		fmt.Println()
@@ -83,25 +88,27 @@ func main() {
 	if err != nil {
 		switch {
 		case errors.Is(err, membership.ErrRefillNotYetValid):
-			fmt.Println("重置券尚未生效，生效日期:", coupon.IssuedOn)
+			fmt.Println("票券尚未生效，生效日期:", coupon.IssuedOn)
 		case errors.Is(err, membership.ErrRefillExpired):
-			fmt.Println("重置券已过期，有效期截止:", validThrough)
+			fmt.Println("票券已过期，兑换有效期截止:", validThrough)
 		case errors.Is(err, membership.ErrRefillDeviceMismatch):
-			fmt.Println("重置券不适用于当前设备。")
+			fmt.Println("票券不适用于当前设备。")
 		case errors.Is(err, membership.ErrRefillStateMismatch):
 			fmt.Println("额度状态与当前设备不一致，请先运行一次 MDA 后重试。")
 		case errors.Is(err, membership.ErrRefillAlreadyRedeemed):
-			fmt.Println("重置券已经兑换，不能重复使用。")
+			fmt.Println("票券已经兑换，不能重复使用。")
 		case errors.Is(err, membership.ErrRefillInvalidCoupon):
-			fmt.Println("重置券内容无效。")
+			fmt.Println("票券内容无效。")
 		default:
-			fmt.Println("额度重置失败:", err)
+			fmt.Println("票券兑换失败:", err)
 		}
 		waitForExit(reader, "按回车键退出...")
 		os.Exit(1)
 	}
 
-	fmt.Println(refillLabel + "已重置。")
+	if coupon.RefillType == membership.QuotaRefillTypeEvent {
+ fmt.Printf("已添加活动额度：%d 分钟，任务入口：%s（空表示不限任务）。\n", coupon.DurationSeconds/60, coupon.TaskEntry)
+ } else { fmt.Println(refillLabel + "完成。") }
 	fmt.Println("识别码:", result.CouponID)
 	fmt.Println("额度文件:", result.Path)
 	waitForExit(reader, "按回车键退出...")
@@ -121,7 +128,7 @@ func waitForExit(reader *bufio.Reader, prompt string) {
 
 func main() {
 	outputDir := flag.String("out-dir", ".", "输出目录")
-	keepTemp := flag.Bool("keep-temp", false, "保留临时重置券源码目录")
+	keepTemp := flag.Bool("keep-temp", false, "保留临时票券源码目录")
 	flag.Parse()
 
 	input, err := readGeneratorInput(bufio.NewReader(os.Stdin), os.Stdout)
@@ -139,35 +146,60 @@ func main() {
 		os.Exit(1)
 	}
 	coupon := membership.QuotaRefillCoupon{
-		ID:         id,
-		IssuedOn:   time.Now().In(generatorBeijingLocation).Format("2006-01-02"),
-		ValidDays:  input.ValidDays,
-		RefillType: input.RefillType,
-		SponsorURL: input.SponsorURL,
+		ID:              id,
+		IssuedOn:        time.Now().In(generatorBeijingLocation).Format("2006-01-02"),
+		ValidDays:       input.ValidDays,
+		RefillType:      input.RefillType,
+		SponsorURL:      input.SponsorURL,
+		DurationSeconds: input.DurationSeconds,
+		TaskEntry:       input.TaskEntry,
 	}
 
 	validThrough, _ := membership.QuotaRefillValidThrough(coupon.IssuedOn, coupon.ValidDays)
 	fmt.Println()
-	fmt.Println("正在生成重置券：")
+	fmt.Println("正在生成票券：")
 	fmt.Println("  识别码:", coupon.ID)
-	fmt.Println("  重置类型:", refillTypeLabel(coupon.RefillType))
-	fmt.Printf("  有效期: %s 至 %s（含）\n", coupon.IssuedOn, validThrough)
+	fmt.Println("  票券类型:", refillTypeLabel(coupon.RefillType))
+	fmt.Printf("  兑换有效期: %s 至 %s（含）\n", coupon.IssuedOn, validThrough)
 	fmt.Println("  适用范围:", scopeLabel(coupon.SponsorURL))
+	if coupon.RefillType == membership.QuotaRefillTypeEvent {
+		fmt.Printf("  活动额度: %d 分钟；任务入口: %s（空表示不限任务）\n", coupon.DurationSeconds/60, coupon.TaskEntry)
+	}
 
 	output, err := buildCoupon(coupon, *outputDir, *keepTemp)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "重置券生成失败:", err)
+		fmt.Fprintln(os.Stderr, "票券生成失败:", err)
 		os.Exit(1)
 	}
-	fmt.Println("重置券已生成:", output)
+	fmt.Println("票券已生成:", output)
 }
 
 func readGeneratorInput(reader *bufio.Reader, writer io.Writer) (generatorInput, error) {
-	fmt.Fprintln(writer, "MDA 流量重置券生成器")
+	fmt.Fprintln(writer, "MDA 票券生成器")
 
 	refillType, err := promptRefillType(reader, writer)
 	if err != nil {
 		return generatorInput{}, err
+	}
+	var durationSeconds int64
+	var taskEntry string
+	if refillType == membership.QuotaRefillTypeEvent {
+		for {
+			value, err := promptLine(reader, writer, "活动额度时长（分钟，1~5256000）: ")
+			if err != nil {
+				return generatorInput{}, err
+			}
+			minutes, err := strconv.ParseInt(value, 10, 64)
+			if err == nil && minutes > 0 && minutes <= 5256000 {
+				durationSeconds = minutes * 60
+				break
+			}
+			fmt.Fprintln(writer, "请输入有效的正整数分钟数。")
+		}
+		taskEntry, err = promptLine(reader, writer, "限定任务入口（如 MapPushingFlow，留空=不限任务）: ")
+		if err != nil {
+			return generatorInput{}, err
+		}
 	}
 	validDays, err := promptValidDays(reader, writer)
 	if err != nil {
@@ -178,32 +210,36 @@ func readGeneratorInput(reader *bufio.Reader, writer io.Writer) (generatorInput,
 		return generatorInput{}, err
 	}
 	return generatorInput{
-		SponsorURL: sponsorURL,
-		ValidDays:  validDays,
-		RefillType: refillType,
+		SponsorURL:      sponsorURL,
+		DurationSeconds: durationSeconds,
+		TaskEntry:       taskEntry,
+		ValidDays:       validDays,
+		RefillType:      refillType,
 	}, nil
 }
 
 func promptRefillType(reader *bufio.Reader, writer io.Writer) (membership.QuotaRefillType, error) {
 	for {
-		value, err := promptLine(reader, writer, "重置类型 [1=每日额度，2=每月额度，默认 1]: ")
+		value, err := promptLine(reader, writer, "票券类型 [1=常规额度重置，2=专项额度重置，3=活动额度发放，默认 1]: ")
 		if err != nil {
 			return "", err
 		}
 		switch strings.ToLower(value) {
-		case "", "1", "daily", "每日":
+		case "", "1", "regular", "常规", "daily", "每日":
 			return membership.QuotaRefillTypeDaily, nil
-		case "2", "monthly", "每月", "月度":
+		case "2", "special", "专项", "monthly", "每月", "月度":
 			return membership.QuotaRefillTypeMonthly, nil
+		case "3", "event", "活动":
+			return membership.QuotaRefillTypeEvent, nil
 		default:
-			fmt.Fprintln(writer, "请输入 1 或 2。")
+			fmt.Fprintln(writer, "请输入 1、2 或 3。")
 		}
 	}
 }
 
 func promptValidDays(reader *bufio.Reader, writer io.Writer) (int, error) {
 	for {
-		value, err := promptLine(reader, writer, "有效天数 [默认 7]: ")
+		value, err := promptLine(reader, writer, "兑换有效天数 [默认 7]: ")
 		if err != nil {
 			return 0, err
 		}
@@ -220,7 +256,7 @@ func promptValidDays(reader *bufio.Reader, writer io.Writer) (int, error) {
 
 func promptSponsorURL(reader *bufio.Reader, writer io.Writer) (string, error) {
 	for {
-		value, err := promptLine(reader, writer, "适用用户的赞助链接 [留空=全体成员]: ")
+		value, err := promptLine(reader, writer, "绑定设备的赞助链接 [留空=全部设备]: ")
 		if err != nil {
 			return "", err
 		}
@@ -266,13 +302,16 @@ func buildCoupon(coupon membership.QuotaRefillCoupon, outputDir string, keepTemp
 			return "", fmt.Errorf("赞助链接无效: %w", err)
 		}
 	}
-	if coupon.RefillType != membership.QuotaRefillTypeDaily && coupon.RefillType != membership.QuotaRefillTypeMonthly {
-		return "", fmt.Errorf("未知重置类型 %q", coupon.RefillType)
+	if coupon.RefillType != membership.QuotaRefillTypeDaily && coupon.RefillType != membership.QuotaRefillTypeMonthly && coupon.RefillType != membership.QuotaRefillTypeEvent {
+		return "", fmt.Errorf("未知票券类型 %q", coupon.RefillType)
 	}
 	if _, err := hex.DecodeString(coupon.ID); err != nil || len(coupon.ID) != couponIDBytes*2 {
 		return "", errors.New("识别码必须是 32 位十六进制字符串")
 	}
 
+	if coupon.RefillType == membership.QuotaRefillTypeEvent && (coupon.DurationSeconds <= 0 || coupon.DurationSeconds > 315360000) {
+		return "", errors.New("活动额度时长无效")
+	}
 	absOutputDir, err := filepath.Abs(outputDir)
 	if err != nil {
 		return "", err
@@ -330,21 +369,27 @@ func couponFilename(coupon membership.QuotaRefillCoupon) string {
 	if err != nil {
 		validThrough = "未知日期"
 	}
-	return fmt.Sprintf("MDA重置券_有效期至%s_%s.exe", validThrough, shortCouponID(coupon.ID))
+	if coupon.RefillType == membership.QuotaRefillTypeEvent {
+		return fmt.Sprintf("MDA活动额度发放券_%d分钟_兑换截止%s_%s.exe", coupon.DurationSeconds/60, validThrough, shortCouponID(coupon.ID))
+	}
+	return fmt.Sprintf("MDA%s券_兑换截止%s_%s.exe", refillTypeLabel(coupon.RefillType), validThrough, shortCouponID(coupon.ID))
 }
 
 func refillTypeLabel(refillType membership.QuotaRefillType) string {
-	if refillType == membership.QuotaRefillTypeMonthly {
-		return "每月额度"
+	if refillType == membership.QuotaRefillTypeEvent {
+		return "活动额度发放"
 	}
-	return "每日额度"
+	if refillType == membership.QuotaRefillTypeMonthly {
+		return "专项额度重置"
+	}
+	return "常规额度重置"
 }
 
 func scopeLabel(sponsorURL string) string {
 	if strings.TrimSpace(sponsorURL) == "" {
-		return "全体成员"
+		return "全部设备"
 	}
-	return "指定成员（已绑定赞助链接）"
+	return "指定设备（按赞助链接绑定）"
 }
 
 func shortCouponID(id string) string {

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -43,7 +44,7 @@ func TestReadGeneratorInputUsesDefaults(t *testing.T) {
 	if input.SponsorURL != "" {
 		t.Fatalf("SponsorURL = %q, want empty", input.SponsorURL)
 	}
-	if !strings.Contains(output.String(), "留空=全体成员") {
+	if !strings.Contains(output.String(), "留空=全部设备") {
 		t.Fatal("prompt does not explain the empty sponsor URL default")
 	}
 }
@@ -72,7 +73,7 @@ func TestReadGeneratorInputRetriesInvalidValues(t *testing.T) {
 	if input.SponsorURL != generatorTestSponsorURL() {
 		t.Fatalf("SponsorURL = %q", input.SponsorURL)
 	}
-	if !strings.Contains(output.String(), "请输入 1 或 2") || !strings.Contains(output.String(), "赞助链接无效") {
+	if !strings.Contains(output.String(), "请输入 1、2 或 3") || !strings.Contains(output.String(), "赞助链接无效") {
 		t.Fatal("invalid input feedback was not written")
 	}
 }
@@ -109,7 +110,7 @@ func TestCouponFilenameContainsExpiryAndShortID(t *testing.T) {
 				ValidDays:  7,
 				RefillType: membership.QuotaRefillTypeDaily,
 			},
-			want: "MDA重置券_有效期至2026-07-23_001122.exe",
+			want: "MDA常规额度重置券_兑换截止2026-07-23_001122.exe",
 		},
 		{
 			name: "monthly coupon for one member",
@@ -120,7 +121,7 @@ func TestCouponFilenameContainsExpiryAndShortID(t *testing.T) {
 				RefillType: membership.QuotaRefillTypeMonthly,
 				SponsorURL: generatorTestSponsorURL(),
 			},
-			want: "MDA重置券_有效期至2026-08-15_FFEEDD.exe",
+			want: "MDA专项额度重置券_兑换截止2026-08-15_FFEEDD.exe",
 		},
 	}
 	for _, tt := range tests {
@@ -218,5 +219,71 @@ func TestFindModuleRootSkipsUnrelatedModule(t *testing.T) {
 	}
 	if got := findModuleRoot(nested); got != root {
 		t.Fatalf("findModuleRoot() = %q, want %q", got, root)
+	}
+}
+
+func TestReadEventCouponInput(t *testing.T) {
+	input, err := readGeneratorInput(bufio.NewReader(strings.NewReader("3\n0\n90\nMapPushingFlow\n7\n\n")), io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.RefillType != membership.QuotaRefillTypeEvent || input.DurationSeconds != 5400 || input.TaskEntry != "MapPushingFlow" {
+		t.Fatalf("wrong event input: %+v", input)
+	}
+	var source bytes.Buffer
+	coupon := membership.QuotaRefillCoupon{RefillType: membership.QuotaRefillTypeEvent, DurationSeconds: 5400, TaskEntry: "MapPushingFlow"}
+	if err := refillMainTemplate.Execute(&source, packageData{Coupon: coupon}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(source.String(), "DurationSeconds: 5400") || !strings.Contains(source.String(), `TaskEntry: "MapPushingFlow"`) {
+		t.Fatal("generated coupon lost event payload")
+	}
+}
+
+func TestGeneratedEventCouponRedeemsOnce(t *testing.T) {
+	if testing.Short() {
+		t.Skip("nested Go build")
+	}
+	coupon := membership.QuotaRefillCoupon{ID: "ffeeddccbbaa99887766554433221100", IssuedOn: time.Now().In(generatorBeijingLocation).Format("2006-01-02"), ValidDays: 7, RefillType: membership.QuotaRefillTypeEvent, DurationSeconds: 5400, TaskEntry: "MapPushingFlow"}
+	output, err := buildCoupon(coupon, t.TempDir(), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	configDir := t.TempDir()
+	run := func() ([]byte, error) {
+		cmd := exec.Command(output)
+		cmd.Stdin = strings.NewReader("\n\n")
+		cmd.Env = append(os.Environ(), "APPDATA="+configDir, "XDG_CONFIG_HOME="+configDir)
+		return cmd.CombinedOutput()
+	}
+	if console, err := run(); err != nil {
+		t.Fatalf("redeem: %v\n%s", err, console)
+	}
+	statePath := filepath.Join(configDir, "MDA", "go-service", "membership-quota.json")
+	before, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var state struct {
+		EventGrants []struct {
+			TaskEntry    string `json:"task_entry"`
+			LimitSeconds int64  `json:"limit_seconds"`
+		} `json:"event_grants"`
+	}
+	if err := json.Unmarshal(before, &state); err != nil {
+		t.Fatal(err)
+	}
+	if len(state.EventGrants) != 1 || state.EventGrants[0].TaskEntry != "MapPushingFlow" || state.EventGrants[0].LimitSeconds != 5400 {
+		t.Fatalf("payload not redeemed: %s", before)
+	}
+	if console, err := run(); err == nil || !strings.Contains(string(console), "已经兑换") {
+		t.Fatalf("duplicate allowed: %v\n%s", err, console)
+	}
+	after, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("duplicate modified quota")
 	}
 }

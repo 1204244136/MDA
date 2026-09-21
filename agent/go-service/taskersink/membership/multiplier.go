@@ -55,8 +55,8 @@ type quotaMultiplier struct {
 	Reason        string
 }
 
-// isHighConsumptionEntry 判断任务是否属于「高消耗」任务：非会员按 5 倍额度消耗，
-// 配额路由与自动推图一致（专项额度优先，再走日常额度）。
+// isHighConsumptionEntry 判断任务是否属于「高消耗」任务。
+// 仅常规额度按 5 倍消耗，活动额度和专项额度始终按实际时长扣减。
 func isHighConsumptionEntry(entry string) bool {
 	return taskTierForEntry(entry) == taskTierHigh
 }
@@ -65,14 +65,14 @@ func isQuotaExemptEntry(entry string) bool {
 	return entry == entryQuotaDisplayMain
 }
 
-func multiplierForEntry(entry string, hasSpecialQuota bool) quotaMultiplier {
+func multiplierForEntry(entry string, hasUnmultipliedQuota bool) quotaMultiplier {
 	m := quotaMultiplier{
 		BasePermille:  multiplierScale,
 		ExtraPermille: multiplierScale,
 		Reason:        "default",
 	}
 
-	if isHighConsumptionEntry(entry) && !hasSpecialQuota {
+	if isHighConsumptionEntry(entry) && !hasUnmultipliedQuota {
 		m.BasePermille = 5 * multiplierScale
 		m.Reason = "no_special_quota_5x"
 	}

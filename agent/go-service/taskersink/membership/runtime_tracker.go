@@ -195,7 +195,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		printMembershipVerificationUnavailable()
 	}
 	route := quotaRouteForEntry(detail.Entry)
-	snapshot, ok, err := EnsureQuotaRouteAvailable(status, route)
+	snapshot, ok, err := EnsureQuotaRouteAvailable(status, route, detail.Entry)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeTracker: failed to check quota at task start")
 	}
@@ -205,7 +205,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		return
 	}
 
-	multiplier := multiplierForEntry(detail.Entry, snapshot.SpecialRemainingSeconds > 0)
+	multiplier := multiplierForEntry(detail.Entry, snapshot.SpecialRemainingSeconds > 0 || snapshot.EventRemainingSeconds > 0)
 
 	now := time.Now()
 
@@ -241,7 +241,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		Str("multiplier_reason", multiplier.Reason).
 		Bool("unlimited_runtime", snapshot.UnlimitedRuntime).
 		Msg("RuntimeTracker: started quota tracking")
-	if isHighConsumptionEntry(detail.Entry) && snapshot.SpecialRemainingSeconds <= 0 {
+	if isHighConsumptionEntry(detail.Entry) && snapshot.SpecialRemainingSeconds <= 0 && snapshot.EventRemainingSeconds <= 0 {
 		log.Info().
 			Uint64("task_id", detail.TaskID).
 			Str("entry", detail.Entry).

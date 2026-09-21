@@ -21,10 +21,14 @@ func (a *RuntimeQuotaCheckAction) Run(ctx *maa.Context, arg *maa.CustomActionArg
 	if arg != nil {
 		route = quotaRouteForEntry(arg.CurrentTaskName)
 	}
-	return runRuntimeQuotaCheck(ctx, route)
+	entry := ""
+	if arg != nil {
+		entry = arg.CurrentTaskName
+	}
+	return runRuntimeQuotaCheck(ctx, route, entry)
 }
 
-func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute) bool {
+func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute, entries ...string) bool {
 	if isDebugEnvironment() {
 		return true
 	}
@@ -47,7 +51,7 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute) bool {
 
 	maybePrintRenewalReminder(ctx, status)
 
-	snapshot, ok, err := EnsureQuotaRouteAvailable(status, route)
+	snapshot, ok, err := EnsureQuotaRouteAvailable(status, route, entries...)
 	if err != nil {
 		log.Warn().Err(err).Msg("RuntimeQuotaCheck: failed to read local quota state")
 	}
@@ -67,7 +71,7 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute) bool {
 		Msg("RuntimeQuotaCheck: quota evaluated")
 
 	if ok {
-		if route == quotaRouteSpecialThenRegular && snapshot.SpecialRemainingSeconds <= 0 {
+		if route == quotaRouteSpecialThenRegular && snapshot.SpecialRemainingSeconds <= 0 && snapshot.EventRemainingSeconds <= 0 {
 			maafocus.Print(ctx, i18n.T("tasker.membership_check.no_special_quota_5x_multiplier"))
 		}
 		notifyOnce.Do(func() {
@@ -94,6 +98,9 @@ func formatMembershipVerificationUnavailableMessage() string {
 func formatQuotaStatusMessage(snapshot QuotaSnapshot) string {
 	if snapshot.UnlimitedRuntime {
 		return i18n.T("tasker.membership_check.debug_unlimited")
+	}
+	if snapshot.EventRemainingSeconds > 0 {
+		return fmt.Sprintf(i18n.T("tasker.membership_check.verified_event"), FormatMinutes(snapshot.EventRemainingSeconds))
 	}
 	if snapshot.Route == quotaRouteSpecialThenRegular {
 		if snapshot.FallbackToRegular {

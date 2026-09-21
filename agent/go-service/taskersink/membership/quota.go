@@ -19,9 +19,10 @@ type quotaPool string
 type quotaRoute string
 
 const (
-	quotaStateVersion                = 3
+	quotaStateVersion                = 4
 	quotaPoolRegularDaily  quotaPool = "regular_daily"
 	quotaPoolSpecialPeriod quotaPool = "special_period"
+	quotaPoolEvent         quotaPool = "event"
 
 	quotaRouteRegular            quotaRoute = "regular"
 	quotaRouteSpecialThenRegular quotaRoute = "special_then_regular"
@@ -40,7 +41,14 @@ type quotaCouponRedemption struct {
 	DeviceHash string          `json:"device_hash,omitempty"`
 }
 
+type eventQuotaGrant struct {
+	TaskEntry    string `json:"task_entry,omitempty"`
+	LimitSeconds int64  `json:"limit_seconds"`
+	UsedSeconds  int64  `json:"used_seconds"`
+}
+
 type quotaState struct {
+	EventGrants     []eventQuotaGrant                `json:"event_grants,omitempty"`
 	Version         int                              `json:"version,omitempty"`
 	DeviceHash      string                           `json:"device_hash"`
 	TierCode        string                           `json:"tier_code"`
@@ -54,6 +62,7 @@ type quotaState struct {
 }
 
 type QuotaSnapshot struct {
+	EventRemainingSeconds   int64
 	Pool                    quotaPool
 	Route                   quotaRoute
 	PeriodKey               string
@@ -300,6 +309,10 @@ func normalizeQuotaStateInMemory(state quotaState, status *MembershipStatus, poo
 	tierCode := normalizeTierCode(status)
 	updatedAt := now.Format(time.RFC3339)
 	redeemedCoupons := state.RedeemedCoupons
+	eventGrants := state.EventGrants
+	if state.DeviceHash != device {
+		eventGrants = nil
+	}
 
 	if state.DeviceHash != device || !isRuntimeQuotaSubject(status) {
 		state = quotaState{
@@ -308,6 +321,7 @@ func normalizeQuotaStateInMemory(state quotaState, status *MembershipStatus, poo
 			TierCode:        tierCode,
 			Pools:           map[string]quotaPoolState{},
 			RedeemedCoupons: redeemedCoupons,
+			EventGrants:     eventGrants,
 		}
 	} else {
 		migrateLegacyQuotaState(&state)
@@ -425,7 +439,28 @@ func snapshotFromState(status *MembershipStatus, state quotaState, pools ...quot
 	}
 }
 
-func routeSnapshotFromState(status *MembershipStatus, state quotaState, route quotaRoute) QuotaSnapshot {
+func routeSnapshotFromState(status *MembershipStatus, state quotaState, route quotaRoute, entries ...string) QuotaSnapshot {
+	snapshot := baseRouteSnapshotFromState(status, state, route)
+	snapshot.EventRemainingSeconds = eventQuotaRemaining(state, firstEntry(entries))
+	if !snapshot.UnlimitedRuntime && snapshot.EventRemainingSeconds > 0 {
+		snapshot.Pool = quotaPoolEvent
+		snapshot.LimitSeconds = 0
+		snapshot.UsedSeconds = 0
+		for _, grant := range state.EventGrants {
+			if grant.TaskEntry == "" || grant.TaskEntry == firstEntry(entries) {
+				snapshot.LimitSeconds += grant.LimitSeconds
+				snapshot.UsedSeconds += grant.UsedSeconds
+			}
+		}
+		snapshot.PeriodKey = ""
+		snapshot.PeriodLabel = "event_grant"
+		snapshot.RemainingSeconds = snapshot.EventRemainingSeconds
+		snapshot.FallbackToRegular = false
+	}
+	return snapshot
+}
+
+func baseRouteSnapshotFromState(status *MembershipStatus, state quotaState, route quotaRoute) QuotaSnapshot {
 	regular := snapshotFromState(status, state, quotaPoolRegularDaily)
 	special := snapshotFromState(status, state, quotaPoolSpecialPeriod)
 
@@ -516,7 +551,7 @@ func EnsureQuotaAvailable(status *MembershipStatus, pool quotaPool) (QuotaSnapsh
 	return snapshot, snapshot.RemainingSeconds > 0, nil
 }
 
-func EnsureQuotaRouteAvailable(status *MembershipStatus, route quotaRoute) (QuotaSnapshot, bool, error) {
+func EnsureQuotaRouteAvailable(status *MembershipStatus, route quotaRoute, entries ...string) (QuotaSnapshot, bool, error) {
 	quotaMu.Lock()
 	defer quotaMu.Unlock()
 	unlock, err := lockQuotaStateFile()
@@ -541,8 +576,8 @@ func EnsureQuotaRouteAvailable(status *MembershipStatus, route quotaRoute) (Quot
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, false, err
 	}
-	snapshot := routeSnapshotFromState(status, state, route)
-	if snapshot.UnlimitedRuntime {
+	snapshot := routeSnapshotFromState(status, state, route, entries...)
+	if snapshot.UnlimitedRuntime || snapshot.EventRemainingSeconds > 0 {
 		return snapshot, true, nil
 	}
 	if route == quotaRouteSpecialThenRegular {
@@ -579,6 +614,9 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 		return QuotaSnapshot{}, false, err
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+	if isRuntimeQuotaSubject(status) {
+		seconds = consumeEventQuota(&state, "", seconds)
+	}
 	exhausted := chargeQuotaPools(status, route, seconds, &state, now)
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, false, err
@@ -586,7 +624,7 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 	return routeSnapshotFromState(status, state, route), exhausted, nil
 }
 
-// chargeQuotaPools 按路由把 billable 秒数写入对应额度池，返回是否将日常额度耗尽。
+// chargeQuotaPools 按路由把 billable 秒数写入对应额度池，返回是否将常规额度耗尽。
 func chargeQuotaPools(status *MembershipStatus, route quotaRoute, seconds int64, state *quotaState, now time.Time) bool {
 	exhausted := false
 	if !isRuntimeQuotaSubject(status) {
@@ -626,7 +664,7 @@ func chargeQuotaPools(status *MembershipStatus, route quotaRoute, seconds int64,
 // 与其他配额路径保持一致；若持文件锁期间再等 quotaMu，会造成锁序倒置死锁。
 func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool) (QuotaSnapshot, quotaMultiplier, bool, error) {
 	if realSeconds <= 0 {
-		snapshot, _, err := EnsureQuotaRouteAvailable(status, route)
+		snapshot, _, err := EnsureQuotaRouteAvailable(status, route, entry)
 		return snapshot, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
 	}
 
@@ -652,18 +690,27 @@ func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
 
-	hasSpecialQuota := false
-	if route == quotaRouteSpecialThenRegular {
-		specialState := state.Pools[string(quotaPoolSpecialPeriod)]
-		hasSpecialQuota = specialState.LimitSeconds > 0 && specialState.LimitSeconds-specialState.UsedSeconds > 0
+	if isRuntimeQuotaSubject(status) {
+		realSeconds = consumeEventQuota(&state, entry, realSeconds)
 	}
-	multiplier := multiplierForEntry(entry, hasSpecialQuota)
+	// 专项额度覆盖的部分按实际秒数扣减，越界的剩余部分重新计算日常倍率。
+	if isRuntimeQuotaSubject(status) && route == quotaRouteSpecialThenRegular {
+		special := state.Pools[string(quotaPoolSpecialPeriod)]
+		charge := min(realSeconds, max(int64(0), special.LimitSeconds-special.UsedSeconds))
+		special.UsedSeconds += charge
+		special.UpdatedAt = now.Format(time.RFC3339)
+		state.Pools[string(quotaPoolSpecialPeriod)] = special
+		realSeconds -= charge
+	}
+	multiplier := multiplierForEntry(entry, false)
 	billableSeconds := multiplier.billableSecondsFromReal(realSeconds, flush)
-	exhausted := chargeQuotaPools(status, route, billableSeconds, &state, now)
+	exhausted := chargeQuotaPools(status, quotaRouteRegular, billableSeconds, &state, now)
+	current := routeSnapshotFromState(status, state, route, entry)
+	multiplier = multiplierForEntry(entry, current.EventRemainingSeconds > 0 || (route == quotaRouteSpecialThenRegular && current.SpecialRemainingSeconds > 0))
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, multiplier, false, err
 	}
-	snapshot := routeSnapshotFromState(status, state, route)
+	snapshot := routeSnapshotFromState(status, state, route, entry)
 	return snapshot, multiplier, exhausted, nil
 }
 
@@ -672,4 +719,41 @@ func FormatMinutes(seconds int64) int64 {
 		return 0
 	}
 	return (seconds + 59) / 60
+}
+
+func firstEntry(entries []string) string {
+	if len(entries) > 0 {
+		return entries[0]
+	}
+	return ""
+}
+
+func eventQuotaRemaining(state quotaState, entry string) int64 {
+	var remaining int64
+	for _, grant := range state.EventGrants {
+		if (grant.TaskEntry == "" || grant.TaskEntry == entry) && grant.LimitSeconds > grant.UsedSeconds {
+			remaining += grant.LimitSeconds - grant.UsedSeconds
+		}
+	}
+	return remaining
+}
+
+// consumeEventQuota 优先使用指定任务的福利，再使用通用福利；返回未覆盖的实际秒数。
+func consumeEventQuota(state *quotaState, entry string, seconds int64) int64 {
+	for _, restricted := range []bool{true, false} {
+		for i := range state.EventGrants {
+			grant := &state.EventGrants[i]
+			if (grant.TaskEntry != "") != restricted || (grant.TaskEntry != "" && grant.TaskEntry != entry) {
+				continue
+			}
+			available := grant.LimitSeconds - grant.UsedSeconds
+			if available <= 0 || seconds <= 0 {
+				continue
+			}
+			charge := min(available, seconds)
+			grant.UsedSeconds += charge
+			seconds -= charge
+		}
+	}
+	return seconds
 }

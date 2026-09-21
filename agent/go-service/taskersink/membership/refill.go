@@ -29,17 +29,20 @@ var (
 type QuotaRefillType string
 
 const (
+	QuotaRefillTypeEvent   QuotaRefillType = "event"
 	QuotaRefillTypeDaily   QuotaRefillType = "daily"
 	QuotaRefillTypeMonthly QuotaRefillType = "monthly"
 )
 
 // QuotaRefillCoupon is the immutable payload embedded in a refill executable.
 type QuotaRefillCoupon struct {
-	ID         string
-	IssuedOn   string
-	ValidDays  int
-	RefillType QuotaRefillType
-	SponsorURL string
+	DurationSeconds int64
+	TaskEntry       string
+	ID              string
+	IssuedOn        string
+	ValidDays       int
+	RefillType      QuotaRefillType
+	SponsorURL      string
 }
 
 // RefillResult describes a successful quota coupon redemption.
@@ -196,7 +199,11 @@ func redeemQuotaRefillCoupon(
 
 	businessDate := quotaBusinessDate(commitNow)
 	updatedAt := commitNow.Format(time.RFC3339)
-	resetQuotaPool(&state, pool, businessDate, updatedAt)
+	if normalized.RefillType == QuotaRefillTypeEvent {
+		state.EventGrants = append(state.EventGrants, eventQuotaGrant{TaskEntry: normalized.TaskEntry, LimitSeconds: normalized.DurationSeconds})
+	} else {
+		resetQuotaPool(&state, pool, businessDate, updatedAt)
+	}
 	state.RedeemedCoupons[normalized.ID] = quotaCouponRedemption{
 		RedeemedAt: updatedAt,
 		RefillType: normalized.RefillType,
@@ -243,6 +250,12 @@ func validateQuotaRefillCoupon(coupon QuotaRefillCoupon, now time.Time) (QuotaRe
 
 	var pool quotaPool
 	switch coupon.RefillType {
+	case QuotaRefillTypeEvent:
+		if coupon.DurationSeconds <= 0 || coupon.DurationSeconds > 315360000 {
+			return QuotaRefillCoupon{}, "", "", fmt.Errorf("%w: duration must be 1..315360000 seconds", ErrRefillInvalidCoupon)
+		}
+		coupon.TaskEntry = strings.TrimSpace(coupon.TaskEntry)
+		pool = quotaPoolEvent
 	case QuotaRefillTypeDaily:
 		pool = quotaPoolRegularDaily
 	case QuotaRefillTypeMonthly:
