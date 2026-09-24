@@ -2,10 +2,12 @@ package equipmentreroll
 
 import (
 	"encoding/json"
+	"fmt"
 	"image"
 	"strconv"
 	"strings"
 
+	"github.com/1204244136/MDA/agent/go-service/pkg/maafocus"
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 	"github.com/rs/zerolog/log"
 )
@@ -136,6 +138,16 @@ func (a *EquipmentRerollPrepareRerollCostAction) Run(ctx *maa.Context, arg *maa.
 	}
 	keys, keysKnown := getKeysHeld(arg.TaskID)
 	if guardRerollCost(arg.TaskID, cost) == costGuardInsufficient {
+		var reason string
+		if modulesKnown && modules < cost.CustomModules {
+			reason = fmt.Sprintf("订制模块不足（持有 %d，需消耗 %d）", modules, cost.CustomModules)
+		} else if keysKnown && keys < cost.CustomLockKeys {
+			reason = fmt.Sprintf("自订密钥不足（持有 %d，需消耗 %d）", keys, cost.CustomLockKeys)
+		} else {
+			reason = "洗词条材料不足"
+		}
+		setAbortReason(arg.TaskID, reason)
+		maafocus.Print(ctx, fmt.Sprintf("【洗词条结束】%s", reason))
 		log.Warn().
 			Str("component", "EquipmentReroll").
 			Int64("task_id", arg.TaskID).
@@ -144,6 +156,7 @@ func (a *EquipmentRerollPrepareRerollCostAction) Run(ctx *maa.Context, arg *maa.
 			Bool("keys_known", keysKnown).
 			Int("keys_held", keys).
 			Interface("cost", cost).
+			Str("reason", reason).
 			Msg("insufficient materials for effect change")
 		if err := routeEquipmentRerollEnd(ctx, arg.CurrentTaskName); err != nil {
 			log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route end for insufficient materials")

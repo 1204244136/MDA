@@ -40,13 +40,21 @@ func buildStandaloneSummaryMessage(taskID int64) string {
 	if !ok {
 		return ""
 	}
-	return fmt.Sprintf("【库存】订制模块 %d / 自订密钥 %d", inv.CustomModules, inv.CustomLockKeys)
+	var sb strings.Builder
+	if reason := getAbortReason(taskID); reason != "" {
+		sb.WriteString("【提前结束】" + reason + "\n")
+	}
+	sb.WriteString(fmt.Sprintf("【库存】订制模块 %d / 自订密钥 %d", inv.CustomModules, inv.CustomLockKeys))
+	return sb.String()
 }
 
 // buildFinalSummaryMessage 生成洗词条任务结束摘要：已扫描装备的详情（含档位）+ 本次消耗材料。
 // 角色模式为四件，单件模式只有用户选定的那一件。
 func buildFinalSummaryMessage(taskID int64) string {
 	var sb strings.Builder
+	if reason := getAbortReason(taskID); reason != "" {
+		sb.WriteString("【提前结束】" + reason + "\n")
+	}
 	sb.WriteString("【装备详情】")
 	parts := getScannedParts(taskID)
 	if len(parts) > 0 {

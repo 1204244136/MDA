@@ -130,6 +130,7 @@ type monitorState struct {
 	// 只认 InventoryInitialized 会让「本轮无需锁定」的流程永远拿不到库存。
 	ModulesHeldKnown bool
 	KeysHeldKnown    bool
+	AbortReason      string // 提前结束原因（如材料不足），供最终摘要与日志展示
 }
 
 var (
@@ -160,6 +161,22 @@ func setInventoryModules(taskID int64, modules int) {
 	state.Inventory.CustomModules = modules
 	state.ModulesHeldKnown = true
 	states[taskID] = state
+}
+
+// setAbortReason 记录任务提前退出的原因，供最终摘要与日志展示。
+func setAbortReason(taskID int64, reason string) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	state := states[taskID]
+	state.AbortReason = reason
+	states[taskID] = state
+}
+
+// getAbortReason 获取任务提前退出的原因。
+func getAbortReason(taskID int64) string {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+	return states[taskID].AbortReason
 }
 
 // getInventory 读取任务级材料余额。两种材料都读到过才返回 ok=true。
