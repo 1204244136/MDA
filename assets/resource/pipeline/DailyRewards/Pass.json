@@ -32,19 +32,13 @@
         "post_wait_freezes": 500
     },
     "DailyRewardsPassFlow": {
-        "desc": "Pass入口",
+        "desc": "Pass流程",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Or",
             "param": {
-                "roi": [
-                    1260,
-                    88,
-                    19,
-                    155
-                ],
-                "template": [
-                    "Common/RedDot.png",
-                    "Common/PassRedDot.png"
+                "any_of": [
+                    "DailyRewardsPassFront",
+                    "DailyRewardsPassBack"
                 ]
             }
         },
@@ -56,6 +50,40 @@
             "[JumpBack]CommonClosePage",
             "CommonClickBlank"
         ]
+    },
+    "DailyRewardsPassFront": {
+        "desc": "前台的Pass红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1260,
+                    88,
+                    19,
+                    155
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "DailyRewardsPassBack": {
+        "desc": "后台的Pass红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1122,
+                    108,
+                    29,
+                    31
+                ],
+                "template": [
+                    "Common/PassRedDot.png"
+                ]
+            }
+        }
     },
     "DailyRewardsClickPassRedDot": {
         "desc": "点击红点切换Pass",
@@ -92,14 +120,15 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1116,
-                    91,
-                    163,
-                    182
+                    1260,
+                    88,
+                    19,
+                    155
                 ],
                 "template": [
                     "Common/RedDot.png"
-                ]
+                ],
+                "order_by": "Vertical"
             }
         },
         "action": {
