@@ -240,7 +240,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1Stage.png"
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1Stage.png",
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageNormal.png"
                                     ]
                                 }
                             }
@@ -249,7 +250,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1StageRepeatable.png"
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1StageRepeatable.png",
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageNormalRepeatable.png"
                                     ]
                                 }
                             }
