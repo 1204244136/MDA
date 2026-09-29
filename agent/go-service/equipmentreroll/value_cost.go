@@ -119,12 +119,17 @@ func (t valueCostTable) cost(tiers [maxSlot]int) float64 {
 	return cost
 }
 
-// accepts 是规划概率和实机结果的唯一取舍规则。成本相同才用截断总 T 打破平局；
+// accepts 是规划概率和实机结果的唯一取舍规则。成本改善必须达到 costDecisionEpsilon
+// （与配额路径同一阈值）才认为真实更优，避免极小期望变化驱动决策；
+// 成本持平（差值不超过 valueCostEpsilon）才用截断总 T 打破平局；
 // 不把任一效果下降设为硬否决，也不以总 T 增长覆盖成本恶化。
 func (t valueCostTable) accepts(before, after [maxSlot]int) bool {
 	delta := t.cost(before) - t.cost(after)
-	if math.Abs(delta) > valueCostEpsilon {
-		return delta > 0
+	if delta > costDecisionEpsilon {
+		return true
+	}
+	if delta < -valueCostEpsilon {
+		return false
 	}
 	gain := 0
 	for i, need := range t.Required {

@@ -147,6 +147,41 @@ func TestValueCostLimitedKeys(t *testing.T) {
 	}
 }
 
+// TestValueCostAcceptsRejectsTinyImprovement 固定"接受阈值"语义：
+// 期望成本改善不足 costDecisionEpsilon（0.01）时，不允许仅凭这点改善接受变更——必须另有
+// 达标进度（Required 截断总 T 上升）才接受；改善达到阈值则可直接接受。
+// 用合成成本表精确控制差值，避免依赖真实枚举恰好产生微小差值。
+func TestValueCostAcceptsRejectsTinyImprovement(t *testing.T) {
+	// Cost[0][tier]：tier1=1.000、tier2=0.995（改善 0.005 < 0.01）、tier3=0.900（改善 0.100 ≥ 0.01）
+	mk := func(required int) valueCostTable {
+		return valueCostTable{
+			Costs:    [maxSlot][16]float64{{0, 1.000, 0.995, 0.900}},
+			Required: [maxSlot]int{required},
+		}
+	}
+	before := [maxSlot]int{1}
+	cheap := [maxSlot]int{2} // 改善 0.005
+	big := [maxSlot]int{3}   // 改善 0.100
+
+	// required=1：tier1 已达标，tier2 无达标进度增益 → 微小改善必须被拒。
+	noGain := mk(1)
+	if noGain.accepts(before, cheap) {
+		t.Fatal("improvement below costDecisionEpsilon without target progress must not be accepted")
+	}
+	if !noGain.accepts(before, big) {
+		t.Fatal("improvement above costDecisionEpsilon must be accepted")
+	}
+	// 反向：变差同样不能被接受。
+	if noGain.accepts(cheap, before) {
+		t.Fatal("a cost regression must not be accepted")
+	}
+	// required=2：tier2 带来达标进度增益 → 微小改善仍按 tie 分支接受（不算"被微小差值驱动"）。
+	withGain := mk(2)
+	if !withGain.accepts(before, cheap) {
+		t.Fatal("tiny improvement with target progress should still be accepted")
+	}
+}
+
 func TestValueCostPlannerAndResultAgree(t *testing.T) {
 	parts, cfg := valueLogTestParts()
 	progress, err := evaluateValueScope(parts, cfg)

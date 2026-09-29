@@ -252,10 +252,12 @@ func DecideResultPageSingle(changed [maxSlot]string, currentScan partScan, t sin
 func decideSingleCandidate(currentScan, cand partScan, t singleTarget) ResultDecision {
 	curCost := singleExpectedCost(currentScan, t)
 	candCost := singleExpectedCost(cand, t)
-	if candCost < curCost-1e-6 {
+	// 与配额路径一致：期望成本必须低至少 costDecisionEpsilon 才视为真实改善。
+	if candCost < curCost-costDecisionEpsilon {
 		return ResultDecisionAccept
 	}
-	if candCost <= curCost+1e-6 && singleEffectiveAffixCount(cand, t) > singleEffectiveAffixCount(currentScan, t) {
+	// 成本持平（costTieEpsilon 容差内）且有效词条数上升时的短期最优。
+	if candCost <= curCost+costTieEpsilon && singleEffectiveAffixCount(cand, t) > singleEffectiveAffixCount(currentScan, t) {
 		return ResultDecisionAccept
 	}
 	return ResultDecisionKeep

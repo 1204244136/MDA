@@ -16,6 +16,17 @@ const TargetEffectElementalDamage = "优越代码伤害增加"
 // TargetEffectAttackIncrease 是常用目标效果（官方名称）。
 const TargetEffectAttackIncrease = "攻击力增加"
 
+// costDecisionEpsilon 是"期望剩余成本"接受阈值：候选状态的期望成本必须比当前状态
+// 低至少该值，才认为发生了真实改善。单位与期望成本一致（订制模块数）。
+// 取值 0.01 用于滤掉浮点累计与离散枚举带来的极小差值——这类差值不是策略信号，
+// 却会让结果页在"变更/维持"之间反复摇摆，因此不允许它单独驱动决策。
+const costDecisionEpsilon = 0.01
+
+// costTieEpsilon 判定"期望成本持平"的容差（短期最优分支的额外要求）。
+// 它必须远小于 costDecisionEpsilon：真实改善由 costDecisionEpsilon 把关，
+// 这里只用来识别数值上完全持平的状态，避免让"略差"的候选借有效词条数上升混进来。
+const costTieEpsilon = 1e-6
+
 // ResultDecision 表示效果变更结果页的接受方向。
 type ResultDecision int
 
@@ -233,13 +244,13 @@ func globalEffectiveAffixCount(parts map[string]partScan, quota map[string]int) 
 func decideQuotaByExpectedCost(current, candidate map[string]partScan, quota map[string]int) ResultDecision {
 	curCost := expectedModulesForQuota(current, quota)
 	candCost := expectedModulesForQuota(candidate, quota)
-	// 宏观口径：期望成本严格更低才接受。
-	if candCost < curCost-1e-6 {
+	// 宏观口径：期望成本必须比当前状态低至少 costDecisionEpsilon（真实改善）才接受。
+	if candCost < curCost-costDecisionEpsilon {
 		return ResultDecisionAccept
 	}
-	// 短期最优：宏观成本**未变差**（持平/相邻）时，若物理有效词条数上升也接受（即使下次洗会被洗掉）。
+	// 短期最优：宏观成本持平（差值在 costTieEpsilon 容差内）时，若物理有效词条数上升也接受（即使下次洗会被洗掉）。
 	// 这是“多拿多算”加成，不覆盖“宏观更差”的状态（不违反宏观最优）。
-	if candCost <= curCost+1e-6 && globalEffectiveAffixCount(candidate, quota) > globalEffectiveAffixCount(current, quota) {
+	if candCost <= curCost+costTieEpsilon && globalEffectiveAffixCount(candidate, quota) > globalEffectiveAffixCount(current, quota) {
 		return ResultDecisionAccept
 	}
 	return ResultDecisionKeep
@@ -296,11 +307,11 @@ func DecideResultPageQuota(current, changed [maxSlot]string, currentScan partSca
 	}
 	currentCost := partExpectedCostForRequired(currentScanE, quota, required, "")
 	changedCost := partExpectedCostForRequired(changedScan, quota, required, "")
-	if changedCost < currentCost-1e-6 {
+	if changedCost < currentCost-costDecisionEpsilon {
 		return ResultDecisionAccept
 	}
-	// 短期最优：宏观成本未变差（持平/相邻）时，本件有效词条数上升也接受（即使下次会被洗掉）。
-	if changedCost <= currentCost+1e-6 && effectiveAffixCount(changedScan, quota) > effectiveAffixCount(currentScanE, quota) {
+	// 短期最优：宏观成本持平（差值在 costTieEpsilon 容差内）时，本件有效词条数上升也接受（即使下次会被洗掉）。
+	if changedCost <= currentCost+costTieEpsilon && effectiveAffixCount(changedScan, quota) > effectiveAffixCount(currentScanE, quota) {
 		return ResultDecisionAccept
 	}
 	return ResultDecisionKeep

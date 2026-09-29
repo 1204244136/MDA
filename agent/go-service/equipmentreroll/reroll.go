@@ -308,12 +308,13 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 			candidate.Slots[i].Value = changedValues[i]
 		}
 		candidateParts[part] = candidate
-		// 方向 A：决策改为期望成本。候选全局期望剩余模块数严格更低才接受，
+		// 方向 A：决策改为期望成本。候选全局期望剩余模块数必须低至少 costDecisionEpsilon
+		// （真实改善）才接受，避免极小期望变化驱动决策；
 		// 而非旧积分制的"已匹配配额数 × 100 + 槽位结构分"。
 		// 期望成本由 expectedModulesForQuota 计算（槽位获得概率 / 效果权重 / 同结果排除 / 锁定与重洗费用）。
 		currentCost := expectedModulesForQuota(allParts, quota)
 		candidateCost := expectedModulesForQuota(candidateParts, quota)
-		if candidateCost < currentCost-1e-6 {
+		if candidateCost < currentCost-costDecisionEpsilon {
 			decision = ResultDecisionAccept
 		}
 		decisionDetail = fmt.Sprintf("current_cost=%.2f candidate_cost=%.2f", currentCost, candidateCost)
