@@ -111,7 +111,31 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500
+        "post_wait_freezes": 500,
+        "next": [
+            "SimulationRoomClickBlank",
+            "CommonEndTask"
+        ]
+    },
+    "SimulationRoomClickBlank": {
+        "desc": "点击空白处让提示消失",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    576,
+                    68,
+                    48,
+                    28
+                ],
+                "expected": [
+                    ".*BIOS.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SimulationRoomScrollOverclockOptionsUp": {
         "desc": "模拟室超频向上滑动",
