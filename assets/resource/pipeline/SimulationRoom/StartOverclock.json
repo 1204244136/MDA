@@ -200,7 +200,7 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "[JumpBack]SimulationRoomConfirmEndSimulation",
+            "SimulationRoomConfirmEndSimulation",
             "SimulationRoomSelectBattle",
             "[JumpBack]SimulationRoomSelectBuff",
             "[JumpBack]BattleEntryFlow"
