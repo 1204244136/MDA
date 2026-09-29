@@ -473,7 +473,8 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "CommonFreeStateFlow"
+            "CommonFreeStateFlow",
+            "[JumpBack]CommonCloseSale"
         ]
     },
     "CommonClickHall": {
