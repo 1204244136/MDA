@@ -660,7 +660,7 @@ func billableSecondsToReal(billable, permille int64) int64 {
 	if permille <= 0 {
 		permille = multiplierScale
 	}
-	return billable * multiplierScale / permille
+	return (billable*multiplierScale + permille - 1) / permille
 }
 
 // chargeQuotaByPriority 按“最早失效优先”的顺序扣减 realSeconds，返回本次实际使用的
@@ -674,13 +674,13 @@ func billableSecondsToReal(billable, permille int64) int64 {
 // 始终按实际时长（1 倍）扣减。
 func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool, state *quotaState, now time.Time) (quotaMultiplier, bool) {
 	if !isRuntimeQuotaSubject(status) || realSeconds <= 0 {
-		return regularQuotaMultiplier(entry), false
+		return unmultipliedQuotaMultiplier(), false
 	}
 
 	updatedAt := now.Format(time.RFC3339)
 	remainingReal := realSeconds
 	// 本次实际使用的倍率：只有从常规额度扣费时才可能高于 1 倍。
-	multiplier := unmultipliedQuotaMultiplier()
+	usedRegular := false
 
 	for _, source := range quotaChargeOrder(status, route, *state, entry, now) {
 		if remainingReal <= 0 {
@@ -691,7 +691,7 @@ func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRo
 			// 常规额度按倍率计费（高级任务 5 倍）；打满时把溢出的计费额度还原成实际
 			// 秒数，交给后面失效更晚的额度来源。
 			regularMultiplier := regularQuotaMultiplier(entry)
-			multiplier = regularMultiplier
+			usedRegular = true
 			available := quotaPoolRemaining(*state, quotaPoolRegularDaily)
 			regular := state.Pools[string(quotaPoolRegularDaily)]
 			billable := regularMultiplier.billableSecondsFromReal(remainingReal, flush)
@@ -719,11 +719,14 @@ func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRo
 		}
 	}
 
-	return multiplier, !quotaAvailableForRoute(status, route, *state, entry)
+	if usedRegular {
+		return regularQuotaMultiplier(entry), !quotaAvailableForRoute(status, route, *state, entry)
+	}
+	return unmultipliedQuotaMultiplier(), !quotaAvailableForRoute(status, route, *state, entry)
 }
 
 // addQuotaRouteUsageRealSeconds 根据任务 entry 与当前额度池状态动态计算倍率，
-// 并按“常规 → 专项 → 活动”的顺序在同一次文件锁内完成扣费，
+// 并按最早失效优先的顺序在同一次文件锁内完成扣费，
 // 避免每个 tick 重复读写额度状态文件。
 // 注意：quotaMu 与文件锁必须按“quotaMu → 文件锁”的顺序同时持有、整体释放，
 // 与其他配额路径保持一致；若持文件锁期间再等 quotaMu，会造成锁序倒置死锁。

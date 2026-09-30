@@ -205,8 +205,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		return
 	}
 
-	// 倍率是额度池的属性：常规额度优先扣减，因此实际倍率由常规额度是否仍有剩余决定。
-	// 常规额度对高级任务按 5 倍计费；一旦常规额度用尽，后续都走专项/活动额度（1 倍）。
+	// 启动时展示当前常规池倍率；实际跨池扣减时由扣费结果重新计算。
 	multiplier := regularQuotaMultiplier(detail.Entry)
 	if snapshot.RegularRemainingSeconds <= 0 {
 		multiplier = unmultipliedQuotaMultiplier()

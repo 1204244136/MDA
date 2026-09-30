@@ -261,6 +261,27 @@ func TestConsumeTickKeepsRunningWhileEventQuotaRemains(t *testing.T) {
 	}
 }
 
+func TestCrossPoolChargeReturnsUnmultipliedOnlyWhenRegularWasNotUsed(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(1, "device-a")
+	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, time.Now())
+	regular := state.Pools[string(quotaPoolRegularDaily)]
+	regular.UsedSeconds = regular.LimitSeconds - 1
+	state.Pools[string(quotaPoolRegularDaily)] = regular
+	state.EventGrants = []eventQuotaGrant{{TaskEntry: entryMapPushingFlow, LimitSeconds: 10}}
+	mustSaveQuotaState(t, path, state)
+	snapshot, multiplier, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteForEntry(entryMapPushingFlow), 2, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if multiplier.totalPermille() != 5*multiplierScale {
+		t.Fatalf("multiplier = %d, want 5000", multiplier.totalPermille())
+	}
+	if snapshot.RegularUsedSeconds != 60 || snapshot.EventRemainingSeconds != 8 {
+		t.Fatalf("cross-pool charge lost runtime: %+v", snapshot)
+	}
+}
+
 func TestQuotaReserveSecondsCountsAllPools(t *testing.T) {
 	snapshot := QuotaSnapshot{
 		RegularRemainingSeconds: 10,
