@@ -276,16 +276,16 @@
         }
     },
     "__EquipmentRerollSlot1LockBlue": {
-        "desc": "第1槽锁定区域蓝色锁 ColorMatch（永久锁）",
+        "desc": "第1槽锁定按钮蓝色锁 ColorMatch（永久锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,501,26,23)",
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    135,
+                    188,
                     45,
-                    61,
-                    7
+                    12,
+                    8
                 ],
                 "lower": [
                     [
@@ -306,16 +306,16 @@
         }
     },
     "__EquipmentRerollSlot1LockOrange": {
-        "desc": "第1槽锁定区域橙色锁 ColorMatch（一次性锁）",
+        "desc": "第1槽锁定按钮橙色锁 ColorMatch（一次性锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,501,26,23)",
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    135,
+                    188,
                     45,
-                    61,
-                    7
+                    12,
+                    8
                 ],
                 "lower": [
                     [
@@ -399,16 +399,16 @@
         }
     },
     "__EquipmentRerollSlot2LockBlue": {
-        "desc": "第2槽锁定区域蓝色锁 ColorMatch（永久锁）",
+        "desc": "第2槽锁定按钮蓝色锁 ColorMatch（永久锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,525,26,23)",
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    135,
+                    188,
                     69,
-                    61,
-                    7
+                    12,
+                    8
                 ],
                 "lower": [
                     [
@@ -429,16 +429,16 @@
         }
     },
     "__EquipmentRerollSlot2LockOrange": {
-        "desc": "第2槽锁定区域橙色锁 ColorMatch（一次性锁）",
+        "desc": "第2槽锁定按钮橙色锁 ColorMatch（一次性锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,525,26,23)",
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    135,
+                    188,
                     69,
-                    61,
-                    7
+                    12,
+                    8
                 ],
                 "lower": [
                     [
@@ -522,16 +522,16 @@
         }
     },
     "__EquipmentRerollSlot3LockBlue": {
-        "desc": "第3槽锁定区域蓝色锁 ColorMatch（永久锁）",
+        "desc": "第3槽锁定按钮蓝色锁 ColorMatch（永久锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,549,26,23)",
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    135,
+                    188,
                     93,
-                    61,
-                    7
+                    12,
+                    8
                 ],
                 "lower": [
                     [
@@ -552,16 +552,16 @@
         }
     },
     "__EquipmentRerollSlot3LockOrange": {
-        "desc": "第3槽锁定区域橙色锁 ColorMatch（一次性锁）",
+        "desc": "第3槽锁定按钮橙色锁 ColorMatch（一次性锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,549,26,23)",
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    135,
+                    188,
                     93,
-                    61,
-                    7
+                    12,
+                    8
                 ],
                 "lower": [
                     [
