@@ -68,28 +68,32 @@ func TestQuotaChargeOrderKeepsEventQuotaAsReserve(t *testing.T) {
 	}
 	mustSaveQuotaState(t, path, state)
 
-	// 第 1 段：常规额度兜住全部时长，专项与活动额度原封不动。
+	// 第 1 段：常规额度最先扣减，且高级任务在此按 5 倍计费——60 秒额度只覆盖 12 秒
+	// 实际时长，溢出的 48 秒落到专项额度上；活动额度一秒未动。
 	snapshot, multiplier, exhausted, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 60, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if snapshot.RegularUsedSeconds != 60 || snapshot.SpecialUsedSeconds != 0 || snapshot.EventRemainingSeconds != 50 {
-		t.Fatalf("regular quota should be charged first: %+v", snapshot)
+	if multiplier.totalPermille() != 5*multiplierScale {
+		t.Fatalf("regular quota should be charged at 5x: %+v", multiplier)
 	}
-	if multiplier.totalPermille() != multiplierScale {
-		t.Fatalf("remaining event quota should keep the 1x shield: %+v", multiplier)
+	if snapshot.RegularUsedSeconds != 60 || snapshot.SpecialUsedSeconds != 48 || snapshot.EventRemainingSeconds != 50 {
+		t.Fatalf("wrong pool split: %+v", snapshot)
 	}
 	if exhausted {
 		t.Fatal("special and event quota still remain, so the route must not report exhaustion")
 	}
 
-	// 第 2 段：常规额度打满后转入专项额度，活动额度仍然不动。
-	snapshot, _, exhausted, err = addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 60, false)
+	// 第 2 段：常规额度打满后转入专项额度，专项按实际时长（1 倍）扣减。
+	snapshot, multiplier, exhausted, err = addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 12, false)
 	if err != nil {
 		t.Fatal(err)
 	}
+	if multiplier.totalPermille() != multiplierScale {
+		t.Fatalf("special quota must not be multiplied: %+v", multiplier)
+	}
 	if snapshot.SpecialUsedSeconds != 60 || snapshot.EventRemainingSeconds != 50 {
-		t.Fatalf("special quota should be charged after regular quota: %+v", snapshot)
+		t.Fatalf("special quota should absorb the run: %+v", snapshot)
 	}
 	if exhausted {
 		t.Fatal("event quota still remains, so the route must not report exhaustion")
@@ -133,52 +137,58 @@ func TestEventQuotaAllowsTaskWhenRegularExhausted(t *testing.T) {
 	}
 }
 
-func TestEventQuotaShieldsRegularQuotaFromMultiplier(t *testing.T) {
+// 倍率是额度池的属性：只要扣的是常规额度就按 5 倍（高级任务），
+// 活动额度与专项额度则始终按实际时长扣减。手里有活动额度不会让常规额度变得“更耐用”。
+func TestMultiplierFollowsChargedPool(t *testing.T) {
 	for _, entry := range HighConsumptionEntries() {
 		t.Run(entry, func(t *testing.T) {
 			path := isolateQuotaState(t)
-			status := testStatus(10, "event-device") // 没有会员专项额度，活动额度仍为 1 倍。
+			status := testStatus(10, "event-device") // 常规额度 600 秒
 			state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, time.Now())
-			state.EventGrants = []eventQuotaGrant{{TaskEntry: entry, LimitSeconds: 30}}
+			state.EventGrants = []eventQuotaGrant{{TaskEntry: entry, LimitSeconds: 60}}
 			mustSaveQuotaState(t, path, state)
 
-			// 活动额度尚未用尽：常规额度按 1 倍扣减，活动额度完整保留。
+			// 常规额度优先扣减，且高级任务在此按 5 倍计费：20 秒实际时长吃掉 100 秒常规额度，
+			// 活动额度一秒未动。
 			snapshot, multiplier, exhausted, err := addQuotaRouteUsageRealSeconds(status, entry, quotaRouteForEntry(entry), 20, false)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if multiplier.totalPermille() != multiplierScale {
-				t.Fatalf("regular quota multiplied while event quota remains: %+v", multiplier)
+			if multiplier.totalPermille() != 5*multiplierScale {
+				t.Fatalf("regular quota should be charged at 5x: %+v", multiplier)
 			}
-			if snapshot.RegularUsedSeconds != 20 || snapshot.EventRemainingSeconds != 30 {
-				t.Fatalf("event quota should stay untouched: %+v", snapshot)
+			if snapshot.RegularUsedSeconds != 100 || snapshot.EventRemainingSeconds != 60 {
+				t.Fatalf("wrong pool split: %+v", snapshot)
 			}
 			if exhausted {
 				t.Fatal("quota should not be reported exhausted")
 			}
 
-			// 活动额度用尽后，高级任务才按 5 倍计费常规额度。
+			// 常规额度用尽后转活动额度：按实际时长扣减，倍率回到 1 倍。
 			state = mustLoadQuotaState(t, path)
-			state.EventGrants[0].UsedSeconds = state.EventGrants[0].LimitSeconds
+			regular := state.Pools[string(quotaPoolRegularDaily)]
+			regular.UsedSeconds = regular.LimitSeconds
+			state.Pools[string(quotaPoolRegularDaily)] = regular
 			mustSaveQuotaState(t, path, state)
-			snapshot, multiplier, _, err = addQuotaRouteUsageRealSeconds(status, entry, quotaRouteForEntry(entry), 2, false)
+
+			snapshot, multiplier, _, err = addQuotaRouteUsageRealSeconds(status, entry, quotaRouteForEntry(entry), 20, false)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if multiplier.totalPermille() != 5*multiplierScale {
-				t.Fatalf("multiplier after event quota is gone = %d, want %d", multiplier.totalPermille(), 5*multiplierScale)
+			if multiplier.totalPermille() != multiplierScale {
+				t.Fatalf("event quota must not be multiplied: %+v", multiplier)
 			}
-			if snapshot.RegularUsedSeconds != 30 {
-				t.Fatalf("RegularUsedSeconds = %d, want 30 (20 at 1x plus 2 real seconds at 5x)", snapshot.RegularUsedSeconds)
+			if snapshot.EventRemainingSeconds != 40 {
+				t.Fatalf("EventRemainingSeconds = %d, want 40", snapshot.EventRemainingSeconds)
 			}
 		})
 	}
 }
 
 // 会员每天有 60 秒常规额度（每日重置），手里还有 60 秒永不过期的活动额度。
-// 旧顺序会先把活动额度烧光，之后常规额度只能按 5 倍计费；新顺序则先用当天会作废的
-// 常规额度，活动额度跨日完整保留并持续充当 1 倍护盾。
-func TestMemberKeepsEventQuotaAcrossBusinessDays(t *testing.T) {
+// 常规额度优先扣减，因此每天的常规额度都会被用满而不是白白重置；活动额度只在常规
+// 额度用尽后按实际时长补充，并且不受每日重置影响。
+func TestMemberRegularQuotaIsUsedBeforeEventQuota(t *testing.T) {
 	path := isolateQuotaState(t)
 	status := testStatus(1, "event-device") // 每个业务日 60 秒常规额度
 	status.IsMember = true
@@ -190,16 +200,17 @@ func TestMemberKeepsEventQuotaAcrossBusinessDays(t *testing.T) {
 	state.EventGrants = []eventQuotaGrant{{TaskEntry: entryMapPushingFlow, LimitSeconds: 60}}
 	mustSaveQuotaState(t, path, state)
 
-	// 第 1 天：60 秒时长全部由常规额度承担，活动额度一秒未动。
+	// 第 1 天：常规额度先被打满（高级任务 5 倍，60 秒额度覆盖 12 秒实际时长），
+	// 不足的 48 秒才落到活动额度上。
 	snapshot, multiplier, exhausted, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 60, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if snapshot.RegularUsedSeconds != 60 || snapshot.EventRemainingSeconds != 60 {
-		t.Fatalf("regular quota should absorb the whole run: %+v", snapshot)
+	if multiplier.totalPermille() != 5*multiplierScale {
+		t.Fatalf("regular quota should be charged at 5x: %+v", multiplier)
 	}
-	if multiplier.totalPermille() != multiplierScale {
-		t.Fatalf("multiplier = %d, want %d", multiplier.totalPermille(), multiplierScale)
+	if snapshot.RegularUsedSeconds != 60 || snapshot.EventRemainingSeconds != 12 {
+		t.Fatalf("regular quota should be drained first: %+v", snapshot)
 	}
 	if exhausted {
 		t.Fatal("event quota still remains, so the route must not report exhaustion")
@@ -210,7 +221,7 @@ func TestMemberKeepsEventQuotaAcrossBusinessDays(t *testing.T) {
 	if got := quotaPoolRemaining(state, quotaPoolRegularDaily); got != 60 {
 		t.Fatalf("regular quota was not reset on the next business day: %d", got)
 	}
-	if got := eventQuotaRemaining(state, entryMapPushingFlow); got != 60 {
+	if got := eventQuotaRemaining(state, entryMapPushingFlow); got != 12 {
 		t.Fatalf("event quota should survive the daily reset: %d", got)
 	}
 }

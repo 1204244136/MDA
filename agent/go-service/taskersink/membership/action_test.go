@@ -108,9 +108,9 @@ func TestFormatMembershipVerificationUnavailableMessage(t *testing.T) {
 	}
 }
 
-func TestNoSpecialQuota5XMultiplierMessage(t *testing.T) {
+func TestRegularQuota5XMultiplierMessage(t *testing.T) {
 	initTestI18n()
-	message := i18n.T("tasker.membership_check.no_special_quota_5x_multiplier")
+	message := i18n.T("tasker.membership_check.regular_quota_5x_multiplier")
 
 	if !strings.Contains(message, "5 倍") && !strings.Contains(message, "5x") {
 		t.Fatalf("message does not mention 5x quota consumption: %s", message)

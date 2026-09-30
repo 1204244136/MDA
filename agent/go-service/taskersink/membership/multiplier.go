@@ -65,19 +65,31 @@ func isQuotaExemptEntry(entry string) bool {
 	return entry == entryQuotaDisplayMain
 }
 
-func multiplierForEntry(entry string, hasUnmultipliedQuota bool) quotaMultiplier {
+// regularQuotaMultiplier 返回常规额度池对该任务的计费倍率。
+// 倍率是额度池的属性而非任务的属性：只有常规额度会对高级任务按 5 倍计费，
+// 专项额度与活动额度始终按实际时长扣减（见 unmultipliedQuotaMultiplier）。
+func regularQuotaMultiplier(entry string) quotaMultiplier {
 	m := quotaMultiplier{
 		BasePermille:  multiplierScale,
 		ExtraPermille: multiplierScale,
 		Reason:        "default",
 	}
 
-	if isHighConsumptionEntry(entry) && !hasUnmultipliedQuota {
+	if isHighConsumptionEntry(entry) {
 		m.BasePermille = 5 * multiplierScale
-		m.Reason = "no_special_quota_5x"
+		m.Reason = "regular_quota_5x"
 	}
 
 	return m
+}
+
+// unmultipliedQuotaMultiplier 返回专项额度与活动额度的计费倍率：恒按实际时长扣减。
+func unmultipliedQuotaMultiplier() quotaMultiplier {
+	return quotaMultiplier{
+		BasePermille:  multiplierScale,
+		ExtraPermille: multiplierScale,
+		Reason:        "unmultiplied_reserve",
+	}
 }
 
 func (m quotaMultiplier) totalPermille() int64 {

@@ -5,26 +5,30 @@ import (
 	"time"
 )
 
-func TestMultiplierForEntry(t *testing.T) {
+func TestRegularQuotaMultiplier(t *testing.T) {
 	cases := []struct {
-		entry           string
-		hasSpecialQuota bool
-		want            int64
+		entry string
+		want  int64
 	}{
-		{entry: "SmallEventMain", hasSpecialQuota: false, want: 1000},
-		{entry: "SmallEventMain", hasSpecialQuota: true, want: 1000},
-		{entry: "LargeEventMain", hasSpecialQuota: false, want: 1000},
-		{entry: "MapPushingFlow", hasSpecialQuota: true, want: 1000},
-		{entry: "MapPushingFlow", hasSpecialQuota: false, want: 5000},
-		{entry: "EquipmentRerollMain", hasSpecialQuota: true, want: 1000},
-		{entry: "EquipmentRerollMain", hasSpecialQuota: false, want: 5000},
-		{entry: "CustomBurstMain", hasSpecialQuota: true, want: 1000},
-		{entry: "CustomBurstMain", hasSpecialQuota: false, want: 5000},
-		{entry: "DailyRewardsMain", hasSpecialQuota: false, want: 1000},
+		{entry: "SmallEventMain", want: 1000},
+		{entry: "LargeEventMain", want: 1000},
+		{entry: "MapPushingFlow", want: 5000},
+		{entry: "EquipmentRerollMain", want: 5000},
+		{entry: "CustomBurstMain", want: 5000},
+		{entry: "DailyRewardsMain", want: 1000},
 	}
 	for _, test := range cases {
-		if got := multiplierForEntry(test.entry, test.hasSpecialQuota).BasePermille; got != test.want {
-			t.Fatalf("multiplierForEntry(%s, %t).BasePermille = %d, want %d", test.entry, test.hasSpecialQuota, got, test.want)
+		if got := regularQuotaMultiplier(test.entry).BasePermille; got != test.want {
+			t.Fatalf("regularQuotaMultiplier(%s).BasePermille = %d, want %d", test.entry, got, test.want)
+		}
+	}
+}
+
+// 倍率是额度池的属性：专项额度与活动额度不因任务分级而放大。
+func TestUnmultipliedQuotaMultiplierIgnoresTaskTier(t *testing.T) {
+	for _, entry := range HighConsumptionEntries() {
+		if got := unmultipliedQuotaMultiplier().totalPermille(); got != multiplierScale {
+			t.Fatalf("unmultipliedQuotaMultiplier() for %s = %d, want %d", entry, got, multiplierScale)
 		}
 	}
 }

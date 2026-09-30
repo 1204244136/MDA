@@ -622,10 +622,9 @@ func quotaPoolRemaining(state quotaState, pool quotaPool) int64 {
 	return remaining
 }
 
-// quotaHasUnmultipliedReserve 判断该路由下是否还有“不按倍率计费”的额度可用。
-// 活动额度与专项额度都按实际时长扣减，只要其中之一尚未用尽，高级任务的常规额度
-// 就不会进入 5 倍计费。
-func quotaHasUnmultipliedReserve(route quotaRoute, state quotaState, entry string) bool {
+// quotaReserveAvailable 判断该路由下是否还有常规额度之外的可用额度：
+// 活动额度，或高级任务路由下的专项额度。这两类额度都按实际时长（1 倍）扣减。
+func quotaReserveAvailable(route quotaRoute, state quotaState, entry string) bool {
 	if eventQuotaRemaining(state, entry) > 0 {
 		return true
 	}
@@ -639,7 +638,7 @@ func quotaAvailableForRoute(status *MembershipStatus, route quotaRoute, state qu
 	if !isRuntimeQuotaSubject(status) {
 		return true
 	}
-	if quotaHasUnmultipliedReserve(route, state, entry) {
+	if quotaReserveAvailable(route, state, entry) {
 		return true
 	}
 	return quotaPoolRemaining(state, quotaPoolRegularDaily) > 0
@@ -661,25 +660,29 @@ func billableSecondsToReal(billable, permille int64) int64 {
 // 返回本次实际使用的倍率，以及该路由下所有额度池是否都已耗尽。
 //
 // 顺序依据各池的“过期紧迫度”：常规额度每个业务日重置（当天不用即作废），专项额度随
-// 订阅周期重置，活动额度没有到期日。把永不过期的活动额度留到最后，会员每天的常规额度
-// 才不会因为手里攒着活动额度而被整日闲置，同时活动额度可以长期充当高级任务的“1 倍护盾”。
+// 订阅周期重置，活动额度没有到期日。会过期的额度先用，永不过期的活动额度留到最后，
+// 会员每天的常规额度才不会因为手里攒着活动额度而被整日闲置。
 //
-// 倍率只作用于常规额度：活动额度与专项额度都按实际时长扣减，只要其中之一尚未用尽，
-// 高级任务的常规额度就按 1 倍计费；两者都耗尽后才按 5 倍计费。
+// 倍率由实际扣减的额度池决定，而不是“是否存在其他额度”：高级任务消耗常规额度时按
+// 5 倍计费，专项额度与活动额度始终按实际时长（1 倍）扣减。常规额度被优先用掉的同时，
+// 5 倍惩罚照常生效。
 func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool, state *quotaState, now time.Time) (quotaMultiplier, bool) {
-	multiplier := multiplierForEntry(entry, quotaHasUnmultipliedReserve(route, *state, entry))
 	if !isRuntimeQuotaSubject(status) || realSeconds <= 0 {
-		return multiplier, false
+		return regularQuotaMultiplier(entry), false
 	}
 
-	permille := multiplier.totalPermille()
 	updatedAt := now.Format(time.RFC3339)
 	remainingReal := realSeconds
+	// 本次实际使用的倍率：只有从常规额度扣费时才可能高于 1 倍。
+	multiplier := unmultipliedQuotaMultiplier()
 
-	// 1) 常规额度：每日重置，最先使用。
+	// 1) 常规额度：每日重置，最先使用；高级任务在此按 5 倍计费。
 	if regularRemaining := quotaPoolRemaining(*state, quotaPoolRegularDaily); regularRemaining > 0 {
+		regularMultiplier := regularQuotaMultiplier(entry)
+		multiplier = regularMultiplier
+		permille := regularMultiplier.totalPermille()
 		regular := state.Pools[string(quotaPoolRegularDaily)]
-		billable := multiplier.billableSecondsFromReal(remainingReal, flush)
+		billable := regularMultiplier.billableSecondsFromReal(remainingReal, flush)
 		if billable < regularRemaining {
 			regular.UsedSeconds += billable
 			remainingReal = 0
@@ -692,7 +695,7 @@ func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRo
 		state.Pools[string(quotaPoolRegularDaily)] = regular
 	}
 
-	// 2) 专项额度：仅高级任务路由可用，随订阅周期重置。
+	// 2) 专项额度：仅高级任务路由可用，随订阅周期重置，按实际时长扣减。
 	if route == quotaRouteSpecialThenRegular && remainingReal > 0 {
 		if specialRemaining := quotaPoolRemaining(*state, quotaPoolSpecialPeriod); specialRemaining > 0 {
 			charge := min(remainingReal, specialRemaining)
