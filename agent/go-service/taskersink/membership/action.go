@@ -76,6 +76,12 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute, entries ...string)
 		}
 		notifyOnce.Do(func() {
 			maafocus.Print(ctx, formatQuotaStatusMessage(snapshot))
+			if snapshot.EventRemainingSeconds > 0 {
+				maafocus.Print(ctx, fmt.Sprintf(
+					i18n.T("tasker.membership_check.verified_event"),
+					FormatMinutes(snapshot.EventRemainingSeconds),
+				))
+			}
 			if snapshot.UnlimitedRuntime {
 				return
 			}
@@ -95,26 +101,18 @@ func formatMembershipVerificationUnavailableMessage() string {
 	return i18n.T("tasker.membership_check.service_unavailable")
 }
 
+// formatQuotaStatusMessage 描述当前正在扣减的主额度池。
+// 扣减顺序为“常规 → 专项 → 活动”，因此常规额度是默认主池，只有在常规额度已经用尽、
+// 任务改用专项额度兜底时，才显示专项额度的进度。活动额度另由 runRuntimeQuotaCheck 单独提示。
 func formatQuotaStatusMessage(snapshot QuotaSnapshot) string {
 	if snapshot.UnlimitedRuntime {
 		return i18n.T("tasker.membership_check.debug_unlimited")
 	}
-	if snapshot.EventRemainingSeconds > 0 {
-		return fmt.Sprintf(i18n.T("tasker.membership_check.verified_event"), FormatMinutes(snapshot.EventRemainingSeconds))
-	}
-	if snapshot.Route == quotaRouteSpecialThenRegular {
-		if snapshot.FallbackToRegular {
-			return fmt.Sprintf(
-				i18n.T("tasker.membership_check.verified_special_fallback_regular"),
-				snapshot.TierName,
-				FormatMinutes(snapshot.SpecialLimitSeconds),
-				FormatMinutes(snapshot.RegularUsedSeconds),
-				FormatMinutes(snapshot.RegularLimitSeconds),
-			)
-		}
+	if snapshot.Pool == quotaPoolSpecialPeriod {
 		return fmt.Sprintf(
-			i18n.T("tasker.membership_check.verified_special"),
+			i18n.T("tasker.membership_check.verified_special_after_regular"),
 			snapshot.TierName,
+			FormatMinutes(snapshot.RegularLimitSeconds),
 			FormatMinutes(snapshot.SpecialUsedSeconds),
 			FormatMinutes(snapshot.SpecialLimitSeconds),
 		)

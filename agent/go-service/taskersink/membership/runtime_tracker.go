@@ -253,7 +253,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 		return
 	}
 
-	go t.tick(status, route, generation, snapshot.RemainingSeconds, stopCh)
+	go t.tick(status, route, generation, quotaReserveSeconds(snapshot), stopCh)
 }
 
 func (t *RuntimeTracker) finish() {
@@ -318,7 +318,7 @@ func (t *RuntimeTracker) tick(status *MembershipStatus, route quotaRoute, genera
 			if done {
 				return
 			}
-			remainingSeconds = snapshot.RemainingSeconds
+			remainingSeconds = quotaReserveSeconds(snapshot)
 		case <-stopCh:
 			if !timer.Stop() {
 				select {
@@ -360,7 +360,6 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 	t.realNs += delta.Nanoseconds()
 	realSeconds := t.takeRealSecondsLocked(false)
 	oldMultiplier := t.multiplier
-	alreadyStopped := t.stopped
 	t.mu.Unlock()
 
 	snapshot, multiplier, exhausted, err := addQuotaRouteUsageRealSeconds(status, entry, route, realSeconds, false)
@@ -396,32 +395,25 @@ func (t *RuntimeTracker) consumeTick(status *MembershipStatus, route quotaRoute,
 		Int64("remaining_seconds", snapshot.RemainingSeconds).
 		Msg("RuntimeTracker: quota usage recorded")
 
-	if exhausted {
-		// Arm the pending stop instead of invoking PostStop directly from the
-		// timer goroutine: Agent proxy calls must stay inside MaaFramework's
-		// callback dispatch lifetime (see postPendingStop). The actual PostStop
-		// is delivered by the next Node callback via takePendingStop.
-		if t.requestStopWithNotice(generation, formatQuotaDeniedMessage(snapshot)) {
-			log.Warn().
-				Uint64("task_id", taskID).
-				Str("entry", entry).
-				Int64("daily_limit_seconds", snapshot.RegularLimitSeconds).
-				Msg("RuntimeTracker: quota exhausted, terminating task")
-		}
-		return snapshot, true
-	}
-
-	if snapshot.RemainingSeconds > 0 || alreadyStopped {
+	// exhausted 表示该路由下所有额度池都已用尽。只要还有活动额度或专项额度兜底，
+	// 即使常规额度已被打满（改成“常规优先”后每天都会发生）也必须继续运行，
+	// 不能因为主池剩余为 0 就中断任务。
+	if !exhausted {
 		return snapshot, false
 	}
 
+	// Arm the pending stop instead of invoking PostStop directly from the
+	// timer goroutine: Agent proxy calls must stay inside MaaFramework's
+	// callback dispatch lifetime (see postPendingStop). The actual PostStop
+	// is delivered by the next Node callback via takePendingStop.
 	if t.requestStopWithNotice(generation, formatQuotaDeniedMessage(snapshot)) {
 		log.Warn().
 			Uint64("task_id", taskID).
 			Str("entry", entry).
+			Int64("daily_limit_seconds", snapshot.RegularLimitSeconds).
 			Msg("RuntimeTracker: quota exhausted, terminating task")
 	}
-	return snapshot, false
+	return snapshot, true
 }
 
 func printQuotaExhausted(snapshot QuotaSnapshot) {

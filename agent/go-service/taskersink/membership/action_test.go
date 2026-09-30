@@ -52,17 +52,38 @@ func TestFormatQuotaDeniedMessageUsesNormalText(t *testing.T) {
 	}
 }
 
-func TestFormatQuotaStatusMessageUsesSpecialRoute(t *testing.T) {
+func TestFormatQuotaStatusMessageUsesSpecialQuotaWhenRegularExhausted(t *testing.T) {
 	initTestI18n()
 	message := formatQuotaStatusMessage(QuotaSnapshot{
 		Route:               quotaRouteSpecialThenRegular,
+		Pool:                quotaPoolSpecialPeriod,
 		TierName:            "Orange Plus",
+		RegularLimitSeconds: 600,
 		SpecialLimitSeconds: 36000,
 		SpecialUsedSeconds:  600,
 	})
 
 	if !strings.Contains(message, "专项额度") && !strings.Contains(message, "special quota") {
 		t.Fatalf("message does not mention special quota: %s", message)
+	}
+}
+
+func TestFormatQuotaStatusMessagePrefersRegularQuotaPool(t *testing.T) {
+	initTestI18n()
+	// 常规额度是主池：即使专项额度仍有余量，只要常规额度没用完就应显示常规额度进度。
+	message := formatQuotaStatusMessage(QuotaSnapshot{
+		Route:                   quotaRouteSpecialThenRegular,
+		Pool:                    quotaPoolRegularDaily,
+		TierName:                "Orange Plus",
+		LimitSeconds:            3600,
+		UsedSeconds:             600,
+		RemainingSeconds:        3000,
+		SpecialLimitSeconds:     36000,
+		SpecialRemainingSeconds: 36000,
+	})
+
+	if !strings.Contains(message, "10/60") {
+		t.Fatalf("message does not show regular quota progress: %s", message)
 	}
 }
 

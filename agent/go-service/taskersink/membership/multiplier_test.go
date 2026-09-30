@@ -178,10 +178,14 @@ func TestConsumeTickSwitchesTo5xWhenSpecialQuotaExhausted(t *testing.T) {
 			CPUHash: "device-a",
 		},
 	}
-	// 先把专项额度全部耗尽，使高级任务进入“无可用专项额度”的 5 倍状态。
-	if _, _, err := addQuotaRouteUsageSeconds(status, quotaRouteSpecialThenRegular, 60); err != nil {
-		t.Fatalf("failed to exhaust special quota: %v", err)
-	}
+	// 直接构造“专项额度已耗尽”的状态：常规额度优先扣减后，专项额度不会再被自动耗尽，
+	// 这里要验证的正是“无活动额度、无专项额度”时高级任务才进入 5 倍计费。
+	path := isolateQuotaState(t)
+	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, time.Now())
+	special := state.Pools[string(quotaPoolSpecialPeriod)]
+	special.UsedSeconds = special.LimitSeconds
+	state.Pools[string(quotaPoolSpecialPeriod)] = special
+	mustSaveQuotaState(t, path, state)
 
 	tracker := &RuntimeTracker{
 		active:     true,

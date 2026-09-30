@@ -67,7 +67,6 @@ type QuotaSnapshot struct {
 	Route                   quotaRoute
 	PeriodKey               string
 	PeriodLabel             string
-	FallbackToRegular       bool
 	TierName                string
 	TierCode                string
 	LimitSeconds            int64
@@ -439,24 +438,11 @@ func snapshotFromState(status *MembershipStatus, state quotaState, pools ...quot
 	}
 }
 
+// routeSnapshotFromState 组装指定路由的额度快照。活动额度不再优先扣减，因此它只作为
+// 一个独立字段参与展示与可用性判断，不覆盖主池（常规/专项）的统计口径。
 func routeSnapshotFromState(status *MembershipStatus, state quotaState, route quotaRoute, entries ...string) QuotaSnapshot {
 	snapshot := baseRouteSnapshotFromState(status, state, route)
 	snapshot.EventRemainingSeconds = eventQuotaRemaining(state, firstEntry(entries))
-	if !snapshot.UnlimitedRuntime && snapshot.EventRemainingSeconds > 0 {
-		snapshot.Pool = quotaPoolEvent
-		snapshot.LimitSeconds = 0
-		snapshot.UsedSeconds = 0
-		for _, grant := range state.EventGrants {
-			if grant.TaskEntry == "" || grant.TaskEntry == firstEntry(entries) {
-				snapshot.LimitSeconds += grant.LimitSeconds
-				snapshot.UsedSeconds += grant.UsedSeconds
-			}
-		}
-		snapshot.PeriodKey = ""
-		snapshot.PeriodLabel = "event_grant"
-		snapshot.RemainingSeconds = snapshot.EventRemainingSeconds
-		snapshot.FallbackToRegular = false
-	}
 	return snapshot
 }
 
@@ -470,7 +456,9 @@ func baseRouteSnapshotFromState(status *MembershipStatus, state quotaState, rout
 		return regular
 	}
 
-	if route == quotaRouteSpecialThenRegular && special.RemainingSeconds > 0 {
+	// 扣减顺序为“常规 → 专项 → 活动”，常规额度因此是主池；只有常规额度已经用尽、
+	// 而该路由仍可用专项额度时，才把专项额度作为当前正在扣减的池展示。
+	if route == quotaRouteSpecialThenRegular && regular.RemainingSeconds <= 0 && special.RemainingSeconds > 0 {
 		special.Route = route
 		special.SpecialLimitSeconds = special.LimitSeconds
 		special.SpecialUsedSeconds = special.UsedSeconds
@@ -482,7 +470,6 @@ func baseRouteSnapshotFromState(status *MembershipStatus, state quotaState, rout
 	}
 
 	regular.Route = route
-	regular.FallbackToRegular = route == quotaRouteSpecialThenRegular && special.RemainingSeconds <= 0
 	regular.SpecialLimitSeconds = special.LimitSeconds
 	regular.SpecialUsedSeconds = special.UsedSeconds
 	regular.SpecialRemainingSeconds = special.RemainingSeconds
@@ -490,6 +477,16 @@ func baseRouteSnapshotFromState(status *MembershipStatus, state quotaState, rout
 	regular.RegularUsedSeconds = regular.UsedSeconds
 	regular.RegularRemainingSeconds = regular.RemainingSeconds
 	return regular
+}
+
+// quotaReserveSeconds 汇总该路由下所有额度池的剩余计费秒数，仅用于决定下一次额度 tick
+// 的间隔：剩余越多，检查可以越稀疏。常规额度被用尽后仍可由活动额度支撑，因此不能只
+// 看主池剩余，否则会退化成每 5 秒一次的密集读写。
+func quotaReserveSeconds(snapshot QuotaSnapshot) int64 {
+	if snapshot.UnlimitedRuntime {
+		return 0
+	}
+	return snapshot.RegularRemainingSeconds + snapshot.SpecialRemainingSeconds + snapshot.EventRemainingSeconds
 }
 
 func GetQuotaSnapshot(status *MembershipStatus, pool quotaPool) (QuotaSnapshot, error) {
@@ -577,13 +574,7 @@ func EnsureQuotaRouteAvailable(status *MembershipStatus, route quotaRoute, entri
 		return QuotaSnapshot{}, false, err
 	}
 	snapshot := routeSnapshotFromState(status, state, route, entries...)
-	if snapshot.UnlimitedRuntime || snapshot.EventRemainingSeconds > 0 {
-		return snapshot, true, nil
-	}
-	if route == quotaRouteSpecialThenRegular {
-		return snapshot, snapshot.SpecialRemainingSeconds > 0 || snapshot.RegularRemainingSeconds > 0, nil
-	}
-	return snapshot, snapshot.RegularRemainingSeconds > 0, nil
+	return snapshot, quotaAvailableForRoute(status, route, state, firstEntry(entries)), nil
 }
 
 func AddQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, seconds int64) (QuotaSnapshot, error) {
@@ -614,52 +605,116 @@ func addQuotaRouteUsageSeconds(status *MembershipStatus, route quotaRoute, secon
 		return QuotaSnapshot{}, false, err
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
-	if isRuntimeQuotaSubject(status) {
-		seconds = consumeEventQuota(&state, "", seconds)
-	}
-	exhausted := chargeQuotaPools(status, route, seconds, &state, now)
+	_, exhausted := chargeQuotaByPriority(status, "", route, seconds, false, &state, now)
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, false, err
 	}
 	return routeSnapshotFromState(status, state, route), exhausted, nil
 }
 
-// chargeQuotaPools 按路由把 billable 秒数写入对应额度池，返回是否将常规额度耗尽。
-func chargeQuotaPools(status *MembershipStatus, route quotaRoute, seconds int64, state *quotaState, now time.Time) bool {
-	exhausted := false
-	if !isRuntimeQuotaSubject(status) {
-		return exhausted
+// quotaPoolRemaining 返回额度池的剩余秒数（下限为 0）。
+func quotaPoolRemaining(state quotaState, pool quotaPool) int64 {
+	poolState := state.Pools[string(pool)]
+	remaining := poolState.LimitSeconds - poolState.UsedSeconds
+	if remaining < 0 {
+		return 0
 	}
-	updatedAt := now.Format(time.RFC3339)
-	regularState := state.Pools[string(quotaPoolRegularDaily)]
-	specialState := state.Pools[string(quotaPoolSpecialPeriod)]
-	regularCharge := seconds
-	if route == quotaRouteSpecialThenRegular {
-		specialRemaining := specialState.LimitSeconds - specialState.UsedSeconds
-		if specialRemaining < 0 {
-			specialRemaining = 0
-		}
-		specialCharge := seconds
-		if specialCharge > specialRemaining {
-			specialCharge = specialRemaining
-		}
-		if specialCharge > 0 {
-			specialState.UsedSeconds += specialCharge
-			specialState.UpdatedAt = updatedAt
-			state.Pools[string(quotaPoolSpecialPeriod)] = specialState
-		}
-		regularCharge = seconds - specialCharge
-	}
-	if regularCharge > 0 {
-		regularState, exhausted = addQuotaPoolUsage(regularState, regularCharge)
-		regularState.UpdatedAt = updatedAt
-		state.Pools[string(quotaPoolRegularDaily)] = regularState
-	}
-	return exhausted
+	return remaining
 }
 
-// addQuotaRouteUsageRealSeconds 根据任务 entry 和当前专项额度剩余动态计算倍率，
-// 并在同一次文件锁内完成扣费，避免每个 tick 重复读写额度状态文件。
+// quotaHasUnmultipliedReserve 判断该路由下是否还有“不按倍率计费”的额度可用。
+// 活动额度与专项额度都按实际时长扣减，只要其中之一尚未用尽，高级任务的常规额度
+// 就不会进入 5 倍计费。
+func quotaHasUnmultipliedReserve(route quotaRoute, state quotaState, entry string) bool {
+	if eventQuotaRemaining(state, entry) > 0 {
+		return true
+	}
+	return route == quotaRouteSpecialThenRegular && quotaPoolRemaining(state, quotaPoolSpecialPeriod) > 0
+}
+
+// quotaAvailableForRoute 判断该路由下是否还有任一可扣减的额度池。
+// 与 EnsureQuotaRouteAvailable 的放行口径保持一致：常规额度被打满并不等于任务必须
+// 停止，只要活动额度（或高级任务的专项额度）仍有剩余就应继续运行。
+func quotaAvailableForRoute(status *MembershipStatus, route quotaRoute, state quotaState, entry string) bool {
+	if !isRuntimeQuotaSubject(status) {
+		return true
+	}
+	if quotaHasUnmultipliedReserve(route, state, entry) {
+		return true
+	}
+	return quotaPoolRemaining(state, quotaPoolRegularDaily) > 0
+}
+
+// billableSecondsToReal 把计费秒数按倍率还原为实际秒数（向下取整）。
+// 用于常规额度被打满时，把溢出的计费额度交还给后续额度池。
+func billableSecondsToReal(billable, permille int64) int64 {
+	if billable <= 0 {
+		return 0
+	}
+	if permille <= 0 {
+		permille = multiplierScale
+	}
+	return billable * multiplierScale / permille
+}
+
+// chargeQuotaByPriority 按“常规额度 → 专项额度 → 活动额度”的顺序扣减 realSeconds，
+// 返回本次实际使用的倍率，以及该路由下所有额度池是否都已耗尽。
+//
+// 顺序依据各池的“过期紧迫度”：常规额度每个业务日重置（当天不用即作废），专项额度随
+// 订阅周期重置，活动额度没有到期日。把永不过期的活动额度留到最后，会员每天的常规额度
+// 才不会因为手里攒着活动额度而被整日闲置，同时活动额度可以长期充当高级任务的“1 倍护盾”。
+//
+// 倍率只作用于常规额度：活动额度与专项额度都按实际时长扣减，只要其中之一尚未用尽，
+// 高级任务的常规额度就按 1 倍计费；两者都耗尽后才按 5 倍计费。
+func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool, state *quotaState, now time.Time) (quotaMultiplier, bool) {
+	multiplier := multiplierForEntry(entry, quotaHasUnmultipliedReserve(route, *state, entry))
+	if !isRuntimeQuotaSubject(status) || realSeconds <= 0 {
+		return multiplier, false
+	}
+
+	permille := multiplier.totalPermille()
+	updatedAt := now.Format(time.RFC3339)
+	remainingReal := realSeconds
+
+	// 1) 常规额度：每日重置，最先使用。
+	if regularRemaining := quotaPoolRemaining(*state, quotaPoolRegularDaily); regularRemaining > 0 {
+		regular := state.Pools[string(quotaPoolRegularDaily)]
+		billable := multiplier.billableSecondsFromReal(remainingReal, flush)
+		if billable < regularRemaining {
+			regular.UsedSeconds += billable
+			remainingReal = 0
+		} else {
+			// 常规额度被打满：把溢出的计费额度还原成实际秒数，交给后续额度池。
+			regular.UsedSeconds = regular.LimitSeconds
+			remainingReal = billableSecondsToReal(billable-regularRemaining, permille)
+		}
+		regular.UpdatedAt = updatedAt
+		state.Pools[string(quotaPoolRegularDaily)] = regular
+	}
+
+	// 2) 专项额度：仅高级任务路由可用，随订阅周期重置。
+	if route == quotaRouteSpecialThenRegular && remainingReal > 0 {
+		if specialRemaining := quotaPoolRemaining(*state, quotaPoolSpecialPeriod); specialRemaining > 0 {
+			charge := min(remainingReal, specialRemaining)
+			special := state.Pools[string(quotaPoolSpecialPeriod)]
+			special.UsedSeconds += charge
+			special.UpdatedAt = updatedAt
+			state.Pools[string(quotaPoolSpecialPeriod)] = special
+			remainingReal -= charge
+		}
+	}
+
+	// 3) 活动额度：没有到期日，最后使用；同任务的限定额度优先于通用额度。
+	if remainingReal > 0 {
+		consumeEventQuota(state, entry, remainingReal)
+	}
+
+	return multiplier, !quotaAvailableForRoute(status, route, *state, entry)
+}
+
+// addQuotaRouteUsageRealSeconds 根据任务 entry 与当前额度池状态动态计算倍率，
+// 并按“常规 → 专项 → 活动”的顺序在同一次文件锁内完成扣费，
+// 避免每个 tick 重复读写额度状态文件。
 // 注意：quotaMu 与文件锁必须按“quotaMu → 文件锁”的顺序同时持有、整体释放，
 // 与其他配额路径保持一致；若持文件锁期间再等 quotaMu，会造成锁序倒置死锁。
 func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool) (QuotaSnapshot, quotaMultiplier, bool, error) {
@@ -690,23 +745,7 @@ func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route
 	}
 	state = normalizeQuotaPools(status, state, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
 
-	if isRuntimeQuotaSubject(status) {
-		realSeconds = consumeEventQuota(&state, entry, realSeconds)
-	}
-	// 专项额度覆盖的部分按实际秒数扣减，越界的剩余部分重新计算日常倍率。
-	if isRuntimeQuotaSubject(status) && route == quotaRouteSpecialThenRegular {
-		special := state.Pools[string(quotaPoolSpecialPeriod)]
-		charge := min(realSeconds, max(int64(0), special.LimitSeconds-special.UsedSeconds))
-		special.UsedSeconds += charge
-		special.UpdatedAt = now.Format(time.RFC3339)
-		state.Pools[string(quotaPoolSpecialPeriod)] = special
-		realSeconds -= charge
-	}
-	multiplier := multiplierForEntry(entry, false)
-	billableSeconds := multiplier.billableSecondsFromReal(realSeconds, flush)
-	exhausted := chargeQuotaPools(status, quotaRouteRegular, billableSeconds, &state, now)
-	current := routeSnapshotFromState(status, state, route, entry)
-	multiplier = multiplierForEntry(entry, current.EventRemainingSeconds > 0 || (route == quotaRouteSpecialThenRegular && current.SpecialRemainingSeconds > 0))
+	multiplier, exhausted := chargeQuotaByPriority(status, entry, route, realSeconds, flush, &state, now)
 	if err := saveQuotaState(path, state); err != nil {
 		return QuotaSnapshot{}, multiplier, false, err
 	}

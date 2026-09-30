@@ -41,8 +41,7 @@
     "tasker.membership_warning.tier_free": "Orange Free",
     "tasker.membership_warning.tip": "💡 所有功能均可使用，升级可获得更多每日运行时长",
     "tasker.membership_check.verified_regular": "🍊 当前档位 %s，常规额度今日已用约 %d/%d 分钟，剩余约 %d 分钟。",
-    "tasker.membership_check.verified_special": "🍊 当前档位 %s，专项额度本周期已用约 %d/%d 分钟。",
-    "tasker.membership_check.verified_special_fallback_regular": "🍊 当前档位 %s，专项额度本周期 %d 分钟已用尽，当前将使用常规额度（常规额度今日已用约 %d/%d 分钟）。",
+    "tasker.membership_check.verified_special_after_regular": "🍊 当前档位 %s，常规额度今日 %d 分钟已用尽，改用专项额度（本周期已用约 %d/%d 分钟）。",
     "tasker.membership_check.sponsor": "🍊 设备绑定/订阅地址: %s",
     "tasker.membership_check.denied_regular": "🍊 当前档位 %s 的常规额度今日 %d 分钟已用尽，任务已停止。设备绑定/订阅地址: %s",
     "tasker.membership_check.denied_special": "🍊 当前档位 %s 的专项额度本周期 %d 分钟和常规额度今日 %d 分钟均已用尽，任务已停止。设备绑定/订阅地址: %s",
@@ -119,7 +118,7 @@
     "tasker.equipment_reroll.luck_outlier_1": "消耗超过初始估算 5 倍以上……这件装备可能真的有毒。",
     "tasker.equipment_reroll.luck_outlier_2": "存的模组几乎全部蒸发，洗到最后人已经彻底麻了。",
     "tasker.equipment_reroll.luck_outlier_3": "惨烈程度拉满，今天能毕业纯靠指挥官头铁硬砸。",
-    "tasker.membership_check.verified_event": "🍊 当前任务可用活动额度剩余约 %d 分钟，将优先消耗活动额度。",
+    "tasker.membership_check.verified_event": "🎁 另有活动额度剩余约 %d 分钟，将在常规额度与专项额度用尽后消耗。",
     "tasker.quota_display.all_tasks": "全部任务",
     "tasker.quota_display.event": "🎁 活动额度（%s）：剩余约 %d 分钟。"
 }

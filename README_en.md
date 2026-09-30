@@ -67,6 +67,10 @@ MDA includes a variety of tasks covering dailies, events, and utilities — all 
 - 👥 **Friend Management**: Remove long-inactive friends and accept all friend requests.
 - 📊 **Quota Display**: Show today's used and remaining run quota; this task consumes no quota.
 
+> ⚠️ **Advanced tasks** (Auto Map Pushing, Effect Reroll, Custom Burst): consume runtime quota at **5x** when neither event nor special quota is available.
+>
+> 💡 **Quota consumption order**: regular quota (reset daily at 4 AM Beijing time) → special quota (reset each subscription period) → event quota (never expires). Quota that expires sooner is used first, so a member's daily regular quota is never displaced by event quota.
+
 ---
 
 ## Getting Started
