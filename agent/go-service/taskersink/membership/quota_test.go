@@ -7,14 +7,17 @@ import (
 	"time"
 )
 
+// testStatus 返回一个处于有效订阅周期内的会员状态。订阅周期取“今天起一个月”，
+// 专项额度的失效时刻因此永远晚于常规额度（次日 4 点），测试不会随真实日期漂移。
 func testStatus(minutes int, device string) *MembershipStatus {
+	today := time.Now().In(beijingLocation)
 	return &MembershipStatus{
 		TierCode:                   "orange_free",
 		TierName:                   "Orange Free",
 		DailyRuntimeMinutes:        minutes,
 		RegularDailyRuntimeMinutes: minutes,
-		StartsOn:                   "2026-05-01",
-		ExpiresOn:                  "2026-06-01",
+		StartsOn:                   today.Format("2006-01-02"),
+		ExpiresOn:                  today.AddDate(0, 1, 0).Format("2006-01-02"),
 		DeviceCode: DeviceCodeV7{
 			CPUHash: device,
 		},

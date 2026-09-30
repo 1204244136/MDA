@@ -118,7 +118,7 @@
     "tasker.equipment_reroll.luck_outlier_1": "消耗超过初始估算 5 倍以上……这件装备可能真的有毒。",
     "tasker.equipment_reroll.luck_outlier_2": "存的模组几乎全部蒸发，洗到最后人已经彻底麻了。",
     "tasker.equipment_reroll.luck_outlier_3": "惨烈程度拉满，今天能毕业纯靠指挥官头铁硬砸。",
-    "tasker.membership_check.verified_event": "🎁 另有活动额度剩余约 %d 分钟，将在常规额度与专项额度用尽后消耗。",
+    "tasker.membership_check.verified_event": "🎁 另有活动额度剩余约 %d 分钟，按到期时间先后消耗。",
     "tasker.quota_display.all_tasks": "全部任务",
     "tasker.quota_display.event": "🎁 活动额度（%s）：剩余约 %d 分钟。",
     "tasker.quota_display.event_expires": "🎁 活动额度（%s）：剩余约 %d 分钟，%s 到期。",

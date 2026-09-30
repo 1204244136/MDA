@@ -118,7 +118,7 @@
     "tasker.equipment_reroll.luck_outlier_1": "Over five times the estimate... this gear might legitimately be cursed.",
     "tasker.equipment_reroll.luck_outlier_2": "Modules evaporated into thin air. A true bottomless pit of a reroll.",
     "tasker.equipment_reroll.luck_outlier_3": "Maximum pain. Finishing this today was pure brute-force willpower.",
-    "tasker.membership_check.verified_event": "🎁 About %d minutes of event quota remain and will be consumed after the regular and special quota run out.",
+    "tasker.membership_check.verified_event": "🎁 About %d minutes of event quota remain, consumed in expiry order.",
     "tasker.quota_display.all_tasks": "All tasks",
     "tasker.quota_display.event": "🎁 Event quota (%s): about %d minutes remaining.",
     "tasker.quota_display.event_expires": "🎁 Event quota (%s): about %d minutes remaining, expires at %s.",

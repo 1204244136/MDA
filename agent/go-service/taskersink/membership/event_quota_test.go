@@ -366,8 +366,9 @@ func TestExpiredEventQuotaIsIgnored(t *testing.T) {
 	}
 }
 
-// 每张券的额度各自独立计时与过期，逐笔扣减时不会互相污染。
-func TestEventQuotaKeepsGrantsIndependent(t *testing.T) {
+// 每张券的额度各自独立，扣减必须先消耗最早失效的那一笔：若按兑换顺序扣，先兑换的额度
+// 会在后兑换的额度被用光之前就白白过期。
+func TestEventQuotaChargesEarliestExpiryFirst(t *testing.T) {
 	path := isolateQuotaState(t)
 	status := testStatus(10, "event-device")
 	now := time.Now()
@@ -376,19 +377,79 @@ func TestEventQuotaKeepsGrantsIndependent(t *testing.T) {
 	regular.UsedSeconds = regular.LimitSeconds
 	state.Pools[string(quotaPoolRegularDaily)] = regular
 	state.EventGrants = []eventQuotaGrant{
-		{LimitSeconds: 100, ExpiresAt: now.Add(-time.Hour).Format(time.RFC3339)},
-		{TaskEntry: entryMapPushingFlow, LimitSeconds: 100},
+		{LimitSeconds: 100}, // 永久，最先兑换
+		{LimitSeconds: 100, ExpiresAt: now.Add(48 * time.Hour).Format(time.RFC3339)},
+		{LimitSeconds: 100, ExpiresAt: now.Add(time.Hour).Format(time.RFC3339)},
 	}
 	mustSaveQuotaState(t, path, state)
 
-	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 60, false); err != nil {
+	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 150, false); err != nil {
 		t.Fatal(err)
 	}
 	state = mustLoadQuotaState(t, path)
-	if state.EventGrants[0].UsedSeconds != 0 {
-		t.Fatalf("expired grant was charged: %+v", state.EventGrants[0])
+	if state.EventGrants[2].UsedSeconds != 100 {
+		t.Fatalf("one-hour grant UsedSeconds = %d, want 100 (charged first)", state.EventGrants[2].UsedSeconds)
 	}
-	if state.EventGrants[1].UsedSeconds != 60 {
-		t.Fatalf("active grant UsedSeconds = %d, want 60", state.EventGrants[1].UsedSeconds)
+	if state.EventGrants[1].UsedSeconds != 50 {
+		t.Fatalf("two-day grant UsedSeconds = %d, want 50", state.EventGrants[1].UsedSeconds)
+	}
+	if state.EventGrants[0].UsedSeconds != 0 {
+		t.Fatalf("permanent grant should stay untouched: %+v", state.EventGrants[0])
+	}
+}
+
+// 常规、专项、活动三个池统一按失效时刻排序：专项额度本周期即将结束时，
+// 它必须排在永久的活动额度之前被消耗，而不是永远排在最后。
+func TestSpecialQuotaChargedBeforePermanentEventQuota(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(10, "device-a") // 常规额度 600 秒
+	status.SpecialPeriodRuntimeMinutes = 5
+	status.ExpiresOn = time.Now().In(beijingLocation).Format("2006-01-02") // 本周期今天结束
+	now := time.Now()
+	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+	state.EventGrants = []eventQuotaGrant{{LimitSeconds: 600}}
+	mustSaveQuotaState(t, path, state)
+
+	// 专项额度（次日 0 点失效）先于常规额度（次日 4 点失效）与永久活动额度被消耗。
+	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 400, false); err != nil {
+		t.Fatal(err)
+	}
+	state = mustLoadQuotaState(t, path)
+	if state.Pools[string(quotaPoolSpecialPeriod)].UsedSeconds != 300 {
+		t.Fatalf("special quota should be drained first: %+v", state.Pools[string(quotaPoolSpecialPeriod)])
+	}
+	// 剩余 100 秒实际时长落到常规额度上（高级任务 5 倍）。
+	if state.Pools[string(quotaPoolRegularDaily)].UsedSeconds != 500 {
+		t.Fatalf("regular quota UsedSeconds = %d, want 500", state.Pools[string(quotaPoolRegularDaily)].UsedSeconds)
+	}
+	if state.EventGrants[0].UsedSeconds != 0 {
+		t.Fatalf("permanent event quota should stay untouched: %+v", state.EventGrants[0])
+	}
+}
+
+// 反过来，当某笔活动额度比专项额度更早失效时，它必须先于专项额度被消耗。
+func TestEventQuotaChargedBeforeLaterSpecialQuota(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(10, "device-a") // 常规额度 600 秒
+	status.SpecialPeriodRuntimeMinutes = 5
+	now := time.Now()
+	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+	regular := state.Pools[string(quotaPoolRegularDaily)]
+	regular.UsedSeconds = regular.LimitSeconds
+	state.Pools[string(quotaPoolRegularDaily)] = regular
+	state.EventGrants = []eventQuotaGrant{
+		{TaskEntry: entryMapPushingFlow, LimitSeconds: 200, ExpiresAt: now.Add(time.Hour).Format(time.RFC3339)},
+	}
+	mustSaveQuotaState(t, path, state)
+
+	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 250, false); err != nil {
+		t.Fatal(err)
+	}
+	state = mustLoadQuotaState(t, path)
+	if state.EventGrants[0].UsedSeconds != 200 {
+		t.Fatalf("event grant UsedSeconds = %d, want 200 (expires first)", state.EventGrants[0].UsedSeconds)
+	}
+	if state.Pools[string(quotaPoolSpecialPeriod)].UsedSeconds != 50 {
+		t.Fatalf("special quota UsedSeconds = %d, want 50", state.Pools[string(quotaPoolSpecialPeriod)].UsedSeconds)
 	}
 }
