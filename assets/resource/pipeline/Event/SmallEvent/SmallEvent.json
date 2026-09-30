@@ -73,7 +73,8 @@
                 ],
                 "expected": [
                     ".*剧情.*"
-                ]
+                ],
+                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
             }
         }
     },

@@ -103,7 +103,8 @@
                 ],
                 "expected": [
                     ".*RAN.*"
-                ]
+                ],
+                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
             }
         },
         "action": {
@@ -127,7 +128,8 @@
                 ],
                 "expected": [
                     "咨询"
-                ]
+                ],
+                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
             }
         }
     },
@@ -144,7 +146,8 @@
                 ],
                 "expected": [
                     "妮姬"
-                ]
+                ],
+                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
             }
         }
     }

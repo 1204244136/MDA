@@ -73,7 +73,8 @@
                 ],
                 "expected": [
                     ".*动地.*" //活动地区
-                ]
+                ],
+                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
             }
         },
         "post_wait_freezes": {
