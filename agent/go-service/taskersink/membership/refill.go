@@ -13,6 +13,8 @@ const (
 	deviceMatchThreshold      = 80
 	quotaRefillCouponIDBytes  = 16
 	maxQuotaRefillValidityDay = 3650
+	// 活动额度的有效时长上限（与券的兑换有效期同量级：10 年）。0 表示永久有效。
+	maxEventValiditySeconds = maxQuotaRefillValidityDay * 24 * 60 * 60
 )
 
 var (
@@ -35,24 +37,29 @@ const (
 )
 
 // QuotaRefillCoupon is the immutable payload embedded in a refill executable.
+// EventValidSeconds 只对活动额度发放券生效：0 表示兑换后的额度永久有效，否则为额度从
+// 兑换时刻起算的有效秒数（支持小时/分钟级）。它与 ValidDays（券本身的兑换截止期）
+// 互相独立，每一张券兑换出来的额度也各自独立计时。
 type QuotaRefillCoupon struct {
-	DurationSeconds int64
-	TaskEntry       string
-	ID              string
-	IssuedOn        string
-	ValidDays       int
-	RefillType      QuotaRefillType
-	SponsorURL      string
+	DurationSeconds   int64
+	TaskEntry         string
+	ID                string
+	IssuedOn          string
+	ValidDays         int
+	EventValidSeconds int64
+	RefillType        QuotaRefillType
+	SponsorURL        string
 }
 
 // RefillResult describes a successful quota coupon redemption.
 type RefillResult struct {
-	Path         string
-	CouponID     string
-	DeviceHash   string
-	BusinessDate string
-	ValidThrough string
-	RefillType   QuotaRefillType
+	Path           string
+	CouponID       string
+	DeviceHash     string
+	BusinessDate   string
+	ValidThrough   string
+	EventExpiresAt string
+	RefillType     QuotaRefillType
 }
 
 func DeviceCodeFromSponsorURL(rawURL string) (DeviceCodeV7, error) {
@@ -119,6 +126,23 @@ func QuotaRefillValidThrough(issuedOn string, validDays int) (string, error) {
 		return "", fmt.Errorf("%w: valid days must be between 1 and %d", ErrRefillInvalidCoupon, maxQuotaRefillValidityDay)
 	}
 	return issuedAt.AddDate(0, 0, validDays-1).Format("2006-01-02"), nil
+}
+
+// FormatValidityDuration 把额度有效时长格式化为人类可读的文本，优先使用天/小时/分钟。
+// 返回空串表示未设置时限（永久有效），由调用方决定如何提示。
+func FormatValidityDuration(seconds int64) string {
+	switch {
+	case seconds <= 0:
+		return ""
+	case seconds%(24*60*60) == 0:
+		return fmt.Sprintf("%d天", seconds/(24*60*60))
+	case seconds%(60*60) == 0:
+		return fmt.Sprintf("%d小时", seconds/(60*60))
+	case seconds%60 == 0:
+		return fmt.Sprintf("%d分钟", seconds/60)
+	default:
+		return fmt.Sprintf("%d秒", seconds)
+	}
 }
 
 // RedeemQuotaRefillCoupon validates and applies a refill coupon.
@@ -199,8 +223,15 @@ func redeemQuotaRefillCoupon(
 
 	businessDate := quotaBusinessDate(commitNow)
 	updatedAt := commitNow.Format(time.RFC3339)
+	eventExpiresAt := ""
 	if normalized.RefillType == QuotaRefillTypeEvent {
-		state.EventGrants = append(state.EventGrants, eventQuotaGrant{TaskEntry: normalized.TaskEntry, LimitSeconds: normalized.DurationSeconds})
+		// 每张券兑换出来的都是一笔独立的额度：各自计时、各自过期、各自扣减。
+		grant := eventQuotaGrant{TaskEntry: normalized.TaskEntry, LimitSeconds: normalized.DurationSeconds}
+		if normalized.EventValidSeconds > 0 {
+			grant.ExpiresAt = commitNow.Add(time.Duration(normalized.EventValidSeconds) * time.Second).Format(time.RFC3339)
+			eventExpiresAt = grant.ExpiresAt
+		}
+		state.EventGrants = append(state.EventGrants, grant)
 	} else {
 		resetQuotaPool(&state, pool, businessDate, updatedAt)
 	}
@@ -214,12 +245,13 @@ func redeemQuotaRefillCoupon(
 	}
 
 	return RefillResult{
-		Path:         path,
-		CouponID:     normalized.ID,
-		DeviceHash:   currentHash,
-		BusinessDate: businessDate,
-		ValidThrough: validThrough,
-		RefillType:   normalized.RefillType,
+		Path:           path,
+		CouponID:       normalized.ID,
+		DeviceHash:     currentHash,
+		BusinessDate:   businessDate,
+		ValidThrough:   validThrough,
+		EventExpiresAt: eventExpiresAt,
+		RefillType:     normalized.RefillType,
 	}, nil
 }
 
@@ -253,6 +285,9 @@ func validateQuotaRefillCoupon(coupon QuotaRefillCoupon, now time.Time) (QuotaRe
 	case QuotaRefillTypeEvent:
 		if coupon.DurationSeconds <= 0 || coupon.DurationSeconds > 315360000 {
 			return QuotaRefillCoupon{}, "", "", fmt.Errorf("%w: duration must be 1..315360000 seconds", ErrRefillInvalidCoupon)
+		}
+		if coupon.EventValidSeconds < 0 || coupon.EventValidSeconds > maxEventValiditySeconds {
+			return QuotaRefillCoupon{}, "", "", fmt.Errorf("%w: event validity must be 0 (permanent) or 1..%d seconds", ErrRefillInvalidCoupon, maxEventValiditySeconds)
 		}
 		coupon.TaskEntry = strings.TrimSpace(coupon.TaskEntry)
 		pool = quotaPoolEvent

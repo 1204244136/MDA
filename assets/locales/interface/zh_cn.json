@@ -151,7 +151,7 @@
     "option.FriendManagementDeleteInactiveFriends.label": "删除长期未登录好友",
     "option.FriendManagementAcceptFriendRequests.label": "接受好友申请",
     "task.QuotaDisplay.label": "📊额度显示",
-    "task.QuotaDisplay.description": "显示今日运行额度和各任务的剩余活动额度；本任务不消耗额度",
+    "task.QuotaDisplay.description": "显示今日运行额度和各任务的剩余活动额度（含到期时间，已过期的额度会单独标注）；本任务不消耗额度",
     "preset.DailyFull.label": "全套日常",
     "preset.DailyFull.description": "覆盖所有每日例行任务，适合每天上线时一键执行",
     "preset.QuickDaily.label": "快速日常",

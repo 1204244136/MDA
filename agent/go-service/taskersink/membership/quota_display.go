@@ -37,6 +37,9 @@ func (a *QuotaDisplayAction) Run(ctx *maa.Context, _ *maa.CustomActionArg) bool 
 		maafocus.Print(ctx, i18n.T("tasker.quota_display.failed"))
 		return false
 	}
+	// 每张券兑换来的额度各自独立计时，因此逐笔展示：永久的、有到期日的、已过期的
+	// 三种状态分别提示，用户才能看懂某笔额度为什么不再计入可用额度。
+	now := time.Now()
 	for _, grant := range grants {
 		remaining := grant.LimitSeconds - grant.UsedSeconds
 		if remaining <= 0 {
@@ -46,7 +49,15 @@ func (a *QuotaDisplayAction) Run(ctx *maa.Context, _ *maa.CustomActionArg) bool 
 		if task == "" {
 			task = i18n.T("tasker.quota_display.all_tasks")
 		}
-		maafocus.Print(ctx, fmt.Sprintf(i18n.T("tasker.quota_display.event"), task, FormatMinutes(remaining)))
+		expiry := formatEventGrantExpiry(grant)
+		switch {
+		case expiry == "":
+			maafocus.Print(ctx, fmt.Sprintf(i18n.T("tasker.quota_display.event"), task, FormatMinutes(remaining)))
+		case !eventGrantActive(grant, now):
+			maafocus.Print(ctx, fmt.Sprintf(i18n.T("tasker.quota_display.event_expired"), task, FormatMinutes(remaining), expiry))
+		default:
+			maafocus.Print(ctx, fmt.Sprintf(i18n.T("tasker.quota_display.event_expires"), task, FormatMinutes(remaining), expiry))
+		}
 	}
 	log.Info().
 		Str("component", "QuotaDisplayAction").

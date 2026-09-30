@@ -19,7 +19,7 @@ type quotaPool string
 type quotaRoute string
 
 const (
-	quotaStateVersion                = 4
+	quotaStateVersion                = 5
 	quotaPoolRegularDaily  quotaPool = "regular_daily"
 	quotaPoolSpecialPeriod quotaPool = "special_period"
 	quotaPoolEvent         quotaPool = "event"
@@ -41,8 +41,12 @@ type quotaCouponRedemption struct {
 	DeviceHash string          `json:"device_hash,omitempty"`
 }
 
+// eventQuotaGrant 是一笔活动额度的发放记录。
+// ExpiresAt 为空表示永久有效；否则为 RFC3339 时间戳，到期后该笔额度不再计入剩余、
+// 也不再参与扣减，但记录会保留下来供「额度显示」提示用户。
 type eventQuotaGrant struct {
 	TaskEntry    string `json:"task_entry,omitempty"`
+	ExpiresAt    string `json:"expires_at,omitempty"`
 	LimitSeconds int64  `json:"limit_seconds"`
 	UsedSeconds  int64  `json:"used_seconds"`
 }
@@ -659,13 +663,8 @@ func billableSecondsToReal(billable, permille int64) int64 {
 // chargeQuotaByPriority 按“常规额度 → 专项额度 → 活动额度”的顺序扣减 realSeconds，
 // 返回本次实际使用的倍率，以及该路由下所有额度池是否都已耗尽。
 //
-// 顺序依据各池的“过期紧迫度”：常规额度每个业务日重置（当天不用即作废），专项额度随
-// 订阅周期重置，活动额度没有到期日。会过期的额度先用，永不过期的活动额度留到最后，
-// 会员每天的常规额度才不会因为手里攒着活动额度而被整日闲置。
-//
-// 倍率由实际扣减的额度池决定，而不是“是否存在其他额度”：高级任务消耗常规额度时按
-// 5 倍计费，专项额度与活动额度始终按实际时长（1 倍）扣减。常规额度被优先用掉的同时，
-// 5 倍惩罚照常生效。
+// 倍率由实际扣减的额度池决定：高级任务消耗常规额度时按 5 倍计费，专项额度与活动额度
+// 始终按实际时长（1 倍）扣减。
 func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool, state *quotaState, now time.Time) (quotaMultiplier, bool) {
 	if !isRuntimeQuotaSubject(status) || realSeconds <= 0 {
 		return regularQuotaMultiplier(entry), false
@@ -707,9 +706,9 @@ func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRo
 		}
 	}
 
-	// 3) 活动额度：没有到期日，最后使用；同任务的限定额度优先于通用额度。
+	// 3) 活动额度：最后使用；同任务的限定额度优先于通用额度，已过期的发放项跳过。
 	if remainingReal > 0 {
-		consumeEventQuota(state, entry, remainingReal)
+		consumeEventQuota(state, entry, remainingReal, now)
 	}
 
 	return multiplier, !quotaAvailableForRoute(status, route, *state, entry)
@@ -770,9 +769,29 @@ func firstEntry(entries []string) string {
 	return ""
 }
 
+// eventGrantActive 判断一笔活动额度是否仍在有效期内。未设置到期时间表示永久有效；
+// 到期时间无法解析时同样按永久处理，避免脏数据让用户平白丢失额度。
+func eventGrantActive(grant eventQuotaGrant, now time.Time) bool {
+	if grant.ExpiresAt == "" {
+		return true
+	}
+	expiresAt, err := time.Parse(time.RFC3339, grant.ExpiresAt)
+	if err != nil {
+		return true
+	}
+	return now.Before(expiresAt)
+}
+
 func eventQuotaRemaining(state quotaState, entry string) int64 {
+	return eventQuotaRemainingAt(state, entry, time.Now())
+}
+
+func eventQuotaRemainingAt(state quotaState, entry string, now time.Time) int64 {
 	var remaining int64
 	for _, grant := range state.EventGrants {
+		if !eventGrantActive(grant, now) {
+			continue
+		}
 		if (grant.TaskEntry == "" || grant.TaskEntry == entry) && grant.LimitSeconds > grant.UsedSeconds {
 			remaining += grant.LimitSeconds - grant.UsedSeconds
 		}
@@ -780,11 +799,27 @@ func eventQuotaRemaining(state quotaState, entry string) int64 {
 	return remaining
 }
 
+// formatEventGrantExpiry 把发放项的到期时间格式化为北京时间文本；永久有效返回空串。
+func formatEventGrantExpiry(grant eventQuotaGrant) string {
+	if grant.ExpiresAt == "" {
+		return ""
+	}
+	expiresAt, err := time.Parse(time.RFC3339, grant.ExpiresAt)
+	if err != nil {
+		return ""
+	}
+	return expiresAt.In(beijingLocation).Format("2006-01-02 15:04")
+}
+
 // consumeEventQuota 优先使用指定任务的福利，再使用通用福利；返回未覆盖的实际秒数。
-func consumeEventQuota(state *quotaState, entry string, seconds int64) int64 {
+// 已过期的发放项不参与扣减。
+func consumeEventQuota(state *quotaState, entry string, seconds int64, now time.Time) int64 {
 	for _, restricted := range []bool{true, false} {
 		for i := range state.EventGrants {
 			grant := &state.EventGrants[i]
+			if !eventGrantActive(*grant, now) {
+				continue
+			}
 			if (grant.TaskEntry != "") != restricted || (grant.TaskEntry != "" && grant.TaskEntry != entry) {
 				continue
 			}

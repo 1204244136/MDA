@@ -151,7 +151,7 @@
     "option.FriendManagementDeleteInactiveFriends.label": "Remove Long-Inactive Friends",
     "option.FriendManagementAcceptFriendRequests.label": "Accept Friend Requests",
     "task.QuotaDisplay.label": "📊Quota Display",
-    "task.QuotaDisplay.description": "Show today's runtime quota and remaining event quota for each task; this task does not consume quota",
+    "task.QuotaDisplay.description": "Show today's runtime quota and remaining event quota for each task (including expiry times; expired quota is marked separately); this task does not consume quota",
     "preset.DailyFull.label": "Full Daily Routine",
     "preset.DailyFull.description": "Covers every daily routine task, ideal for one-click runs when logging in each day.",
     "preset.QuickDaily.label": "Quick Daily",

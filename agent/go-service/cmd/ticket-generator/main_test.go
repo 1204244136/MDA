@@ -123,6 +123,29 @@ func TestCouponFilenameContainsExpiryAndShortID(t *testing.T) {
 			},
 			want: "MDA专项额度重置券_兑换截止2026-08-15_FFEEDD.exe",
 		},
+		{
+			name: "event coupon with an hour-level validity window",
+			coupon: membership.QuotaRefillCoupon{
+				ID:                "aabbccddeeff00112233445566778899",
+				IssuedOn:          "2026-07-17",
+				ValidDays:         7,
+				RefillType:        membership.QuotaRefillTypeEvent,
+				DurationSeconds:   5400,
+				EventValidSeconds: 12 * 60 * 60,
+			},
+			want: "MDA活动额度发放券_90分钟_有效期12小时_兑换截止2026-07-23_AABBCC.exe",
+		},
+		{
+			name: "event coupon without a validity window is permanent",
+			coupon: membership.QuotaRefillCoupon{
+				ID:              "aabbccddeeff00112233445566778899",
+				IssuedOn:        "2026-07-17",
+				ValidDays:       7,
+				RefillType:      membership.QuotaRefillTypeEvent,
+				DurationSeconds: 5400,
+			},
+			want: "MDA活动额度发放券_90分钟_永久_兑换截止2026-07-23_AABBCC.exe",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -223,20 +246,65 @@ func TestFindModuleRootSkipsUnrelatedModule(t *testing.T) {
 }
 
 func TestReadEventCouponInput(t *testing.T) {
-	input, err := readGeneratorInput(bufio.NewReader(strings.NewReader("3\n0\n90\nMapPushingFlow\n7\n\n")), io.Discard)
+	input, err := readGeneratorInput(bufio.NewReader(strings.NewReader("3\n0\n90\nMapPushingFlow\n12h\n7\n\n")), io.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if input.RefillType != membership.QuotaRefillTypeEvent || input.DurationSeconds != 5400 || input.TaskEntry != "MapPushingFlow" {
 		t.Fatalf("wrong event input: %+v", input)
 	}
+	if input.EventValidSeconds != 12*60*60 {
+		t.Fatalf("EventValidSeconds = %d, want %d", input.EventValidSeconds, 12*60*60)
+	}
 	var source bytes.Buffer
-	coupon := membership.QuotaRefillCoupon{RefillType: membership.QuotaRefillTypeEvent, DurationSeconds: 5400, TaskEntry: "MapPushingFlow"}
+	coupon := membership.QuotaRefillCoupon{
+		RefillType:        membership.QuotaRefillTypeEvent,
+		DurationSeconds:   5400,
+		TaskEntry:         "MapPushingFlow",
+		EventValidSeconds: 12 * 60 * 60,
+	}
 	if err := refillMainTemplate.Execute(&source, packageData{Coupon: coupon}); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(source.String(), "DurationSeconds: 5400") || !strings.Contains(source.String(), `TaskEntry: "MapPushingFlow"`) {
 		t.Fatal("generated coupon lost event payload")
+	}
+	if !strings.Contains(source.String(), "EventValidSeconds: 43200") {
+		t.Fatal("generated coupon lost event validity")
+	}
+}
+
+func TestReadEventCouponInputLeavesValidityPermanent(t *testing.T) {
+	input, err := readGeneratorInput(bufio.NewReader(strings.NewReader("3\n90\n\n\n7\n\n")), io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if input.EventValidSeconds != 0 {
+		t.Fatalf("EventValidSeconds = %d, want 0 (permanent)", input.EventValidSeconds)
+	}
+}
+
+func TestParseValidityDuration(t *testing.T) {
+	cases := map[string]int64{
+		"30":   30 * 24 * 60 * 60,
+		"30d":  30 * 24 * 60 * 60,
+		"12h":  12 * 60 * 60,
+		"90m":  90 * 60,
+		" 6H ": 6 * 60 * 60,
+	}
+	for value, want := range cases {
+		got, err := parseValidityDuration(value)
+		if err != nil {
+			t.Fatalf("parseValidityDuration(%q) failed: %v", value, err)
+		}
+		if got != want {
+			t.Fatalf("parseValidityDuration(%q) = %d, want %d", value, got, want)
+		}
+	}
+	for _, value := range []string{"", "0", "-1", "abc", "12x", "99999d"} {
+		if _, err := parseValidityDuration(value); err == nil {
+			t.Fatalf("parseValidityDuration(%q) should fail", value)
+		}
 	}
 }
 

@@ -23,18 +23,21 @@ import (
 const (
 	defaultValidDays = 7
 	maxValidDays     = 3650
-	couponIDBytes    = 16
-	goServiceModule  = "github.com/1204244136/MDA/agent/go-service"
+	// 活动额度有效时长的上限（与券的兑换有效期同量级：10 年）。
+	maxValiditySeconds = maxValidDays * 24 * 60 * 60
+	couponIDBytes      = 16
+	goServiceModule    = "github.com/1204244136/MDA/agent/go-service"
 )
 
 var generatorBeijingLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
 
 type generatorInput struct {
-	DurationSeconds int64
-	TaskEntry       string
-	SponsorURL      string
-	ValidDays       int
-	RefillType      membership.QuotaRefillType
+	DurationSeconds   int64
+	TaskEntry         string
+	SponsorURL        string
+	ValidDays         int
+	EventValidSeconds int64
+	RefillType        membership.QuotaRefillType
 }
 
 type packageData struct {
@@ -51,6 +54,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/1204244136/MDA/agent/go-service/taskersink/membership"
 )
@@ -59,6 +63,7 @@ var coupon = membership.QuotaRefillCoupon{
 	ID: {{ printf "%q" .Coupon.ID }},
 	IssuedOn: {{ printf "%q" .Coupon.IssuedOn }},
 	ValidDays: {{ .Coupon.ValidDays }},
+	EventValidSeconds: {{ .Coupon.EventValidSeconds }},
 	RefillType: membership.QuotaRefillType({{ printf "%q" .Coupon.RefillType }}),
 	SponsorURL: {{ printf "%q" .Coupon.SponsorURL }},
  DurationSeconds: {{ .Coupon.DurationSeconds }},
@@ -75,7 +80,10 @@ func main() {
 	fmt.Println("识别码:", coupon.ID)
 	fmt.Println("票券类型:", refillLabel)
 	fmt.Println("适用范围:", scopeLabel)
- if coupon.RefillType == membership.QuotaRefillTypeEvent { fmt.Printf("活动额度：%d 分钟；任务入口：%s（空表示不限任务）\n", coupon.DurationSeconds/60, coupon.TaskEntry) }
+ if coupon.RefillType == membership.QuotaRefillTypeEvent {
+  fmt.Printf("活动额度：%d 分钟；任务入口：%s（空表示不限任务）\n", coupon.DurationSeconds/60, coupon.TaskEntry)
+  if coupon.EventValidSeconds > 0 { fmt.Printf("额度有效期：兑换后 %s\n", membership.FormatValidityDuration(coupon.EventValidSeconds)) } else { fmt.Println("额度有效期：永久") }
+ }
 	fmt.Printf("兑换有效期: %s 至 %s（含）\n", coupon.IssuedOn, validThrough)
 	fmt.Println()
 	if !waitForConfirmation(reader, "按回车键兑换...") {
@@ -108,10 +116,19 @@ func main() {
 
 	if coupon.RefillType == membership.QuotaRefillTypeEvent {
  fmt.Printf("已添加活动额度：%d 分钟，任务入口：%s（空表示不限任务）。\n", coupon.DurationSeconds/60, coupon.TaskEntry)
+  if result.EventExpiresAt != "" { fmt.Println("额度到期时间:", formatEventExpiry(result.EventExpiresAt)) } else { fmt.Println("额度有效期：永久") }
  } else { fmt.Println(refillLabel + "完成。") }
 	fmt.Println("识别码:", result.CouponID)
 	fmt.Println("额度文件:", result.Path)
 	waitForExit(reader, "按回车键退出...")
+}
+
+func formatEventExpiry(raw string) string {
+	parsed, err := time.Parse(time.RFC3339, raw)
+	if err != nil {
+		return raw
+	}
+	return parsed.Local().Format("2006-01-02 15:04")
 }
 
 func waitForConfirmation(reader *bufio.Reader, prompt string) bool {
@@ -146,13 +163,14 @@ func main() {
 		os.Exit(1)
 	}
 	coupon := membership.QuotaRefillCoupon{
-		ID:              id,
-		IssuedOn:        time.Now().In(generatorBeijingLocation).Format("2006-01-02"),
-		ValidDays:       input.ValidDays,
-		RefillType:      input.RefillType,
-		SponsorURL:      input.SponsorURL,
-		DurationSeconds: input.DurationSeconds,
-		TaskEntry:       input.TaskEntry,
+		ID:                id,
+		IssuedOn:          time.Now().In(generatorBeijingLocation).Format("2006-01-02"),
+		ValidDays:         input.ValidDays,
+		EventValidSeconds: input.EventValidSeconds,
+		RefillType:        input.RefillType,
+		SponsorURL:        input.SponsorURL,
+		DurationSeconds:   input.DurationSeconds,
+		TaskEntry:         input.TaskEntry,
 	}
 
 	validThrough, _ := membership.QuotaRefillValidThrough(coupon.IssuedOn, coupon.ValidDays)
@@ -164,6 +182,7 @@ func main() {
 	fmt.Println("  适用范围:", scopeLabel(coupon.SponsorURL))
 	if coupon.RefillType == membership.QuotaRefillTypeEvent {
 		fmt.Printf("  活动额度: %d 分钟；任务入口: %s（空表示不限任务）\n", coupon.DurationSeconds/60, coupon.TaskEntry)
+		fmt.Printf("  额度有效期: %s\n", eventValidityLabel(coupon.EventValidSeconds))
 	}
 
 	output, err := buildCoupon(coupon, *outputDir, *keepTemp)
@@ -183,6 +202,7 @@ func readGeneratorInput(reader *bufio.Reader, writer io.Writer) (generatorInput,
 	}
 	var durationSeconds int64
 	var taskEntry string
+	var eventValidSeconds int64
 	if refillType == membership.QuotaRefillTypeEvent {
 		for {
 			value, err := promptLine(reader, writer, "活动额度时长（分钟，1~5256000）: ")
@@ -200,6 +220,10 @@ func readGeneratorInput(reader *bufio.Reader, writer io.Writer) (generatorInput,
 		if err != nil {
 			return generatorInput{}, err
 		}
+		eventValidSeconds, err = promptEventValidity(reader, writer)
+		if err != nil {
+			return generatorInput{}, err
+		}
 	}
 	validDays, err := promptValidDays(reader, writer)
 	if err != nil {
@@ -210,12 +234,56 @@ func readGeneratorInput(reader *bufio.Reader, writer io.Writer) (generatorInput,
 		return generatorInput{}, err
 	}
 	return generatorInput{
-		SponsorURL:      sponsorURL,
-		DurationSeconds: durationSeconds,
-		TaskEntry:       taskEntry,
-		ValidDays:       validDays,
-		RefillType:      refillType,
+		SponsorURL:        sponsorURL,
+		DurationSeconds:   durationSeconds,
+		TaskEntry:         taskEntry,
+		ValidDays:         validDays,
+		EventValidSeconds: eventValidSeconds,
+		RefillType:        refillType,
 	}, nil
+}
+
+// promptEventValidity 读取兑换后活动额度的有效时长。留空表示永久有效；支持 30d / 12h /
+// 90m 这类带单位写法，纯数字按天处理。该时限从用户实际兑换的时刻起算，与券本身的
+// 兑换截止期互不影响，每一张券兑换出来的额度也各自独立计时。
+func promptEventValidity(reader *bufio.Reader, writer io.Writer) (int64, error) {
+	for {
+		value, err := promptLine(reader, writer, "额度有效时长（如 30d / 12h / 90m，留空=永久）: ")
+		if err != nil {
+			return 0, err
+		}
+		if value == "" {
+			return 0, nil
+		}
+		seconds, err := parseValidityDuration(value)
+		if err == nil {
+			return seconds, nil
+		}
+		fmt.Fprintln(writer, "请输入形如 30d（天）、12h（小时）、90m（分钟）的时长，或留空表示永久。")
+	}
+}
+
+// parseValidityDuration 解析“数值 + 单位”形式的有效时长，纯数字按天处理。
+func parseValidityDuration(value string) (int64, error) {
+	value = strings.ToLower(strings.TrimSpace(value))
+	unit := int64(24 * 60 * 60)
+	switch {
+	case strings.HasSuffix(value, "d"):
+		value, unit = strings.TrimSuffix(value, "d"), 24*60*60
+	case strings.HasSuffix(value, "h"):
+		value, unit = strings.TrimSuffix(value, "h"), 60*60
+	case strings.HasSuffix(value, "m"):
+		value, unit = strings.TrimSuffix(value, "m"), 60
+	}
+	amount, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
+	if err != nil || amount <= 0 {
+		return 0, errors.New("有效时长必须是正数")
+	}
+	seconds := amount * unit
+	if seconds > maxValiditySeconds {
+		return 0, errors.New("有效时长超出上限")
+	}
+	return seconds, nil
 }
 
 func promptRefillType(reader *bufio.Reader, writer io.Writer) (membership.QuotaRefillType, error) {
@@ -309,8 +377,13 @@ func buildCoupon(coupon membership.QuotaRefillCoupon, outputDir string, keepTemp
 		return "", errors.New("识别码必须是 32 位十六进制字符串")
 	}
 
-	if coupon.RefillType == membership.QuotaRefillTypeEvent && (coupon.DurationSeconds <= 0 || coupon.DurationSeconds > 315360000) {
-		return "", errors.New("活动额度时长无效")
+	if coupon.RefillType == membership.QuotaRefillTypeEvent {
+		if coupon.DurationSeconds <= 0 || coupon.DurationSeconds > 315360000 {
+			return "", errors.New("活动额度时长无效")
+		}
+		if coupon.EventValidSeconds < 0 || coupon.EventValidSeconds > maxValiditySeconds {
+			return "", fmt.Errorf("活动额度有效时长必须是 0（永久）或 1~%d 秒", maxValiditySeconds)
+		}
 	}
 	absOutputDir, err := filepath.Abs(outputDir)
 	if err != nil {
@@ -370,9 +443,17 @@ func couponFilename(coupon membership.QuotaRefillCoupon) string {
 		validThrough = "未知日期"
 	}
 	if coupon.RefillType == membership.QuotaRefillTypeEvent {
-		return fmt.Sprintf("MDA活动额度发放券_%d分钟_兑换截止%s_%s.exe", coupon.DurationSeconds/60, validThrough, shortCouponID(coupon.ID))
+		return fmt.Sprintf("MDA活动额度发放券_%d分钟_%s_兑换截止%s_%s.exe", coupon.DurationSeconds/60, eventValidityLabel(coupon.EventValidSeconds), validThrough, shortCouponID(coupon.ID))
 	}
 	return fmt.Sprintf("MDA%s券_兑换截止%s_%s.exe", refillTypeLabel(coupon.RefillType), validThrough, shortCouponID(coupon.ID))
+}
+
+// eventValidityLabel 描述活动额度的有效期，用于文件名与生成结果提示。
+func eventValidityLabel(eventValidSeconds int64) string {
+	if label := membership.FormatValidityDuration(eventValidSeconds); label != "" {
+		return "有效期" + label
+	}
+	return "永久"
 }
 
 func refillTypeLabel(refillType membership.QuotaRefillType) string {

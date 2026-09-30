@@ -120,5 +120,7 @@
     "tasker.equipment_reroll.luck_outlier_3": "Maximum pain. Finishing this today was pure brute-force willpower.",
     "tasker.membership_check.verified_event": "🎁 About %d minutes of event quota remain and will be consumed after the regular and special quota run out.",
     "tasker.quota_display.all_tasks": "All tasks",
-    "tasker.quota_display.event": "🎁 Event quota (%s): about %d minutes remaining."
+    "tasker.quota_display.event": "🎁 Event quota (%s): about %d minutes remaining.",
+    "tasker.quota_display.event_expires": "🎁 Event quota (%s): about %d minutes remaining, expires at %s.",
+    "tasker.quota_display.event_expired": "🎁 Event quota (%s): about %d minutes expired at %s and no longer counts toward available quota."
 }

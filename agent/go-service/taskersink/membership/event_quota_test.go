@@ -274,3 +274,121 @@ func TestQuotaReserveSecondsCountsAllPools(t *testing.T) {
 		t.Fatalf("quotaReserveSeconds() for unlimited runtime = %d, want 0", got)
 	}
 }
+
+// 每张券兑换出来的额度各自独立计时：填了时限的券写入自己的到期时间，没填的永久有效。
+func TestEventCouponRedemptionAppliesValidityWindow(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(10, "event-device")
+	now := time.Now()
+	redeem := func(coupon QuotaRefillCoupon) (RefillResult, error) {
+		return redeemQuotaRefillCouponAt(coupon, now, func() DeviceCodeV7 { return status.DeviceCode })
+	}
+
+	limited := QuotaRefillCoupon{
+		ID:                testCouponID,
+		IssuedOn:          now.In(beijingLocation).Format("2006-01-02"),
+		ValidDays:         7,
+		RefillType:        QuotaRefillTypeEvent,
+		DurationSeconds:   600,
+		EventValidSeconds: 12 * 60 * 60,
+	}
+	result, err := redeem(limited)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantExpiry := now.Add(12 * time.Hour).Format(time.RFC3339)
+	if result.EventExpiresAt != wantExpiry {
+		t.Fatalf("EventExpiresAt = %q, want %q", result.EventExpiresAt, wantExpiry)
+	}
+
+	permanent := limited
+	permanent.ID = "ffeeddccbbaa99887766554433221100"
+	permanent.EventValidSeconds = 0
+	permanentResult, err := redeem(permanent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if permanentResult.EventExpiresAt != "" {
+		t.Fatalf("permanent coupon EventExpiresAt = %q, want empty", permanentResult.EventExpiresAt)
+	}
+
+	state := mustLoadQuotaState(t, path)
+	if len(state.EventGrants) != 2 {
+		t.Fatalf("grants: %+v", state.EventGrants)
+	}
+	if state.EventGrants[0].ExpiresAt != wantExpiry {
+		t.Fatalf("limited grant ExpiresAt = %q, want %q", state.EventGrants[0].ExpiresAt, wantExpiry)
+	}
+	if state.EventGrants[1].ExpiresAt != "" {
+		t.Fatalf("permanent grant ExpiresAt = %q, want empty", state.EventGrants[1].ExpiresAt)
+	}
+}
+
+func TestEventCouponRejectsInvalidValidity(t *testing.T) {
+	for _, seconds := range []int64{-1, maxEventValiditySeconds + 1} {
+		coupon := testRefillCoupon(QuotaRefillTypeEvent, "")
+		coupon.EventValidSeconds = seconds
+		_, _, _, err := validateQuotaRefillCoupon(coupon, time.Date(2026, 6, 4, 0, 0, 0, 0, beijingLocation))
+		if !errors.Is(err, ErrRefillInvalidCoupon) {
+			t.Fatalf("validity %d: %v", seconds, err)
+		}
+	}
+}
+
+// 过期的活动额度不再计入剩余，也不参与扣减，但仍保留在记录里供「额度显示」提示用户。
+func TestExpiredEventQuotaIsIgnored(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(10, "event-device") // 常规额度 600 秒，无专项额度
+	now := time.Now()
+	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+	regular := state.Pools[string(quotaPoolRegularDaily)]
+	regular.UsedSeconds = regular.LimitSeconds
+	state.Pools[string(quotaPoolRegularDaily)] = regular
+	state.EventGrants = []eventQuotaGrant{
+		{TaskEntry: entryMapPushingFlow, LimitSeconds: 600, ExpiresAt: now.Add(-time.Hour).Format(time.RFC3339)},
+		{TaskEntry: entryMapPushingFlow, LimitSeconds: 300, ExpiresAt: now.Add(time.Hour).Format(time.RFC3339)},
+	}
+	mustSaveQuotaState(t, path, state)
+
+	if got := eventQuotaRemaining(state, entryMapPushingFlow); got != 300 {
+		t.Fatalf("eventQuotaRemaining() = %d, want 300 (expired grant excluded)", got)
+	}
+
+	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 120, false); err != nil {
+		t.Fatal(err)
+	}
+	state = mustLoadQuotaState(t, path)
+	if state.EventGrants[0].UsedSeconds != 0 {
+		t.Fatalf("expired grant was charged: %+v", state.EventGrants[0])
+	}
+	if state.EventGrants[1].UsedSeconds != 120 {
+		t.Fatalf("active grant UsedSeconds = %d, want 120", state.EventGrants[1].UsedSeconds)
+	}
+}
+
+// 每张券的额度各自独立计时与过期，逐笔扣减时不会互相污染。
+func TestEventQuotaKeepsGrantsIndependent(t *testing.T) {
+	path := isolateQuotaState(t)
+	status := testStatus(10, "event-device")
+	now := time.Now()
+	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
+	regular := state.Pools[string(quotaPoolRegularDaily)]
+	regular.UsedSeconds = regular.LimitSeconds
+	state.Pools[string(quotaPoolRegularDaily)] = regular
+	state.EventGrants = []eventQuotaGrant{
+		{LimitSeconds: 100, ExpiresAt: now.Add(-time.Hour).Format(time.RFC3339)},
+		{TaskEntry: entryMapPushingFlow, LimitSeconds: 100},
+	}
+	mustSaveQuotaState(t, path, state)
+
+	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 60, false); err != nil {
+		t.Fatal(err)
+	}
+	state = mustLoadQuotaState(t, path)
+	if state.EventGrants[0].UsedSeconds != 0 {
+		t.Fatalf("expired grant was charged: %+v", state.EventGrants[0])
+	}
+	if state.EventGrants[1].UsedSeconds != 60 {
+		t.Fatalf("active grant UsedSeconds = %d, want 60", state.EventGrants[1].UsedSeconds)
+	}
+}
