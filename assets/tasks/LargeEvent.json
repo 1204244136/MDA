@@ -241,7 +241,8 @@
                                 "param": {
                                     "template": [
                                         "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1Stage.png",
-                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageNormal.png"
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageNormal.png",
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageHard.png"
                                     ]
                                 }
                             }
@@ -251,7 +252,8 @@
                                 "param": {
                                     "template": [
                                         "LargeEvent/CoinRushShowdown/CoinRushShowdownStory1StageRepeatable.png",
-                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageNormalRepeatable.png"
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageNormalRepeatable.png",
+                                        "LargeEvent/CoinRushShowdown/CoinRushShowdownStory2StageHardRepeatable.png"
                                     ]
                                 }
                             }
