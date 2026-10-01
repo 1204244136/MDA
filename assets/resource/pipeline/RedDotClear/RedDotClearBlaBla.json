@@ -57,9 +57,9 @@
             "param": {
                 "roi": [
                     0,
-                    120,
+                    106,
                     200,
-                    260
+                    274
                 ],
                 "template": [
                     "RedDotClear/BlaBla.png"
