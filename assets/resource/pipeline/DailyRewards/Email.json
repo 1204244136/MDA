@@ -150,6 +150,9 @@
                 ],
                 "count": 3000
             }
-        }
+        },
+        "next": [
+            "CommonClosePage"
+        ]
     }
 }
