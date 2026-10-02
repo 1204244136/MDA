@@ -80,7 +80,8 @@
                     20
                 ],
                 "template": [
-                    "Common/New.png"
+                    "Common/New.png",
+                    "Common/RedDot.png"
                 ]
             }
         }
