@@ -172,6 +172,39 @@
                     }
                 },
                 {
+                    "name": "LittleWitchTrick",
+                    "label": "$option.SmallEventTheme.LittleWitchTrick",
+                    "pipeline_override": {
+                        "SmallEventEnterMainPage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickLogo.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "SmallEventClickStage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormal.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "Other",
                     "label": "$option.SmallEventTheme.Other"
                 }
