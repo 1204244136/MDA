@@ -91,9 +91,9 @@
             "type": "Click"
         },
         "next": [
-            "SimulationRoomCornerFlow",
             "[JumpBack]SimulationRoomConfirmBattleEnd",
-            "[JumpBack]CommonConfirmAction"
+            "[JumpBack]CommonConfirmAction",
+            "SimulationRoomCornerFlow"
         ]
     },
     "SimulationRoomSkipBuff": {
