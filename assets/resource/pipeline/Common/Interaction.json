@@ -476,6 +476,7 @@
         "post_wait_freezes": 500,
         "next": [
             "CommonFreeStateFlow",
+            "CommonClickFreeState", //兜底
             "[JumpBack]CommonCloseSale"
         ]
     },
