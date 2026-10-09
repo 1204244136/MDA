@@ -22,6 +22,7 @@
     },
     "CommonConfirmAction": {
         "desc": "操作确认",
+        "max_hit": 20,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
