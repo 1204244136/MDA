@@ -13,18 +13,30 @@
     },
     "__EquipmentRerollValueDetailsPage": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    460,
-                    380,
-                    240,
-                    130
+                    486,
+                    400,
+                    28,
+                    70
                 ],
-                "template": [
-                    "EquipmentReroll/InspectFlag.png"
+                "method": 40,
+                "lower": [
+                    [
+                        88,
+                        120,
+                        60
+                    ]
                 ],
-                "threshold": 0.9
+                "upper": [
+                    [
+                        112,
+                        255,
+                        255
+                    ]
+                ],
+                "count": 80
             }
         }
     },

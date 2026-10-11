@@ -117,21 +117,32 @@
         ]
     },
     "__EquipmentRerollLocateFlag": {
-        "desc": "装备详情页锚点定位：Flag 小图标，用于按固定 offset 推导三个槽位",
+        "desc": "装备详情页锚点定位：改造装备效果行的蓝色信息图标（HSV 判据，锚点框≈(491,432,16,15)/(491,449,16,15) 随布局浮动）",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    480,
+                    486,
                     400,
-                    200,
-                    90
+                    28,
+                    70
                 ],
-                "template": [
-                    "EquipmentReroll/InspectFlag.png"
+                "method": 40,
+                "lower": [
+                    [
+                        88,
+                        120,
+                        60
+                    ]
                 ],
-                "threshold": 0.9,
-                "order_by": "Score"
+                "upper": [
+                    [
+                        112,
+                        255,
+                        255
+                    ]
+                ],
+                "count": 80
             }
         },
         "pre_delay": 0,
@@ -213,15 +224,15 @@
         ]
     },
     "__EquipmentRerollSlot1AffixOCR": {
-        "desc": "第1槽词条区域 OCR（Flag 锚点 + offset，宽 150）",
+        "desc": "第1槽词条区域 OCR（蓝 i 锚点 + offset，宽 150）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    45,
-                    136,
+                    -1,
+                    52,
+                    134,
                     7
                 ],
                 "expected": [
@@ -238,9 +249,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    45,
-                    211,
+                    -1,
+                    52,
+                    209,
                     7
                 ],
                 "expected": [
@@ -257,9 +268,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    45,
-                    211,
+                    -1,
+                    52,
+                    209,
                     7
                 ],
                 "expected": [
@@ -282,9 +293,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    188,
-                    45,
-                    12,
+                    277,
+                    52,
+                    10,
                     8
                 ],
                 "lower": [
@@ -312,9 +323,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    188,
-                    45,
-                    12,
+                    277,
+                    52,
+                    10,
                     8
                 ],
                 "lower": [
@@ -336,15 +347,15 @@
         }
     },
     "__EquipmentRerollSlot2AffixOCR": {
-        "desc": "第2槽词条区域 OCR（Flag 锚点 + offset，宽 150）",
+        "desc": "第2槽词条区域 OCR（蓝 i 锚点 + offset，宽 150）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    69,
-                    136,
+                    -1,
+                    76,
+                    134,
                     7
                 ],
                 "expected": [
@@ -361,9 +372,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    69,
-                    211,
+                    -1,
+                    76,
+                    209,
                     7
                 ],
                 "expected": [
@@ -380,9 +391,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    69,
-                    211,
+                    -1,
+                    76,
+                    209,
                     7
                 ],
                 "expected": [
@@ -405,9 +416,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    188,
-                    69,
-                    12,
+                    277,
+                    76,
+                    10,
                     8
                 ],
                 "lower": [
@@ -435,9 +446,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    188,
-                    69,
-                    12,
+                    277,
+                    76,
+                    10,
                     8
                 ],
                 "lower": [
@@ -459,15 +470,15 @@
         }
     },
     "__EquipmentRerollSlot3AffixOCR": {
-        "desc": "第3槽词条区域 OCR（Flag 锚点 + offset，宽 150）",
+        "desc": "第3槽词条区域 OCR（蓝 i 锚点 + offset，宽 150）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    93,
-                    136,
+                    -1,
+                    100,
+                    134,
                     7
                 ],
                 "expected": [
@@ -484,9 +495,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    93,
-                    211,
+                    -1,
+                    100,
+                    209,
                     7
                 ],
                 "expected": [
@@ -503,9 +514,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    -90,
-                    93,
-                    211,
+                    -1,
+                    100,
+                    209,
                     7
                 ],
                 "expected": [
@@ -528,9 +539,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    188,
-                    93,
-                    12,
+                    277,
+                    100,
+                    10,
                     8
                 ],
                 "lower": [
@@ -558,9 +569,9 @@
             "param": {
                 "roi": "[Anchor]EquipmentRerollInspectFlag",
                 "roi_offset": [
-                    188,
-                    93,
-                    12,
+                    277,
+                    100,
+                    10,
                     8
                 ],
                 "lower": [

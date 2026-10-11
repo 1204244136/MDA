@@ -918,7 +918,7 @@ EquipmentRerollMain
       → EquipmentRerollDecide           # 决策分发（自定义词条配额 1-12）
         → EquipmentRerollChoosePart      # 全局有限步前瞻：选择期望收益最高的部位
           → Open{Part}Details（通用打开）
-            → LockGate（按自定义配额检查 2/3号未锁目标 → 锁定流程，Flag 锚定仅详情页）
+            → LockGate（按自定义配额检查 2/3号未锁目标 → 锁定流程，蓝 i 锚定仅详情页）
               → LockRouteSlot → ClickChangeEffect（新版统一改走确认页）→ KeepLockCheck → KeepClickSlot2/3 → LockPageEntered → MaterialCheck（顺便读一次材料库存）→ LockSelectMaterial → LockSelectKey/Module → LockConfirm → LockDone(写快照)
             → ClickChangeEffect（一级，详情页进入消耗材料确认页）
               → PrepareRerollCost（记录待消耗订制模块数）
@@ -959,7 +959,7 @@ EquipmentRerollMain
 - 决策页沿用之前的锚点方案读取变更槽位（`ResultSlot` 定位 + 内部 OCR 节点），不使用 Flag offset；Go 从 OCR 原文解析词条名与数值。
 - 洗练完成经 `EquipmentRerollReturnToDecide` 回 `EquipmentRerollDecide`，直接基于快照调度下一件未达标装备。
 
-### 8.4 槽位定位：固有几何 + Flag 锚点 + offset
+### 8.4 槽位定位：固有几何 + 蓝 i 锚点 + offset
 
 #### 固有几何（实测记录）
 
@@ -973,18 +973,26 @@ EquipmentRerollMain
 
 注意：由于装备描述行数不同，换装备后槽位组可能在竖直方向整体偏移，甚至 1 槽看起来落到 2 槽的位置。因此**不能使用固定窄条带 ROI 逐个定位**，应锚定固定标识后按上述几何做 offset。
 
-#### Flag 锚点与 offset（实测记录）
+#### 详情页锚点与 offset（实测记录）
 
-- 锚点模板：`EquipmentReroll/InspectFlag.png`（Flag 小图标，14×15）。
-- 实测映射：Flag 识别框 `[580, 439, 14, 15]` 时，第 1 槽位左上角为 `(490, 484)`。
-- Flag 框左上角 → 第 1 槽位左上角偏移：`(-90, 45)`，距离恒定。
-- 第 N 槽位左上角 = Flag 框左上角 + `(-90, 45 + (N-1)×24)`。
+- 锚点判据：`__EquipmentRerollLocateFlag` 用 **ColorMatch**（`method: 40` 即 HSV）锁定「改造装备效果」行左侧的**蓝色信息图标（蓝 i）**：ROI `[486, 400, 28, 70]`、`lower [[88,120,60]]`、`upper [[112,255,255]]`、`count 80`，锚定 `EquipmentRerollInspectFlag`。
+- 实测映射：蓝 i 匹配框 `[491, 432, 16, 15]`（腿部页）或 `[491, 449, 16, 15]`（头部/臂部/身躯页）时，第 1 槽位左上角为 `(490, 484)`。
+- 蓝 i 框左上角 → 第 1 槽位左上角偏移：`(-1, 52)`，距离恒定。
+- 第 N 槽位左上角 = 蓝 i 框左上角 + `(-1, 52 + (N-1)×24)`。
 - 槽位矩形 = 左上角 + `(300, 22)`。
+- **为什么不再用 `InspectFlag.png` 模板**（2026-10 故障回归记录，勿回退）：
+    - 该旗标是 14×15 的**低对比灰底小图标**，匹配分随采集条件剧烈波动：2459×1383 窗口下 `0.985`，出问题的 2034×1144 窗口下掉到 **`0.899`**（与原阈值 `0.9` 差 0.0011），节点只能空转满 `20s` 的 `reco_timeout` 再抛 `Task timeout`，整任务失败（用户侧表现为“停在腿部不动 20 秒后任务失败”）。
+    - 根因不是页面而是**缩放相位**：MaaFramework 默认把截图按短边 720 用 `INTER_AREA` 缩放到 `1280×720`（`ControllerAgent.h:327/334` + `ControllerAgent.cpp:1264`），相位随窗口尺寸变化，小模板对这种相位差极敏感；模板自身与现网渲染也本就有 0.05 以上的差距。
+    - 蓝 i 是纯饱和色（实测 R≈0 / G≈174 / B≈254，两套采集条件下几乎逐位一致），换成 HSV 色相+饱和度判据后对缩放相位、模糊、JPEG 压缩都不敏感：详情页计数 `158~166`，而效果锁定页 / OPTION CHANGE 结果页 / 重新设置数值确认页 / 装备列表页**全部为 `0`**。
+    - 顺带解决了 `__EquipmentRerollLockLocateFlag` 的老包袱：“确认页后重入偏暗”对 HSV 判据无影响（V 下限放到 60，模拟变暗到 55% 计数仍恒为 158），故其阈值从 `0.3` 的妥协值一并撤销。
+- **ROI 的安全边界（别踩）**：ROI 下沿不能超过 `y≈476`——OPTION CHANGE 结果页在 `y=477` 有一条蓝色边框，加高就会误命中；色域也不能放宽——宽松 RGB 域会让装备列表页的人物立绘爆出 348 个误报。
+- 三件与腿部页之间那 17px 的整体偏移由锚点框自动跟随（`ColorMatcher::count_non_zero` 返回 `boundingRect(色块) + roi.tl()`，box 随布局浮动），故 15 个子节点仍只需 `[Anchor]EquipmentRerollInspectFlag` + `roi_offset` 表达。
 
 #### Pipeline 结构（已实现）
 
-- `__EquipmentRerollLocateFlag`：TemplateMatch `InspectFlag.png`（0.9、order_by Score），锚定 `EquipmentRerollInspectFlag`。
-- 三个槽位不再分别识别，统一由 Flag 锚点 + 上述 offset 推导；槽内词条/数值/锁定区域沿用三区 ROI（150/75/75），各子节点以 `[Anchor]EquipmentRerollInspectFlag` + roi_offset 表达。
+- 同一蓝 i 判据（ROI/色域/count 完全一致）共用于 **6 个**“是否处于装备详情页”节点，保证锚点几何自洽：`__EquipmentRerollLocateFlag`（扫描锚点）、`__EquipmentRerollLockLocateFlag`（锁定流程锚点）、`EquipmentRerollLockAbortOnDetailsPage`、`EquipmentRerollLockAfterIsDetail`、`EquipmentRerollClickChangeEffectRetry`、`__EquipmentRerollValueDetailsPage`（洗数值模式被 `And(详情页 AND 效果变更按钮)` 引用）。
+- 三个槽位不再分别识别，统一由蓝 i 锚点 + 上述 offset 推导；槽内词条/数值/锁定区域沿用三区 ROI（150/75/75），各子节点以 `[Anchor]EquipmentRerollInspectFlag` + roi_offset 表达。
+- 锚点名 `EquipmentRerollInspectFlag` 与节点名 `__EquipmentRerollLocateFlag` 保留历史命名（改名要动 17 处引用，收益低）；`EquipmentReroll/InspectFlag.png` 已无引用，暂留作回滚备份。
 
 #### 决策页变更槽定位（Pipeline，保持）
 
@@ -1000,7 +1008,7 @@ EquipmentRerollMain
 
 **Pipeline 实现（两条锁定入口，汇合到同一锁页链路）**：
 
-- **详情页入口（已废弃）**：`EquipmentRerollLockGate → __LockLocateFlag(Flag锚点) → LockBranch[LockNeed/ClickChangeEffect] → LockRouteSlot`。新版客户端装备详情页的词条行已不可点击，`EquipmentRerollLockClickSlot2/3` 已删除；`LockRouteSlot` 一律路由到 `ClickChangeEffect`，锁定改由下面的确认页入口完成。
+- **详情页入口（已废弃）**：`EquipmentRerollLockGate → __EquipmentRerollLockLocateFlag(蓝 i 锚点) → LockBranch[LockNeed/ClickChangeEffect] → LockRouteSlot`。新版客户端装备详情页的词条行已不可点击，`EquipmentRerollLockClickSlot2/3` 已删除；`LockRouteSlot` 一律路由到 `ClickChangeEffect`，锁定改由下面的确认页入口完成。
 - **效果变更确认/结果页入口**：`KeepLockGate(OCR“将…改造效果与数值”) → KeepLockCheck → KeepLockRoute → KeepClickSlot2/3`（固定坐标）。
 - 汇合链路：`…ClickSlotX → LockPageEntered(复用 __EquipmentRerollLockTitle 确认效果锁定页) → MaterialCheck(顺便读一次材料库存) → LockSelectMaterial(Go按库存优先密钥、必要时模块) → LockSelectRouteAction → LockSelectKey/Module(OCR SELECT) → LockConfirm(OCR 确认) → LockDone(Go写快照+清pending)`。材料不足时 `LockSelectRecognition` 返回 `material_code=0`，由 `EquipmentRerollLockAbort` 清理 pending、关闭锁定页，再识别确认页/详情页并分别进入费用读取/效果变更；页面无法确认时显式失败。
 
@@ -1087,7 +1095,7 @@ EquipmentRerollMain
 | `EquipmentRerollChoosePart`                     | 全局有限步前瞻选择部位                                  | Go ChoosePartAction（期望收益/模块成本）                                      |
 | `EquipmentRerollOpen{Part}Details`              | 通用打开部位详情                                        | Head/Arms/Torso/Legs 模板                                                     |
 | `EquipmentRerollLockGate` / `LockBranch`        | 锁定前置分发（配额模式）                                | DirectHit 分支：LockNeed vs ClickChangeEffect                                 |
-| `__EquipmentRerollLockLocateFlag`               | 锁定前 Flag 锚定                                        | `InspectFlag.png` 0.9, 贴详情页                                               |
+| `__EquipmentRerollLockLocateFlag`               | 锁定前 详情页锚定（蓝 i）                               | ColorMatch HSV 蓝 i，ROI `[486,400,28,70]`，count 80                          |
 | `EquipmentRerollLockNeed` / `LockRouteSlot`     | 锁定需求判定与槽位路由                                  | Go LockCheck + RouteSlot（一律路由到 ClickChangeEffect 走确认页）             |
 | `EquipmentRerollLockAbort`                      | 材料不足放弃锁定并恢复到可确认页面                      | 清 pending + 关闭页面 + 确认页/详情页分流                                     |
 | `EquipmentRerollLockPageEntered`                | 效果锁定页确认                                          | 复用 `__EquipmentRerollLockTitle`（OCR 效果锁定）                             |

@@ -106,27 +106,38 @@
         ]
     },
     "EquipmentRerollLockGate": {
-        "desc": "锁定检查入口：Flag 锚定后按自定义配额策略判定是否需锁定 2/3号槽位",
+        "desc": "锁定检查入口：蓝 i 锚定后按自定义配额策略判定是否需锁定 2/3号槽位",
         "next": [
             "__EquipmentRerollLockLocateFlag"
         ]
     },
     "__EquipmentRerollLockLocateFlag": {
-        "desc": "洗练锁定前 Flag 锚点定位（阈值0.3，确认页后重入偏暗需freeze）",
+        "desc": "洗练锁定前 Flag 锚点定位（HSV 蓝 i 判据，对确认页后重入偏暗免疫：V 下限 60，实测 55% 亮度计数不变）",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    460,
-                    380,
-                    240,
-                    130
+                    486,
+                    400,
+                    28,
+                    70
                 ],
-                "template": [
-                    "EquipmentReroll/InspectFlag.png"
+                "method": 40,
+                "lower": [
+                    [
+                        88,
+                        120,
+                        60
+                    ]
                 ],
-                "threshold": 0.3,
-                "order_by": "Score"
+                "upper": [
+                    [
+                        112,
+                        255,
+                        255
+                    ]
+                ],
+                "count": 80
             }
         },
         "anchor": "EquipmentRerollInspectFlag",
@@ -263,19 +274,30 @@
     "EquipmentRerollLockAbortOnDetailsPage": {
         "desc": "兼容旧页面层级：放弃锁定后若返回装备详情页，则重新进入效果变更",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    460,
-                    380,
-                    240,
-                    130
+                    486,
+                    400,
+                    28,
+                    70
                 ],
-                "template": [
-                    "EquipmentReroll/InspectFlag.png"
+                "method": 40,
+                "lower": [
+                    [
+                        88,
+                        120,
+                        60
+                    ]
                 ],
-                "threshold": 0.9,
-                "order_by": "Score"
+                "upper": [
+                    [
+                        112,
+                        255,
+                        255
+                    ]
+                ],
+                "count": 80
             }
         },
         "pre_delay": 0,
@@ -446,28 +468,39 @@
         ]
     },
     "EquipmentRerollLockAfterRoute": {
-        "desc": "锁定完成分流：确认页特征优先，避免详情页 InspectFlag 在确认页误命中；确认页流程回确认页刷新，详情页流程回详情页刷新",
+        "desc": "锁定完成分流：确认页特征优先，避免详情页蓝 i 判据在确认页误命中；确认页流程回确认页刷新，详情页流程回详情页刷新",
         "next": [
             "EquipmentRerollLockAfterIsConfirm",
             "EquipmentRerollLockAfterIsDetail"
         ]
     },
     "EquipmentRerollLockAfterIsDetail": {
-        "desc": "详情页特征：InspectFlag 图标（详情页有、确认页无）",
+        "desc": "详情页特征：改造装备效果行的蓝色信息图标（详情页有、确认页无）",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    460,
-                    380,
-                    240,
-                    130
+                    486,
+                    400,
+                    28,
+                    70
                 ],
-                "template": [
-                    "EquipmentReroll/InspectFlag.png"
+                "method": 40,
+                "lower": [
+                    [
+                        88,
+                        120,
+                        60
+                    ]
                 ],
-                "threshold": 0.9,
-                "order_by": "Score"
+                "upper": [
+                    [
+                        112,
+                        255,
+                        255
+                    ]
+                ],
+                "count": 80
             }
         },
         "rate_limit": 100,
@@ -522,20 +555,32 @@
         ]
     },
     "EquipmentRerollClickChangeEffectRetry": {
-        "desc": "详情页点击未切换时的哨兵兜底：仅确认 InspectFlag 仍在详情页才重试效果变更",
+        "desc": "详情页点击未切换时的哨兵兜底：仅确认仍处于详情页（蓝色信息图标）才重试效果变更",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    460,
-                    380,
-                    240,
-                    130
+                    486,
+                    400,
+                    28,
+                    70
                 ],
-                "template": [
-                    "EquipmentReroll/InspectFlag.png"
+                "method": 40,
+                "lower": [
+                    [
+                        88,
+                        120,
+                        60
+                    ]
                 ],
-                "threshold": 0.9
+                "upper": [
+                    [
+                        112,
+                        255,
+                        255
+                    ]
+                ],
+                "count": 80
             }
         },
         "pre_delay": 0,
@@ -681,7 +726,7 @@
         ]
     },
     "EquipmentRerollResultClickKeep": {
-        "desc": "决策页点击左下角效果维持（放弃本次变更），回到确认页重洗同件（自身兜底，等待动画稳定后再判断是否重试），需与详情页 Flag 区分",
+        "desc": "决策页点击左下角效果维持（放弃本次变更），回到确认页重洗同件（自身兜底，等待动画稳定后再判断是否重试），需与详情页蓝 i 判据区分",
         "recognition": {
             "type": "OCR",
             "param": {
