@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/1204244136/MDA/agent/go-service/common/centerpriority"
+	"github.com/1204244136/MDA/agent/go-service/crosschapter"
 	"github.com/1204244136/MDA/agent/go-service/equipmentreroll"
 	"github.com/1204244136/MDA/agent/go-service/customburst"
 	"github.com/1204244136/MDA/agent/go-service/pkg/resource"
@@ -20,6 +21,7 @@ func registerAll() {
 	centerpriority.Register()
 	equipmentreroll.Register()
 	customburst.Register()
+	crosschapter.Register()
 
 	// Pre-Check Custom
 	aspectratio.Register()

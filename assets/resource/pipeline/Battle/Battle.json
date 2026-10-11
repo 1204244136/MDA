@@ -338,6 +338,8 @@
         "desc": "战斗中及结算",
         "timeout": 210000,
         "next": [
+            "[JumpBack]CrossChapterBattleResumed",
+            "CrossChapterCompletion",
             "[JumpBack]BattleSkipBossCutscene",
             "[JumpBack]BattleEnableAutoAim",
             "[JumpBack]BattleEnableAutoCombat",
@@ -494,16 +496,27 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target": [
+                    560,
+                    600,
+                    170,
+                    10
+                ]
+            }
         },
         "post_wait_freezes": 500,
         "next": [
+            "BattleDismissLevelUp",
+            "BattleDismissOutpostLevelUp",
+            "CrossChapterCompletion",
             "BattleConfirmOperationComplete",
             "CommonEndTask"
         ]
     },
     "BattleOperationFailed": {
-        "desc": "战斗失败结算",
+        "desc": "战斗失败结算，计数用于困难连败降级",
         "recognition": {
             "type": "Or",
             "param": {
@@ -512,24 +525,25 @@
                 ]
             }
         },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BattleFailCount"
+            }
+        },
         "next": [
             "CommonGoBack",
             "BattleOperationFailed"
         ]
     },
     "BattleSettlementEscVisible": {
-        "desc": "战斗结算 ESC 可见",
+        "desc": "结算继续提示：ESC 被鼠标遮挡时以完整继续文字确认",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    567,
-                    610,
-                    160,
-                    90
-                ],
-                "expected": [
-                    "ESC"
+                "any_of": [
+                    "BattleSettlementEscRaw",
+                    "BattleSettlementContinuePrompt"
                 ]
             }
         }
@@ -582,6 +596,7 @@
         "next": [
             "BattleEntered",
             "[JumpBack]CommonPurchaseGemBlocked",
+            "[JumpBack]BattleExStageGuard",
             "[JumpBack]CommonConfirmAction",
             "[JumpBack]BattleEnterNormalBattle"
         ]
@@ -766,6 +781,220 @@
         },
         "next": [
             "CommonClickBlank"
+        ]
+    },
+    "BattleLevelUpTitle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    550,
+                    270,
+                    180,
+                    90
+                ],
+                "expected": [
+                    "LEVEL.*UP",
+                    "指挥官升级"
+                ]
+            }
+        }
+    },
+    "BattleLevelUpCollect": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    480,
+                    170,
+                    65
+                ],
+                "expected": [
+                    "点击领取奖励"
+                ]
+            }
+        }
+    },
+    "BattleDismissLevelUp": {
+        "desc": "确认指挥官升级与领奖提示后关闭结算遮挡",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleLevelUpTitle",
+                    "BattleLevelUpCollect"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "BattleLevelUpCollect"
+            }
+        },
+        "post_delay": 600,
+        "next": [
+            "BattleDismissLevelUp",
+            "BattleConfirmOperationComplete"
+        ]
+    },
+    "BattleOutpostLevelUpTitle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    330,
+                    260,
+                    50
+                ],
+                "expected": [
+                    "获得升级奖励.*基地防御"
+                ]
+            }
+        }
+    },
+    "BattleDismissOutpostLevelUp": {
+        "desc": "基地防御升级奖励遮挡结算时，确认升级提示及底部继续按钮后领取",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleOutpostLevelUpTitle",
+                    "BattleSettlementEscVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    560,
+                    600,
+                    170,
+                    10
+                ]
+            }
+        },
+        "post_delay": 600,
+        "next": [
+            "BattleDismissOutpostLevelUp",
+            "BattleConfirmOperationComplete"
+        ]
+    },
+    "BattleSettlementContinuePrompt": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    604,
+                    180,
+                    58
+                ],
+                "expected": [
+                    "点击任意处.*下一"
+                ]
+            }
+        }
+    },
+    "BattleSettlementEscRaw": {
+        "desc": "战斗结算 ESC 可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    567,
+                    610,
+                    160,
+                    90
+                ],
+                "expected": [
+                    "ESC"
+                ]
+            }
+        }
+    },
+    "BattleExStageTitle": {
+        "desc": "EX 关卡面板标题以 EX 开头，普通关卡是章-关号",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    440,
+                    380,
+                    180,
+                    50
+                ],
+                "expected": [
+                    "^EX"
+                ]
+            }
+        }
+    },
+    "BattleNoAutoVisible": {
+        "desc": "EX 面板独有警告：无法自主战斗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    620,
+                    585,
+                    280,
+                    35
+                ],
+                "expected": [
+                    ".*无法自.战.*"
+                ]
+            }
+        }
+    },
+    "BattleExStagePanel": {
+        "desc": "EX 关卡面板：标题 EX 开头或存在无法自主战斗警告",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "BattleExStageTitle",
+                    "BattleNoAutoVisible"
+                ]
+            }
+        }
+    },
+    "BattleCloseExStage": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    824,
+                    366,
+                    20,
+                    20
+                ]
+            }
+        }
+    },
+    "BattleExStageGuard": {
+        "desc": "EX 面板守卫：关闭面板拒绝出战，拖图短暂避让屏幕中央",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleMainVisible",
+                    "BattleExStagePanel"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BattleExStageGuard"
+            }
+        },
+        "post_delay": 600,
+        "next": [
+            "MapPushingFlow"
         ]
     }
 }

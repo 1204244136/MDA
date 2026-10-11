@@ -1,0 +1,625 @@
+{
+  "CrossChapterBattleResumed": {
+    "desc": "新地图点怪后核对战斗 HUD，成功仍留在战斗流程",
+    "enabled": true,
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "CrossChapterGate",
+        "custom_recognition_param": {
+          "resume_only": true
+        }
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "CrossChapterStep"
+      }
+    },
+    "post_delay": 400
+  },
+  "CrossChapterClearMark": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          505,
+          262,
+          280,
+          43
+        ],
+        "template": [
+          "CrossChapter/MissionClear.png",
+          "CrossChapter/MissionClearHard.png"
+        ],
+        "threshold": 0.88
+      }
+    }
+  },
+  "CrossChapterNextPrompt": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          565,
+          490,
+          170,
+          34
+        ],
+        "expected": [
+          "点击.*开启下一章"
+        ]
+      }
+    }
+  },
+  "CrossChapterHardLock": {
+    "desc": "困难模式通关画面的锁定面板，用于区分章节完成与普通战斗胜利",
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          542,
+          340,
+          200,
+          80
+        ],
+        "template": [
+          "CrossChapter/HardLock.png"
+        ],
+        "threshold": 0.85
+      }
+    }
+  },
+  "CrossChapterCloseList": {
+    "desc": "章节列表弹窗在非跨章状态下被误开时关闭并恢复推图",
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          760,
+          54,
+          70,
+          60
+        ],
+        "template": [
+          "CrossChapter/ListClose.png"
+        ],
+        "threshold": 0.85
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          788,
+          78,
+          14,
+          14
+        ]
+      }
+    },
+    "post_delay": 500,
+    "next": [
+      "MapPushingFlow"
+    ]
+  },
+  "CrossChapterCardNumber": {
+    "desc": "章节列表卡片左侧的章号，用于无 NEW 徽章时按编号找卡",
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          455,
+          95,
+          360,
+          520
+        ],
+        "expected": [
+          "^[0-9]+$"
+        ]
+      }
+    }
+  },
+  "CrossChapterCardLock": {
+    "attach": {
+      "offset": [
+        14,
+        -14,
+        170,
+        50
+      ]
+    },
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          1,
+          1,
+          98,
+          30
+        ],
+        "template": [
+          "CrossChapter/Lock.png"
+        ],
+        "threshold": 0.85
+      }
+    }
+  },
+  "CrossChapterClickCard": {
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true,
+        "target_offset": [
+          24,
+          4,
+          64,
+          10
+        ]
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 0
+  },
+  "CrossChapterOpenListClick": {
+    "desc": "点击当前区域徽章中央，避开两侧切换相邻章节的按钮",
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          1148,
+          674,
+          64,
+          17
+        ]
+      }
+    },
+    "next": [
+      "CrossChapterWaitList"
+    ]
+  },
+  "CrossChapterWaitList": {
+    "desc": "等待章节列表出现",
+    "recognition": {
+      "type": "And",
+      "param": {
+        "all_of": [
+          "CrossChapterListTitle"
+        ]
+      }
+    },
+    "action": {
+      "type": "DoNothing"
+    },
+    "post_delay": 300,
+    "next": [
+      "CrossChapterNormalTabClick"
+    ]
+  },
+  "CrossChapterNormalTabClick": {
+    "desc": "切换到普通页签",
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          592,
+          617,
+          95,
+          34
+        ]
+      }
+    },
+    "post_delay": 800,
+    "next": [
+      "CrossChapterGotoConducting"
+    ]
+  },
+  "CrossChapterGotoConducting": {
+    "desc": "困难回退：核对普通列表最靠后未锁定章与下一锁定章，点击章节标题",
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "NormalFallbackChapter"
+      }
+    },
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true,
+        "target_offset": [
+          24,
+          4,
+          64,
+          10
+        ]
+      }
+    },
+    "post_delay": 1500,
+    "next": [
+      "CrossChapterFallbackMapReady"
+    ]
+  },
+  "CrossChapterListLocks": {
+    "recognition":{"type":"TemplateMatch","param":{"roi":[475,98,334,515],"template":["CrossChapter/Lock.png"],"threshold":0.85}}
+  },
+  "CrossChapterFallbackMapReady": {
+    "desc":"困难回退后重新确认普通地图，再恢复推图",
+    "recognition":{"type":"And","param":{"all_of":["CrossChapterNormalMap","CrossChapterMapFooter","MapPushingMapTitle"]}},
+    "next":["MapPushingFlow"]
+  },
+  "CrossChapterSourceNumber": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          510,
+          174,
+          96,
+          32
+        ],
+        "expected": [
+          "CHAPTER.*[0-9]"
+        ]
+      }
+    }
+  },
+  "CrossChapterTargetNumber": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          555,
+          443,
+          180,
+          42
+        ],
+        "expected": [
+          "CHAPTER.*[0-9]"
+        ]
+      }
+    }
+  },
+  "CrossChapterListTitle": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          450,
+          55,
+          125,
+          52
+        ],
+        "template": [
+          "CrossChapter/ListTitle.png",
+          "CrossChapter/ListTitleHard.png",
+          "CrossChapter/ListTitleNormalLight.png"
+        ],
+        "threshold": 0.88
+      }
+    }
+  },
+  "CrossChapterNewBadge": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          460,
+          98,
+          353,
+          510
+        ],
+        "template": [
+          "CrossChapter/NewBadge.png",
+          "CrossChapter/NewBadgeLight.png"
+        ],
+        "threshold": 0.88
+      }
+    }
+  },
+  "CrossChapterScenarioCounter": {
+    "attach": {
+      "offset": [
+        28,
+        60,
+        70,
+        24
+      ]
+    },
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          1,
+          1,
+          70,
+          24
+        ],
+        "only_rec": true,
+        "expected": [
+          ".*[0-9]+\\s*/\\s*[0-9]+.*"
+        ]
+      }
+    }
+  },
+  "CrossChapterScenarioIcon": {
+    "attach": {
+      "offset": [
+        17,
+        62,
+        15,
+        17
+      ]
+    },
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          1,
+          1,
+          15,
+          17
+        ],
+        "template": [
+          "CrossChapter/ScenarioIcon.png"
+        ],
+        "threshold": 0.85
+      }
+    }
+  },
+  "CrossChapterSourceCard": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          458,
+          102,
+          355,
+          495
+        ],
+        "template": [
+          "CrossChapter/SourceCard.png"
+        ],
+        "threshold": 0.88
+      }
+    }
+  },
+  "CrossChapterListSourceNumber": {
+    "attach": {
+      "offset": [
+        -17,
+        14,
+        17,
+        27
+      ]
+    },
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          1,
+          1,
+          17,
+          27
+        ],
+        "only_rec": true,
+        "expected": [
+          "^[0-9]+$"
+        ]
+      }
+    }
+  },
+  "CrossChapterHardMap": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          1140,
+          638,
+          80,
+          27
+        ],
+        "template": [
+          "CrossChapter/HardMap.png",
+          "CrossChapter/HardMapHard.png"
+        ],
+        "threshold": 0.85
+      }
+    }
+  },
+  "CrossChapterHardList": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          714,
+          614,
+          109,
+          39
+        ],
+        "template": [
+          "CrossChapter/HardList.png",
+          "CrossChapter/HardListNoNew.png"
+        ],
+        "threshold": 0.88
+      }
+    }
+  },
+  "CrossChapterNormalList": {
+    "desc": "普通页签选中态，用于排除实际难度已改变的列表",
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          586,
+          614,
+          109,
+          39
+        ],
+        "template": [
+          "CrossChapter/NormalListSelected.png"
+        ],
+        "threshold": 0.88
+      }
+    }
+  },
+  "CrossChapterNewNumber": {
+    "attach": {
+      "offset": [
+        -18,
+        12,
+        18,
+        27
+      ]
+    },
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          1,
+          1,
+          18,
+          27
+        ],
+        "expected": [
+          "^[0-9]+$"
+        ],
+        "only_rec": true
+      }
+    }
+  },
+  "CrossChapterLock": {
+    "attach": {
+      "offset": [
+        5,
+        16,
+        98,
+        30
+      ]
+    },
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          1,
+          1,
+          98,
+          30
+        ],
+        "template": [
+          "CrossChapter/Lock.png"
+        ],
+        "threshold": 0.85
+      }
+    }
+  },
+  "CrossChapterMapFooter": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [
+          1135,
+          681,
+          93,
+          21
+        ],
+        "template": [
+          "CrossChapter/MapFooter.png"
+        ],
+        "threshold": 0.8
+      }
+    }
+  },
+  "CrossChapterMapNumber": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          1162,
+          662,
+          40,
+          29
+        ],
+        "expected": [
+          "^[0-9]+$"
+        ],
+        "only_rec": true
+      }
+    }
+  },
+  "CrossChapterClickNext": {
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": [
+          590,
+          451,
+          106,
+          22
+        ]
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 0
+  },
+  "CrossChapterClickNew": {
+    "action": {
+      "type": "Click",
+      "param": {
+        "target": true,
+        "target_offset": [
+          12,
+          23,
+          -24,
+          0
+        ]
+      }
+    },
+    "pre_delay": 0,
+    "post_delay": 0
+  },
+  "CrossChapterCardNumberLocal": {
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          1,
+          1,
+          24,
+          28
+        ],
+        "only_rec": true,
+        "expected": [
+          "^[0-9]+$"
+        ]
+      }
+    }
+  },
+  "CrossChapterNormalMap": {
+    "recognition": {
+      "type": "TemplateMatch",
+      "param": {
+        "roi": [1140, 638, 80, 27],
+        "template": ["CrossChapter/NormalMap.png"],
+        "threshold": 0.9
+      }
+    }
+  },
+  "CrossChapterHard29Title": {
+    "desc": "实机确认的困难29章营救标题，仅作为29号卡片OCR失效时的精确定位",
+    "recognition": {
+      "type": "OCR",
+      "param": {
+        "roi": [
+          470,
+          95,
+          342,
+          520
+        ],
+        "expected": [
+          "^营救$"
+        ]
+      }
+    }
+  }
+}

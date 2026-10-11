@@ -8,10 +8,24 @@
             }
         },
         "next": [
+            "[JumpBack]CommonCloseSale",
+            "MapPushingEnterCampaign",
+            "MapPushingEnterCampaignCovered",
+            "[JumpBack]MapPushingHardFallback",
+            "[JumpBack]MapPushingCloseExpandedMap",
+            "[JumpBack]MapPushingCloseMail",
+            "[JumpBack]CrossChapterBattleResumed",
+            "[JumpBack]CrossChapterCompletion",
+            "[JumpBack]CrossChapterCloseList",
+            "[JumpBack]MapPushingResumeSettlement",
+            "[JumpBack]BattleDismissLevelUp",
+            "[JumpBack]BattleDismissOutpostLevelUp",
             "[JumpBack]BattleEntryFlow",
             "[JumpBack]CommonSkipPlot",
+            "[JumpBack]MapPushingWaitForBattle",
             "[JumpBack]MapPushingClickMonster",
-            "[JumpBack]MapPushingClickPlate"
+            "[JumpBack]MapPushingClickPlate",
+            "[JumpBack]MapPushingSweep"
         ],
         "focus": {
             "Node.Action.Succeeded": "$focus.MapPushingFlow.Action.Succeeded"
@@ -23,20 +37,176 @@
             "type": "NeuralNetworkDetect",
             "param": {
                 "model": "MapPushing.onnx",
-                "labels": [
-                    "monster"
+                "expected": [
+                    0
                 ]
             }
         }
+    },
+    "MapPushingMapTitle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    110,
+                    52
+                ],
+                "expected": [
+                    "野.*"
+                ]
+            }
+        }
+    },
+    "MapPushingExpandedMapCorner": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    782,
+                    173,
+                    44,
+                    51
+                ],
+                "template": [
+                    "MapPushing/ExpandedMapCorner.png"
+                ],
+                "threshold": 0.9
+            }
+        }
+    },
+    "MapPushingExpandedMapZoom": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    453,
+                    173,
+                    46,
+                    49
+                ],
+                "template": [
+                    "MapPushing/ExpandedMapZoom.png"
+                ],
+                "threshold": 0.9
+            }
+        }
+    },
+    "MapPushingExpandedMapVisible": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "MapPushingExpandedMapCorner",
+                    "MapPushingExpandedMapZoom"
+                ]
+            }
+        }
+    },
+    "MapPushingCloseExpandedMap": {
+        "desc": "小地图弹窗关闭后恢复一次拖图，机关节点保持原样",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "MapPushingExpandedMapVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    798,
+                    188,
+                    12,
+                    12
+                ]
+            }
+        },
+        "post_delay": 500,
+        "next": [
+            "MapPushingFlow"
+        ]
+    },
+    "MapPushingMailTitle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    585,
+                    80,
+                    100,
+                    45
+                ],
+                "expected": [
+                    "邮箱"
+                ]
+            }
+        }
+    },
+    "MapPushingMailCollect": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    665,
+                    580,
+                    145,
+                    55
+                ],
+                "expected": [
+                    "全部领取"
+                ]
+            }
+        }
+    },
+    "MapPushingMailVisible": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "MapPushingMailTitle",
+                    "MapPushingMailCollect"
+                ]
+            }
+        }
+    },
+    "MapPushingCloseMail": {
+        "desc": "确认邮箱弹窗后只关闭，不领取或删除邮件",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "MapPushingMailVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    786,
+                    94,
+                    18,
+                    18
+                ]
+            }
+        },
+        "post_delay": 600
     },
     "MapPushingClickMonster": {
         "desc": "推图点击怪物",
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "CenterPriorityRecognition",
+                "custom_recognition": "ClassifiedMonsterRecognition",
                 "custom_recognition_param": {
-                    "entry": "MapPushingClickMonsterRaw"
+                    "entry": "MapPushingClickMonsterRaw",
+                    "boss": "MapPushingBossMarker",
+                    "ex": "MapPushingExMarker"
                 }
             }
         },
@@ -53,14 +223,158 @@
             ]
         }
     },
+    "MapPushingBossMarker": {
+        "desc": "红色亮光骷髅头 Boss 标识",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MapPushingBossRecognition"
+            }
+        }
+    },
+    "MapPushingExMarker": {
+        "desc": "三角形 EX 标识",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    1280,
+                    720
+                ],
+                "template": [
+                    "MapPushing/ExTriangle.png",
+                    "MapPushing/ExTriangleLeft.png",
+                    "MapPushing/ExTriangleLeftNear.png",
+                    "MapPushing/ExTriangle44.png",
+                    "MapPushing/ExGlow45.png",
+                    "MapPushing/ExGlow45Dim.png"
+                ],
+                "threshold": 0.86
+            }
+        }
+    },
+    "MapPushingBossRaw": {
+        "recognition": {
+            "type": "NeuralNetworkDetect",
+            "param": {
+                "model": "MapPushing.onnx",
+                "expected": [
+                    1
+                ]
+            }
+        }
+    },
+    "MapPushingBossIcon": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    1280,
+                    640
+                ],
+                "template": [
+                    "MapPushing/BossMarkNear.png",
+                    "MapPushing/BossMarkFar.png",
+                    "MapPushing/BossMarkOccluded.png",
+                    "MapPushing/BossMarkLeft.png"
+                ],
+                "threshold": 0.5
+            }
+        }
+    },
+    "MapPushingSweep": {
+        "desc": "无可点击目标或点击无进展时连续拖图探索",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MapPushingSweepReady"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "MapPushingSweep"
+            }
+        },
+        "post_delay": 900
+    },
+    "MapPushingWaitForBattle": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MapPushingWaitingForBattle"
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "post_delay": 500
+    },
+    "MapPushingPan": {
+        "desc": "拖动平移镜头：方向与地图内容位移一致，起止点避开已识别目标",
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    1000,
+                    510
+                ],
+                "end": [
+                    520,
+                    510
+                ],
+                "duration": 400,
+                "end_hold": 0,
+                "only_hover": false,
+                "contact": 0
+            }
+        },
+        "post_wait_freezes": 350
+    },
+    "MapPushingResumeSettlement": {
+        "desc": "从已显示的战役结算页恢复推图",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleSettlementEscVisible",
+                    "MapPushingSettlementStage"
+                ]
+            }
+        },
+        "next": [
+            "BattleConfirmOperationComplete"
+        ]
+    },
+    "MapPushingSettlementStage": {
+        "desc": "结算页中的战役关卡编号及 STAGE/BOSS 标题",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    440,
+                    390,
+                    400,
+                    90
+                ],
+                "expected": [
+                    "[0-9]+\\s*[-–—]\\s*[0-9]+\\s*(HARD\\s*)?(STAGE|B[O0]SS)"
+                ]
+            }
+        }
+    },
     "MapPushingClickPlateRaw": {
         "desc": "推图机关原始识别",
         "recognition": {
             "type": "NeuralNetworkDetect",
             "param": {
                 "model": "MapPushing.onnx",
-                "labels": [
-                    "plate0"
+                "expected": [
+                    2
                 ]
             }
         }
@@ -88,5 +402,40 @@
                 79
             ]
         }
+    },
+    "CrossChapterCompletion": {
+        "desc": "显式通章与跨章状态门，先于通用剧情和确认",
+        "enabled": true,
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CrossChapterGate"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CrossChapterStep"
+            }
+        },
+        "post_delay": 400
+    },
+    "MapPushingHardFallback": {
+        "desc": "困难连败降级：战败两次后打开章节列表切普通页签继续推图",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "HardFallbackReady"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "HardFallbackArm"
+            }
+        },
+        "next": [
+            "CrossChapterWaitList"
+        ]
     }
 }

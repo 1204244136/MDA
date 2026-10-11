@@ -1,0 +1,35 @@
+{
+  "MapPushingCampaignButton": {
+    "recognition":{"type":"OCR","param":{"roi":[860,540,115,48],"expected":["^作战.*出击$"]}}
+  },
+  "MapPushingLobbyArk": {
+    "recognition":{"type":"OCR","param":{"roi":[860,465,100,70],"expected":["方舟"]}}
+  },
+  "MapPushingCampaignIcon": {
+    "desc":"大厅出击按钮上沿的白色建筑图标，活动横幅遮字时使用",
+    "recognition":{"type":"TemplateMatch","param":{"roi":[790,520,90,55],"template":["MapPushing/CampaignIcon.png"],"threshold":0.88}}
+  },
+  "MapPushingEnterCampaignCovered": {
+    "desc":"方舟与出击图标同时可见时点击出击按钮上沿，避开活动横幅",
+    "recognition":{"type":"And","param":{"all_of":["MapPushingCampaignIcon","MapPushingLobbyArk"]}},
+    "action":{"type":"Click","param":{"target":"MapPushingCampaignIcon","target_offset":[80,0,-27,-19]}},
+    "post_delay":1000,
+    "next":["[JumpBack]CommonCloseSale", "[JumpBack]CommonSkipPlot", "MapPushingAwaitCampaignMap"],
+    "timeout":120000
+  },
+  "MapPushingEnterCampaign": {
+    "desc":"确认大厅方舟和作战出击按钮后进入推图地图",
+    "recognition":{"type":"And","param":{"all_of":["MapPushingCampaignButton","MapPushingLobbyArk"]}},
+    "action":{"type":"Click","param":{"target":"MapPushingCampaignButton"}},
+    "post_delay":1000,
+    "next":["[JumpBack]CommonCloseSale", "[JumpBack]CommonSkipPlot", "MapPushingAwaitCampaignMap"],
+    "timeout":120000
+  },
+  "MapPushingAwaitCampaignMap": {
+    "desc":"等待地图加载完成；期间不重复点击大厅按钮",
+    "recognition":{"type":"Custom","param":{"custom_recognition":"MapPushingCampaignReady"}},
+    "action":{"type":"DoNothing"},
+    "post_delay":500,
+    "next":["MapPushingFlow"]
+  }
+}
