@@ -22,71 +22,133 @@
         "recognition": {
             "type": "NeuralNetworkDetect",
             "param": {
-                "model": "MapPushing.onnx",
-                "labels": [
-                    "monster"
-                ]
+                "roi": [
+                    180,
+                    40,
+                    1080,
+                    610
+                ],
+                "expected": [
+                    0,
+                    1
+                ],
+                "model": "MapPushing.onnx"
             }
         }
     },
     "MapPushingClickMonster": {
-        "desc": "推图点击怪物",
+        "desc": "推图点击怪物后等待战斗或剧情入口，行走期间不切换目标",
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "CenterPriorityRecognition",
-                "custom_recognition_param": {
-                    "entry": "MapPushingClickMonsterRaw"
-                }
+                "all_of": [
+                    "MapPushingMinimapVisible",
+                    {
+                        "recognition": {
+                            "type": "Custom",
+                            "param": {
+                                "custom_recognition": "CenterPriorityRecognition",
+                                "custom_recognition_param": {
+                                    "entry": "MapPushingClickMonsterRaw",
+                                    "fallback": "fail"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "box_index": 1
             }
         },
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": {
-            "time": 500,
-            "target": [
-                448,
-                512,
-                385,
-                79
-            ]
-        }
+        "next": [
+            "MapPushingTravelInterrupted"
+        ]
     },
     "MapPushingClickPlateRaw": {
         "desc": "推图机关原始识别",
         "recognition": {
             "type": "NeuralNetworkDetect",
             "param": {
-                "model": "MapPushing.onnx",
-                "labels": [
-                    "plate0"
-                ]
+                "roi": [
+                    180,
+                    40,
+                    1080,
+                    610
+                ],
+                "expected": [
+                    2
+                ],
+                "model": "MapPushing.onnx"
             }
         }
     },
     "MapPushingClickPlate": {
         "desc": "推图点击机关",
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "CenterPriorityRecognition",
-                "custom_recognition_param": {
-                    "entry": "MapPushingClickPlateRaw"
-                }
+                "all_of": [
+                    "MapPushingMinimapVisible",
+                    {
+                        "recognition": {
+                            "type": "Custom",
+                            "param": {
+                                "custom_recognition": "CenterPriorityRecognition",
+                                "custom_recognition_param": {
+                                    "entry": "MapPushingClickPlateRaw",
+                                    "fallback": "fail"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "box_index": 1
             }
         },
         "action": {
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 500,
+            "time": 1200,
             "target": [
-                448,
-                512,
-                385,
-                79
-            ]
+                20,
+                85,
+                122,
+                90
+            ],
+            "threshold": 0.98,
+            "rate_limit": 100
+        }
+    },
+    "MapPushingTravelInterrupted": {
+        "desc": "战斗准备或剧情已出现，返回推图入口处理",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "BattleMainVisible",
+                    "CommonSkipPlot"
+                ]
+            }
+        }
+    },
+    "MapPushingMinimapVisible": {
+        "desc": "确认小地图展开，避免等待区域落入动态场景背景",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    13,
+                    58,
+                    30,
+                    33
+                ],
+                "template": [
+                    "MapPushing/MinimapVisible.png"
+                ]
+            }
         }
     }
 }

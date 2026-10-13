@@ -122,7 +122,29 @@ func (r *CenterPriorityRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogni
 		return nil, false
 	}
 
-	selected, index, ok := selectCandidate(detail, params, center)
+	var selected resultCandidate
+	var index int
+	var ok bool
+	if params.Source == sourceFiltered && detail.Algorithm == "NeuralNetworkDetect" {
+		nodeJSON, err := ctx.GetNodeJSON(params.Entry)
+		if err != nil {
+			log.Error().Err(err).Str("component", componentName).Str("entry", params.Entry).
+				Msg("failed to read detection filter")
+			return nil, false
+		}
+		var candidates []resultCandidate
+		if detail.Results != nil {
+			candidates = candidatesFromResults(detail.Results.All)
+		}
+		selected, index, ok, err = selectDetectionCandidate(candidates, nodeJSON, center)
+		if err != nil {
+			log.Error().Err(err).Str("component", componentName).Str("entry", params.Entry).
+				Msg("failed to apply detection filter")
+			return nil, false
+		}
+	} else {
+		selected, index, ok = selectCandidate(detail, params, center)
+	}
 	if !ok {
 		log.Warn().
 			Str("component", componentName).
@@ -265,6 +287,71 @@ func selectCandidate(detail *maa.RecognitionDetail, params recognitionParam, cen
 	}
 
 	return fallbackCandidate(detail, params)
+}
+
+// 框架的检测 Filtered 每类只留首个框；按生效 Pipeline 参数筛选 All，保留中心排序所需的全部框。
+func selectDetectionCandidate(candidates []resultCandidate, nodeJSON string, center point) (resultCandidate, int, bool, error) {
+	var node struct {
+		Recognition struct {
+			Type  string `json:"type"`
+			Param struct {
+				Expected  []json.RawMessage `json:"expected"`
+				Threshold []float64         `json:"threshold"`
+			} `json:"param"`
+		} `json:"recognition"`
+	}
+	if err := json.Unmarshal([]byte(nodeJSON), &node); err != nil {
+		return resultCandidate{}, -1, false, err
+	}
+	filter := node.Recognition.Param
+	if node.Recognition.Type != "NeuralNetworkDetect" || len(filter.Threshold) == 0 ||
+		(len(filter.Expected) > 0 && len(filter.Expected) != len(filter.Threshold)) {
+		return resultCandidate{}, -1, false, errors.New("invalid effective detection filter")
+	}
+	for _, threshold := range filter.Threshold {
+		if threshold < 0 || threshold > 1 {
+			return resultCandidate{}, -1, false, errors.New("invalid detection threshold")
+		}
+	}
+	allowed := make(map[uint64]float64)
+	labels := make(map[string]float64)
+	for i, raw := range filter.Expected {
+		if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+			return resultCandidate{}, -1, false, errors.New("invalid expected detection class")
+		}
+		var cls uint64
+		if err := json.Unmarshal(raw, &cls); err == nil {
+			if threshold, exists := allowed[cls]; !exists || filter.Threshold[i] < threshold {
+				allowed[cls] = filter.Threshold[i]
+			}
+			continue
+		}
+		var label string
+		if err := json.Unmarshal(raw, &label); err != nil {
+			return resultCandidate{}, -1, false, errors.New("invalid expected detection class")
+		}
+		if threshold, exists := labels[label]; !exists || filter.Threshold[i] < threshold {
+			labels[label] = filter.Threshold[i]
+		}
+	}
+	filtered := make([]resultCandidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate.ClsIndex == nil || candidate.Score == nil {
+			continue
+		}
+		threshold, matches := allowed[*candidate.ClsIndex]
+		if labelThreshold, labelMatches := labels[candidate.Label]; labelMatches && (!matches || labelThreshold < threshold) {
+			threshold, matches = labelThreshold, true
+		}
+		if len(filter.Expected) == 0 {
+			threshold, matches = filter.Threshold[0], true
+		}
+		if matches && *candidate.Score >= threshold {
+			filtered = append(filtered, candidate)
+		}
+	}
+	selected, index, ok := chooseNearest(filtered, center)
+	return selected, index, ok, nil
 }
 
 func fallbackCandidate(detail *maa.RecognitionDetail, params recognitionParam) (resultCandidate, int, bool) {
