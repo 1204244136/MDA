@@ -196,8 +196,20 @@
                 "index": -1
             }
         },
+        // 当前活动（LittleWitchTrick）的扫荡标识是挂在关卡行右下角外侧的木牌，识别框中心落在关卡行
+        // 命中区之外，直接用中心点会点空导致漏打；向左上偏移把落点拉回关卡行上。
+        // 该偏移属于「当前活动」专属参数：往期主题 case 必须显式写 target_offset 归零，
+        // 否则会静默继承本值（由 npm run check:theme 断言 D 强制校验）。
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -80,
+                    -30,
+                    0,
+                    0
+                ]
+            }
         },
         "post_wait_freezes": 500,
         "next": [

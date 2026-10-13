@@ -199,8 +199,24 @@ runtime_task.pipeline_override.emplace(it->pipeline_override);   // 命中则应
 1. 对每个活动，断言各往期主题必须覆盖全部 `expectedTemplateNodes`。
 2. 对 `LargeEventTheme`，断言各主题 case（除 `CurrentEvent`）必须显式覆盖 `LargeEventMiniGame`。
 3. 额外校验：`CurrentEvent` **不应**含 `pipeline_override`。
+4. 对登记在 `offsetCarryingNodes` 的「主题专属点击偏移」节点，断言 base 必须带非零 `target_offset`，且各往期主题必须显式声明同一节点的 `target_offset`（见 4.4）。
 
 挂到 `package.json`：`"check:theme": "node scripts/check-theme-sync.mjs"`，进 CI。
+
+### 4.4 base 承载的第二类参数：动作偏移（`target_offset`）
+
+`template` 之外，**动作参数同样按 prop 深合并**，所以 base 上的 `action.param.target_offset` 也会被往期主题静默继承。当某个活动的「识别框与点击区错位」需要用偏移修补时（实例：`LittleWitchTrick` 的扫荡标识是挂在关卡行右下角**外侧**的木牌，识别框中心落在关卡行命中区外，点空导致漏打），偏移必须按与模板同一套规则处理：
+
+- 偏移写进 base 节点 `SmallEventClickStageRepeatable`（`[-80, -30, 0, 0]`，向左上把落点拉回关卡行），选 `CurrentEvent` 的用户才能自动跟随；
+- 当前主题 case（`LittleWitchTrick`）**再写一份**同样的偏移——base 换到下一个主题后，回选它的用户仍拿到正确偏移；
+- 其余往期主题 case 必须**显式声明 `"target_offset": [0, 0, 0, 0]`**，否则会跟着当前活动一起偏移。
+
+必须区分两类偏移，否则「一律要求往期主题声明」会把老主题本该继承的正确调参改坏：
+
+| 类别     | 判据                                       | 实例                                                                         | 往期主题是否必须声明               |
+| -------- | ------------------------------------------ | ---------------------------------------------------------------------------- | ---------------------------------- |
+| 主题专属 | 偏移是为补**某个主题**的识别框与点击区错位 | `SmallEventClickStageRepeatable` 的 `[-80, -30, 0, 0]`                       | 必须，登记进 `offsetCarryingNodes` |
+| 通用调参 | 所有主题共用的同一处调参                   | `{Small,Large}EventEnterMainPage` 的 `[30, 0, 0, 0]`（`e003aa9` 一次性加入） | 不必，往期主题本就该继承           |
 
 ---
 

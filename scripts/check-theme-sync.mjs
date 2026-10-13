@@ -5,7 +5,7 @@
  * `pipeline_override`，而是靠 resource 侧 base 节点承载最新主题的模板；用户选中
  * CurrentEvent 时会自动跟随下次更新。
  *
- * 由此产生两类必须自动守住的不变量：
+ * 由此产生三类必须自动守住的不变量：
  *
  *   1. 模板类节点（override 内含 `template`）：所有「往期主题」case 必须**逐个覆盖**
  *      同一批节点。
@@ -13,7 +13,17 @@
  *      否则：base 换成新主题后，未覆盖的往期主题会静默继承新主题模板，导致回选
  *      老活动时识别失败（且不会报错，只是永远匹配不上）。
  *
- *   2. CurrentEvent 必须**没有** `pipeline_override`（或为空对象）。
+ *   2. base 节点的动作参数（`action.param.target_offset` 点击偏移）与模板同理：
+ *      base 一旦带上「当前活动」专属的非零偏移，所有「往期主题」case 必须**逐个显式声明**
+ *      同一节点的 `target_offset`（不需要偏移就写 [0, 0, 0, 0]）。
+ *
+ *      否则：往期主题的点击会跟着当前活动一起偏移，落到目标之外（点偏、漏打）。
+ *
+ *      范围由 TARGETS 的 `offsetCarryingNodes` 显式登记 —— 只有「为补某个主题的
+ *      识别框与点击区错位」的偏移才算主题专属；全主题通用的调参不登记，也不要求
+ *      往期主题声明（否则会让老主题白白丢掉本来就该继承的偏移）。
+ *
+ *   3. CurrentEvent 必须**没有** `pipeline_override`（或为空对象）。
  *      否则：又回到"写两遍"，且 override 会盖住 base，自动跟随失效。
  *
  *      例外：`option`（子选项列表）不算 override，必须保留。
@@ -37,15 +47,35 @@ const TARGETS = [
     {
         file: "assets/tasks/SmallEvent.json",
         optionName: "SmallEventTheme",
+        /** base 节点所在 resource 文件（用于读取「当前活动」写在 base 上的模板与动作参数）。 */
+        basePipelineFiles: [
+            "assets/resource/pipeline/Event/SmallEvent/SmallEvent.json",
+            "assets/resource/pipeline/Event/SmallEvent/SmallEventStory.json",
+        ],
         expectedTemplateNodes: [
             "SmallEventEnterMainPage",
             "SmallEventClickStage",
+            "SmallEventClickStageRepeatable",
+        ],
+        /**
+         * base 上承载「当前活动专属」点击偏移的节点：往期主题必须逐个显式声明 target_offset，
+         * 否则会静默继承当前活动的偏移而点偏目标。
+         *
+         * 注意区分「主题专属」与「全主题通用」：`SmallEventEnterMainPage` 的 [30, 0, 0, 0]
+         * 是所有主题共用的入口调参（e003aa9），往期主题本就该继承，因此**不列在这里**；
+         * 只有「偏移是为了补某个主题的识别框与点击区错位」时才登记。
+         */
+        offsetCarryingNodes: [
             "SmallEventClickStageRepeatable",
         ],
     },
     {
         file: "assets/tasks/LargeEvent.json",
         optionName: "LargeEventTheme",
+        basePipelineFiles: [
+            "assets/resource/pipeline/Event/LargeEvent/LargeEvent.json",
+            "assets/resource/pipeline/Event/LargeEvent/LargeEventStory.json",
+        ],
         expectedTemplateNodes: [
             "LargeEventEnterMainPage",
             "LargeEventClickStoryStage",
@@ -54,6 +84,8 @@ const TARGETS = [
         expectedRoutingNodes: [
             "LargeEventMiniGame",
         ],
+        /** LargeEvent 暂无主题专属点击偏移。 */
+        offsetCarryingNodes: [],
     },
 ];
 
@@ -107,6 +139,38 @@ function carriesTemplate(overrideValue) {
     if (!overrideValue || typeof overrideValue !== "object") return false;
     const param = overrideValue?.recognition?.param;
     return Boolean(param && Object.prototype.hasOwnProperty.call(param, "template"));
+}
+
+/** 汇总 base pipeline 中的节点定义：节点名 -> 节点 JSON。 */
+function loadBaseNodes(target) {
+    const nodes = new Map();
+    for (const rel of target.basePipelineFiles ?? []) {
+        try {
+            const doc = parseJsonc(readFileSync(join(REPO_ROOT, rel), "utf8"));
+            for (const [
+                name,
+                node,
+            ] of Object.entries(doc)) {
+                nodes.set(name, node);
+            }
+        } catch (err) {
+            errors.push(`[${target.optionName}] 无法解析 base pipeline ${rel}：${err.message}`);
+        }
+    }
+    return nodes;
+}
+
+/** 读取节点上的点击偏移（兼容 `action.param.target_offset` 与旧式顶层 `target_offset`）。 */
+function targetOffsetOf(node) {
+    if (!node || typeof node !== "object") return null;
+    const nested = node?.action?.param?.target_offset;
+    if (nested !== undefined) return nested;
+    return node.target_offset === undefined ? null : node.target_offset;
+}
+
+/** 偏移是否为非默认值：任一分量不为 0 即算（兼容「每段一个偏移」的嵌套数组写法）。 */
+function isNonZeroOffset(offset) {
+    return Array.isArray(offset) && offset.flat(2).some((v) => typeof v === "number" && v !== 0);
 }
 
 const errors = [];
@@ -178,6 +242,64 @@ for (const target of TARGETS) {
                 `[${target.optionName}] 节点 "${nodeName}" 未被以下往期主题覆盖 template：` +
                     `${missing.join(", ")}。` +
                     `base 承载最新主题后，这些主题会静默继承新模板导致识别失败。`,
+            );
+        }
+    }
+
+    // ---- 断言 D：base 上带「当前活动专属」点击偏移的节点，往期主题必须显式声明 target_offset ----
+    // 与断言 B 同源：base 承载的是「当前活动」的主题专属参数。除了 template，
+    // 动作参数（action.param.target_offset）同样会被静默继承（框架按 prop 深合并 override）。
+    const baseNodes = loadBaseNodes(target);
+    for (const nodeName of target.offsetCarryingNodes ?? []) {
+        const baseNode = baseNodes.get(nodeName);
+        if (!baseNode) {
+            errors.push(
+                `[${target.optionName}] base pipeline 中找不到节点 "${nodeName}"，` +
+                    `请检查 basePipelineFiles 配置与节点是否已改名。`,
+            );
+            continue;
+        }
+        const baseOffset = targetOffsetOf(baseNode);
+        if (!isNonZeroOffset(baseOffset)) {
+            errors.push(
+                `[${target.optionName}] 节点 "${nodeName}" 被登记为「主题专属点击偏移」节点，` +
+                    `但 base 上没有非零 target_offset。` +
+                    `若新主题不再需要该偏移，请把此节点从脚本 TARGETS 的 offsetCarryingNodes 移除。`,
+            );
+            continue;
+        }
+
+        const declaredWith = new Map();
+        const missing = [];
+        for (const name of pastThemes) {
+            const po = byName.get(name)?.pipeline_override ?? {};
+            const value = targetOffsetOf(po[nodeName]);
+            if (value === null) {
+                missing.push(name);
+                continue;
+            }
+            const key = JSON.stringify(value);
+            declaredWith.set(key, [
+                ...(declaredWith.get(key) ?? []),
+                name,
+            ]);
+        }
+
+        if (missing.length > 0) {
+            errors.push(
+                `[${target.optionName}] 节点 "${nodeName}" 的 base 带非零 target_offset ` +
+                    `${JSON.stringify(baseOffset)}，但以下往期主题未显式声明 target_offset：` +
+                    `${missing.join(", ")}。` +
+                    `这些主题会静默继承当前活动的点击偏移而点偏目标，` +
+                    `请在 case 里显式写 "target_offset": [0, 0, 0, 0]。`,
+            );
+        } else {
+            const detail = [...declaredWith]
+                .map(([value, names]) => `${names.join("/")} = ${value}`)
+                .join("；");
+            notes.push(
+                `[${target.optionName}] 节点 "${nodeName}"：base = ${JSON.stringify(baseOffset)}；` +
+                    `往期主题均显式声明 —— ${detail}。`,
             );
         }
     }

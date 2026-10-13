@@ -86,6 +86,10 @@
 - `LargeEvent` / `SmallEvent` 的以下 base 节点直接写**最新主题**的真实配置，并加注释 `//当前活动，随最新主题更新`：
     - 模板类节点：`LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`、`SmallEventEnterMainPage`、`SmallEventClickStage`、`SmallEventClickStageRepeatable`
     - 小游戏路由节点：`LargeEventMiniGame`（若最新活动支持小游戏，其 `next` 写最新主题的真实小游戏入口，如 `LargeEventCoinRushShowdownMiniGame` 并接 `CommonEndTask`；若不支持则直接写 `["CommonEndTask"]`）。
+- **base 承载的不只是模板**：凡「当前活动专属」的动作参数（目前用到的是 `action.param.target_offset` 点击偏移）同样写在 base 节点上。框架的 override 是**按 prop 深合并**的，所以这类参数会和模板一样被往期主题静默继承——**往期主题 case 必须逐个显式声明**（不需要偏移就写 `"target_offset": [0, 0, 0, 0]`），否则回选老活动时会带着当前活动的偏移去点，落点偏出目标导致漏打。
+- **主题专属偏移 vs 通用调参**：判据是「这个偏移是为了补某个主题的识别框与点击区错位，还是所有主题共用的一处调参」。
+    - **主题专属**（登记进 `scripts/check-theme-sync.mjs` 的 `offsetCarryingNodes`，往期主题必须声明）：如 `SmallEventClickStageRepeatable` 在 `LittleWitchTrick` 下的 `[-80, -30, 0, 0]` —— 该主题的扫荡标识（木牌）挂在关卡行右下角**外侧**，识别框中心落在命中区外，必须向左上偏移回落到关卡行上。
+    - **通用调参**（不登记、往期主题照样继承、也不要抄进各主题 case）：如 `SmallEventEnterMainPage` / `LargeEventEnterMainPage` 的 `[30, 0, 0, 0]`（`e003aa9` 一次性加在 base 上，两个活动共用同一处入口调参）。
 - **`CurrentEvent` 与小游戏机制**：`CurrentEvent` **不携带 `pipeline_override`**，因此当前活动是否跑小游戏**100% 依赖 base 节点的 `LargeEventMiniGame`**！
 - **防止往期主题静默继承小游戏**：因为 base 节点的 `LargeEventMiniGame` 承载了最新主题的小游戏，**所有往期主题 case（包括不支持小游戏的主题如 `StarAnis`、`Other`）必须在各自的 `pipeline_override` 中全量覆盖 `LargeEventMiniGame`**（有小游戏的覆写为自己的小游戏入口+`CommonEndTask`，无小游戏的覆写为 `["CommonEndTask"]`）。漏覆写会导致回选老活动时误跑当前活动的小游戏。
 - `LargeEventEnterMission` 是**中性红点检测**（`Common/RedDot.png` + `Common/RedDotSP.png`），不是主题模板节点，**不要改动**。
@@ -95,6 +99,8 @@
 
 1. 为新主题写好完整的 case（含 `label`、三个模板类节点的 `pipeline_override`，以及 `LargeEventMiniGame` 的 override）。
 2. 把 base 节点的 `template` 和 `LargeEventMiniGame` 换成新主题的配置（即把「当前活动」升级为新主题；若新活动无小游戏则 `LargeEventMiniGame` 写 `["CommonEndTask"]`）。
+    - 若新主题存在「识别框与点击区错位」（如扫荡标识悬在关卡行外侧），把 `action.param.target_offset` 一并写进 base，**同时写进新主题 case**，并确认该节点已登记在 `scripts/check-theme-sync.mjs` 的 `offsetCarryingNodes`。
+    - 反之，若新主题不需要该偏移，把 base 上的 `target_offset` 删回默认，并按断言 D 的提示把节点从 `offsetCarryingNodes` 移除。
 3. `CurrentEvent` **不动**：它没有 override，base 一改就自动跟随。
 4. 往期主题 case 的 `pipeline_override` 一律保留不动，供用户显式回选仍在开放的老活动。
 5. 跑 `npm run check:theme` 校验。
@@ -121,13 +127,14 @@
 
 ### 护栏：`npm run check:theme`
 
-`scripts/check-theme-sync.mjs` 自动守住三条不变量，违规时退出码 1：
+`scripts/check-theme-sync.mjs` 自动守住四条不变量，违规时退出码 1：
 
 - **断言 A**：`CurrentEvent` 不得携带非空 `pipeline_override`（否则自动跟随失效）。
 - **断言 B**：所有往期主题 case 必须逐个覆盖同一批模板类节点。漏覆盖的主题在 base 换新后会**静默继承新主题模板**，导致回选老活动时永远匹配不上且不报错——这正是护栏存在的意义。
 - **断言 C**：所有往期主题 case（含 `Other`）必须显式覆盖 `LargeEventMiniGame` 的 `next` 数组。漏覆盖的主题会**静默继承最新主题的小游戏**，导致在老活动中误识别当前小游戏。
+- **断言 D**：对 `TARGETS[].offsetCarryingNodes` 登记的节点，base 必须带非零 `target_offset`，且所有往期主题 case 必须逐个显式声明 `target_offset`。漏声明的主题会**静默继承当前活动的点击偏移**（override 按 prop 深合并）而点偏目标；登记节点在 base 上没有非零偏移时也报错，提示把该节点从 `offsetCarryingNodes` 移除。
 
-新增主题或调整 base 时，若模板类节点的集合发生变化，需同步更新脚本顶部的 `TARGETS[].expectedTemplateNodes`。
+新增主题或调整 base 时，若模板类节点或「主题专属偏移」节点的集合发生变化，需同步更新脚本顶部的 `TARGETS[].expectedTemplateNodes` / `TARGETS[].offsetCarryingNodes`。
 
 ## 大型小活动适配
 

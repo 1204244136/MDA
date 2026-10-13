@@ -60,6 +60,16 @@
                                         "SmallEvent/BitterSpice/BitterSpiceStageHardRepeatable.png"
                                     ]
                                 }
+                            },
+                            "action": {
+                                "param": {
+                                    "target_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                }
                             }
                         }
                     }
@@ -93,6 +103,16 @@
                                     "template": [
                                         "SmallEvent/B-SideIdol/B-SideIdolStageNormalRepeatable.png",
                                         "SmallEvent/B-SideIdol/B-SideIdolStageHardRepeatable.png"
+                                    ]
+                                }
+                            },
+                            "action": {
+                                "param": {
+                                    "target_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
                                     ]
                                 }
                             }
@@ -132,6 +152,16 @@
                                         "SmallEvent/ProjectMatis/ProjectMatisStory2StageHardRepeatable.png"
                                     ]
                                 }
+                            },
+                            "action": {
+                                "param": {
+                                    "target_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                }
                             }
                         }
                     }
@@ -167,6 +197,16 @@
                                         "SmallEvent/GreatVillainUnion/GreatVillainUnionStageHardRepeatable.png"
                                     ]
                                 }
+                            },
+                            "action": {
+                                "param": {
+                                    "target_offset": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                }
                             }
                         }
                     }
@@ -198,6 +238,16 @@
                                 "param": {
                                     "template": [
                                         "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png"
+                                    ]
+                                }
+                            },
+                            "action": {
+                                "param": {
+                                    "target_offset": [
+                                        -80,
+                                        -30,
+                                        0,
+                                        0
                                     ]
                                 }
                             }

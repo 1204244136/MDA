@@ -7,6 +7,10 @@ A. base 节点的 template 是「默认值」，选中主题 case 的 override �
 B. 未选中任何主题 case（或选中一个无 override 的 case）时，保留 base 的 template
    → CurrentEvent 可以完全没有 override
 C. 用一个「无 override 的 case」承接 CurrentEvent 语义是可行的
+D. 只覆盖部分节点时，未覆盖的节点落到 base（风险点）
+E. base 的动作参数（action.param.target_offset）同样按 prop 深合并：
+   往期主题只覆盖 template 时会静默继承当前活动的点击偏移，必须显式写 [0, 0, 0, 0] 归零
+   → 对应 `npm run check:theme` 的断言 D
 """
 
 import ctypes
@@ -46,15 +50,22 @@ def check(name, cond, detail=""):
         print(f"        {detail}")
 
 
-def tpl_of(res, node):
+def node_of(res, node):
+    """读取框架内部解析后的完整节点数据。"""
     buf = maa.MaaStringBufferCreate()
     ok = maa.MaaResourceGetNodeData(res, node.encode(), buf)
     raw = maa.MaaStringBufferGet(buf)
     data = json.loads(raw.decode("utf-8")) if (ok and raw) else None
     maa.MaaStringBufferDestroy(buf)
-    if not data:
-        return None
-    return ((data.get("recognition") or {}).get("param") or {}).get("template")
+    return data or {}
+
+
+def tpl_of(res, node):
+    return ((node_of(res, node).get("recognition") or {}).get("param") or {}).get("template")
+
+
+def offset_of(res, node):
+    return ((node_of(res, node).get("action") or {}).get("param") or {}).get("target_offset")
 
 
 LATEST = "SmallEvent/DemoTheme/GreatVillainUnionStory1Stage.png"
@@ -143,6 +154,42 @@ def main():
     maa.MaaResourceDestroy(res)
     maa.MaaResourceDestroy(res2)
     maa.MaaResourceDestroy(res3)
+
+    print("\n" + "=" * 64)
+    print("假设 E：base 的动作参数 target_offset 会被 override 深合并")
+    print("=" * 64)
+    res4 = maa.MaaResourceCreate()
+    rid4 = maa.MaaResourcePostBundle(res4, RES_DIR.encode())
+    maa.MaaResourceWait(res4, rid4)
+    # 模拟：当前活动（LittleWitchTrick）把「扫荡标识挂在关卡行外侧」的补偿写在 base 上
+    maa.MaaResourceOverridePipeline(res4, json.dumps({
+        "SmallEventClickStageRepeatable": {"action": {"param": {"target_offset": [-80, -30, 0, 0]}}}
+    }).encode())
+    check("base 写入 target_offset 后动作类型仍是 Click（只改 param 不丢 type）",
+          (node_of(res4, "SmallEventClickStageRepeatable").get("action") or {}).get("type") == "Click",
+          f"实际 action = {node_of(res4, 'SmallEventClickStageRepeatable').get('action')}")
+    check("base 的 target_offset 生效",
+          offset_of(res4, "SmallEventClickStageRepeatable") == [-80, -30, 0, 0],
+          f"实际 = {offset_of(res4, 'SmallEventClickStageRepeatable')}")
+
+    # 往期主题只覆盖 template、不写 target_offset → 静默继承当前活动的偏移
+    maa.MaaResourceOverridePipeline(res4, json.dumps({
+        "SmallEventClickStageRepeatable": {"recognition": {"param": {"template": [OLD]}}}
+    }).encode())
+    check("往期主题只覆盖 template 时会静默继承 base 的点击偏移（风险点）",
+          offset_of(res4, "SmallEventClickStageRepeatable") == [-80, -30, 0, 0],
+          f"实际 = {offset_of(res4, 'SmallEventClickStageRepeatable')}"
+          f"  ← 这就是断言 D 存在的原因：回选老活动会带着当前活动的偏移点偏")
+
+    # 往期主题显式归零 → 覆盖生效
+    maa.MaaResourceOverridePipeline(res4, json.dumps({
+        "SmallEventClickStageRepeatable": {"action": {"param": {"target_offset": [0, 0, 0, 0]}}}
+    }).encode())
+    check("往期主题显式写 [0, 0, 0, 0] 能覆盖回默认（归零有效）",
+          offset_of(res4, "SmallEventClickStageRepeatable") == [0, 0, 0, 0],
+          f"实际 = {offset_of(res4, 'SmallEventClickStageRepeatable')}")
+
+    maa.MaaResourceDestroy(res4)
 
     print("\n" + "=" * 64)
     print(f"汇总: {len(PASS)} 通过 / {len(FAIL)} 失败")
