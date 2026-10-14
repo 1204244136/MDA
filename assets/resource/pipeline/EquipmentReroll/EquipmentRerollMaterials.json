@@ -71,6 +71,7 @@
         }
     },
     "__EquipmentRerollCostModuleCount": {
+        "desc": "消耗汇总条的订制模块数量；小字必须 only_rec，走 det 只框得住数字上半部",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -81,11 +82,13 @@
                     4,
                     6
                 ],
-                "expected": "^\\d+$"
+                "expected": "^\\d+$",
+                "only_rec": true
             }
         }
     },
     "__EquipmentRerollCostKeyCount": {
+        "desc": "消耗汇总条的自订密钥数量（可能两位）；必须 only_rec，同模块数量",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -96,7 +99,8 @@
                     4,
                     6
                 ],
-                "expected": "^\\d+$"
+                "expected": "^\\d+$",
+                "only_rec": true
             }
         }
     },
