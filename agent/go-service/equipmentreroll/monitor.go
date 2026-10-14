@@ -266,6 +266,34 @@ func firstRawOCRText(detail *maa.RecognitionDetail) string {
 	return ""
 }
 
+// ocrProbe 把识别结果压成一行「文本(分数)」摘要供诊断日志使用：
+// 未命中时 MaaFramework 仍带回 all 候选，往往就是当时 ROI 里真正显示的文字。
+func ocrProbe(detail *maa.RecognitionDetail) string {
+	const maxCandidates = 4
+	parts := make([]string, 0, maxCandidates)
+	for _, result := range allResults(detail) {
+		if result == nil {
+			continue
+		}
+		ocr, ok := result.AsOCR()
+		if !ok {
+			continue
+		}
+		text := strings.Join(strings.Fields(ocr.Text), " ")
+		if text == "" {
+			text = "<empty>"
+		}
+		parts = append(parts, fmt.Sprintf("%s(%.3f)", text, ocr.Score))
+		if len(parts) >= maxCandidates {
+			break
+		}
+	}
+	if len(parts) == 0 {
+		return "<none>"
+	}
+	return strings.Join(parts, "|")
+}
+
 // extractPercentValue 从 OCR 原文中提取最后一个百分数（如 "11.81%"）作为数值。
 // 结果页槽位 OCR 通常是「【效果】11.81%」这类文本，取最后一个百分数作为实际数值。
 func extractPercentValue(raw string) string {

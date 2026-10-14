@@ -383,7 +383,12 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 
 	titleDetail, err := ctx.RunRecognition("__EquipmentRerollLockTitle", arg.Img, nil)
 	if err != nil || titleDetail == nil || !titleDetail.Hit {
-		log.Debug().Str("component", "EquipmentReroll").Msg("lock page title not found")
+		// 附上读到的文字，便于区分页面未切换与识别失败。
+		log.Debug().
+			Str("component", "EquipmentReroll").
+			Int64("task_id", arg.TaskID).
+			Str("ocr", ocrProbe(titleDetail)).
+			Msg("lock page title not found")
 		return nil, false
 	}
 
@@ -574,7 +579,11 @@ func isBetterHeldCandidate(cur, best heldCandidate) bool {
 func readHeldCount(ctx *maa.Context, img image.Image, nodeName string) (int, bool) {
 	detail, err := ctx.RunRecognition(nodeName, img, nil)
 	if err != nil || detail == nil || !detail.Hit {
-		log.Debug().Str("component", "EquipmentReroll").Str("node", nodeName).Msg("lock held count not recognized")
+		log.Debug().
+			Str("component", "EquipmentReroll").
+			Str("node", nodeName).
+			Str("ocr", ocrProbe(detail)).
+			Msg("lock held count not recognized")
 		return 0, false
 	}
 	candidates := extractHeldCandidates(detail)
@@ -700,6 +709,23 @@ func keepLockRouteTarget(slot int) string {
 	}
 }
 
+// prepareRerollCostNext 返回「读取确认页消耗」的下一跳：识别节点 + 它的重试闸门。
+// 少了闸门，识别失败会静默轮询到父节点的 reco_timeout(20s)。
+func prepareRerollCostNext() []maa.NextItem {
+	return []maa.NextItem{
+		{Name: "EquipmentRerollPrepareRerollCost"},
+		{Name: "__EquipmentRerollRetryGateCostUnreadable"},
+	}
+}
+
+// nextForRouteTarget 把路由目标展开成 next：读确认页消耗时补上重试闸门，其余保持单项。
+func nextForRouteTarget(target string) []maa.NextItem {
+	if target == "EquipmentRerollPrepareRerollCost" {
+		return prepareRerollCostNext()
+	}
+	return []maa.NextItem{{Name: target}}
+}
+
 func (a *EquipmentRerollKeepLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 	if ctx == nil || arg == nil {
 		return false
@@ -722,7 +748,7 @@ func (a *EquipmentRerollKeepLockRouteSlotAction) Run(ctx *maa.Context, arg *maa.
 		}
 	}
 	target := keepLockRouteTarget(slot)
-	if err := ctx.OverrideNext(arg.CurrentTaskName, []maa.NextItem{{Name: target}}); err != nil {
+	if err := ctx.OverrideNext(arg.CurrentTaskName, nextForRouteTarget(target)); err != nil {
 		log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route keep lock slot")
 		return false
 	}

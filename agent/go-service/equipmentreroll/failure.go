@@ -21,6 +21,10 @@ func equipmentRerollFailureKey(reason string) string {
 		return "tasker.equipment_reroll.value_lock_plan_failed"
 	case "confirm_not_advanced":
 		return "tasker.equipment_reroll.confirm_not_advanced"
+	case "cost_unreadable":
+		return "tasker.equipment_reroll.cost_unreadable"
+	case "details_page_not_opened":
+		return "tasker.equipment_reroll.details_page_not_opened"
 	case "reload_locks_verify_failed":
 		return "tasker.equipment_reroll.reload_locks_verify_failed"
 	case "lock_abort_page_unknown":

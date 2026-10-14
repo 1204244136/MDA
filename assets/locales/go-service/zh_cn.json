@@ -59,6 +59,8 @@
     "tasker.equipment_reroll.reload_locks_verify_failed": "⚠️ 加载先前锁定设置后，未能在限定重试次数内确认实际锁位与计划一致。为避免在未知锁定状态下继续消耗材料，任务已停止，请检查锁位后重试。",
     "tasker.equipment_reroll.lock_abort_page_unknown": "⚠️ 放弃锁定并关闭锁定页后，未能识别效果变更确认页或装备详情页。任务已停止，请返回装备详情页后重试。",
     "tasker.equipment_reroll.operation_failed": "⚠️ 装备改造流程进入无法恢复的页面状态，任务已停止，请检查当前页面后重试。",
+    "tasker.equipment_reroll.cost_unreadable": "⚠️ 未能在限定重试次数内读出确认页的消耗数量（订制模块 / 自订密钥）。为避免在费用未知的情况下继续消耗材料，任务已停止。请确认当前页面完整显示「消耗材料」栏后重试。",
+    "tasker.equipment_reroll.details_page_not_opened": "⚠️ 连续多次点击装备后仍未打开装备详情页。若使用后台输入方式（截图 FramePool/PrintWindow + 鼠标 SendMessage/PostMessage），游戏窗口可能不接受合成点击；请改用前台方式（截图 ScreenDC + 鼠标 Interception/Seize），并让游戏窗口保持可见、未被遮挡后重试。",
     "tasker.equipment_reroll.config_invalid": "洗词条配置无效：请检查重洗内容、模式及数值目标（至少一个 1～15 的 T 档目标）。",
     "tasker.equipment_reroll.value_invalid": "无法生成数值重洗计划：%s。已停止后续重洗，请检查词条、数值、锁定状态及目标设置。",
     "tasker.equipment_reroll.value_satisfied": "选定范围内的目标词条数值均已达标，无需重洗。",

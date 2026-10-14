@@ -637,6 +637,47 @@
             "EquipmentRerollConfirmChangeEffect"
         ]
     },
+    "__EquipmentRerollRetryGateCostUnreadable": {
+        "desc": "重试闸门：确认页消耗读数失败时有界重试，超限后显式失败",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action_param": {
+                    "key": "cost_unreadable",
+                    "retry": "EquipmentRerollPrepareRerollCost",
+                    "give_up": "EquipmentRerollCostUnreadableFailed",
+                    "limit": 5,
+                    "window_ms": 8000,
+                    "next": [
+                        "EquipmentRerollPrepareRerollCost",
+                        "__EquipmentRerollRetryGateCostUnreadable"
+                    ]
+                }
+            }
+        },
+        "post_delay": 300,
+        "timeout": 5000,
+        "rate_limit": 500
+    },
+    "EquipmentRerollCostUnreadableFailed": {
+        "desc": "读不出确认页消耗数量，清理暂存费用并显式失败",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "cost_unreadable"
+                }
+            }
+        }
+    },
     "EquipmentRerollRecordRerollCost": {
         "desc": "结果页已出现后同时扣记本轮模组和密钥，仅记账一次",
         "recognition": {
@@ -824,7 +865,7 @@
         ]
     },
     "EquipmentRerollKeepLockRoute": {
-        "desc": "按待锁槽位路由到确认页槽位点击；无需锁定则确认页直接刷新",
+        "desc": "按待锁槽位路由到确认页槽位点击；无需锁定则确认页直接刷新（next 由 KeepLockRouteSlotAction 覆写）",
         "recognition": {
             "type": "DirectHit"
         },
@@ -840,7 +881,8 @@
         "next": [
             "EquipmentRerollKeepClickSlot2",
             "EquipmentRerollKeepClickSlot3",
-            "EquipmentRerollPrepareRerollCost"
+            "EquipmentRerollPrepareRerollCost",
+            "__EquipmentRerollRetryGateCostUnreadable"
         ]
     },
     "EquipmentRerollKeepClickSlot2": {

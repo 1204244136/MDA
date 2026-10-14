@@ -180,7 +180,7 @@ func (*EquipmentRerollValuePrepareAction) Run(ctx *maa.Context, arg *maa.CustomA
 		}
 	}
 	// 历史加载也必须服从已冻结的完整方案；按钮不可用才逐槽落实。
-	next := []maa.NextItem{{Name: target}}
+	next := nextForRouteTarget(target)
 	if locks, reusable := reusableLocksForTask(arg.TaskID, cfg); reusable && locks == plan.Locks {
 		next = append([]maa.NextItem{{Name: "EquipmentRerollReloadLocks"}}, next...)
 	}

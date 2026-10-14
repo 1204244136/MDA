@@ -41,7 +41,8 @@
         "post_delay": 0,
         "timeout": 5000,
         "next": [
-            "EquipmentRerollPrepareRerollCost"
+            "EquipmentRerollPrepareRerollCost",
+            "__EquipmentRerollRetryGateCostUnreadable"
         ],
         "on_error": [
             "EquipmentRerollValuePlanFailed"

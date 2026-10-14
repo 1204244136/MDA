@@ -43,7 +43,8 @@
         "timeout": 3000,
         "rate_limit": 100,
         "next": [
-            "EquipmentRerollPrepareRerollCost"
+            "EquipmentRerollPrepareRerollCost",
+            "__EquipmentRerollRetryGateCostUnreadable"
         ]
     },
     "__EquipmentRerollReloadLocksEnabled": {
