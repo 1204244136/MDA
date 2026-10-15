@@ -44,10 +44,23 @@
         },
         "post_wait_freezes": 2000,
         "next": [
+            "DailyLoginRewardsFlow"
+        ]
+    },
+    "DailyLoginRewardsFlow": {
+        "desc": "登录奖励页面处理，供主动进入和登录弹出复用",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "DailyLoginClaimAllButtonVisible"
+                ]
+            }
+        },
+        "next": [
             "[JumpBack]DailyLoginClaimRewards",
-            "[JumpBack]CommonConfirmReward",
-            "CommonClosePage",
-            "CommonGoBack"
+            "DailyLoginReturnHall",
+            "[JumpBack]CommonConfirmReward"
         ]
     },
     "DailyLoginClaimRewards": {
@@ -80,6 +93,43 @@
                 "expected": [
                     ".*全部.*"
                 ]
+            }
+        }
+    },
+    "DailyLoginReturnHall": {
+        "desc": "全部领取按钮变灰后点击主页返回大厅",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonClickHomeButton",
+                    "DailyLoginClaimAllButtonVisible",
+                    "DailyLoginRewardsClaimed"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "DailyLoginRewardsClaimed": {
+        "desc": "登录奖励已领完，全部领取文字为灰色",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "DailyLoginClaimAllButtonVisible",
+                "lower": [
+                    100,
+                    100,
+                    100
+                ],
+                "upper": [
+                    180,
+                    180,
+                    180
+                ],
+                "count": 100
             }
         }
     },

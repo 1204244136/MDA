@@ -321,6 +321,7 @@
             "[JumpBack]LoginConfirmServer",
             "[JumpBack]LoginConfirmDownload",
             "[JumpBack]LoginConfirmLogin",
+            "[JumpBack]DailyLoginRewardsFlow",
             "[JumpBack]CommonClickHomeButton",
             "[JumpBack]CommonSkipPlot",
             "[JumpBack]CommonCloseSale",
@@ -475,6 +476,7 @@
         },
         "post_wait_freezes": 500,
         "next": [
+            "[JumpBack]DailyLoginRewardsFlow", //登录后的签到页可能晚于铃铛图标加载完成
             "CommonFreeStateFlow",
             "CommonClickFreeState", //兜底
             "[JumpBack]CommonCloseSale"
