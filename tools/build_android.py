@@ -12,7 +12,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / "Android" / "build"
-MAAFW_TAG = "v5.14.0"
+ANDROID_VERSIONS = json.loads(
+    (ROOT / "Android/ci-versions.json").read_text(encoding="utf-8")
+)
+MAAFW_TAG = ANDROID_VERSIONS["maafw_tag"]
 TEST_VERSION = "0.0.0-dev.2"
 # 与实体按键审计测试对应；只给出提示，不替换原有动作。
 KEYBOARD_PIPELINES = {

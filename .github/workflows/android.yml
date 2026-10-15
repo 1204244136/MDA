@@ -87,6 +87,16 @@ jobs:
         run: |
           go -C agent/go-service vet ./...
           go -C agent/go-service test ./...
+      - name: Verify real Agent callbacks and quota settlement
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAAFW_TAG: ${{ needs.meta.outputs.maafw_tag }}
+        run: |
+          gh release download "$MAAFW_TAG" --repo MaaXYZ/MaaFramework \
+            --pattern "MAA-linux-x86_64-$MAAFW_TAG.zip" --output "$RUNNER_TEMP/maafw-host.zip"
+          python -m zipfile -e "$RUNNER_TEMP/maafw-host.zip" "$RUNNER_TEMP/maafw-host"
+          MDA_MAA_LIB="$RUNNER_TEMP/maafw-host/bin" go -C agent/go-service test \
+            ./taskersink/membership -run '^TestAgentQuotaCallbacks$' -count=1 -timeout 30s
       - name: Check Android resources, identity overlay and CI validation
         run: |
           uv run --frozen --only-group install python -m unittest discover -s tools/verify -p 'test_build_android.py'

@@ -1,7 +1,7 @@
 {
     "shell_repository": "Aliothmoon/MaaFwApp",
     "shell_revision": "fb0aa7b2f294938c61289859c503691f91144e1c",
-    "maafw_tag": "v5.14.0",
+    "maafw_tag": "v5.14.3",
     "ndk_version": "29.0.14206865",
     "build_tools": "36.0.0",
     "compile_sdk": "android-37.0"
