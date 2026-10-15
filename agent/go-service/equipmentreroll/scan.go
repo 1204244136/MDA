@@ -25,6 +25,8 @@ type slotScanResult struct {
 	Value           string // 数值（OCR 校准后，精确到档位表数值）
 	Tier            int    // 效果数值档位（1~15，来自 mapping；0=未确认）
 	Lock            SlotLock
+	AffixKnown      bool
+	LockKnown       bool
 	RawEffect       string   // 词条区域 OCR 原文
 	RawValue        string   // 数值区域 OCR 原文
 	ValueCandidates []string // 首次 OCR 的全部原文；未命中 expected 时也保留供诊断
@@ -61,6 +63,11 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 		return nil, false
 	}
 
+	page := map[string]string{"头部": "EquipmentRerollHeadDetailsEntered", "臂部": "EquipmentRerollArmsDetailsEntered", "身躯": "EquipmentRerollTorsoDetailsEntered", "腿部": "EquipmentRerollLegsDetailsEntered"}[part]
+	pageDetail, err := ctx.RunRecognition(page, arg.Img, nil)
+	if err != nil || pageDetail == nil || !pageDetail.Hit {
+		return nil, false
+	}
 	scan := scanSlotByPipeline(ctx, arg.Img, params.Slot)
 
 	if isTransientUnlockText(scan.RawEffect) {
@@ -74,13 +81,12 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 		return nil, false
 	}
 
-	// 数值模式必须在离开当前槽位前取得完整数据；返回未命中交给 Pipeline
-	// 的 timeout/rate_limit 有界重试，失败快照不得提交。
-	if loadCarrierConfig(ctx).isValue() && !valueScanReady(scan) {
+	// 所有模式都必须区分未知和空槽；数值模式还须确认官方档位。
+	if !affixScanReady(scan) || (loadCarrierConfig(ctx).isValue() && !valueScanReady(scan)) {
 		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).
 			Str("part", part).Int("slot", params.Slot).Str("raw_effect", scan.RawEffect).
 			Str("raw_value", scan.RawValue).Strs("value_candidates", scan.ValueCandidates).
-			Msg("value scan incomplete; retry current slot before committing snapshot")
+			Msg("slot scan incomplete or conflicting; refusing to commit snapshot")
 		return nil, false
 	}
 
@@ -152,10 +158,9 @@ func scanSlotByPipeline(ctx *maa.Context, img image.Image, slot int) slotScanRes
 		return result
 	}
 
-	affixDetail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dAffixOCR", slot), img, nil)
-	if err == nil && affixDetail != nil {
-		result.Effect, result.RawEffect, _ = firstRecognizedEffect(affixDetail)
-	}
+	result.Effect, result.RawEffect, result.AffixKnown = readEquipmentAffix(ctx, img,
+		fmt.Sprintf("__EquipmentRerollSlot%dAffixOCR", slot),
+		fmt.Sprintf("__EquipmentRerollSlot%dAffixDetectedOCR", slot))
 
 	valueDetail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dValueOCR", slot), img, nil)
 	result.ValueCandidates = rawOCRCandidates(valueDetail)
@@ -182,20 +187,28 @@ func scanSlotByPipeline(ctx *maa.Context, img image.Image, slot int) slotScanRes
 		}
 	}
 
-	blueDetail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dLockBlue", slot), img, nil)
-	if err == nil && blueDetail != nil && blueDetail.Hit {
+	blueDetail, blueErr := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dLockBlue", slot), img, nil)
+	orangeDetail, orangeErr := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dLockOrange", slot), img, nil)
+	if blueErr != nil || orangeErr != nil || blueDetail == nil || orangeDetail == nil || (blueDetail.Hit && orangeDetail.Hit) {
+		return result
+	}
+	result.LockKnown = true
+	if blueDetail.Hit {
 		result.Lock = LockPermanent
-		return result
-	}
-
-	orangeDetail, err := ctx.RunRecognition(fmt.Sprintf("__EquipmentRerollSlot%dLockOrange", slot), img, nil)
-	if err == nil && orangeDetail != nil && orangeDetail.Hit {
+	} else if orangeDetail.Hit {
 		result.Lock = LockOneTime
-		return result
 	}
-
-	result.Lock = LockNone
 	return result
+}
+
+func affixScanReady(scan slotScanResult) bool {
+	if !scan.AffixKnown || !scan.LockKnown {
+		return false
+	}
+	if scan.Effect == "" {
+		return isUnobtainedEffect(scan.RawEffect) && scan.Value == "" && scan.Lock == LockNone
+	}
+	return true
 }
 
 // valueTierDisplay 返回 "11.81%（T11）" 形式的展示串（无档位时只返回数值）。

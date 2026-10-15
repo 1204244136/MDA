@@ -228,9 +228,15 @@ func allResults(detail *maa.RecognitionDetail) []*maa.RecognitionResult {
 	return results
 }
 
-func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool) {
-	firstRaw := ""
-	for _, result := range allResults(detail) {
+func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool, bool) {
+	firstRaw := firstRawOCRText(detail)
+	if detail == nil || !detail.Hit || detail.Results == nil {
+		return "", firstRaw, false, false
+	}
+	// All 包含未通过框架过滤的候选，只供诊断，不能绕过 expected 和模型分数校验。
+	results := append([]*maa.RecognitionResult{detail.Results.Best}, detail.Results.Filtered...)
+	effect, raw, known := "", firstRaw, false
+	for _, result := range results {
 		if result == nil {
 			continue
 		}
@@ -238,22 +244,29 @@ func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool)
 		if !ok || strings.TrimSpace(ocr.Text) == "" {
 			continue
 		}
-		if firstRaw == "" {
-			firstRaw = ocr.Text
+		matches := matchingEffectNames(ocr.Text)
+		if len(matches) > 1 {
+			return "", ocr.Text, false, true
 		}
-		if effect, recognized := normalizeEffect(ocr.Text); recognized {
-			return effect, ocr.Text, true
+		candidate, recognized := normalizeEffect(ocr.Text)
+		empty := isUnobtainedEffect(ocr.Text)
+		if !recognized && !empty {
+			continue
 		}
-		if isUnobtainedEffect(ocr.Text) {
-			return "", ocr.Text, true
+		if (recognized && empty) || (known && candidate != effect) {
+			return "", firstRaw, false, true
 		}
+		effect, raw, known = candidate, ocr.Text, true
 	}
-	return "", firstRaw, false
+	return effect, raw, known, false
 }
 
 // firstRawOCRText 返回识别结果中第一条非空 OCR 文本（去空白折叠），用于读取数值区域。
 func firstRawOCRText(detail *maa.RecognitionDetail) string {
-	for _, result := range allResults(detail) {
+	if detail == nil || !detail.Hit || detail.Results == nil {
+		return ""
+	}
+	for _, result := range append([]*maa.RecognitionResult{detail.Results.Best}, detail.Results.Filtered...) {
 		if result == nil {
 			continue
 		}
@@ -692,80 +705,30 @@ func recordEffect(taskID int64, params recordEffectParam, effect string) (monito
 	return state, nil
 }
 
-// specializedEffect 根据 OCR 中残留的关键字符做特异化识别。
-// 适用于 OCR 严重截断但保留独有特征字的情况，例如“防增加】”应识别为“防御力增加”。
-// 只使用在官方效果中具有排他性的字符/字符组合，避免误判。
-func specializedEffect(raw string) (string, bool) {
-	han := strings.Map(func(r rune) rune {
-		if unicode.Is(unicode.Han, r) {
-			return r
-		}
-		return -1
-	}, raw)
-	switch {
-	case strings.Contains(han, "防"):
-		return "防御力增加", true
-	case strings.Contains(han, "攻"):
-		return TargetEffectAttackIncrease, true
-	case strings.Contains(han, "优"):
-		return TargetEffectElementalDamage, true
-	case strings.Contains(han, "命"):
-		return "命中率增加", true
-	case strings.Contains(han, "装") || strings.Contains(han, "弹"):
-		return "最大装弹数增加", true
-	case strings.Contains(han, "速"):
-		return "蓄力速度增加", true
-	case strings.Contains(han, "暴") && strings.Contains(han, "率"):
-		return "暴击率增加", true
-	case strings.Contains(han, "暴") && strings.Contains(han, "伤"):
-		return "暴击伤害增加", true
-	case strings.Contains(han, "蓄") && strings.Contains(han, "伤"):
-		return "蓄力伤害增加", true
+// normalizeEffect 只接受完整且唯一的官方名称，不能靠单字猜测残缺文本。
+func normalizeEffect(raw string) (string, bool) {
+	matches := matchingEffectNames(raw)
+	if len(matches) != 1 {
+		return "", false
 	}
-	return "", false
+	return matches[0], true
 }
 
-func normalizeEffect(raw string) (string, bool) {
+func matchingEffectNames(raw string) []string {
 	compact := strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
 			return -1
 		}
 		return r
 	}, raw)
+	var matches []string
 	for _, effect := range officialEffects {
-		if strings.Contains(compact, effect) {
-			return effect, true
+		if !strings.Contains(compact, effect) {
+			continue
 		}
+		matches = append(matches, effect)
 	}
-
-	// OCR 严重截断但保留独有特征字时，用特异化规则直接识别。
-	if effect, ok := specializedEffect(raw); ok {
-		return effect, true
-	}
-
-	// OCR may replace one Chinese character. Compare only Chinese text so
-	// brackets, percentages, and other row decorations do not affect matching.
-	text := []rune(strings.Map(func(r rune) rune {
-		if unicode.Is(unicode.Han, r) {
-			return r
-		}
-		return -1
-	}, compact))
-	for _, effect := range officialEffects {
-		want := []rune(effect)
-		for start := 0; start < len(text); start++ {
-			for width := len(want) - 1; width <= len(want)+1; width++ {
-				end := start + width
-				if width < 1 || end > len(text) {
-					continue
-				}
-				if runeEditDistance(text[start:end], want) <= 1 {
-					return effect, true
-				}
-			}
-		}
-	}
-	return "", false
+	return matches
 }
 
 func isUnobtainedEffect(raw string) bool {
@@ -777,37 +740,4 @@ func isUnobtainedEffect(raw string) bool {
 	}, raw)
 	// OCR 可能只识别出“未获得效”/“未获得”，只要包含“未获得”即视为空槽。
 	return strings.Contains(compact, "未获得")
-}
-
-func runeEditDistance(a, b []rune) int {
-	previous := make([]int, len(b)+1)
-	for j := range previous {
-		previous[j] = j
-	}
-	for i, ar := range a {
-		current := make([]int, len(b)+1)
-		current[0] = i + 1
-		for j, br := range b {
-			cost := 0
-			if ar != br {
-				cost = 1
-			}
-			current[j+1] = min3(current[j]+1, previous[j+1]+1, previous[j]+cost)
-		}
-		previous = current
-	}
-	return previous[len(b)]
-}
-
-func min3(a, b, c int) int {
-	if a < b {
-		if a < c {
-			return a
-		}
-		return c
-	}
-	if b < c {
-		return b
-	}
-	return c
 }

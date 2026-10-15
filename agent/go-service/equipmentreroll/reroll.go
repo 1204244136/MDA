@@ -376,11 +376,7 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image, source partScan)
 			}
 			break
 		}
-		detail, err := ctx.RunRecognition(nodeName, img, nil)
-		if err != nil || detail == nil || !detail.Hit {
-			return "", "", "", false
-		}
-		effect, raw, recognized := firstRecognizedEffect(detail)
+		effect, raw, recognized := readEquipmentAffix(ctx, img, nodeName, nodeName+"DetectedOCR")
 		return effect, extractPercentValue(raw), raw, recognized
 	})
 

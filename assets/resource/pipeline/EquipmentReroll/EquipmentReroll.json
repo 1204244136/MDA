@@ -1185,6 +1185,25 @@
             }
         }
     },
+    "__EquipmentRerollResultChangedEffectSlot1DetectedOCR": {
+        "desc": "结果页完整行检测识别，与直接识别互查词条冲突",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollLocateChangedSlot1Match",
+                "roi_offset": [
+                    8,
+                    0,
+                    290,
+                    0
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
+            }
+        }
+    },
     "__EquipmentRerollResultChangedEffectSlot2": {
         "desc": "内部识别：第2变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
         "recognition": {
@@ -1204,6 +1223,25 @@
             }
         }
     },
+    "__EquipmentRerollResultChangedEffectSlot2DetectedOCR": {
+        "desc": "结果页完整行检测识别，与直接识别互查词条冲突",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollLocateChangedSlot2Match",
+                "roi_offset": [
+                    8,
+                    0,
+                    290,
+                    0
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
+            }
+        }
+    },
     "__EquipmentRerollResultChangedEffectSlot3": {
         "desc": "内部识别：第3变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
         "recognition": {
@@ -1220,6 +1258,25 @@
                     ".*"
                 ],
                 "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollResultChangedEffectSlot3DetectedOCR": {
+        "desc": "结果页完整行检测识别，与直接识别互查词条冲突",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "__EquipmentRerollLocateChangedSlot3Match",
+                "roi_offset": [
+                    8,
+                    0,
+                    290,
+                    0
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
             }
         }
     },

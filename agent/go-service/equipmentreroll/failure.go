@@ -15,6 +15,8 @@ type equipmentRerollFailParam struct {
 
 func equipmentRerollFailureKey(reason string) string {
 	switch reason {
+	case "scan_unreadable":
+		return "tasker.equipment_reroll.scan_unreadable"
 	case "value_scan":
 		return "tasker.equipment_reroll.value_scan_failed"
 	case "value_lock_plan":

@@ -148,8 +148,12 @@
         "pre_delay": 0,
         "anchor": "EquipmentRerollInspectFlag",
         "post_delay": 0,
+        "timeout": 1500,
         "next": [
             "EquipmentRerollScanSlot1"
+        ],
+        "on_error": [
+            "EquipmentRerollScanFailed"
         ]
     },
     "EquipmentRerollScanSlot1": {
@@ -170,6 +174,9 @@
         "rate_limit": 100,
         "next": [
             "EquipmentRerollScanSlot2"
+        ],
+        "on_error": [
+            "EquipmentRerollScanFailed"
         ]
     },
     "EquipmentRerollScanSlot2": {
@@ -190,6 +197,9 @@
         "rate_limit": 100,
         "next": [
             "EquipmentRerollScanSlot3"
+        ],
+        "on_error": [
+            "EquipmentRerollScanFailed"
         ]
     },
     "EquipmentRerollScanSlot3": {
@@ -224,7 +234,7 @@
         ]
     },
     "__EquipmentRerollSlot1AffixOCR": {
-        "desc": "第1槽词条区域 OCR（蓝 i 锚点 + offset，宽 150）",
+        "desc": "第1槽完整行直接识别，保留完整名称和数值，避免居中文字被裁断",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -232,13 +242,32 @@
                 "roi_offset": [
                     -1,
                     52,
-                    134,
+                    209,
                     7
                 ],
                 "expected": [
                     ".*"
                 ],
                 "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot1AffixDetectedOCR": {
+        "desc": "第1槽完整行检测识别，补充直接识别的裁剪路径",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -1,
+                    52,
+                    209,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
             }
         }
     },
@@ -347,7 +376,7 @@
         }
     },
     "__EquipmentRerollSlot2AffixOCR": {
-        "desc": "第2槽词条区域 OCR（蓝 i 锚点 + offset，宽 150）",
+        "desc": "第2槽完整行直接识别，保留完整名称和数值，避免居中文字被裁断",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -355,13 +384,32 @@
                 "roi_offset": [
                     -1,
                     76,
-                    134,
+                    209,
                     7
                 ],
                 "expected": [
                     ".*"
                 ],
                 "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot2AffixDetectedOCR": {
+        "desc": "第2槽完整行检测识别，补充直接识别的裁剪路径",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -1,
+                    76,
+                    209,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
             }
         }
     },
@@ -470,7 +518,7 @@
         }
     },
     "__EquipmentRerollSlot3AffixOCR": {
-        "desc": "第3槽词条区域 OCR（蓝 i 锚点 + offset，宽 150）",
+        "desc": "第3槽完整行直接识别，保留完整名称和数值，避免居中文字被裁断",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -478,13 +526,32 @@
                 "roi_offset": [
                     -1,
                     100,
-                    134,
+                    209,
                     7
                 ],
                 "expected": [
                     ".*"
                 ],
                 "only_rec": true
+            }
+        }
+    },
+    "__EquipmentRerollSlot3AffixDetectedOCR": {
+        "desc": "第3槽完整行检测识别，补充直接识别的裁剪路径",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "[Anchor]EquipmentRerollInspectFlag",
+                "roi_offset": [
+                    -1,
+                    100,
+                    209,
+                    7
+                ],
+                "expected": [
+                    ".*"
+                ],
+                "only_rec": false
             }
         }
     },
@@ -620,5 +687,17 @@
         },
         "post_delay": 0,
         "rate_limit": 100
+    },
+    "EquipmentRerollScanFailed": {
+        "desc": "无法确认词条或页面已失效时停止，不提交不完整快照",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "scan_unreadable"
+                }
+            }
+        }
     }
 }
