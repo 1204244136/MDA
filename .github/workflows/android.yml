@@ -1,0 +1,230 @@
+name: build-android-test-apk
+
+# 第一阶段只提供 Actions 测试产物；不监听 tag，不接 Release / MirrorChyan。
+on:
+  pull_request:
+    paths:
+      - .github/workflows/android.yml
+      - Android/**
+      - assets/**
+      - agent/**
+      - tools/**
+      - pyproject.toml
+      - uv.lock
+      - .gitmodules
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      version_code: ${{ steps.meta.outputs.version_code }}
+      shell_repository: ${{ steps.meta.outputs.shell_repository }}
+      shell_revision: ${{ steps.meta.outputs.shell_revision }}
+      maafw_tag: ${{ steps.meta.outputs.maafw_tag }}
+      ndk_version: ${{ steps.meta.outputs.ndk_version }}
+      build_tools: ${{ steps.meta.outputs.build_tools }}
+      compile_sdk: ${{ steps.meta.outputs.compile_sdk }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - id: meta
+        run: python tools/android_ci.py meta
+      - uses: actions/upload-artifact@v6
+        with:
+          name: android-build-metadata
+          path: Android/build/ci/metadata.json
+          if-no-files-found: error
+          retention-days: 14
+
+  agents:
+    needs: meta
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v7
+        with:
+          name: android-build-metadata
+          path: Android/build/ci
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: agent/go-service/go.mod
+          cache-dependency-path: agent/go-service/go.sum
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: temurin
+      - uses: android-actions/setup-android@v4
+      - name: Install pinned NDK
+        env:
+          NDK_VERSION: ${{ needs.meta.outputs.ndk_version }}
+        run: sdkmanager "ndk;$NDK_VERSION"
+      - name: Prepare OCR for resource regression tests
+        run: |
+          git submodule update --init --depth 1 assets/MaaCommonAssets
+          python tools/configure.py
+      - name: Check Go and membership mapping
+        run: |
+          go -C agent/go-service vet ./...
+          go -C agent/go-service test ./...
+      - name: Check Android resources, identity overlay and CI validation
+        run: |
+          uv run --frozen --only-group install python -m unittest discover -s tools/verify -p 'test_build_android.py'
+          uv run --frozen --only-group install python -m unittest discover -s tools/verify -p 'test_android_shell.py'
+          uv run --frozen --only-group install python -m unittest discover -s tools/verify -p 'test_android_ci.py'
+          javac -d "$RUNNER_TEMP/identity-jvm" Android/shell-overlay/AndroidIdentityCompat.java tools/verify/AndroidIdentityCompatTest.java
+          java -cp "$RUNNER_TEMP/identity-jvm" AndroidIdentityCompatTest
+      - name: Build and validate arm64 Agent
+        env:
+          NDK_VERSION: ${{ needs.meta.outputs.ndk_version }}
+        run: python tools/android_ci.py agent --ndk "$ANDROID_HOME/ndk/$NDK_VERSION"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: android-agent-arm64
+          path: Android/build/membership/agent-dist
+          if-no-files-found: error
+          retention-days: 14
+
+  apk:
+    needs: [meta, agents]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Checkout compatible MaaFwApp
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ needs.meta.outputs.shell_repository }}
+          ref: ${{ needs.meta.outputs.shell_revision }}
+          path: .cache/android-shell
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v7
+        with:
+          name: android-build-metadata
+          path: Android/build/ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: android-agent-arm64
+          path: Android/build/membership/agent-dist
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: agent/go-service/go.mod
+          cache: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: temurin
+      - uses: android-actions/setup-android@v4
+      - name: Install pinned Android SDK and NDK
+        env:
+          NDK_VERSION: ${{ needs.meta.outputs.ndk_version }}
+          BUILD_TOOLS: ${{ needs.meta.outputs.build_tools }}
+          COMPILE_SDK: ${{ needs.meta.outputs.compile_sdk }}
+        run: sdkmanager "ndk;$NDK_VERSION" "build-tools;$BUILD_TOOLS" "platforms;$COMPILE_SDK" 'cmake;3.22.1'
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: android-gradle-${{ runner.os }}-${{ needs.meta.outputs.shell_revision }}-${{ hashFiles('Android/ci-versions.json') }}
+      - name: Prepare resource dependencies
+        run: |
+          git submodule update --init --depth 1 assets/MaaCommonAssets
+          python tools/configure.py
+      - name: Require stable test signing for manual builds
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          ANDROID_TEST_KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
+          ANDROID_TEST_STORE_PASSWORD: ${{ secrets.ANDROID_TEST_STORE_PASSWORD }}
+          ANDROID_TEST_KEY_ALIAS: ${{ secrets.ANDROID_TEST_KEY_ALIAS }}
+          ANDROID_TEST_KEY_PASSWORD: ${{ secrets.ANDROID_TEST_KEY_PASSWORD }}
+          ANDROID_TEST_CERT_SHA256: ${{ vars.ANDROID_TEST_CERT_SHA256 }}
+        shell: python
+        run: |
+          import os
+          required = ['ANDROID_TEST_KEYSTORE_BASE64', 'ANDROID_TEST_STORE_PASSWORD', 'ANDROID_TEST_KEY_ALIAS', 'ANDROID_TEST_KEY_PASSWORD', 'ANDROID_TEST_CERT_SHA256']
+          missing = [name for name in required if not os.environ.get(name)]
+          if missing:
+              raise SystemExit('缺少固定测试签名配置: ' + ', '.join(missing))
+      - name: Build membership APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          VERSION_CODE: ${{ needs.meta.outputs.version_code }}
+          MAAFW_TAG: ${{ needs.meta.outputs.maafw_tag }}
+          NDK_VERSION: ${{ needs.meta.outputs.ndk_version }}
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+        shell: python
+        run: |
+          import os, subprocess, sys
+          from pathlib import Path
+          shell = Path('.cache/android-shell').resolve()
+          (shell / 'gradlew').chmod(0o755)
+          (shell / 'local.properties').write_text('sdk.dir=' + os.environ['ANDROID_HOME'] + '\n')
+          command = [sys.executable, 'tools/build_android.py', '--membership', '--skip-agent',
+                     '--shell', str(shell), '--ndk', os.environ['ANDROID_HOME'] + '/ndk/' + os.environ['NDK_VERSION'],
+                     '--version', os.environ['VERSION'], '--version-code', os.environ['VERSION_CODE'],
+                     '--maafw-tag', os.environ['MAAFW_TAG'], '--ndk-version', os.environ['NDK_VERSION']]
+          if os.environ['IS_PR'] == 'true':
+              command.append('--pr-build')
+          subprocess.run(command, check=True)
+      - name: Sign manual test APK with fixed certificate
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          ANDROID_TEST_KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
+          ANDROID_TEST_STORE_PASSWORD: ${{ secrets.ANDROID_TEST_STORE_PASSWORD }}
+          ANDROID_TEST_KEY_ALIAS: ${{ secrets.ANDROID_TEST_KEY_ALIAS }}
+          ANDROID_TEST_KEY_PASSWORD: ${{ secrets.ANDROID_TEST_KEY_PASSWORD }}
+          ANDROID_TEST_CERT_SHA256: ${{ vars.ANDROID_TEST_CERT_SHA256 }}
+          BUILD_TOOLS: ${{ needs.meta.outputs.build_tools }}
+        run: python tools/android_ci.py sign --tools "$ANDROID_HOME/build-tools/$BUILD_TOOLS"
+      - name: Validate APK version, Agent, libraries, signature and alignment
+        env:
+          ANDROID_TEST_CERT_SHA256: ${{ vars.ANDROID_TEST_CERT_SHA256 }}
+          BUILD_TOOLS: ${{ needs.meta.outputs.build_tools }}
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+        shell: python
+        run: |
+          import os, subprocess, sys
+          command = [sys.executable, 'tools/android_ci.py', 'verify', '--tools',
+                     os.environ['ANDROID_HOME'] + '/build-tools/' + os.environ['BUILD_TOOLS']]
+          if os.environ['IS_PR'] == 'true':
+              command.append('--pr')
+          subprocess.run(command, check=True)
+      - uses: actions/upload-artifact@v6
+        with:
+          name: MDA-android-arm64-${{ github.event_name == 'pull_request' && 'pr' || 'test' }}-${{ needs.meta.outputs.version }}
+          path: |
+            Android/build/ci/*.apk
+            Android/build/ci/*.sha256
+            Android/build/ci/MDA-*.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

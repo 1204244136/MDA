@@ -481,6 +481,13 @@ venv/
 .venv/
 .cache/
 
+# Android 签名、安装包及设备反馈仅保存在本机或 CI Secrets / Artifacts。
+*.apk
+*.aab
+*.jks
+*.keystore
+maafw_logs_*.zip
+
 # maa-tools
 tests/maatools
 

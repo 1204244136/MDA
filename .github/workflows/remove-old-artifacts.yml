@@ -16,7 +16,7 @@ jobs:
       - name: Remove old artifacts
         uses: c-hive/gha-remove-artifacts@v1
         with:
-          age: "1 days" # '<number> <unit>', e.g. 5 days, 2 years, 90 seconds, parsed by Moment.js
+          age: "14 days" # 与 Android 志愿者测试包的保留期一致，避免手动清理提前删包
           # Optional inputs
           # skip-tags: true
           # skip-recent: 5
