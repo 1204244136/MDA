@@ -121,6 +121,10 @@ func quotaStatePath() (string, error) {
 }
 
 func deviceHash(device DeviceCodeV7) string {
+	if isAndroidMappedDevice(device) {
+		// App ID 或其兜底切换只影响原权重的 10 分，不应重置客户端额度/活动券。
+		return hashString("mda:android:client-v1:quota\x00" + strings.ToLower(device.UUIDHash) + "\x00" + strings.ToLower(device.CPUHash))
+	}
 	sum := sha256.Sum256([]byte(device.CPUHash + device.UUIDHash + device.BIOSHash + device.BoardHash + device.DiskHash + device.GUIDHash))
 	return hex.EncodeToString(sum[:])
 }

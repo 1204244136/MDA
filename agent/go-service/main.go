@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/1204244136/MDA/agent/go-service/pkg/i18n"
 	"github.com/1204244136/MDA/agent/go-service/pkg/pienv"
@@ -20,6 +21,12 @@ func main() {
 			Msg("Failed to initialize logger")
 	}
 	defer logFile.Close()
+	// Shizuku 子进程没有桌面用户目录，配置随资源工作目录保留。
+	if runtime.GOOS == "android" && os.Getenv("XDG_CONFIG_HOME") == "" {
+		if err := os.Setenv("XDG_CONFIG_HOME", filepath.Join(getCwd(), "config")); err != nil {
+			log.Fatal().Err(err).Msg("Failed to configure Android data directory")
+		}
+	}
 
 	log.Info().
 		Str("version", Version).
@@ -32,14 +39,14 @@ func main() {
 		log.Fatal().Msg("Usage: go-service <identifier>")
 	}
 
-	identifier := os.Args[1]
+	identifier := os.Args[len(os.Args)-1]
 	log.Info().
 		Str("identifier", identifier).
 		Msg("Starting agent server")
 
 	// Initialize MAA framework first (required before any other MAA calls)
-	// MAA DLL 位于工作目录下的 maafw 子目录
-	libDir := filepath.Join(getCwd(), "maafw")
+	// Android 由宿主提供 nativeLibraryDir，桌面继续使用 maafw 子目录。
+	libDir := frameworkLibDir()
 	log.Info().
 		Str("libDir", libDir).
 		Msg("Initializing MAA framework")
@@ -92,6 +99,13 @@ func main() {
 	maa.AgentServerShutDown()
 	log.Info().
 		Msg("Agent server shutdown")
+}
+
+func frameworkLibDir() string {
+	if path := os.Getenv("MAAFW_BINARY_PATH"); path != "" {
+		return path
+	}
+	return filepath.Join(getCwd(), "maafw")
 }
 
 func getCwd() string {

@@ -1,0 +1,217 @@
+[
+  {
+    "name": "primary-fallback",
+    "snapshot": {
+      "schema_version": 1,
+      "rows": [
+        {
+          "name": "serial.ro.boot.serialno",
+          "status": "read",
+          "values": [
+            "TEST-SN-ALPHA"
+          ]
+        },
+        {
+          "name": "android_id.privileged",
+          "status": "read",
+          "values": [
+            "1234567890abcdef"
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "cpu_hash": "ea36ad084826abc9c56d7f8134356b51c1e67c12e9f2c44126cbb5fb021c268b",
+      "uuid_hash": "0a8d0c7b02f1f60e0b73234bdaf3b202a7b3f9b7c1cb27076e5f68582f66a762",
+      "bios_hash": "d2fff12203c58643c7fc7cf21c10c681faf9adc2a573d98287e4d70ea176fcb9",
+      "board_hash": "21b784e34249781ea26bb3ea09a43369eab6ecf7c373d53d12cf1c5a9a820e2d",
+      "disk_hash": "b7df8d4eadb35249f0d6ce734fc3a51dd638377a9e26aa7ce414bcd6ac2a6781",
+      "guid_hash": "ef0c85e430aead883fa398189b12adcfb0df4d2a4e0e1ad3277d5285d1bdcb08"
+    }
+  },
+  {
+    "name": "app-a",
+    "snapshot": {
+      "schema_version": 1,
+      "rows": [
+        {
+          "name": "serial.ro.boot.serialno",
+          "status": "read",
+          "values": [
+            "TEST-SN-ALPHA"
+          ]
+        },
+        {
+          "name": "android_id.privileged",
+          "status": "read",
+          "values": [
+            "1234567890abcdef"
+          ]
+        },
+        {
+          "name": "android_id.app",
+          "status": "read",
+          "values": [
+            "abcdef1234567890"
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "cpu_hash": "ea36ad084826abc9c56d7f8134356b51c1e67c12e9f2c44126cbb5fb021c268b",
+      "uuid_hash": "0a8d0c7b02f1f60e0b73234bdaf3b202a7b3f9b7c1cb27076e5f68582f66a762",
+      "bios_hash": "d2fff12203c58643c7fc7cf21c10c681faf9adc2a573d98287e4d70ea176fcb9",
+      "board_hash": "21b784e34249781ea26bb3ea09a43369eab6ecf7c373d53d12cf1c5a9a820e2d",
+      "disk_hash": "b7df8d4eadb35249f0d6ce734fc3a51dd638377a9e26aa7ce414bcd6ac2a6781",
+      "guid_hash": "241fda85b7dcaa8ea63122a9038f2740e77a0a2e13efa1746d82618b2ab7e55c"
+    }
+  },
+  {
+    "name": "app-b",
+    "snapshot": {
+      "schema_version": 1,
+      "rows": [
+        {
+          "name": "serial.ro.boot.serialno",
+          "status": "read",
+          "values": [
+            "TEST-SN-ALPHA"
+          ]
+        },
+        {
+          "name": "android_id.privileged",
+          "status": "read",
+          "values": [
+            "1234567890abcdef"
+          ]
+        },
+        {
+          "name": "android_id.app",
+          "status": "read",
+          "values": [
+            "fedcba0987654321"
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "cpu_hash": "ea36ad084826abc9c56d7f8134356b51c1e67c12e9f2c44126cbb5fb021c268b",
+      "uuid_hash": "0a8d0c7b02f1f60e0b73234bdaf3b202a7b3f9b7c1cb27076e5f68582f66a762",
+      "bios_hash": "d2fff12203c58643c7fc7cf21c10c681faf9adc2a573d98287e4d70ea176fcb9",
+      "board_hash": "21b784e34249781ea26bb3ea09a43369eab6ecf7c373d53d12cf1c5a9a820e2d",
+      "disk_hash": "b7df8d4eadb35249f0d6ce734fc3a51dd638377a9e26aa7ce414bcd6ac2a6781",
+      "guid_hash": "762a196fea34d0a3c51b65aa21cb99b265ba2397ca3981c183a658a2d2809adc"
+    }
+  },
+  {
+    "name": "changed-sn",
+    "snapshot": {
+      "schema_version": 1,
+      "rows": [
+        {
+          "name": "serial.ro.boot.serialno",
+          "status": "read",
+          "values": [
+            "TEST-SN-BETA"
+          ]
+        },
+        {
+          "name": "android_id.privileged",
+          "status": "read",
+          "values": [
+            "1234567890abcdef"
+          ]
+        },
+        {
+          "name": "android_id.app",
+          "status": "read",
+          "values": [
+            "abcdef1234567890"
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "cpu_hash": "ea36ad084826abc9c56d7f8134356b51c1e67c12e9f2c44126cbb5fb021c268b",
+      "uuid_hash": "2ad004ba9b085379e7f1557d0274fecd48ef53a9ae1571ae58818909a757f207",
+      "bios_hash": "7120fc1ae3ed671809f450cedd60a91e310dafd50f4b37f1da7c1c774d265e82",
+      "board_hash": "21b784e34249781ea26bb3ea09a43369eab6ecf7c373d53d12cf1c5a9a820e2d",
+      "disk_hash": "b7df8d4eadb35249f0d6ce734fc3a51dd638377a9e26aa7ce414bcd6ac2a6781",
+      "guid_hash": "241fda85b7dcaa8ea63122a9038f2740e77a0a2e13efa1746d82618b2ab7e55c"
+    }
+  },
+  {
+    "name": "changed-privileged-id",
+    "snapshot": {
+      "schema_version": 1,
+      "rows": [
+        {
+          "name": "serial.ro.boot.serialno",
+          "status": "read",
+          "values": [
+            "TEST-SN-ALPHA"
+          ]
+        },
+        {
+          "name": "android_id.privileged",
+          "status": "read",
+          "values": [
+            "abcdef0123456789"
+          ]
+        },
+        {
+          "name": "android_id.app",
+          "status": "read",
+          "values": [
+            "abcdef1234567890"
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "cpu_hash": "bad45a850f0f58eec04112bf8db40d1562f1095872fc226a2e69291536c1a14f",
+      "uuid_hash": "0a8d0c7b02f1f60e0b73234bdaf3b202a7b3f9b7c1cb27076e5f68582f66a762",
+      "bios_hash": "d2fff12203c58643c7fc7cf21c10c681faf9adc2a573d98287e4d70ea176fcb9",
+      "board_hash": "a547b0a6350afdd3e6b3d13b92500fe47b3de6945aeea803822fd918996c3af3",
+      "disk_hash": "a4a67e508b2464acac2abcce46deaab6c8a450552e23845456b50b2347d20837",
+      "guid_hash": "241fda85b7dcaa8ea63122a9038f2740e77a0a2e13efa1746d82618b2ab7e55c"
+    }
+  },
+  {
+    "name": "zero-app-id",
+    "snapshot": {
+      "schema_version": 1,
+      "rows": [
+        {
+          "name": "serial.ro.boot.serialno",
+          "status": "read",
+          "values": [
+            "TEST-SN-ALPHA"
+          ]
+        },
+        {
+          "name": "android_id.privileged",
+          "status": "read",
+          "values": [
+            "1234567890abcdef"
+          ]
+        },
+        {
+          "name": "android_id.app",
+          "status": "read",
+          "values": [
+            "0000000000000000"
+          ]
+        }
+      ]
+    },
+    "expected": {
+      "cpu_hash": "ea36ad084826abc9c56d7f8134356b51c1e67c12e9f2c44126cbb5fb021c268b",
+      "uuid_hash": "0a8d0c7b02f1f60e0b73234bdaf3b202a7b3f9b7c1cb27076e5f68582f66a762",
+      "bios_hash": "d2fff12203c58643c7fc7cf21c10c681faf9adc2a573d98287e4d70ea176fcb9",
+      "board_hash": "21b784e34249781ea26bb3ea09a43369eab6ecf7c373d53d12cf1c5a9a820e2d",
+      "disk_hash": "b7df8d4eadb35249f0d6ce734fc3a51dd638377a9e26aa7ce414bcd6ac2a6781",
+      "guid_hash": "ef0c85e430aead883fa398189b12adcfb0df4d2a4e0e1ad3277d5285d1bdcb08"
+    }
+  }
+]
