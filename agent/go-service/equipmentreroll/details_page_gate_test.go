@@ -8,44 +8,43 @@ import (
 	"testing"
 )
 
-// 本文件守住「打开装备详情页」四个入口的重试闸门：后台输入方式下点击会静默失效，
-// 单项 next 只能空转到 reco_timeout；挂闸门后超限即显式失败并提示改用前台输入方式。
-func TestDetailsPageGateWiring(t *testing.T) {
+// 本文件守住「打开装备详情页」四个入口的失败处理。
+//
+// 这四个节点带 Click，任何形式的重试都等于再点一次：v1.10.16 曾给它们挂重试闸门，
+// 结果弹窗打开后又被第二次点击关掉（弹窗淡出使锚点判据读不到蓝色图标），反而卡死。
+// 因此这里只允许用 on_error 报错，不允许把闸门挂回 next。
+
+func TestDetailsPageFailureWiring(t *testing.T) {
 	dir := filepath.Join("..", "..", "..", "assets", "resource", "pipeline", "EquipmentReroll")
 	nodes := loadPipelineNodes(t, filepath.Join(dir, "EquipmentRerollOpen.json"))
 
-	parts := map[string]string{
-		"Head":  "EquipmentRerollOpenHeadDetails",
-		"Arms":  "EquipmentRerollOpenArmsDetails",
-		"Torso": "EquipmentRerollOpenTorsoDetails",
-		"Legs":  "EquipmentRerollOpenLegsDetails",
-	}
-	for part, openNode := range parts {
-		gateName := "__EquipmentRerollRetryGate" + part + "DetailsOpened"
-		gate, ok := nodes[gateName]
+	for _, part := range []string{"Head", "Arms", "Torso", "Legs"} {
+		openNode := "EquipmentRerollOpen" + part + "Details"
+		enteredNode := "EquipmentReroll" + part + "DetailsEntered"
+
+		node, ok := nodes[openNode]
 		if !ok {
-			t.Fatalf("%s 未定义", gateName)
+			t.Fatalf("%s 未定义", openNode)
 		}
-		if !containsNode(nodes[openNode].Next, gateName) {
-			t.Errorf("%s 的 next 缺少 %s：详情页没打开会静默空转到 reco_timeout(20s)",
-				openNode, gateName)
+		if len(node.Next) != 1 || node.Next[0] != enteredNode {
+			t.Errorf("%s next = %v, want 仅 %s：带 Click 的节点重试会多点一次",
+				openNode, node.Next, enteredNode)
 		}
-		if got := gate.Action.Param.CustomAction; got != "EquipmentRerollRetryGateAction" {
-			t.Errorf("%s action = %q, want EquipmentRerollRetryGateAction", gateName, got)
+		if len(node.OnError) != 1 || node.OnError[0] != "EquipmentRerollDetailsPageFailed" {
+			t.Errorf("%s on_error = %v, want [EquipmentRerollDetailsPageFailed]",
+				openNode, node.OnError)
 		}
-		p := gate.Action.Param.Param
-		if p.Retry != openNode {
-			t.Errorf("%s retry = %q, want %q", gateName, p.Retry, openNode)
-		}
-		if p.GiveUp != "EquipmentRerollDetailsPageFailed" {
-			t.Errorf("%s give_up = %q, want EquipmentRerollDetailsPageFailed", gateName, p.GiveUp)
-		}
-		if !containsNode(p.Next, openNode) || !containsNode(p.Next, gateName) {
-			t.Errorf("%s next = %v, 必须能重试点击并回到自身形成有界循环", gateName, p.Next)
+		if gate := "__EquipmentRerollRetryGate" + part + "DetailsOpened"; gate != "" {
+			if _, exists := nodes[gate]; exists {
+				t.Errorf("%s 不应存在：重试点击会关掉已打开的详情页", gate)
+			}
 		}
 	}
 
-	failNode := nodes["EquipmentRerollDetailsPageFailed"]
+	failNode, ok := nodes["EquipmentRerollDetailsPageFailed"]
+	if !ok {
+		t.Fatal("EquipmentRerollDetailsPageFailed 未定义")
+	}
 	if got := failNode.Action.Param.CustomAction; got != "EquipmentRerollFailAction" {
 		t.Errorf("失败节点 action = %q, want EquipmentRerollFailAction", got)
 	}

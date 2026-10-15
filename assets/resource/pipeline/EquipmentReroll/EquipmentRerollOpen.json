@@ -24,8 +24,10 @@
         "post_delay": 0,
         "rate_limit": 500,
         "next": [
-            "EquipmentRerollHeadDetailsEntered",
-            "__EquipmentRerollRetryGateHeadDetailsOpened"
+            "EquipmentRerollHeadDetailsEntered"
+        ],
+        "on_error": [
+            "EquipmentRerollDetailsPageFailed"
         ]
     },
     "EquipmentRerollHeadDetailsEntered": {
@@ -85,8 +87,10 @@
         "post_delay": 0,
         "rate_limit": 500,
         "next": [
-            "EquipmentRerollArmsDetailsEntered",
-            "__EquipmentRerollRetryGateArmsDetailsOpened"
+            "EquipmentRerollArmsDetailsEntered"
+        ],
+        "on_error": [
+            "EquipmentRerollDetailsPageFailed"
         ]
     },
     "EquipmentRerollArmsDetailsEntered": {
@@ -146,8 +150,10 @@
         "post_delay": 0,
         "rate_limit": 500,
         "next": [
-            "EquipmentRerollTorsoDetailsEntered",
-            "__EquipmentRerollRetryGateTorsoDetailsOpened"
+            "EquipmentRerollTorsoDetailsEntered"
+        ],
+        "on_error": [
+            "EquipmentRerollDetailsPageFailed"
         ]
     },
     "EquipmentRerollTorsoDetailsEntered": {
@@ -207,8 +213,10 @@
         "post_delay": 0,
         "rate_limit": 500,
         "next": [
-            "EquipmentRerollLegsDetailsEntered",
-            "__EquipmentRerollRetryGateLegsDetailsOpened"
+            "EquipmentRerollLegsDetailsEntered"
+        ],
+        "on_error": [
+            "EquipmentRerollDetailsPageFailed"
         ]
     },
     "EquipmentRerollLegsDetailsEntered": {
@@ -243,112 +251,8 @@
             "[Anchor]EquipmentRerollAfterOpenLegs"
         ]
     },
-    "__EquipmentRerollRetryGateHeadDetailsOpened": {
-        "desc": "重试闸门：点击头部装备后详情页没出现时有界重试，超限后显式失败",
-        "recognition": {
-            "type": "DirectHit"
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
-                "custom_action_param": {
-                    "key": "head_details_opened",
-                    "retry": "EquipmentRerollOpenHeadDetails",
-                    "give_up": "EquipmentRerollDetailsPageFailed",
-                    "limit": 5,
-                    "window_ms": 12000,
-                    "next": [
-                        "EquipmentRerollOpenHeadDetails",
-                        "__EquipmentRerollRetryGateHeadDetailsOpened"
-                    ]
-                }
-            }
-        },
-        "post_delay": 300,
-        "timeout": 5000,
-        "rate_limit": 500
-    },
-    "__EquipmentRerollRetryGateArmsDetailsOpened": {
-        "desc": "重试闸门：点击臂部装备后详情页没出现时有界重试，与头部同理",
-        "recognition": {
-            "type": "DirectHit"
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
-                "custom_action_param": {
-                    "key": "arms_details_opened",
-                    "retry": "EquipmentRerollOpenArmsDetails",
-                    "give_up": "EquipmentRerollDetailsPageFailed",
-                    "limit": 5,
-                    "window_ms": 12000,
-                    "next": [
-                        "EquipmentRerollOpenArmsDetails",
-                        "__EquipmentRerollRetryGateArmsDetailsOpened"
-                    ]
-                }
-            }
-        },
-        "post_delay": 300,
-        "timeout": 5000,
-        "rate_limit": 500
-    },
-    "__EquipmentRerollRetryGateTorsoDetailsOpened": {
-        "desc": "重试闸门：点击身躯装备后详情页没出现时有界重试，与头部同理",
-        "recognition": {
-            "type": "DirectHit"
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
-                "custom_action_param": {
-                    "key": "torso_details_opened",
-                    "retry": "EquipmentRerollOpenTorsoDetails",
-                    "give_up": "EquipmentRerollDetailsPageFailed",
-                    "limit": 5,
-                    "window_ms": 12000,
-                    "next": [
-                        "EquipmentRerollOpenTorsoDetails",
-                        "__EquipmentRerollRetryGateTorsoDetailsOpened"
-                    ]
-                }
-            }
-        },
-        "post_delay": 300,
-        "timeout": 5000,
-        "rate_limit": 500
-    },
-    "__EquipmentRerollRetryGateLegsDetailsOpened": {
-        "desc": "重试闸门：点击腿部装备后详情页没出现时有界重试，与头部同理",
-        "recognition": {
-            "type": "DirectHit"
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
-                "custom_action_param": {
-                    "key": "legs_details_opened",
-                    "retry": "EquipmentRerollOpenLegsDetails",
-                    "give_up": "EquipmentRerollDetailsPageFailed",
-                    "limit": 5,
-                    "window_ms": 12000,
-                    "next": [
-                        "EquipmentRerollOpenLegsDetails",
-                        "__EquipmentRerollRetryGateLegsDetailsOpened"
-                    ]
-                }
-            }
-        },
-        "post_delay": 300,
-        "timeout": 5000,
-        "rate_limit": 500
-    },
     "EquipmentRerollDetailsPageFailed": {
-        "desc": "反复点击装备仍未进入详情页，提示输入方式并显式失败（四个部位共用）",
+        "desc": "点击装备后未进入详情页（next 超时），提示输入方式并显式失败（四个部位共用）",
         "recognition": {
             "type": "DirectHit"
         },
