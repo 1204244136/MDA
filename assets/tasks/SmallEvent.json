@@ -228,7 +228,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormal.png"
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormal.png",
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageHard.png"
                                     ]
                                 }
                             }
@@ -237,7 +238,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png"
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png",
+                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageHardRepeatable.png"
                                     ]
                                 }
                             },
