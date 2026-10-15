@@ -81,7 +81,7 @@ func (c *AspectRatioChecker) OnTaskerTask(tasker *maa.Tasker, event maa.EventSta
 		Int32("height", height).
 		Msg("Got resolution")
 
-	controlType := strings.ToLower(strings.TrimSpace(pienv.ControllerType()))
+	controlType := pienv.ResolveControllerKind(controller)
 	controllerDisplay := displayController(pienv.ControllerName(), controlType)
 
 	log.Debug().
@@ -209,11 +209,21 @@ func displayController(name, controllerType string) string {
 }
 
 func displayControllerType(controllerType string) string {
-	switch controllerType {
-	case "adb":
+	switch pienv.NormalizeControllerKind(controllerType) {
+	case pienv.ControllerKindAdb:
 		return "ADB"
-	case "win32":
+	case pienv.ControllerKindWin32:
 		return "Win32"
+	case pienv.ControllerKindNativeAndroid:
+		return "Android"
+	case pienv.ControllerKindPlayCover:
+		return "PlayCover"
+	case pienv.ControllerKindMacOS:
+		return "macOS"
+	case pienv.ControllerKindLinux:
+		return "Linux"
+	case pienv.ControllerKindGamepad:
+		return "Gamepad"
 	default:
 		return controllerType
 	}

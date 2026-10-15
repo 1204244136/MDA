@@ -2,6 +2,30 @@ package aspectratio
 
 import "testing"
 
+func TestDisplayController(t *testing.T) {
+	for _, tt := range []struct {
+		name, kind, want string
+	}{
+		{"AAA", "WIN32", "AAA (Win32)"},
+		{"", "adb", "ADB"},
+		{"phone", "native_android", "phone (Android)"},
+		{"", "play_cover", "PlayCover"},
+		{"", "macos", "macOS"},
+		{"", "linux", "Linux"},
+		{"", "gamepad", "Gamepad"},
+		{"ADB", "adb", "ADB"},
+		{"", "", "unknown"},
+		{"custom", "", "custom"},
+		{"", "future", "future"},
+	} {
+		t.Run(tt.want, func(t *testing.T) {
+			if got := displayController(tt.name, tt.kind); got != tt.want {
+				t.Fatalf("displayController(%q, %q) = %q, want %q", tt.name, tt.kind, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsLandscapeAspectRatio16x9AcceptsLandscape16x9(t *testing.T) {
 	if !isLandscapeAspectRatio16x9(1280, 720) {
 		t.Fatal("1280x720 should satisfy landscape 16:9")
