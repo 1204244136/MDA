@@ -3,21 +3,30 @@
         "desc": "防御奖励",
         "max_hit": 1,
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1176,
-                    659,
-                    47,
-                    32
+                    1216,
+                    646,
+                    24,
+                    24
                 ],
-                "expected": [
-                    "%$"
-                ]
+                "template": [
+                    "Common/RedDot.png"
+                ],
+                "threshold": 0.75
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -30,
+                    20,
+                    0,
+                    0
+                ] //红点位于奖励入口右上角，向左下偏移到按钮内部
+            }
         },
         "next": [
             "OutpostDefenseRewardsFlow"
