@@ -1,0 +1,31 @@
+# 本地测试配方；资源由 tools/build_android.py 准备，不影响桌面发行包。
+assets: build/assets
+include:
+  - interface.json
+  - README.md
+  - AndroidTestNotice.md
+  - LICENSE
+  - tasks/**
+  - resource/**
+  - locales/**
+agent:
+  sourceDir: build/agent-dist
+  abi: [arm64-v8a]
+  runtimes:
+    - location: nativeLibs
+      executable: libgo-service.so
+      name: go-service
+      env:
+        LD_LIBRARY_PATH: "{nativeLibs}"
+        MAAFW_BINARY_PATH: "{nativeLibs}"
+display:
+  foreground: false
+  presets:
+    - label: 720P
+      width: 1280
+      height: 720
+      dpi: 240
+app:
+  id: mda.test
+  label: MDA 测试版
+  icon: ../assets/locales/MDA-Tiny.png

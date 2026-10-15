@@ -1,0 +1,34 @@
+assets: build/membership/assets
+include:
+  - interface.json
+  - README.md
+  - AndroidTestNotice.md
+  - LICENSE
+  - tasks/**
+  - resource/**
+  - locales/**
+agent:
+  sourceDir: build/membership/agent-dist
+  abi: [arm64-v8a]
+  runtimes:
+    - location: nativeLibs
+      executable: libgo-service.so
+      name: go-service
+      env:
+        LD_LIBRARY_PATH: "{nativeLibs}"
+        MAAFW_BINARY_PATH: "{nativeLibs}"
+        MDA_ANDROID_MEMBERSHIP_ENABLED: "1"
+logs:
+  include:
+    - debug/**/*.log
+display:
+  foreground: false
+  presets:
+    - label: 720P
+      width: 1280
+      height: 720
+      dpi: 240
+app:
+  id: mda.membershippr
+  label: MDA PR 测试版
+  icon: ../assets/locales/MDA-Tiny.png
