@@ -1,0 +1,46 @@
+name: go-check
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/go-check.yml"
+      - "agent/go-service/**"
+      - "assets/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/go-check.yml"
+      - "agent/go-service/**"
+      - "assets/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  go-service:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: agent/go-service/go.mod
+          cache-dependency-path: agent/go-service/go.sum
+
+      - name: Run go vet
+        run: go -C agent/go-service vet ./...
+
+      - name: Run go test
+        run: go -C agent/go-service test ./...
