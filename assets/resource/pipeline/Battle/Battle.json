@@ -607,6 +607,18 @@
     "BattleCombatHudVisible": {
         "desc": "战斗界面可见",
         "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "BattleDesktopCombatHudVisible",
+                    "BattleMobileCombatHudVisible"
+                ]
+            }
+        }
+    },
+    "BattleDesktopCombatHudVisible": {
+        "desc": "桌面战斗界面 ESC 可见",
+        "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
@@ -617,6 +629,49 @@
                 ],
                 "expected": [
                     "ESC"
+                ]
+            }
+        }
+    },
+    "BattleMobileCombatHudVisible": {
+        "desc": "手机战斗界面的暂停按钮与倒计时同时可见",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BattleMobilePauseVisible",
+                    "BattleMobileTimerVisible"
+                ]
+            }
+        }
+    },
+    "BattleMobilePauseVisible": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1230,
+                    5,
+                    50,
+                    55
+                ],
+                "template": "Battle/MobilePause.png",
+                "threshold": 0.85
+            }
+        }
+    },
+    "BattleMobileTimerVisible": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1145,
+                    10,
+                    90,
+                    45
+                ],
+                "expected": [
+                    "[0-9]{1,2}:[0-5][0-9]"
                 ]
             }
         }
