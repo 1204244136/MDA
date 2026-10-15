@@ -17,10 +17,10 @@ artifact 保留 14 天；下载的文件可自行长期保存。
 
 PR 改动 Android、资源、Go Agent 或构建工具时自动检查并产出独立 PR 包：
 
-| 来源 | 包名 | 签名及用途 |
-| --- | --- | --- |
-| 手动运行 | `com.aliothmoon.maafw.mda.membershiptest` | 固定测试证书，适合连续真机会员联调 |
-| PR | `com.aliothmoon.maafw.mda.membershippr` | runner 临时 debug 证书，适合验证能否构建及单次测试 |
+| 来源     | 包名                                      | 签名及用途                                         |
+| -------- | ----------------------------------------- | -------------------------------------------------- |
+| 手动运行 | `com.aliothmoon.maafw.mda.membershiptest` | 固定测试证书，适合连续真机会员联调                 |
+| PR       | `com.aliothmoon.maafw.mda.membershippr`   | runner 临时 debug 证书，适合验证能否构建及单次测试 |
 
 PR 包不会覆盖会员联调版，每次 PR 构建的证书可能不同，不能保证互相覆盖安装。
 不要把 PR 包用于已有会员的连续换包验证，优先分发手动构建的包。
@@ -31,13 +31,13 @@ PR 包不会覆盖会员联调版，每次 PR 构建的证书可能不同，不�
 
 维护者在仓库 Settings → Secrets and variables → Actions 配置一次：
 
-| 类型 | 名称 | 内容 |
-| --- | --- | --- |
-| Secret | `ANDROID_TEST_KEYSTORE_BASE64` | 固定测试 keystore 文件的 Base64，单行 |
-| Secret | `ANDROID_TEST_STORE_PASSWORD` | keystore 密码 |
-| Secret | `ANDROID_TEST_KEY_ALIAS` | 签名 alias |
-| Secret | `ANDROID_TEST_KEY_PASSWORD` | 对应私钥密码 |
-| Variable | `ANDROID_TEST_CERT_SHA256` | 证书 SHA256 指纹，可带冒号 |
+| 类型     | 名称                           | 内容                                  |
+| -------- | ------------------------------ | ------------------------------------- |
+| Secret   | `ANDROID_TEST_KEYSTORE_BASE64` | 固定测试 keystore 文件的 Base64，单行 |
+| Secret   | `ANDROID_TEST_STORE_PASSWORD`  | keystore 密码                         |
+| Secret   | `ANDROID_TEST_KEY_ALIAS`       | 签名 alias                            |
+| Secret   | `ANDROID_TEST_KEY_PASSWORD`    | 对应私钥密码                          |
+| Variable | `ANDROID_TEST_CERT_SHA256`     | 证书 SHA256 指纹，可带冒号            |
 
 优先沿用之前手机上会员联调版的签名 keystore，避免覆盖安装失败及签名相关的 App Android ID 改变。
 配置前用 `keytool -list -v -keystore <文件> -alias <alias>` 核对证书指纹。
