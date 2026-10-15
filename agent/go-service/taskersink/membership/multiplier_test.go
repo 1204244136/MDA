@@ -222,7 +222,9 @@ func TestFinishFlushesFractionTail(t *testing.T) {
 		active: true,
 		route:  quotaRouteRegular,
 		status: status,
-		last:   time.Now().Add(-500 * time.Millisecond),
+		// 已有半秒尾数即可覆盖 finish 的向上取整；不要再补半秒到恰好一秒，
+		// 否则 finish 内新增的实际耗时会越过边界，正确地结算成两秒。
+		last: time.Now(),
 		multiplier: quotaMultiplier{
 			BasePermille:  multiplierScale,
 			ExtraPermille: multiplierScale,
