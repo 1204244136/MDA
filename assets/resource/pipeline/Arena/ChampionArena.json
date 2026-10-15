@@ -155,6 +155,7 @@
     },
     "ArenaClickCheerUp": {
         "desc": "应援",
+        "max_hit": 3,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -176,7 +177,8 @@
         "next": [
             "ChampionArenaCheerUpAvailableFlow",
             "ChampionArenaClickCheerUpRight",
-            "ChampionArenaCloseCheerUpPage"
+            "ChampionArenaCloseCheerUpPage",
+            "ArenaClickCheerUp" //兜底，点击后仍停留在比赛页时重试
         ]
     },
     "ChampionArenaCloseCheerUpPage": {
