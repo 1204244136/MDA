@@ -141,6 +141,53 @@ class AndroidCITest(unittest.TestCase):
                 False,
             )
 
+    def test_signing_and_verification_explicitly_cover_v2(self):
+        with tempfile.TemporaryDirectory() as directory:
+            apk = Path(directory) / "input.apk"
+            apk.write_bytes(b"unsigned fixture")
+            env = {
+                "ANDROID_TEST_KEYSTORE_BASE64": "Zml4dHVyZQ==",
+                "ANDROID_TEST_STORE_PASSWORD": "fixture",
+                "ANDROID_TEST_KEY_ALIAS": "fixture",
+                "ANDROID_TEST_KEY_PASSWORD": "fixture",
+                "ANDROID_TEST_CERT_SHA256": "a" * 64,
+            }
+
+            def sign(command, **kwargs):
+                self.assertEqual(
+                    command[command.index("--v2-signing-enabled") + 1], "true"
+                )
+                self.assertEqual(
+                    command[command.index("--v3-signing-enabled") + 1], "true"
+                )
+                Path(command[command.index("--out") + 1]).write_bytes(b"signed fixture")
+
+            with (
+                patch.dict(ci.os.environ, env),
+                patch.object(ci.subprocess, "run", side_effect=sign),
+            ):
+                ci.sign_apk(apk, Path("tools"))
+            self.assertEqual(apk.read_bytes(), b"signed fixture")
+
+            def output(command, **kwargs):
+                if "badging" in command:
+                    return "package: name='com.aliothmoon.maafw.mda.membershiptest' versionCode='1' versionName='2.5.0'"
+                self.assertEqual(command[command.index("--min-sdk-version") + 1], "24")
+                return (
+                    "Verified using v2 scheme (APK Signature Scheme v2): true\nSigner #1 certificate SHA-256 digest: "
+                    + "b" * 64
+                )
+
+            with (
+                patch.dict(ci.os.environ, env),
+                patch.object(ci.subprocess, "run"),
+                patch.object(ci.subprocess, "check_output", side_effect=output),
+                self.assertRaisesRegex(ValueError, "证书"),
+            ):
+                ci.verify_apk(
+                    apk, Path("tools"), {"version": "2.5.0", "version_code": 1}, False
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

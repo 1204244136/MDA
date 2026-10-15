@@ -100,6 +100,10 @@ def sign_apk(apk: Path, tools: Path) -> None:
                 os.environ["ANDROID_TEST_KEY_ALIAS"],
                 "--key-pass",
                 "env:ANDROID_TEST_KEY_PASSWORD",
+                "--v2-signing-enabled",
+                "true",
+                "--v3-signing-enabled",
+                "true",
                 "--out",
                 str(signed),
                 str(apk),
@@ -186,10 +190,15 @@ def verify_apk(apk: Path, tools: Path, meta: dict, pr: bool) -> Path:
             "verify",
             "--verbose",
             "--print-certs",
+            # minSdk >= 28 时默认只验证 v3，打印 v2=false 不代表签名块缺失。
+            # 扩展验证范围到 API 24，要求 v2/v3 两条验签路径均可用。
+            "--min-sdk-version",
+            "24",
             str(apk),
         ],
         text=True,
     )
+    print(signature, flush=True)
     cert = re.search(r"Signer #1 certificate SHA-256 digest: ([a-fA-F0-9]+)", signature)
     if (
         not cert
