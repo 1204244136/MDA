@@ -1,5 +1,9 @@
 # 项目代理说明
 
+## 项目 Skills
+
+项目 skill 统一维护在 `.agents/skills/`。活动主题适配、截图裁剪和素材归档使用其中的 `mda-event-update`；一般任务/选项生成使用 `generate-pi-task`。
+
 ## 平台与环境
 
 - **操作系统**：Windows（此 AGENTS.md 面向 Windows）

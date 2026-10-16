@@ -77,7 +77,7 @@ description: 分析 MDA 公开 Issue、日志包或本地日志。用于 `https:
 
 如果发现 `.dmp`：
 
-1. 立即读取并执行 `.claude/skills/dmp-analysis/SKILL.md`。
+1. 立即读取并执行 `.agents/skills/dmp-analysis/SKILL.md`。
 2. 解析异常类型、崩溃模块、crashing thread。
 3. 需要时下载 MaaFramework / MXU PDB 并符号化。
 4. 用 DMP 文件名中的 PID 与 `maafw.log` 的 `[Px<pid>]` 或 MXU 日志交叉验证。

@@ -168,10 +168,14 @@ MDA 任务文件位于 `assets/tasks/`，当前包括：
 
 判断原则：
 
-- `select`：互斥路线，case 之间要互相禁用。
+- `select`：只应用选中 case；路由覆盖可用完整 `next`，共享候选且依赖启停互斥时再配置 `enabled`。
 - `checkbox`：独立列表，case 通常只启用自身节点。
 - `switch`：单个是否执行的功能。
 - nested option：只有某个 case 激活后才显示的子配置。
+
+## 活动更新
+
+从完整截图/已裁图适配大小活动、补难度模板或更新当前主题时，使用 [mda-event-update](../mda-event-update/SKILL.md)。活动素材流程由该 skill 维护，现行架构以项目 `AGENTS.md` 和 `docs/event-theme-routing.md` 为准。
 
 ## MDA Go Service
 

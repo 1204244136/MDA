@@ -51,7 +51,9 @@ jobs:
           npx @nekosu/maa-tools check
 
       - name: Check event theme consistency
-        run: npm run check:theme
+        run: |
+          npm run test:theme
+          npm run check:theme
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -60,6 +62,9 @@ jobs:
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v9.0.0
+
+      - name: Test event template preparation
+        run: uv run --frozen --only-group schema --with opencv-python python .agents/skills/mda-event-update/scripts/test_prepare_templates.py
 
       - name: Validate JSON Schema
         run: |

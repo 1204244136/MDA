@@ -2,7 +2,8 @@
 name: generate-pi-task
 description: 根据 MaaFramework Pipeline 定义生成或更新 Project Interface 任务 JSON。用于创建、编辑或扩展 assets/tasks/ 下的任务文件，将 Pipeline 节点映射为用户可配置选项（switch/select/checkbox/input）并绑定 pipeline_override。
 license: MIT
-compatibility: Designed for Claude Code
+metadata:
+    compatibility: Designed for Claude Code
 ---
 
 # MaaFramework Project Interface 任务生成
@@ -120,6 +121,10 @@ compatibility: Designed for Claude Code
 - 其它语言无法确定官方译名时，给出合理占位并在回复中请用户确认。
 - 只维护当前项目已有 locale 文件，不要凭空新增语言文件，除非用户明确要求。
 
+## 活动更新
+
+更新活动主题、补 Hard/Story 模板、从截图裁剪或归档活动素材时，使用 [mda-event-update](../mda-event-update/SKILL.md)。本 skill 继续负责一般 PI 任务和选项生成，不维护活动适配步骤。
+
 ## 注意事项
 
 - `interface_import.schema.json` 才是任务文件 schema，不是 `interface.schema.json`。
@@ -128,7 +133,7 @@ compatibility: Designed for Claude Code
 - `enabled: false` 表示节点默认关闭，选项通常让用户将其开启。
 - `enabled: true` 表示节点默认开启，选项通常让用户将其关闭。
 - `switch` 的 cases 通常为 `Yes` 和 `No` 两个。
-- `select` 的每个 case 需要启用自身节点，同时禁用同组互斥兄弟节点。
+- `select` 只应用选中的 case。完整 `next` 路由覆盖不需要额外启停其他主题；共享候选列表且依赖 `enabled` 互斥时才配置兄弟节点启停。
 - `checkbox` 的每个 case 通常只启用自身节点，不禁用兄弟节点。
 - 若项目已有同类任务采用不同顺序或 default_case，优先保持项目一致性。
 

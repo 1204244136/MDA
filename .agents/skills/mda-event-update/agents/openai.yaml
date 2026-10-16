@@ -1,0 +1,4 @@
+interface:
+  display_name: "MDA 活动更新"
+  short_description: "从完整截图或已裁剪素材更新 MDA 大小活动，完成命名归档、主题配置与识别验证"
+  default_prompt: "使用 $mda-event-update，根据这张活动截图或已裁剪素材完成模板裁剪、归档与主题适配。"

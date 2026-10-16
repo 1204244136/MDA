@@ -2,7 +2,8 @@
 name: pipeline-debug
 description: 调试和优化 MaaFramework Pipeline JSON。用于对照 schema 验证配置，检测缺失引用、循环依赖、孤立节点、命名与行为不匹配、ROI/阈值问题，并给出可靠性、性能和可维护性改进建议。触发词包括 debug pipeline、validate pipeline、optimize pipeline、pipeline error。
 license: MIT
-compatibility: Designed for Claude Code
+metadata:
+    compatibility: Designed for Claude Code
 allowed-tools: Read Grep Glob
 ---
 
@@ -127,3 +128,7 @@ allowed-tools: Read Grep Glob
 - [常见模式](references/common-patterns.md)
 - [输出格式](references/output-format.md)
 - MaaFramework Pipeline Protocol：<https://github.com/MaaXYZ/MaaFramework/blob/main/docs/en_us/3.1-PipelineProtocol.md>
+
+## 多模板调试结果
+
+调试图可能分别展示各模板候选。单张模板低分或红框不代表整个节点失败，应查看最终 RecognitionDetail 的命中、box 和动作目标。同一节点的模板数组共享动作参数；偏移不同应分开识别/点击节点。被标注框覆盖的展示图不等同于框架原始截图，不用它的匹配分数反推原始识别失败。
