@@ -10,7 +10,8 @@ C. 用一个「无 override 的 case」承接 CurrentEvent 语义是可行的
 D. 只覆盖部分节点时，未覆盖的节点落到 base（风险点）
 E. base 的动作参数（action.param.target_offset）同样按 prop 深合并：
    往期主题只覆盖 template 时会静默继承当前活动的点击偏移，必须显式写 [0, 0, 0, 0] 归零
-   → 对应 `npm run check:theme` 的断言 D
+   → 这是历史共用节点方案的风险反例；生产小活动已改用主题独立扫荡节点。
+   当前路由隔离验证见 verify_small_event_routing.py。
 """
 
 import ctypes
@@ -161,7 +162,7 @@ def main():
     res4 = maa.MaaResourceCreate()
     rid4 = maa.MaaResourcePostBundle(res4, RES_DIR.encode())
     maa.MaaResourceWait(res4, rid4)
-    # 模拟：当前活动（LittleWitchTrick）把「扫荡标识挂在关卡行外侧」的补偿写在 base 上
+    # 模拟历史方案：把某主题的扫荡补偿写在共用 base 上（风险反例，不是当前生产结构）
     maa.MaaResourceOverridePipeline(res4, json.dumps({
         "SmallEventClickStageRepeatable": {"action": {"param": {"target_offset": [-80, -30, 0, 0]}}}
     }).encode())
@@ -179,7 +180,7 @@ def main():
     check("往期主题只覆盖 template 时会静默继承 base 的点击偏移（风险点）",
           offset_of(res4, "SmallEventClickStageRepeatable") == [-80, -30, 0, 0],
           f"实际 = {offset_of(res4, 'SmallEventClickStageRepeatable')}"
-          f"  ← 这就是断言 D 存在的原因：回选老活动会带着当前活动的偏移点偏")
+          f"  ← 这是生产扫荡节点改为按主题隔离的原因：共用参数会影响其他模板的点击")
 
     # 往期主题显式归零 → 覆盖生效
     maa.MaaResourceOverridePipeline(res4, json.dumps({

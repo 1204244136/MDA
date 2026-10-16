@@ -105,8 +105,10 @@
     },
     "SmallEventEventStageQuickBattleFlow": {
         "desc": "小活动活动关卡页面快速战斗流程",
+        // 当前活动扫荡路由：切换主题时只替换 next；模板与偏移保存在 Themes/ 的主题节点中。
         "next": [
-            "SmallEventClickStageRepeatable",
+            "SmallEventLittleWitchTrickClickStageNormalRepeatable",
+            "SmallEventLittleWitchTrickClickStageHardRepeatable",
             "SmallEventGoBack"
         ]
     },
@@ -177,46 +179,6 @@
         "next": [
             "SmallEventEventStageBattlePage",
             "SmallEventEventStageQuickBattleFlow"
-        ]
-    },
-    "SmallEventClickStageRepeatable": {
-        "desc": "小活动关卡可扫荡点击",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    314,
-                    103,
-                    661,
-                    604
-                ],
-                "template": [
-                    "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png", //当前活动，随最新主题更新
-                    "SmallEvent/LittleWitchTrick/LittleWitchTrickStageHardRepeatable.png"
-                ],
-                "order_by": "Vertical",
-                "index": -1
-            }
-        },
-        // 当前活动（LittleWitchTrick）的扫荡标识是挂在关卡行右下角外侧的木牌，识别框中心落在关卡行
-        // 命中区之外，直接用中心点会点空导致漏打；向左上偏移把落点拉回关卡行上。
-        // 该偏移属于「当前活动」专属参数：往期主题 case 必须显式写 target_offset 归零，
-        // 否则会静默继承本值（由 npm run check:theme 断言 D 强制校验）。
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -80,
-                    -30,
-                    0,
-                    0
-                ]
-            }
-        },
-        "post_wait_freezes": 500,
-        "next": [
-            "SmallEventEventStageBattlePage",
-            "SmallEventGoBack"
         ]
     },
     "SmallEventBattleBlocked": {

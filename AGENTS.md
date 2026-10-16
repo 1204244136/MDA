@@ -78,18 +78,22 @@
 - 客户端把用户选中的 case 名写进 `config\maa_pi_config.json`，且存的是**当时选的具体 case 名**（真实样例：`"SmallEventTheme": "GreatVillainUnion"`）。框架按 `case.name == 配置值` 精确查找，命中则应用该 case 的 override，未命中则 `LogWarn` 后跳过。由此推出两条重要结论：
     - 只改 `default_case` 只影响**新用户**与**未配置过的用户**；已配置的老用户配置里存的是具体 case 名，不会因 `default_case` 改动而变化。
     - 选了 `CurrentEvent` 的用户配置里存的是字符串 `"CurrentEvent"`，该 case 永久存在，因此会随 base 自动跟随最新活动——这是「当前活动」机制成立的根本原因。
-- `CurrentEvent` **不携带 `pipeline_override`**。它靠 resource 侧 base 节点承载最新主题模板来工作，用户选它即可在下次更新后自动跟随，无需重写。
+- `CurrentEvent` **不携带 `pipeline_override`**。它靠 resource 侧 base 模板和路由指向最新主题来工作，用户选它即可在下次更新后自动跟随，无需重写。
 - `CurrentEvent` 不是主题名，locale 显示名用「当前活动」/ `Current Event`，不适用全大写约定；同时在 `zh_cn`、`en_us` 中补上 `option.{LargeEventTheme,SmallEventTheme}.CurrentEvent` 与对应 `.description`。
 
 ### base 节点承载最新主题
 
-- `LargeEvent` / `SmallEvent` 的以下 base 节点直接写**最新主题**的真实配置，并加注释 `//当前活动，随最新主题更新`：
-    - 模板类节点：`LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`、`SmallEventEnterMainPage`、`SmallEventClickStage`、`SmallEventClickStageRepeatable`
-    - 小游戏路由节点：`LargeEventMiniGame`（若最新活动支持小游戏，其 `next` 写最新主题的真实小游戏入口，如 `LargeEventCoinRushShowdownMiniGame` 并接 `CommonEndTask`；若不支持则直接写 `["CommonEndTask"]`）。
-- **base 承载的不只是模板**：凡「当前活动专属」的动作参数（目前用到的是 `action.param.target_offset` 点击偏移）同样写在 base 节点上。框架的 override 是**按 prop 深合并**的，所以这类参数会和模板一样被往期主题静默继承——**往期主题 case 必须逐个显式声明**（不需要偏移就写 `"target_offset": [0, 0, 0, 0]`），否则回选老活动时会带着当前活动的偏移去点，落点偏出目标导致漏打。
-- **主题专属偏移 vs 通用调参**：判据是「这个偏移是为了补某个主题的识别框与点击区错位，还是所有主题共用的一处调参」。
-    - **主题专属**（登记进 `scripts/check-theme-sync.mjs` 的 `offsetCarryingNodes`，往期主题必须声明）：如 `SmallEventClickStageRepeatable` 在 `LittleWitchTrick` 下的 `[-80, -30, 0, 0]` —— 该主题的扫荡标识（木牌）挂在关卡行右下角**外侧**，识别框中心落在命中区外，必须向左上偏移回落到关卡行上。
-    - **通用调参**（不登记、往期主题照样继承、也不要抄进各主题 case）：如 `SmallEventEnterMainPage` / `LargeEventEnterMainPage` 的 `[30, 0, 0, 0]`（`e003aa9` 一次性加在 base 上，两个活动共用同一处入口调参）。
+- base 模板节点承载最新主题，并加注释 `//当前活动，随最新主题更新`：
+    - 大活动：`LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`。
+    - 小活动：`SmallEventEnterMainPage`、`SmallEventClickStage`。
+- **小活动扫荡按主题路由**：`SmallEventEventStageQuickBattleFlow.next` 在 base 指向当前主题的点击节点，末尾保留 `SmallEventGoBack`；每个具体主题 case 显式覆盖完整 `next`。`CurrentEvent` 和 `Other` 均无 override，保持跟随 base 的既有行为。
+- **小活动扫荡的模板与动作归主题所有**：在 `assets/resource/pipeline/Event/SmallEvent/Themes/{CaseName}.json` 声明 `SmallEvent{CaseName}ClickStage...Repeatable` 节点。模板、`target_offset`、等待和点击后续放在同一节点；case 只切换扫荡路由，不覆盖这些节点的模板或动作。
+    - 相同点击策略的模板可以合并；偏移不同就拆识别与点击节点，无需复制共用战斗/扫荡业务流程。
+    - `LittleWitchTrick` Normal 使用 `[-80, -30, 0, 0]`，Hard 使用独立节点的 `[-40, 45, 0, 0]`。后者根据 Hard 糖果位于南瓜右上侧的截图定位，移向左下关卡主体；截图离线回放不代替实机点击后的页面验收。
+    - 新主题只新增自己的点击节点并切换路由，旧主题节点保持原样。共用扫荡路由不承载点击动作或主题偏移，也无需给其他主题逐个写归零补丁。
+    - 点击节点保留 `order_by: Vertical`、`index: -1`、`post_wait_freezes: 500`，点击后接 `SmallEventEventStageBattlePage` / `SmallEventGoBack`，不恢复历史的 `max_hit: 1` 或 `[JumpBack]` 点击流程。
+- 大活动小游戏路由 `LargeEventMiniGame` 的 base 指向最新主题小游戏入口并接 `CommonEndTask`；无小游戏时为 `["CommonEndTask"]`。
+- 识别与动作参数的 override 仍按字段继承，换模板不会自动清除偏移。`SmallEventEnterMainPage` / `LargeEventEnterMainPage` 的 `[30, 0, 0, 0]` 属全主题通用入口调参，继续保留在 base。主题专属动作配置应集中在主题节点，避免放入共用节点后要求所有主题反向归零。
 - **`CurrentEvent` 与小游戏机制**：`CurrentEvent` **不携带 `pipeline_override`**，因此当前活动是否跑小游戏**100% 依赖 base 节点的 `LargeEventMiniGame`**！
 - **防止往期主题静默继承小游戏**：因为 base 节点的 `LargeEventMiniGame` 承载了最新主题的小游戏，**所有往期主题 case（包括不支持小游戏的主题如 `StarAnis`、`Other`）必须在各自的 `pipeline_override` 中全量覆盖 `LargeEventMiniGame`**（有小游戏的覆写为自己的小游戏入口+`CommonEndTask`，无小游戏的覆写为 `["CommonEndTask"]`）。漏覆写会导致回选老活动时误跑当前活动的小游戏。
 - `LargeEventEnterMission` 是**中性红点检测**（`Common/RedDot.png` + `Common/RedDotSP.png`），不是主题模板节点，**不要改动**。
@@ -97,13 +101,13 @@
 
 ### 适配新主题的操作顺序
 
-1. 为新主题写好完整的 case（含 `label`、三个模板类节点的 `pipeline_override`，以及 `LargeEventMiniGame` 的 override）。
-2. 把 base 节点的 `template` 和 `LargeEventMiniGame` 换成新主题的配置（即把「当前活动」升级为新主题；若新活动无小游戏则 `LargeEventMiniGame` 写 `["CommonEndTask"]`）。
-    - 若新主题存在「识别框与点击区错位」（如扫荡标识悬在关卡行外侧），把 `action.param.target_offset` 一并写进 base，**同时写进新主题 case**，并确认该节点已登记在 `scripts/check-theme-sync.mjs` 的 `offsetCarryingNodes`。
-    - 反之，若新主题不需要该偏移，把 base 上的 `target_offset` 删回默认，并按断言 D 的提示把节点从 `offsetCarryingNodes` 移除。
+1. 为新主题写好完整 case：大活动覆盖三个模板节点与 `LargeEventMiniGame`；小活动覆盖入口/普通关卡两个模板节点，以及 `SmallEventEventStageQuickBattleFlow.next`。
+2. 更新 base 的当前主题：大活动更新三个模板及小游戏路由；小活动更新两个模板及扫荡路由。
+    - 小活动先在 `Themes/{CaseName}.json` 声明自己的扫荡点击节点，再把完整节点列表加 `SmallEventGoBack` 写入 base 路由和具体主题 case。
+    - 不同难度的识别框与点击区域不同，就拆节点并分别测量偏移；不要只向旧节点追加 Hard 模板而共用 Normal 偏移。
 3. `CurrentEvent` **不动**：它没有 override，base 一改就自动跟随。
 4. 往期主题 case 的 `pipeline_override` 一律保留不动，供用户显式回选仍在开放的老活动。
-5. 跑 `npm run check:theme` 校验。
+5. 跑 `npm run test:theme`、`npm run check:theme`，并执行相关框架离线回放与资源/schema 校验。
 6. **本次适配是否下架或重命名了某个往期主题 case？** 若是，见下节「用户影响与提示话术」，需要在更新说明里提示这批用户重选主题；若否，不要发提示。
 
 ### 用户影响与提示话术
@@ -132,9 +136,9 @@
 - **断言 A**：`CurrentEvent` 不得携带非空 `pipeline_override`（否则自动跟随失效）。
 - **断言 B**：所有往期主题 case 必须逐个覆盖同一批模板类节点。漏覆盖的主题在 base 换新后会**静默继承新主题模板**，导致回选老活动时永远匹配不上且不报错——这正是护栏存在的意义。
 - **断言 C**：所有往期主题 case（含 `Other`）必须显式覆盖 `LargeEventMiniGame` 的 `next` 数组。漏覆盖的主题会**静默继承最新主题的小游戏**，导致在老活动中误识别当前小游戏。
-- **断言 D**：对 `TARGETS[].offsetCarryingNodes` 登记的节点，base 必须带非零 `target_offset`，且所有往期主题 case 必须逐个显式声明 `target_offset`。漏声明的主题会**静默继承当前活动的点击偏移**（override 按 prop 深合并）而点偏目标；登记节点在 base 上没有非零偏移时也报错，提示把该节点从 `offsetCarryingNodes` 移除。
+- **断言 D**：小活动每个具体主题必须完整声明扫荡路由；base 路由必须属于当前入口模板对应的主题；点击节点、模板和动作归同一主题，末尾连接公共后续；共用路由无识别与点击动作，case 不得覆盖主题点击节点；携带非零偏移的 Normal/Hard 混合模板会报错。
 
-新增主题或调整 base 时，若模板类节点或「主题专属偏移」节点的集合发生变化，需同步更新脚本顶部的 `TARGETS[].expectedTemplateNodes` / `TARGETS[].offsetCarryingNodes`。
+新增小活动主题时，按 case 名命名 `Themes/{CaseName}.json`，护栏自动发现其中节点；公共模板节点或大活动小游戏路由集合变化时，再更新脚本的对应清单。`npm run test:theme` 覆盖换主题漏改路由、跨主题引用和 Normal/Hard 偏移混用等回归。
 
 ## 大型小活动适配
 
@@ -155,7 +159,7 @@
 
 - 有 Story 的活动，不适配 Story 切换按钮。Story 2 开放后，活动页面会自动切换到 Story 2，无需 Pipeline 额外点击；不要照搬 `LargeEvent` 的 Story 优先级或 Story 入口切换流程。
 - 有 Story 时，关卡模板必须按实际 Story 语义命名。Story 1 使用 `{Theme}Story1Stage.png` 和 `{Theme}Story1StageRepeatable.png`；Story 2 普通难度使用 `{Theme}Story2StageNormal.png` 和 `{Theme}Story2StageNormalRepeatable.png`。不要用 `SP` 代指 Story 2。
-- 将 Story 1、Story 2 模板共同加入 `SmallEventClickStage` 和 `SmallEventClickStageRepeatable` 的主题覆盖，由现有统一关卡流程识别并推进。
+- 将 Story 1、Story 2 普通关卡模板加入 `SmallEventClickStage` 的主题覆盖；扫荡模板放在对应 `Themes/{CaseName}.json` 的点击节点中。点击策略相同可以合并，不同就拆节点，由主题扫荡路由识别并接回统一流程。
 - Story 2 Hard 未开放时，不添加 `{Theme}Story2StageHard*` 模板或配置；开放后再根据实际素材适配。
 
 ### 关卡已全清（CLEAR）时截不到 EVENT

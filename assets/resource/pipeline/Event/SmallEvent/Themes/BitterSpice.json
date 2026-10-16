@@ -1,0 +1,31 @@
+{
+    "SmallEventBitterSpiceClickStageRepeatable": {
+        "desc": "BitterSpice 可扫荡关卡点击",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    314,
+                    103,
+                    661,
+                    604
+                ],
+                "template": [
+                    "SmallEvent/BitterSpice/BitterSpiceStageNormalRepeatable.png",
+                    "SmallEvent/BitterSpice/BitterSpiceStageNormalRepeatableSP.png",
+                    "SmallEvent/BitterSpice/BitterSpiceStageHardRepeatable.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "SmallEventEventStageBattlePage",
+            "SmallEventGoBack"
+        ]
+    }
+}

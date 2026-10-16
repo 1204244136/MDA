@@ -51,26 +51,11 @@
                                 }
                             }
                         },
-                        "SmallEventClickStageRepeatable": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/BitterSpice/BitterSpiceStageNormalRepeatable.png",
-                                        "SmallEvent/BitterSpice/BitterSpiceStageNormalRepeatableSP.png",
-                                        "SmallEvent/BitterSpice/BitterSpiceStageHardRepeatable.png"
-                                    ]
-                                }
-                            },
-                            "action": {
-                                "param": {
-                                    "target_offset": [
-                                        0,
-                                        0,
-                                        0,
-                                        0
-                                    ]
-                                }
-                            }
+                        "SmallEventEventStageQuickBattleFlow": {
+                            "next": [
+                                "SmallEventBitterSpiceClickStageRepeatable",
+                                "SmallEventGoBack"
+                            ]
                         }
                     }
                 },
@@ -97,25 +82,11 @@
                                 }
                             }
                         },
-                        "SmallEventClickStageRepeatable": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/B-SideIdol/B-SideIdolStageNormalRepeatable.png",
-                                        "SmallEvent/B-SideIdol/B-SideIdolStageHardRepeatable.png"
-                                    ]
-                                }
-                            },
-                            "action": {
-                                "param": {
-                                    "target_offset": [
-                                        0,
-                                        0,
-                                        0,
-                                        0
-                                    ]
-                                }
-                            }
+                        "SmallEventEventStageQuickBattleFlow": {
+                            "next": [
+                                "SmallEventBSideIdolClickStageRepeatable",
+                                "SmallEventGoBack"
+                            ]
                         }
                     }
                 },
@@ -143,26 +114,11 @@
                                 }
                             }
                         },
-                        "SmallEventClickStageRepeatable": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/ProjectMatis/ProjectMatisStory1StageRepeatable.png",
-                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormalRepeatable.png",
-                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageHardRepeatable.png"
-                                    ]
-                                }
-                            },
-                            "action": {
-                                "param": {
-                                    "target_offset": [
-                                        0,
-                                        0,
-                                        0,
-                                        0
-                                    ]
-                                }
-                            }
+                        "SmallEventEventStageQuickBattleFlow": {
+                            "next": [
+                                "SmallEventProjectMatisClickStageRepeatable",
+                                "SmallEventGoBack"
+                            ]
                         }
                     }
                 },
@@ -189,25 +145,11 @@
                                 }
                             }
                         },
-                        "SmallEventClickStageRepeatable": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageNormalRepeatable.png",
-                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageHardRepeatable.png"
-                                    ]
-                                }
-                            },
-                            "action": {
-                                "param": {
-                                    "target_offset": [
-                                        0,
-                                        0,
-                                        0,
-                                        0
-                                    ]
-                                }
-                            }
+                        "SmallEventEventStageQuickBattleFlow": {
+                            "next": [
+                                "SmallEventGreatVillainUnionClickStageRepeatable",
+                                "SmallEventGoBack"
+                            ]
                         }
                     }
                 },
@@ -234,25 +176,12 @@
                                 }
                             }
                         },
-                        "SmallEventClickStageRepeatable": {
-                            "recognition": {
-                                "param": {
-                                    "template": [
-                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png",
-                                        "SmallEvent/LittleWitchTrick/LittleWitchTrickStageHardRepeatable.png"
-                                    ]
-                                }
-                            },
-                            "action": {
-                                "param": {
-                                    "target_offset": [
-                                        -80,
-                                        -30,
-                                        0,
-                                        0
-                                    ]
-                                }
-                            }
+                        "SmallEventEventStageQuickBattleFlow": {
+                            "next": [
+                                "SmallEventLittleWitchTrickClickStageNormalRepeatable",
+                                "SmallEventLittleWitchTrickClickStageHardRepeatable",
+                                "SmallEventGoBack"
+                            ]
                         }
                     }
                 },

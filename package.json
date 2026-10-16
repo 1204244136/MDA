@@ -4,7 +4,8 @@
         "format": "prettier --write \"**/*.{json,yml,yaml,md}\"",
         "format:aggressive": "prettier --print-width 20 --write \"assets/resource/pipeline/**/*.json\" \"assets/tasks/**/*.json\" && prettier --write \"assets/resource/pipeline/**/*.json\" \"assets/tasks/**/*.json\"",
         "format:check": "prettier --check \"**/*.{json,yml,yaml,md}\"",
-        "check:theme": "node scripts/check-theme-sync.mjs"
+        "check:theme": "node scripts/check-theme-sync.mjs",
+        "test:theme": "node --test scripts/check-theme-sync.test.mjs"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.14",

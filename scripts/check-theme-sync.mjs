@@ -1,41 +1,10 @@
 /**
- * check-theme-sync.mjs —— 活动主题路由一致性护栏
- *
- * 背景：`LargeEventTheme` / `SmallEventTheme` 的「当前活动」（CurrentEvent）不再携带
- * `pipeline_override`，而是靠 resource 侧 base 节点承载最新主题的模板；用户选中
- * CurrentEvent 时会自动跟随下次更新。
- *
- * 由此产生三类必须自动守住的不变量：
- *
- *   1. 模板类节点（override 内含 `template`）：所有「往期主题」case 必须**逐个覆盖**
- *      同一批节点。
-
- *      否则：base 换成新主题后，未覆盖的往期主题会静默继承新主题模板，导致回选
- *      老活动时识别失败（且不会报错，只是永远匹配不上）。
- *
- *   2. base 节点的动作参数（`action.param.target_offset` 点击偏移）与模板同理：
- *      base 一旦带上「当前活动」专属的非零偏移，所有「往期主题」case 必须**逐个显式声明**
- *      同一节点的 `target_offset`（不需要偏移就写 [0, 0, 0, 0]）。
- *
- *      否则：往期主题的点击会跟着当前活动一起偏移，落到目标之外（点偏、漏打）。
- *
- *      范围由 TARGETS 的 `offsetCarryingNodes` 显式登记 —— 只有「为补某个主题的
- *      识别框与点击区错位」的偏移才算主题专属；全主题通用的调参不登记，也不要求
- *      往期主题声明（否则会让老主题白白丢掉本来就该继承的偏移）。
- *
- *   3. CurrentEvent 必须**没有** `pipeline_override`（或为空对象）。
- *      否则：又回到"写两遍"，且 override 会盖住 base，自动跟随失效。
- *
- *      例外：`option`（子选项列表）不算 override，必须保留。
- *
- * 用法：
- *   node scripts/check-theme-sync.mjs
- *   npm run check:theme
- *
- * 退出码：0 = 全部通过；1 = 存在违规。
+ * 活动主题一致性护栏：CurrentEvent 无 override；具体主题完整覆盖模板或路由。
+ * 小活动扫荡节点按主题保存模板与动作，禁止共用节点继承主题专属偏移。
+ * 用法：npm run check:theme；回归测试：npm run test:theme。
  */
 
-import {readFileSync} from "node:fs";
+import {readFileSync, readdirSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {dirname, join, resolve} from "node:path";
 
@@ -55,19 +24,9 @@ const TARGETS = [
         expectedTemplateNodes: [
             "SmallEventEnterMainPage",
             "SmallEventClickStage",
-            "SmallEventClickStageRepeatable",
         ],
-        /**
-         * base 上承载「当前活动专属」点击偏移的节点：往期主题必须逐个显式声明 target_offset，
-         * 否则会静默继承当前活动的偏移而点偏目标。
-         *
-         * 注意区分「主题专属」与「全主题通用」：`SmallEventEnterMainPage` 的 [30, 0, 0, 0]
-         * 是所有主题共用的入口调参（e003aa9），往期主题本就该继承，因此**不列在这里**；
-         * 只有「偏移是为了补某个主题的识别框与点击区错位」时才登记。
-         */
-        offsetCarryingNodes: [
-            "SmallEventClickStageRepeatable",
-        ],
+        repeatableRoutingNode: "SmallEventEventStageQuickBattleFlow",
+        themePipelineDir: "assets/resource/pipeline/Event/SmallEvent/Themes",
     },
     {
         file: "assets/tasks/LargeEvent.json",
@@ -84,8 +43,6 @@ const TARGETS = [
         expectedRoutingNodes: [
             "LargeEventMiniGame",
         ],
-        /** LargeEvent 暂无主题专属点击偏移。 */
-        offsetCarryingNodes: [],
     },
 ];
 
@@ -160,17 +117,141 @@ function loadBaseNodes(target) {
     return nodes;
 }
 
-/** 读取节点上的点击偏移（兼容 `action.param.target_offset` 与旧式顶层 `target_offset`）。 */
-function targetOffsetOf(node) {
-    if (!node || typeof node !== "object") return null;
-    const nested = node?.action?.param?.target_offset;
-    if (nested !== undefined) return nested;
-    return node.target_offset === undefined ? null : node.target_offset;
-}
+/** 检查路由的实际目标及模板归属，避免换主题时遗留旧路由或把不同难度的偏移绑在一起。 */
+function checkRepeatableRoutes(target, cases, baseNodes) {
+    const routeName = target.repeatableRoutingNode;
+    const fail = (message) => errors.push(`[${target.optionName}] ${message}`);
+    const themeNodes = new Map();
+    try {
+        for (const file of readdirSync(join(REPO_ROOT, target.themePipelineDir))) {
+            if (!file.endsWith(".json")) continue;
+            const theme = file.slice(0, -5);
+            const doc = parseJsonc(readFileSync(join(REPO_ROOT, target.themePipelineDir, file), "utf8"));
+            for (const [
+                name,
+                node,
+            ] of Object.entries(doc)) {
+                if (themeNodes.has(name) || baseNodes.has(name)) fail(`扫荡节点 ${name} 重复声明。`);
+                if (!name.startsWith(`SmallEvent${theme}ClickStage`)) fail(`${file} 中的 ${name} 不属于该主题。`);
+                themeNodes.set(name, {theme, node});
+            }
+        }
+    } catch (err) {
+        fail(`无法读取主题扫荡节点：${err.message}`);
+        return;
+    }
 
-/** 偏移是否为非默认值：任一分量不为 0 即算（兼容「每段一个偏移」的嵌套数组写法）。 */
-function isNonZeroOffset(offset) {
-    return Array.isArray(offset) && offset.flat(2).some((v) => typeof v === "number" && v !== 0);
+    const concrete = cases.filter((c) => !NON_THEME_CASES.has(c.name));
+    const baseLogo = baseNodes.get("SmallEventEnterMainPage")?.recognition?.param?.template;
+    const currentTheme = concrete.find(
+        (c) =>
+            JSON.stringify(c.pipeline_override?.SmallEventEnterMainPage?.recognition?.param?.template) ===
+            JSON.stringify(baseLogo),
+    );
+    if (!currentTheme) fail("base 入口模板找不到对应的具体主题 case，无法确认当前扫荡路由归属。");
+
+    const used = new Set();
+    function checkRoute(route, themeCase, label) {
+        if (!route || route.action || route.recognition || route.target_offset) {
+            fail(`${label} 的 ${routeName} 必须是无识别、无点击动作的路由节点。`);
+        }
+        const next = route?.next;
+        if (
+            !Array.isArray(next) ||
+            next.length < 2 ||
+            next.at(-1) !== "SmallEventGoBack" ||
+            next.some((name) => typeof name !== "string") ||
+            new Set(next).size !== next.length
+        ) {
+            fail(`${label} 必须完整声明扫荡 next：主题点击节点 + SmallEventGoBack。`);
+            return;
+        }
+        const logo = themeCase.pipeline_override?.SmallEventEnterMainPage?.recognition?.param?.template?.[0];
+        const folder = typeof logo === "string" ? logo.slice(0, logo.lastIndexOf("/") + 1) : "";
+        for (const name of next.slice(0, -1)) {
+            const item = themeNodes.get(name);
+            if (!item || item.theme !== themeCase.name) {
+                fail(`${label} 的扫荡路由 ${name} 缺失或引用了其他主题。`);
+                continue;
+            }
+            used.add(name);
+            const node = item.node;
+            const templates = node.recognition?.param?.template;
+            if (
+                node.recognition?.type !== "TemplateMatch" ||
+                !folder ||
+                !Array.isArray(templates) ||
+                templates.length === 0 ||
+                templates.some((tpl) => typeof tpl !== "string" || !tpl.startsWith(folder) || tpl.includes(".."))
+            ) {
+                fail(`${name} 必须使用 ${themeCase.name} 自己的模板。`);
+            }
+            if (
+                node.action?.type !== "Click" ||
+                node.enabled === false ||
+                node.action.param?.target === false ||
+                JSON.stringify(node.next) !==
+                    JSON.stringify([
+                        "SmallEventEventStageBattlePage",
+                        "SmallEventGoBack",
+                    ])
+            ) {
+                fail(`${name} 必须执行点击并接回共用战斗页面/返回流程。`);
+            }
+            const offset = node.action?.param?.target_offset ?? [
+                0,
+                0,
+                0,
+                0,
+            ];
+            if (!Array.isArray(offset) || offset.length !== 4 || offset.some((v) => !Number.isInteger(v))) {
+                fail(`${name} 的 target_offset 必须是四个整数。`);
+            } else if (
+                offset.some((v) => v !== 0) &&
+                Array.isArray(templates) &&
+                templates.some((tpl) => /StageNormal/.test(tpl)) &&
+                templates.some((tpl) => /StageHard/.test(tpl))
+            ) {
+                fail(`${name} 的 Normal/Hard 模板携带非零偏移，应按点击策略拆分节点。`);
+            }
+        }
+    }
+
+    for (const themeCase of concrete) {
+        const overrides = themeCase.pipeline_override ?? {};
+        checkRoute(overrides[routeName], themeCase, themeCase.name);
+        for (const name of Object.keys(overrides)) {
+            if (themeNodes.has(name) || name === "SmallEventClickStageRepeatable") {
+                fail(`${themeCase.name} 不应覆盖扫荡节点 ${name} 的模板/动作，请只切换路由。`);
+            }
+        }
+    }
+    if (currentTheme) {
+        checkRoute(baseNodes.get(routeName), currentTheme, "CurrentEvent/base");
+        if (
+            JSON.stringify(baseNodes.get(routeName)?.next) !==
+            JSON.stringify(currentTheme.pipeline_override?.[routeName]?.next)
+        ) {
+            fail("CurrentEvent/base 扫荡路由必须与当前具体主题一致，不能遗漏难度分支。");
+        }
+        for (const name of target.expectedTemplateNodes) {
+            if (
+                JSON.stringify(baseNodes.get(name)?.recognition?.param?.template) !==
+                JSON.stringify(currentTheme.pipeline_override?.[name]?.recognition?.param?.template)
+            ) {
+                fail(`CurrentEvent/base 的 ${name} 模板必须与当前具体主题一致。`);
+            }
+        }
+    }
+    const other = cases.find((c) => c.name === "Other");
+    if (other?.pipeline_override && Object.keys(other.pipeline_override).length > 0) {
+        fail("Other 应保持无 override，兼容既有跟随当前活动的行为。");
+    }
+    if (baseNodes.has("SmallEventClickStageRepeatable")) fail("共用 SmallEventClickStageRepeatable 应迁移到主题节点。");
+    for (const name of themeNodes.keys()) {
+        if (!used.has(name)) fail(`主题扫荡节点 ${name} 未被自己的主题路由引用。`);
+    }
+    notes.push(`[${target.optionName}] ${concrete.length} 个主题的扫荡模板与动作按主题隔离。`);
 }
 
 const errors = [];
@@ -246,62 +327,9 @@ for (const target of TARGETS) {
         }
     }
 
-    // ---- 断言 D：base 上带「当前活动专属」点击偏移的节点，往期主题必须显式声明 target_offset ----
-    // 与断言 B 同源：base 承载的是「当前活动」的主题专属参数。除了 template，
-    // 动作参数（action.param.target_offset）同样会被静默继承（框架按 prop 深合并 override）。
-    const baseNodes = loadBaseNodes(target);
-    for (const nodeName of target.offsetCarryingNodes ?? []) {
-        const baseNode = baseNodes.get(nodeName);
-        if (!baseNode) {
-            errors.push(
-                `[${target.optionName}] base pipeline 中找不到节点 "${nodeName}"，` +
-                    `请检查 basePipelineFiles 配置与节点是否已改名。`,
-            );
-            continue;
-        }
-        const baseOffset = targetOffsetOf(baseNode);
-        if (!isNonZeroOffset(baseOffset)) {
-            errors.push(
-                `[${target.optionName}] 节点 "${nodeName}" 被登记为「主题专属点击偏移」节点，` +
-                    `但 base 上没有非零 target_offset。` +
-                    `若新主题不再需要该偏移，请把此节点从脚本 TARGETS 的 offsetCarryingNodes 移除。`,
-            );
-            continue;
-        }
-
-        const declaredWith = new Map();
-        const missing = [];
-        for (const name of pastThemes) {
-            const po = byName.get(name)?.pipeline_override ?? {};
-            const value = targetOffsetOf(po[nodeName]);
-            if (value === null) {
-                missing.push(name);
-                continue;
-            }
-            const key = JSON.stringify(value);
-            declaredWith.set(key, [
-                ...(declaredWith.get(key) ?? []),
-                name,
-            ]);
-        }
-
-        if (missing.length > 0) {
-            errors.push(
-                `[${target.optionName}] 节点 "${nodeName}" 的 base 带非零 target_offset ` +
-                    `${JSON.stringify(baseOffset)}，但以下往期主题未显式声明 target_offset：` +
-                    `${missing.join(", ")}。` +
-                    `这些主题会静默继承当前活动的点击偏移而点偏目标，` +
-                    `请在 case 里显式写 "target_offset": [0, 0, 0, 0]。`,
-            );
-        } else {
-            const detail = [...declaredWith]
-                .map(([value, names]) => `${names.join("/")} = ${value}`)
-                .join("；");
-            notes.push(
-                `[${target.optionName}] 节点 "${nodeName}"：base = ${JSON.stringify(baseOffset)}；` +
-                    `往期主题均显式声明 —— ${detail}。`,
-            );
-        }
+    // ---- 断言 D：小活动扫荡按主题路由，模板与动作属于同一个主题节点 ----
+    if (target.repeatableRoutingNode) {
+        checkRepeatableRoutes(target, cases, loadBaseNodes(target));
     }
 
     // ---- 断言 C：路由类节点覆盖校验（如 LargeEventMiniGame）----

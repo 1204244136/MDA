@@ -1,0 +1,72 @@
+{
+    "SmallEventLittleWitchTrickClickStageNormalRepeatable": {
+        "desc": "LittleWitchTrick 可扫荡关卡点击（Normal：木牌在关卡右下侧，向左上补偿）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    314,
+                    103,
+                    661,
+                    604
+                ],
+                "template": [
+                    "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormalRepeatable.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -80,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "SmallEventEventStageBattlePage",
+            "SmallEventGoBack"
+        ]
+    },
+    "SmallEventLittleWitchTrickClickStageHardRepeatable": {
+        "desc": "LittleWitchTrick 可扫荡关卡点击（Hard：糖果在南瓜右上侧，向左下点击关卡主体）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    314,
+                    103,
+                    661,
+                    604
+                ],
+                "template": [
+                    "SmallEvent/LittleWitchTrick/LittleWitchTrickStageHardRepeatable.png"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -40,
+                    45,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "SmallEventEventStageBattlePage",
+            "SmallEventGoBack"
+        ]
+    }
+}

@@ -11,6 +11,8 @@
 | `verify_input_persistence.py` | 复刻 `Configurator` 的 input 分支，验证 `input` 值在各类配置状态下的取值来源与持久化行为                                                           |
 | `verify_base_as_latest.py`    | 验证「base 节点承载最新主题」方案：往期主题能否正确覆盖 base、`CurrentEvent` 能否省略 override、漏覆盖时的继承行为                                 |
 
+`verify_small_event_routing.py` 加载实际项目资源，验证全部小活动 case 的路由替换、主题模板/动作隔离，以及更新当前主题后回选旧主题；无需设备。
+
 ## 运行
 
 从仓库根目录：
@@ -19,6 +21,7 @@
 .venv/Scripts/python.exe tools/verify/verify_override.py
 .venv/Scripts/python.exe tools/verify/verify_input_persistence.py
 .venv/Scripts/python.exe tools/verify/verify_base_as_latest.py
+.venv/Scripts/python.exe tools/verify/verify_small_event_routing.py
 ```
 
 `verify_override.py` 依赖 `deps/bin/MaaFramework.dll` 及同目录配套 DLL，
@@ -41,3 +44,5 @@
 ## 相关文档
 
 - `docs/event-theme-routing.md` —— 活动主题「当前活动」路由的重复问题分析、方案对比与完整验证报告。
+
+`verify_base_as_latest.py` 中关于偏移继承与显式归零的断言保留为框架风险验证；生产小活动的专属扫荡偏移已迁入主题节点，不再推荐在共用节点上添加偏移并让其他主题逐个归零。
