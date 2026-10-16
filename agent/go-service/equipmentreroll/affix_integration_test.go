@@ -130,6 +130,26 @@ func (p *affixOfflineProbe) checkAffixSafety(ctx *maa.Context, arg *maa.CustomRe
 	if !known || effects != [3]string{"优越代码伤害增加", "暴击伤害增加", "攻击力增加"} || values != [3]string{"23.56%", "6.64%", "11.11%"} {
 		t.Errorf("result OCR: known=%v effects=%v values=%v", known, effects, values)
 	}
+	// 直接识别漏字时，检测识别仍可从同槽的名称框与数值框恢复完整结果。
+	resultSlot := "__EquipmentRerollResultChangedEffectSlot1"
+	override(map[string]any{resultSlot: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{{"优越代码伤害增加", "优越代码伤害增"}}}}}})
+	effects, values, raws, known = recognizeChangedEffects(ctx, img, partScan{})
+	if !known || effects[0] != "优越代码伤害增加" || values[0] != "23.56%" {
+		t.Errorf("split result OCR: known=%v effects=%v values=%v raw=%v", known, effects, values, raws)
+	}
+	// 检测路径的数值被过滤后，不能借用残缺名称路径中的百分比。
+	resultDetected := resultSlot + "DetectedOCR"
+	override(map[string]any{resultDetected: map[string]any{"recognition": map[string]any{"param": map[string]any{"expected": []string{"优越代码伤害增加"}}}}})
+	if _, _, _, known := recognizeChangedEffects(ctx, img, partScan{}); known {
+		t.Error("unfiltered split percentage or partial-name percentage was accepted")
+	}
+	override(map[string]any{resultDetected: map[string]any{"recognition": map[string]any{"param": map[string]any{"expected": []string{".*"}}}}})
+	// 名称相同但两条路径给出不同百分比时，也不能进入结果取舍。
+	override(map[string]any{resultSlot: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{{"23.56", "24.00"}}}}}})
+	if _, _, _, known := recognizeChangedEffects(ctx, img, partScan{}); known {
+		t.Error("conflicting result percentages were accepted")
+	}
+	override(map[string]any{resultSlot: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{}}}}})
 	// 不同现场的无损行截图用于检查类别混淆，保留原始字号和像素。
 	for _, sample := range []struct {
 		file  string

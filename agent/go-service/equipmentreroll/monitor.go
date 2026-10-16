@@ -234,9 +234,8 @@ func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool,
 		return "", firstRaw, false, false
 	}
 	// All 包含未通过框架过滤的候选，只供诊断，不能绕过 expected 和模型分数校验。
-	results := append([]*maa.RecognitionResult{detail.Results.Best}, detail.Results.Filtered...)
-	effect, raw, known := "", firstRaw, false
-	for _, result := range results {
+	var results []*maa.OCRResult
+	for _, result := range append([]*maa.RecognitionResult{detail.Results.Best}, detail.Results.Filtered...) {
 		if result == nil {
 			continue
 		}
@@ -244,21 +243,9 @@ func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool,
 		if !ok || strings.TrimSpace(ocr.Text) == "" {
 			continue
 		}
-		matches := matchingEffectNames(ocr.Text)
-		if len(matches) > 1 {
-			return "", ocr.Text, false, true
-		}
-		candidate, recognized := normalizeEffect(ocr.Text)
-		empty := isUnobtainedEffect(ocr.Text)
-		if !recognized && !empty {
-			continue
-		}
-		if (recognized && empty) || (known && candidate != effect) {
-			return "", firstRaw, false, true
-		}
-		effect, raw, known = candidate, ocr.Text, true
+		results = append(results, ocr)
 	}
-	return effect, raw, known, false
+	return recognizeAffixOCR(results)
 }
 
 // firstRawOCRText 返回识别结果中第一条非空 OCR 文本（去空白折叠），用于读取数值区域。
@@ -307,12 +294,12 @@ func ocrProbe(detail *maa.RecognitionDetail) string {
 	return strings.Join(parts, "|")
 }
 
+var percentValuePattern = regexp.MustCompile(`\d+(?:\.\d+)?%`)
+
 // extractPercentValue 从 OCR 原文中提取最后一个百分数（如 "11.81%"）作为数值。
 // 结果页槽位 OCR 通常是「【效果】11.81%」这类文本，取最后一个百分数作为实际数值。
 func extractPercentValue(raw string) string {
-	const pattern = `\d+(?:\.\d+)?%`
-	re := regexp.MustCompile(pattern)
-	matches := re.FindAllString(raw, -1)
+	matches := percentValuePattern.FindAllString(raw, -1)
 	if len(matches) == 0 {
 		return ""
 	}
