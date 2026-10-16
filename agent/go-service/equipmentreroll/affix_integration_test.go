@@ -93,11 +93,13 @@ func (p *affixOfflineProbe) checkAffixSafety(ctx *maa.Context, arg *maa.CustomRe
 		}
 	}
 	read := func() (string, string, bool) {
-		return readEquipmentAffix(ctx, arg.Img, direct, detected)
+		return readEquipmentAffixName(ctx, arg.Img, direct, detected)
 	}
 	// 保留原节点，避免注入场景污染后续真实数值回归。
 	original := map[string]any{}
-	for _, name := range []string{direct, detected, carrierNode} {
+	const valueNode = "__EquipmentRerollSlot1ValueOCR"
+	const valueFallback = "__EquipmentRerollSlot1ValuePercentOCR"
+	for _, name := range []string{direct, detected, valueNode, valueFallback, carrierNode} {
 		raw, err := ctx.GetNodeJSON(name)
 		if err != nil {
 			t.Fatal(err)
@@ -119,6 +121,57 @@ func (p *affixOfflineProbe) checkAffixSafety(ctx *maa.Context, arg *maa.CustomRe
 		copyArg.CustomRecognitionParam = `{"slot":1}`
 		if _, hit := (&EquipmentRerollScanSlotRecognition{}).Run(ctx, &copyArg); !hit {
 			t.Errorf("%s rejected verified slot", operation)
+		}
+	}
+	// 专用数值节点本身无有效档位时，数值模式仍不得提交初始快照。
+	override(map[string]any{
+		valueNode:     map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{{`23\.56[%％]?`, "99.99%"}}}}},
+		valueFallback: map[string]any{"recognition": map[string]any{"param": map[string]any{"expected": []string{"^MUST_NOT_MATCH$"}}}},
+	})
+	for _, mode := range []string{"character", "single"} {
+		clearMonitorState(arg.TaskID)
+		if err := beginScan(arg.TaskID, "头部"); err != nil {
+			t.Fatal(err)
+		}
+		override(map[string]any{carrierNode: map[string]any{"attach": map[string]any{"mode": mode, "operation": "value"}}})
+		copyArg := *arg
+		copyArg.CustomRecognitionParam = `{"slot":1}`
+		_, hit := (&EquipmentRerollScanSlotRecognition{}).Run(ctx, &copyArg)
+		stateMu.Lock()
+		state := states[arg.TaskID]
+		stateMu.Unlock()
+		if hit || state.Effects != [3]string{} || state.Values != [3]string{} || state.NextSlot != 1 || len(state.Parts) != 0 {
+			t.Errorf("%s committed invalid value evidence: hit=%v state=%+v", mode, hit, state)
+		}
+	}
+	override(original)
+	clearMonitorState(arg.TaskID)
+	// 名称一致、整行数字漏位时，初始扫描仍应使用专用数值节点并校准档位。
+	override(map[string]any{
+		direct: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{
+			{"优越代码伤害增加", "攻击力增加"}, {`23\.56[%％]?`, "1.11%"},
+		}}}},
+		detected: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{
+			{"优越代码伤害增加", "攻击力增加"}, {`23\.56[%％]?`, "11.11%"},
+		}}}},
+		valueNode: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{{`23\.56[%％]?`, "11.11%"}}}}},
+	})
+	for _, mode := range []string{"character", "single"} {
+		for _, operation := range []string{"effect", "value"} {
+			clearMonitorState(arg.TaskID)
+			if err := beginScan(arg.TaskID, "头部"); err != nil {
+				t.Fatal(err)
+			}
+			override(map[string]any{carrierNode: map[string]any{"attach": map[string]any{"mode": mode, "operation": operation}}})
+			copyArg := *arg
+			copyArg.CustomRecognitionParam = `{"slot":1}`
+			_, hit := (&EquipmentRerollScanSlotRecognition{}).Run(ctx, &copyArg)
+			stateMu.Lock()
+			state := states[arg.TaskID]
+			stateMu.Unlock()
+			if !hit || state.Effects[0] != "攻击力增加" || state.Values[0] != "11.11%" || state.NextSlot != 2 {
+				t.Errorf("%s/%s rejected independent scan evidence: hit=%v state=%+v", mode, operation, hit, state)
+			}
 		}
 	}
 	override(original)
@@ -178,7 +231,7 @@ func (p *affixOfflineProbe) checkAffixSafety(ctx *maa.Context, arg *maa.CustomRe
 				direct:   map[string]any{"recognition": map[string]any{"param": map[string]any{"roi": roi, "roi_offset": []int{0, 0, 0, 0}}}},
 				detected: map[string]any{"recognition": map[string]any{"param": map[string]any{"roi": roi, "roi_offset": []int{0, 0, 0, 0}}}},
 			})
-			effect, raw, known := readEquipmentAffix(ctx, crop, direct, detected)
+			effect, raw, known := readEquipmentAffixName(ctx, crop, direct, detected)
 			if !known || effect != want {
 				t.Errorf("%s slot %d: %q %v raw=%q, want %q", sample.file, i+1, effect, known, raw, want)
 			}
@@ -224,6 +277,14 @@ func (p *affixOfflineProbe) checkAffixSafety(ctx *maa.Context, arg *maa.CustomRe
 	}
 	override(original)
 	override(map[string]any{direct: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{{"优越代码伤害增加", "攻击力增加暴击率增加"}}}}}})
+	for _, operation := range []string{"effect", "value"} {
+		assertNoSnapshot(operation)
+	}
+	override(original)
+	// 名称入口也必须拒绝“空槽”同时带数字的矛盾识别。
+	for _, node := range []string{direct, detected} {
+		override(map[string]any{node: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{{"优越代码伤害增加", "未获得效果"}}}}}})
+	}
 	for _, operation := range []string{"effect", "value"} {
 		assertNoSnapshot(operation)
 	}

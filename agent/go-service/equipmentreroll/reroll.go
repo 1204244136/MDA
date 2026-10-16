@@ -376,7 +376,7 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image, source partScan)
 			}
 			break
 		}
-		effect, raw, recognized := readEquipmentAffix(ctx, img, nodeName, nodeName+"DetectedOCR")
+		effect, raw, recognized := readEquipmentAffixResult(ctx, img, nodeName, nodeName+"DetectedOCR")
 		return effect, extractPercentValue(raw), raw, recognized
 	})
 

@@ -86,6 +86,7 @@ func (r *EquipmentRerollScanSlotRecognition) Run(ctx *maa.Context, arg *maa.Cust
 		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).
 			Str("part", part).Int("slot", params.Slot).Str("raw_effect", scan.RawEffect).
 			Str("raw_value", scan.RawValue).Strs("value_candidates", scan.ValueCandidates).
+			Bool("affix_known", scan.AffixKnown).Bool("lock_known", scan.LockKnown).Int("value_tier", scan.Tier).
 			Msg("slot scan incomplete or conflicting; refusing to commit snapshot")
 		return nil, false
 	}
@@ -158,7 +159,7 @@ func scanSlotByPipeline(ctx *maa.Context, img image.Image, slot int) slotScanRes
 		return result
 	}
 
-	result.Effect, result.RawEffect, result.AffixKnown = readEquipmentAffix(ctx, img,
+	result.Effect, result.RawEffect, result.AffixKnown = readEquipmentAffixName(ctx, img,
 		fmt.Sprintf("__EquipmentRerollSlot%dAffixOCR", slot),
 		fmt.Sprintf("__EquipmentRerollSlot%dAffixDetectedOCR", slot))
 

@@ -37,6 +37,37 @@ func TestNormalizeEffectRejectsConflictingAndPartialNames(t *testing.T) {
 	}
 }
 
+func TestRecognizeAffixNameOCRSeparatesNameFromValueEvidence(t *testing.T) {
+	ocr := func(text string) *maa.OCRResult { return &maa.OCRResult{Text: text} }
+	for _, tt := range []struct {
+		name        string
+		results     []*maa.OCRResult
+		effect      string
+		known       bool
+		conflicting bool
+	}{
+		{"inline digit missing", []*maa.OCRResult{ocr("【攻击力增加]1.11%")}, "攻击力增加", true, false},
+		{"same names with different values", []*maa.OCRResult{ocr("【攻击力增加】1.11%"), ocr("【攻击力增加】11.11%")}, "攻击力增加", true, false},
+		{"name and separate percentage", []*maa.OCRResult{ocr("【攻击力增加】"), ocr("11.11%")}, "攻击力增加", true, false},
+		{"name without value", []*maa.OCRResult{ocr("【攻击力增加】")}, "攻击力增加", true, false},
+		{"unknown name with value", []*maa.OCRResult{ocr("【攻击增加】11.11%")}, "", false, false},
+		{"percentage alone", []*maa.OCRResult{ocr("11.11%")}, "", false, false},
+		{"no OCR", nil, "", false, false},
+		{"conflicting names", []*maa.OCRResult{ocr("攻击力增加"), ocr("防御力增加")}, "", false, true},
+		{"multiple names in one box", []*maa.OCRResult{ocr("攻击力增加 防御力增加")}, "", false, true},
+		{"empty conflicts with name", []*maa.OCRResult{ocr("未获得效果"), ocr("攻击力增加")}, "", false, true},
+		{"unlock overlay", []*maa.OCRResult{ocr("攻击力增加"), ocr("已解除效果锁定")}, "", false, true},
+		{"confirmed empty", []*maa.OCRResult{ocr("未获得效果")}, "", true, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			effect, raw, names, conflicting := recognizeAffixNameOCR(tt.results)
+			if effect != tt.effect || (len(names) > 0) != tt.known || conflicting != tt.conflicting {
+				t.Fatalf("effect=%q known=%v conflicting=%v raw=%q", effect, len(names) > 0, conflicting, raw)
+			}
+		})
+	}
+}
+
 func TestRecognizeAffixOCRPairsOnlyUnambiguousSameRowValues(t *testing.T) {
 	ocr := func(text string, box maa.Rect) *maa.OCRResult {
 		return &maa.OCRResult{Text: text, Box: box, Score: 0.99}

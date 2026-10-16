@@ -8,9 +8,50 @@ import (
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 )
 
-// readEquipmentAffix 在同一截图上读取直接识别和检测识别的完整词条，冲突时拒绝猜测。
+// readEquipmentAffixName 仅确认完整名称；详情页数值由专用 Pipeline 节点读取与校准。
+// 名称区域附带的数字不能否定名称，也不能替代专用节点的数值证据。
+func readEquipmentAffixName(ctx *maa.Context, img image.Image, direct, detected string) (string, string, bool) {
+	if ctx == nil || img == nil {
+		return "", "", false
+	}
+	effect, raw, known := "", "", false
+	for _, node := range []string{direct, detected} {
+		detail, err := ctx.RunRecognition(node, img, nil)
+		if err != nil {
+			return "", raw, false
+		}
+		results := filteredAffixOCR(detail)
+		candidate, text, names, conflicting := recognizeAffixNameOCR(results)
+		if conflicting {
+			return "", text, false
+		}
+		if len(names) == 0 {
+			if !known && raw == "" {
+				raw = text
+			}
+			continue
+		}
+		if candidate == "" {
+			// 空槽不能携带百分比或数字，仍须检查同槽的矛盾证据。
+			_, text, valid, conflicting := recognizeAffixOCR(results)
+			if !valid || conflicting || strings.IndexFunc(text, unicode.IsDigit) >= 0 {
+				return "", text, false
+			}
+		}
+		if known && candidate != effect {
+			return "", raw, false
+		}
+		if !known {
+			raw = text
+		}
+		effect, known = candidate, true
+	}
+	return effect, raw, known
+}
+
+// readEquipmentAffixResult 在同一截图上读取结果页名称与数值，任一冲突都拒绝决策。
 // 两条路径共用 OCR 模型，不把结果一致当作正确性证明。
-func readEquipmentAffix(ctx *maa.Context, img image.Image, direct, detected string) (string, string, bool) {
+func readEquipmentAffixResult(ctx *maa.Context, img image.Image, direct, detected string) (string, string, bool) {
 	if ctx == nil || img == nil {
 		return "", "", false
 	}
@@ -54,31 +95,9 @@ func readEquipmentAffix(ctx *maa.Context, img image.Image, direct, detected stri
 // recognizeAffixOCR 解释单槽内已通过框架过滤的 OCR，名称和百分比允许分框。
 // 只关联完整名称右侧同一行的独立百分比，不借用残缺名称路径中的数值。
 func recognizeAffixOCR(results []*maa.OCRResult) (string, string, bool, bool) {
-	effect, raw, known := "", "", false
-	var names []*maa.OCRResult
-	for _, ocr := range results {
-		if raw == "" {
-			raw = strings.Join(strings.Fields(ocr.Text), " ")
-		}
-		if isTransientUnlockText(ocr.Text) || len(matchingEffectNames(ocr.Text)) > 1 {
-			return "", ocr.Text, false, true
-		}
-		candidate, recognized := normalizeEffect(ocr.Text)
-		empty := isUnobtainedEffect(ocr.Text)
-		if !recognized && !empty {
-			continue
-		}
-		if (recognized && empty) || (known && candidate != effect) {
-			return "", raw, false, true
-		}
-		if !known || extractPercentValue(raw) == "" {
-			raw = ocr.Text
-		}
-		effect, known = candidate, true
-		names = append(names, ocr)
-	}
-	if !known {
-		return "", raw, false, false
+	effect, raw, names, conflicting := recognizeAffixNameOCR(results)
+	if conflicting || len(names) == 0 {
+		return "", raw, false, conflicting
 	}
 
 	value := ""
@@ -107,6 +126,35 @@ func recognizeAffixOCR(results []*maa.OCRResult) (string, string, bool, bool) {
 		raw += " " + value
 	}
 	return effect, raw, true, false
+}
+
+// recognizeAffixNameOCR 同时供详情页和结果页使用，只判断名称及页面矛盾。
+// 返回的名称框供结果页关联百分比；数字冲突不在此处决定名称有效性。
+func recognizeAffixNameOCR(results []*maa.OCRResult) (string, string, []*maa.OCRResult, bool) {
+	effect, raw, known := "", "", false
+	var names []*maa.OCRResult
+	for _, ocr := range results {
+		if raw == "" {
+			raw = strings.Join(strings.Fields(ocr.Text), " ")
+		}
+		if isTransientUnlockText(ocr.Text) || len(matchingEffectNames(ocr.Text)) > 1 {
+			return "", ocr.Text, nil, true
+		}
+		candidate, recognized := normalizeEffect(ocr.Text)
+		empty := isUnobtainedEffect(ocr.Text)
+		if !recognized && !empty {
+			continue
+		}
+		if (recognized && empty) || (known && candidate != effect) {
+			return "", raw, nil, true
+		}
+		if !known || extractPercentValue(raw) == "" {
+			raw = ocr.Text
+		}
+		effect, known = candidate, true
+		names = append(names, ocr)
+	}
+	return effect, raw, names, false
 }
 
 func affixValueFollowsName(name, value maa.Rect) bool {

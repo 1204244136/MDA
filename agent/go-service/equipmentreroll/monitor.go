@@ -229,9 +229,12 @@ func allResults(detail *maa.RecognitionDetail) []*maa.RecognitionResult {
 }
 
 func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool, bool) {
-	firstRaw := firstRawOCRText(detail)
+	return recognizeAffixOCR(filteredAffixOCR(detail))
+}
+
+func filteredAffixOCR(detail *maa.RecognitionDetail) []*maa.OCRResult {
 	if detail == nil || !detail.Hit || detail.Results == nil {
-		return "", firstRaw, false, false
+		return nil
 	}
 	// All 包含未通过框架过滤的候选，只供诊断，不能绕过 expected 和模型分数校验。
 	var results []*maa.OCRResult
@@ -245,7 +248,7 @@ func firstRecognizedEffect(detail *maa.RecognitionDetail) (string, string, bool,
 		}
 		results = append(results, ocr)
 	}
-	return recognizeAffixOCR(results)
+	return results
 }
 
 // firstRawOCRText 返回识别结果中第一条非空 OCR 文本（去空白折叠），用于读取数值区域。
