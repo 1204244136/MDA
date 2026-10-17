@@ -1,6 +1,7 @@
 {
     "description.file": "locales/interface/DESCRIPTION/DESCRIPTION.zh_cn.md",
     "contact.file": "locales/CONTACT.zh_cn.md",
+    "welcome.file": "locales/WELCOME.zh_cn.md",
     "controller.ADB.description": "支持安卓模拟器和实体安卓设备",
     "controller.ADB.label": "安卓端",
     "controller.AAA.description": "需先安装 Interception 驱动。用于解决部分环境下鼠标点击失效的问题",

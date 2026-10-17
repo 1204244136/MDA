@@ -4,7 +4,7 @@
     "description": "$description.file",
     "contact": "$contact.file",
     "license": "locales/LICENSE_SHORT.md",
-    "welcome": "README.md",
+    "welcome": "$welcome.file",
     "icon": "locales/MDA-Tiny.png",
     "github": "https://github.com/1204244136/MDA",
     "mirrorchyan_rid": "MDA",
