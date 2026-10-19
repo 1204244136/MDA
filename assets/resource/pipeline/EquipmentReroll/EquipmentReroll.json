@@ -763,7 +763,7 @@
         "timeout": 4000,
         "rate_limit": 200,
         "next": [
-            "__EquipmentRerollRetryGateResultPage"
+            "EquipmentRerollResultUnreadableFailed"
         ]
     },
     "EquipmentRerollResultClickKeep": {
@@ -1087,7 +1087,25 @@
         "rate_limit": 100,
         "next": [
             "EquipmentRerollResultPage"
+        ],
+        "on_error": [
+            "EquipmentRerollResultUnreadableFailed"
         ]
+    },
+    "EquipmentRerollResultUnreadableFailed": {
+        "desc": "结果页槽位在等待窗口内始终无法完整识别时显式失败，保留游戏当前结果，不回点消耗确认",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EquipmentRerollFailAction",
+                "custom_action_param": {
+                    "reason": "result_unreadable"
+                }
+            }
+        }
     },
     "__EquipmentRerollLocateChangedSlot1Match": {
         "desc": "决策页模板匹配第1变更槽标记",
@@ -1173,10 +1191,10 @@
             "param": {
                 "roi": "__EquipmentRerollLocateChangedSlot1Match",
                 "roi_offset": [
-                    8,
-                    0,
-                    290,
-                    0
+                    45,
+                    -2,
+                    253,
+                    4
                 ],
                 "expected": [
                     ".*"
@@ -1192,10 +1210,10 @@
             "param": {
                 "roi": "__EquipmentRerollLocateChangedSlot1Match",
                 "roi_offset": [
-                    8,
-                    0,
-                    290,
-                    0
+                    45,
+                    -2,
+                    253,
+                    4
                 ],
                 "expected": [
                     ".*"
@@ -1211,10 +1229,10 @@
             "param": {
                 "roi": "__EquipmentRerollLocateChangedSlot2Match",
                 "roi_offset": [
-                    8,
-                    0,
-                    290,
-                    0
+                    45,
+                    -2,
+                    253,
+                    4
                 ],
                 "expected": [
                     ".*"
@@ -1230,10 +1248,10 @@
             "param": {
                 "roi": "__EquipmentRerollLocateChangedSlot2Match",
                 "roi_offset": [
-                    8,
-                    0,
-                    290,
-                    0
+                    45,
+                    -2,
+                    253,
+                    4
                 ],
                 "expected": [
                     ".*"
@@ -1249,10 +1267,10 @@
             "param": {
                 "roi": "__EquipmentRerollLocateChangedSlot3Match",
                 "roi_offset": [
-                    8,
-                    0,
-                    290,
-                    0
+                    45,
+                    -2,
+                    253,
+                    4
                 ],
                 "expected": [
                     ".*"
@@ -1268,10 +1286,10 @@
             "param": {
                 "roi": "__EquipmentRerollLocateChangedSlot3Match",
                 "roi_offset": [
-                    8,
-                    0,
-                    290,
-                    0
+                    45,
+                    -2,
+                    253,
+                    4
                 ],
                 "expected": [
                     ".*"
@@ -1519,29 +1537,6 @@
                         "EquipmentRerollAfterAccept",
                         "EquipmentRerollLossMaxTierConfirm",
                         "__EquipmentRerollRetryGateLossMaxTierConfirm"
-                    ]
-                }
-            }
-        },
-        "post_delay": 300,
-        "timeout": 5000,
-        "rate_limit": 500
-    },
-    "__EquipmentRerollRetryGateResultPage": {
-        "desc": "重试闸门：结果页决策原地打转时超限直接失败",
-        "recognition": {
-            "type": "DirectHit"
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
-                "custom_action_param": {
-                    "key": "result_page",
-                    "retry": "EquipmentRerollResultPage",
-                    "next": [
-                        "EquipmentRerollResultPage",
-                        "__EquipmentRerollRetryGateResultPage"
                     ]
                 }
             }

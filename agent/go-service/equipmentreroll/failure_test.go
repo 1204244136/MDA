@@ -9,6 +9,7 @@ import (
 
 func TestEquipmentRerollFailureKey(t *testing.T) {
 	tests := map[string]string{
+		"result_unreadable":          "tasker.equipment_reroll.result_unreadable",
 		"confirm_not_advanced":       "tasker.equipment_reroll.confirm_not_advanced",
 		"reload_locks_verify_failed": "tasker.equipment_reroll.reload_locks_verify_failed",
 		"lock_abort_page_unknown":    "tasker.equipment_reroll.lock_abort_page_unknown",

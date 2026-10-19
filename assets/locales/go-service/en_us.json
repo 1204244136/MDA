@@ -125,5 +125,6 @@
     "tasker.quota_display.event": "🎁 Event quota (%s): about %d minutes remaining.",
     "tasker.quota_display.event_expires": "🎁 Event quota (%s): about %d minutes remaining, expires at %s.",
     "tasker.quota_display.event_expired": "🎁 Event quota (%s): about %d minutes expired at %s and no longer counts toward available quota.",
-    "tasker.equipment_reroll.scan_unreadable": "Equipment effects or lock states could not be reliably verified. The task stopped before rerolling. Check the equipment details page; the failed slot and recognition text are recorded in the logs."
+    "tasker.equipment_reroll.scan_unreadable": "Equipment effects or lock states could not be reliably verified. The task stopped before rerolling. Check the equipment details page; the failed slot and recognition text are recorded in the logs.",
+    "tasker.equipment_reroll.result_unreadable": "The changed effects could not be fully read within the time limit. The task stopped before choosing Keep or Change. Review the current result page manually; the failed slot and recognition text are recorded in the logs."
 }

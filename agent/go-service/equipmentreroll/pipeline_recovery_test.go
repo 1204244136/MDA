@@ -11,10 +11,14 @@ import (
 type recoveryPipelineNode struct {
 	Next    []string `json:"next"`
 	OnError []string `json:"on_error"`
+	Timeout int      `json:"timeout"`
 	Action  struct {
 		Param struct {
-			CustomAction string         `json:"custom_action"`
-			CustomParam  retryGateParam `json:"custom_action_param"`
+			CustomAction string `json:"custom_action"`
+			CustomParam  struct {
+				retryGateParam
+				Reason string `json:"reason"`
+			} `json:"custom_action_param"`
 		} `json:"param"`
 	} `json:"action"`
 }
@@ -71,5 +75,27 @@ func TestDangerousClicksHaveBoundedFailureRoutes(t *testing.T) {
 	reloadGate := reloadNodes["__EquipmentRerollRetryGateReloadLocksDone"].Action.Param.CustomParam
 	if reloadGate.GiveUp != "EquipmentRerollReloadLocksFailed" {
 		t.Fatalf("reload gate give_up = %q", reloadGate.GiveUp)
+	}
+}
+
+func TestResultRecognitionWaitCannotRepeatConsumption(t *testing.T) {
+	nodes := loadRecoveryPipeline(t, "EquipmentReroll.json")
+	wait := nodes["__EquipmentRerollResultButtonsVisible"]
+	if wait.Timeout <= 0 || wait.Timeout > 5000 {
+		t.Fatalf("result recognition wait is not bounded to five seconds: %d", wait.Timeout)
+	}
+	if len(wait.Next) != 1 || wait.Next[0] != "EquipmentRerollResultPage" {
+		t.Fatalf("result recognition wait may repeat a consuming action: %v", wait.Next)
+	}
+	const failed = "EquipmentRerollResultUnreadableFailed"
+	if len(wait.OnError) != 1 || wait.OnError[0] != failed {
+		t.Fatalf("unreadable result must fail explicitly after polling: %v", wait.OnError)
+	}
+	failure := nodes[failed]
+	if failure.Action.Param.CustomAction != "EquipmentRerollFailAction" || failure.Action.Param.CustomParam.Reason != "result_unreadable" || len(failure.Next) != 0 || len(failure.OnError) != 0 {
+		t.Fatalf("result failure must stop without accepting or rerolling: %+v", failure)
+	}
+	if _, exists := nodes["__EquipmentRerollRetryGateResultPage"]; exists {
+		t.Fatal("result polling must not use the sliding retry window that resets after each five-second wait")
 	}
 }

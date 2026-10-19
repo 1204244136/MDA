@@ -125,5 +125,6 @@
     "tasker.quota_display.event": "🎁 活动额度（%s）：剩余约 %d 分钟。",
     "tasker.quota_display.event_expires": "🎁 活动额度（%s）：剩余约 %d 分钟，%s 到期。",
     "tasker.quota_display.event_expired": "🎁 活动额度（%s）：剩余约 %d 分钟已于 %s 过期，不再计入可用额度。",
-    "tasker.equipment_reroll.scan_unreadable": "无法可靠确认装备词条或锁定状态，任务已停止，未开始重洗。请检查当前装备详情页；失败槽位及识别文本已记录在日志中。"
+    "tasker.equipment_reroll.scan_unreadable": "无法可靠确认装备词条或锁定状态，任务已停止，未开始重洗。请检查当前装备详情页；失败槽位及识别文本已记录在日志中。",
+    "tasker.equipment_reroll.result_unreadable": "限定时间内未能完整识别变更结果，任务已停止，尚未选择效果维持或效果变更。请在当前结果页手动确认；失败槽位及识别文本已记录在日志中。"
 }
