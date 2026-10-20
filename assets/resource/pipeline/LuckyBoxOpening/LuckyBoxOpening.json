@@ -199,9 +199,9 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "DailyRewardsConfirmRecruit",
-            "CommonConfirmReward"
-            // "CommonClosePage"
+            "[JumpBack]DailyRewardsConfirmRecruit",
+            "[JumpBack]CommonConfirmReward",
+            "CommonEndTask"
         ]
     }
 }
