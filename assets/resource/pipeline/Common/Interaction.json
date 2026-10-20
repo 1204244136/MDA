@@ -318,6 +318,7 @@
         "timeout": 120000,
         "next": [
             "[JumpBack]CommonClosePage",
+            "[JumpBack]BattleClosePage",
             "[JumpBack]LoginConfirmServer",
             "[JumpBack]LoginConfirmDownload",
             "[JumpBack]LoginConfirmLogin",
