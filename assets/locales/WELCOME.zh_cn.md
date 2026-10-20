@@ -6,6 +6,8 @@
 
 Interception 安装包可在 [QQ 用户群（584275905）](https://qm.qq.com/q/JpBdw9s4Ei)中获取。
 
+> ⚠️ **注意**：EA 的反作弊（EA Javelin Anticheat）与 Interception 驱动不能共存：装了使用它的 EA 游戏（如《战地》）会提示「本软件无法与游戏同时使用：Interception」而无法启动，要玩需先卸载 Interception 驱动（AAA 模式将不可用）。
+
 ## 安卓版内测招募
 
 **MDA 安卓版正在内测，欢迎加入 [QQ 用户群（584275905）](https://qm.qq.com/q/JpBdw9s4Ei)参与测试！**
