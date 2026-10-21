@@ -29,7 +29,6 @@
             ]
         },
         "next": [
-            "[JumpBack]LuckyBoxOpeningClickRedDot",
             "[JumpBack]LuckyBoxOpeningClickMaintenanceKitBox",
             "[JumpBack]LuckyBoxOpeningClickCollectionItemBox",
             "CommonEndTask"
