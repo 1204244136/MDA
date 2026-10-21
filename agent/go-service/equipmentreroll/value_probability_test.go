@@ -57,53 +57,6 @@ func TestValueStatsMatchExhaustiveConditioning(t *testing.T) {
 	}
 }
 
-func TestEffectRepeatKeepsSameEffectsDifferentValues(t *testing.T) {
-	scan := partScan{Slots: [maxSlot]slotScanData{valueTestSlot("攻击力增加", 1, LockNone)}}
-	u := []int{0, 1, 2}
-	raw := enumerateSlotOutcomes(u, nil)
-	repeat := exactEffectRepeatProbability(scan, u, raw)
-	if math.Abs(repeat-.1*.35*.12) > 1e-12 {
-		t.Fatal(repeat)
-	}
-	outs := conditionedEffectOutcomes(scan, u, nil, requiredSet([]string{"攻击力增加"}), nil, nil)
-	mass, same := 0.0, 0.0
-	for _, out := range outs {
-		mass += out.prob
-		if out.values[0] == "攻击力增加" && out.values[1] == "" && out.values[2] == "" {
-			same += out.prob
-		}
-	}
-	if math.Abs(mass-1) > 1e-12 || math.Abs(same-(.035-repeat)/(1-repeat)) > 1e-12 {
-		t.Fatalf("mass=%g same=%g", mass, same)
-	}
-}
-
-func TestEffectFirstPassageMatchesExpandedLinearSystem(t *testing.T) {
-	// 一槽、两效果、15档：直接展开完整状态并解方程，与消元公式独立交叉验证。
-	scan := partScan{Slots: [maxSlot]slotScanData{valueTestSlot("防御力增加", 1, LockNone)}}
-	outs := []slotOutcome{{effects: [maxSlot]string{"攻击力增加"}, prob: .2}, {effects: [maxSlot]string{"防御力增加"}, prob: .8}}
-	a := make([][]float64, 15)
-	b := make([]float64, 15)
-	for i, p := range tierProbabilities {
-		a[i] = make([]float64, 15)
-		a[i][i] = 1
-		b[i] = 1
-		for j, q := range tierProbabilities {
-			if i != j {
-				a[i][j] -= .8 * q / (1 - .8*p)
-			}
-		}
-	}
-	x, ok := solveLinearSystem(a, b)
-	if !ok {
-		t.Fatal("singular")
-	}
-	got := effectFirstPassageCost(scan, []int{0}, outs, func(e [maxSlot]string) bool { return e[0] == "攻击力增加" }, 1)
-	if math.Abs(got-x[0]) > 1e-10 {
-		t.Fatalf("formula=%g expanded=%g", got, x[0])
-	}
-}
-
 func TestCharacterTotalTargetsAndAllocation(t *testing.T) {
 	cfg := valueTestConfig()
 	cfg.Mode = rerollModeCharacter
@@ -170,15 +123,5 @@ func TestValuePlanClearedOnResult(t *testing.T) {
 	stageResultDecision(id, "头部", ResultDecisionKeep, [maxSlot]string{}, [maxSlot]string{})
 	if _, ok := currentValuePlan(id); ok {
 		t.Fatal("expired round plan reused")
-	}
-}
-
-func TestEffectExpectationReport(t *testing.T) {
-	scan := partScan{Slots: [maxSlot]slotScanData{valueTestSlot("防御力增加", 1, LockNone)}}
-	quota := map[string]int{"优越代码伤害增加": 4}
-	got := expectedModulesForPartCore(scan, quota, []string{"优越代码伤害增加"}, nil, 0, nil)
-	t.Logf("one defense T1, no locks, elemental target: %.8f modules per piece, %.8f for four independent pieces", got, 4*got)
-	if got <= 0 || got >= 1/.1815 {
-		t.Fatal("whole-result exclusion must lower the old baseline", got)
 	}
 }

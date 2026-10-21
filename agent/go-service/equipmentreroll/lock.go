@@ -256,7 +256,7 @@ func desiredLockSlotForCurrentMode(ctx *maa.Context, taskID int64, part string) 
 
 // desiredLockSlotForConfig 按已读取的承载点配置计算待锁槽位：
 //   - 单件模式：按 singleDesiredLockSlot（需求 2+ 才考虑锁槽，含槽位限定）；
-//   - 角色模式：按 DesiredLockSlotForQuota（分配感知 + 先苦后甜）。
+//   - 角色模式：按 DesiredLockSlotForQuota（全局分配 + 动态加锁）。
 //
 // 若已缓存库存（效果锁定页 OCR）且自订密钥不足以支付锁定，则按“订制模块”口径
 // （计入获取成本）计算，使模块锁定时决策更保守。
@@ -289,14 +289,16 @@ func desiredLockSlotForConfig(cfg carrierConfig, taskID int64, part string) (int
 // lockMaterialForTask 依据缓存库存决定本次锁定假设使用的材料：
 // 自订密钥足以支付时用密钥（获取成本 0），否则用订制模块（计入获取成本）。未读到库存时默认密钥。
 func lockMaterialForTask(taskID int64, part string) string {
+	scan, _ := GetPartScan(taskID, part)
+	return lockMaterialForScan(taskID, scan)
+}
+
+func lockMaterialForScan(taskID int64, scan partScan) string {
 	inv, ok := getInventory(taskID)
 	if !ok {
 		return "自订密钥"
 	}
-	lockIndex := 0
-	if scan, sok := GetPartScan(taskID, part); sok {
-		lockIndex = countLocks(scan)
-	}
+	lockIndex := countLocks(scan)
 	if key, kok := inv.ChooseLockMaterial(lockIndex); kok {
 		return key
 	}

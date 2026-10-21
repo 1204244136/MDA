@@ -446,18 +446,8 @@ func TestChooseBestPartForQuotaKeepsGoingWithNegativeGain(t *testing.T) {
 	}
 }
 
-// TestDesiredLockSlotForQuotaKeepsNeededQuotaEffect 复现 4攻4优4装弹 的中间状态：
-// 全局 优2/攻2/装弹4 时，头部(装弹@1, 优@2, 命中@3) 的 2 号槽“优越代码伤害增加”仍被
-// 全局需要（优未满 4），必须锁定 2 号以防重抽丢失；臂部(防御@1, 攻@2, 空@3) 同理锁 2 号。
-//
-// 回归：expectedModulesForPartAllocated 最终查表必须使用压缩状态（非配额词条如“命中率增加”被压成
-// other），旧代码用原始词条名查表导致 key 不匹配取到 map 零值 0，DP 误判“期望成本 0”，
-// DesiredLockSlotForQuota 从不建议锁定（23:03-23:05 运行全程 active_locks=0 的根因）。
-//
-// 本测试按“先苦后甜”策略更新：4/4/4 为饱和配额（本件负责 优1/攻1/装弹1），
-// 头部(A@1 装弹/2 优/3 命中) 与 臂部(A@1 防御/2 攻/3 空) 的 3 号槽都尚未持有本件负责效果，
-// 因此应先便宜刷 3 号（不锁），而不是先锁已有效的 2 号；但 DP 层仍应识别 2 号槽为可锁/仍在需要
-// （防止 compressedCurrent 回归把 DP 期望成本判成 0、导致从不建议锁定）。
+// 中间态的目标仍未完成，动态估值必须为正；不能因非配额词条的压缩键缺失而误读成0。
+// 对这些饱和目标，暂不保护第2槽比立即加锁更省；执行动作须与估值一致。
 func TestDesiredLockSlotForQuotaKeepsNeededQuotaEffect(t *testing.T) {
 	quota := map[string]int{
 		TargetEffectElementalDamage: 4,
@@ -477,10 +467,10 @@ func TestDesiredLockSlotForQuotaKeepsNeededQuotaEffect(t *testing.T) {
 	if slot, ok := DesiredLockSlotForQuota(headParts, "头部", quota, ""); ok {
 		t.Fatalf("saturated head should hunt slot3 (no lock) under bitter-sweet, got slot=%d", slot)
 	}
-	// DP 层回归：2 号槽“优越代码”仍被识别为可锁且仍需（非 0），证明 compressedCurrent 未回归。
+	// 动态策略可以暂不锁第2槽，但续程成本必须为正，不能因压缩键缺失误读成0。
 	required := allocateQuotaRequired(headParts, quota)["头部"]
-	if slot, _ := bestLockSlotAndCostForRequired(headParts["头部"], quota, required, ""); slot != 2 {
-		t.Fatalf("DP should still see slot2 (优越) lockable-needed, got slot=%d", slot)
+	if _, cost := bestLockSlotAndCostForRequired(headParts["头部"], quota, required, ""); cost <= 0 || cost >= costUnreachable {
+		t.Fatalf("incomplete head should retain finite positive continuation cost, got %.9f", cost)
 	}
 
 	armsParts := map[string]partScan{
@@ -495,11 +485,11 @@ func TestDesiredLockSlotForQuotaKeepsNeededQuotaEffect(t *testing.T) {
 	}
 }
 
-// TestDesiredLockSlotBitterSweet 直接验证“先苦后甜”锁定位：
+// 这些代表状态应优先保住难得的第3槽；动作由动态成本比较得出。
 //   - 3 号尚未持有本件负责效果 → 便宜刷 3 号（返回 0，不锁）；
 //   - 3 号已持有本件负责效果、2 号未持 → 锁 3 号（先保护已拿到的难结果），再刷 2 号；
 //   - 2/3 号都持有 → 锁最高难度的 3 号。
-func TestDesiredLockSlotBitterSweet(t *testing.T) {
+func TestDynamicLockSlotPreservesDifficultSlots(t *testing.T) {
 	quota := map[string]int{
 		"优越代码伤害增加": 4, "攻击力增加": 4, "最大装弹数增加": 4,
 	}
@@ -507,19 +497,19 @@ func TestDesiredLockSlotBitterSweet(t *testing.T) {
 
 	// 3 号=命中率(非负责效果) → 先刷 3 号。
 	scan := partScanFromArrays([maxSlot]string{"攻击力增加", "最大装弹数增加", "命中率增加"}, [maxSlot]string{}, [maxSlot]SlotLock{})
-	if slot := desiredLockSlotBitterSweet(scan, quota, required, ""); slot != 0 {
+	if slot, _ := bestLockSlotAndCostForRequired(scan, quota, required, ""); slot != 0 {
 		t.Fatalf("want hunt slot3 (0), got %d", slot)
 	}
 
 	// 3 号=优越(负责)、2 号=命中率(非负责) → 锁 3 号保护已拿到难结果。
 	scan2 := partScanFromArrays([maxSlot]string{"攻击力增加", "命中率增加", "优越代码伤害增加"}, [maxSlot]string{}, [maxSlot]SlotLock{})
-	if slot := desiredLockSlotBitterSweet(scan2, quota, required, ""); slot != 3 {
+	if slot, _ := bestLockSlotAndCostForRequired(scan2, quota, required, ""); slot != 3 {
 		t.Fatalf("want lock slot3 (protect secured 优), got %d", slot)
 	}
 
 	// 2/3 号都持有负责效果，但本件仍缺 1 种（1 号为 空）→ 锁最高难度的 3 号。
 	scan3 := partScanFromArrays([maxSlot]string{"", "最大装弹数增加", "优越代码伤害增加"}, [maxSlot]string{}, [maxSlot]SlotLock{})
-	if slot := desiredLockSlotBitterSweet(scan3, quota, required, ""); slot != 3 {
+	if slot, _ := bestLockSlotAndCostForRequired(scan3, quota, required, ""); slot != 3 {
 		t.Fatalf("want lock slot3 (highest required), got %d", slot)
 	}
 }
@@ -565,17 +555,13 @@ func TestLockingRequiredEffectLowersExpectedCost(t *testing.T) {
 	}
 }
 
-// TestBestLockSlotAndCostForRequiredMaterialAware 验证“锁定获取成本”按材料计入决策：
-//   - 槽位判断（锁不锁/锁哪个）与材料无关（同一槽位，获取成本对所有候选取等价）；
-//   - 用“订制模块”（永久蓝锁，一次性扣模块）时，期望成本 = 密钥版 + 获取成本（0→1=2 模块），
-//     使模块锁定时决策更保守；用“自订密钥”时获取成本为 0。
-//
-// 视角：自订密钥耗尽、脚本回退用订制模组锁定时，锁定决策会据此把“买锁的模块”计入真实成本。
+// 已有第2槽优越、只需再补攻击时，两种材料均立即保护优越。
+// 此特定状态只需一把新增锁，模块版比密钥版多首锁费2；
+// 不能据此推断任意状态都选择相同策略或只相差当前一把锁的费用。
 func TestBestLockSlotAndCostForRequiredMaterialAware(t *testing.T) {
 	quota := map[string]int{
 		TargetEffectElementalDamage: 4,
 		TargetEffectAttackIncrease:  4,
-		"最大装弹数增加":                   4,
 	}
 	parts := map[string]partScan{
 		"头部": partScanFromArrays([maxSlot]string{"最大装弹数增加", TargetEffectElementalDamage, "命中率增加"}, [maxSlot]string{}, [maxSlot]SlotLock{}),
@@ -583,7 +569,7 @@ func TestBestLockSlotAndCostForRequiredMaterialAware(t *testing.T) {
 		"身躯": partScanFromArrays([maxSlot]string{"最大装弹数增加", "暴击伤害增加", TargetEffectAttackIncrease}, [maxSlot]string{}, [maxSlot]SlotLock{}),
 		"腿部": partScanFromArrays([maxSlot]string{TargetEffectAttackIncrease, "最大装弹数增加", "蓄力速度增加"}, [maxSlot]string{}, [maxSlot]SlotLock{}),
 	}
-	scan := parts["头部"]
+	scan := partScanOf("命中率增加", TargetEffectElementalDamage, "")
 	required := allocateQuotaRequired(parts, quota)["头部"]
 
 	slotKey, costKey := bestLockSlotAndCostForRequired(scan, quota, required, "自订密钥")

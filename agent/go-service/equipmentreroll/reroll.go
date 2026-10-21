@@ -259,7 +259,8 @@ func (r *EquipmentRerollResultDecideRecognition) decideSingle(arg *maa.CustomRec
 		candidate.Slots[i].Effect = changed[i]
 		candidate.Slots[i].Value = changedValues[i]
 	}
-	decision := decideSingleCandidate(scan, candidate, t)
+	material := lockMaterialForScan(arg.TaskID, effectPostRollScan(scan))
+	decision := decideSingleCandidateWithMaterial(scan, candidate, t, material)
 	stageResultDecision(arg.TaskID, part, decision, changed, changedValues)
 
 	log.Info().
@@ -271,8 +272,8 @@ func (r *EquipmentRerollResultDecideRecognition) decideSingle(arg *maa.CustomRec
 		Strs("changed_values", changedValues[:]).
 		Strs("raw_changed", changedRaw[:]).
 		Str("decision", decision.String()).
-		Float64("current_cost", singleExpectedCost(scan, t)).
-		Float64("candidate_cost", singleExpectedCost(candidate, t)).
+		Float64("current_cost", singleExpectedCostWithMaterial(effectPostRollScan(scan), t, material)).
+		Float64("candidate_cost", singleExpectedCostWithMaterial(effectPostRollScan(candidate), t, material)).
 		Msg("single equipment result page decision made")
 
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: resultDecisionDetail(decision)}, true
@@ -298,6 +299,7 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 	decision := ResultDecisionKeep
 	decisionDetail := ""
 	if allParts, okAll := GetEquipmentSlotScans(arg.TaskID); okAll {
+		allParts[part] = effectPostRollScan(allParts[part])
 		candidateParts := make(map[string]partScan, len(allParts))
 		for p, s := range allParts {
 			candidateParts[p] = s
@@ -311,16 +313,17 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 		// 方向 A：决策改为期望成本。候选全局期望剩余模块数必须低至少 costDecisionEpsilon
 		// （真实改善）才接受，避免极小期望变化驱动决策；
 		// 而非旧积分制的"已匹配配额数 × 100 + 槽位结构分"。
-		// 期望成本由 expectedModulesForQuota 计算（槽位获得概率 / 效果权重 / 同结果排除 / 锁定与重洗费用）。
-		currentCost := expectedModulesForQuota(allParts, quota)
-		candidateCost := expectedModulesForQuota(candidateParts, quota)
+		// 使用与下一轮锁定相同的材料口径；已消耗的单次锁不能当成永久保护。
+		material := lockMaterialForScan(arg.TaskID, allParts[part])
+		currentCost := expectedModulesForQuotaWithMaterial(allParts, quota, material)
+		candidateCost := expectedModulesForQuotaWithMaterial(candidateParts, quota, material)
 		if candidateCost < currentCost-costDecisionEpsilon {
 			decision = ResultDecisionAccept
 		}
 		decisionDetail = fmt.Sprintf("current_cost=%.2f candidate_cost=%.2f", currentCost, candidateCost)
 	} else {
 		// 全局快照缺失时的降级路径（单件期望成本比较）。
-		decision = DecideResultPageQuota(current, changed, scan, quota)
+		decision = decideResultPageQuotaWithMaterial(current, changed, scan, quota, lockMaterialForScan(arg.TaskID, effectPostRollScan(scan)))
 	}
 	stageResultDecision(arg.TaskID, part, decision, changed, changedValues)
 
@@ -525,6 +528,10 @@ func (a *EquipmentRerollResultRouteAction) Run(ctx *maa.Context, arg *maa.Custom
 // shouldContinueCurrentPartAfterAccept 判断接受阶段性进展后，当前装备是否仍是下一轮目标。
 // 角色模式复用全局选装算法，单件模式则在目标仍可达且尚未满足时继续当前装备。
 func shouldContinueCurrentPartAfterAccept(current string, cfg carrierConfig, parts map[string]partScan) bool {
+	return shouldContinueCurrentPartAfterAcceptWithMaterial(current, cfg, parts, "")
+}
+
+func shouldContinueCurrentPartAfterAcceptWithMaterial(current string, cfg carrierConfig, parts map[string]partScan, material string) bool {
 	if cfg.isValue() {
 		plan, err := planValueReroll(parts, cfg)
 		return err == nil && !plan.Satisfied && plan.Part == current
@@ -542,7 +549,7 @@ func shouldContinueCurrentPartAfterAccept(current string, cfg carrierConfig, par
 	if !quotaIsValid(quota) || len(parts) != len(equipmentParts) {
 		return false
 	}
-	best, ok := chooseBestPartForQuota(parts, quota, equipmentParts)
+	best, ok := chooseBestPartForQuotaWithMaterial(parts, quota, equipmentParts, material)
 	return ok && best == current
 }
 
@@ -587,7 +594,7 @@ func (a *EquipmentRerollAfterAcceptRouteAction) Run(ctx *maa.Context, arg *maa.C
 	if cfg.isValue() {
 		next[0].Name = "EquipmentRerollValueReturnToDecide"
 	}
-	keepCurrent := partOK && shouldContinueCurrentPartAfterAccept(part, cfg, parts)
+	keepCurrent := partOK && shouldContinueCurrentPartAfterAcceptWithMaterial(part, cfg, parts, lockMaterialForTask(arg.TaskID, ""))
 	if cfg.isValue() && partOK {
 		plan, err := planValueRerollWithInventory(parts, cfg, valueInventory(arg.TaskID), "")
 		keepCurrent = err == nil && !plan.Satisfied && plan.Part == part

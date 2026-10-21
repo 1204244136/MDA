@@ -62,7 +62,8 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 
 	// 不可达拦截：配额与现有永久锁冲突（例如禁止词条被永久锁死、需求数超过可用槽位）时，
 	// 再洗多少次也不可能达标。必须结束任务，否则会一路洗到订制模块耗尽为止。
-	if expectedModulesForQuota(parts, quota) >= costUnreachable {
+	material := lockMaterialForTask(arg.TaskID, "")
+	if expectedModulesForQuotaWithMaterial(parts, quota, material) >= costUnreachable {
 		log.Error().
 			Str("component", "EquipmentReroll").
 			Int64("task_id", arg.TaskID).
@@ -75,7 +76,7 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 		return true
 	}
 
-	part, ok := chooseBestPartForQuota(parts, quota, equipmentParts)
+	part, ok := chooseBestPartForQuotaWithMaterial(parts, quota, equipmentParts, material)
 	if !ok {
 		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("no part selected by global lookahead; end task")
 		if err := routeEquipmentRerollEnd(ctx, arg.CurrentTaskName); err != nil {

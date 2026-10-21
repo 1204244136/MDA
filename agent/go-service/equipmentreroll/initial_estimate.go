@@ -49,10 +49,7 @@ func initialModuleEstimate(parts map[string]partScan, cfg carrierConfig) (float6
 			return 0, fmt.Errorf("invalid quota")
 		}
 		if !AllPartsSatisfiedQuota(parts, quota) {
-			assigned := allocateQuotaRequired(parts, quota)
-			for _, part := range equipmentParts {
-				cost += partExpectedCostForRequired(parts[part], quota, assigned[part], "订制模块")
-			}
+			cost = expectedModulesForQuotaWithMaterial(parts, quota, "订制模块")
 		}
 	}
 	if math.IsNaN(cost) || math.IsInf(cost, 0) || cost < 0 || cost >= costUnreachable {

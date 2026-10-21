@@ -192,8 +192,7 @@ func singleEffectiveAffixCount(scan partScan, t singleTarget) int {
 
 // singleDesiredLockSlot 决定单件当前是否需锁定某槽位：
 //   - 需求 < 2（只有一条）→ 不锁（找到即达标，锁反而抬升重洗成本）；
-//   - 需求 == 2 → 拿到就锁：用期望收益差距 DP 锁"已落地、允许槽位"的可锁槽中最优者；
-//   - 需求 == 3（三槽全满，饱和）→ 先苦后甜：先便宜刷最难的 3 号，落地才锁。
+//   - 需求 >= 2 → 比较立即新增锁与继续重洗的动态成本，包含未来第二把锁的收益与费用。
 //
 // material 指定锁定材料（"自订密钥"/"订制模块"）；返回 0 表示不锁。
 func singleDesiredLockSlot(scan partScan, t singleTarget, material string) (int, bool) {
@@ -203,10 +202,6 @@ func singleDesiredLockSlot(scan partScan, t singleTarget, material string) (int,
 	quota := singleQuota(t)
 	required := sortedTargetEffects(t)
 	allow := slotAllowMap(t)
-	if len(t.Want) >= maxSlot {
-		slot := desiredLockSlotBitterSweetCore(scan, quota, required, nil, material, allow)
-		return slot, slot != 0
-	}
 	slot, _ := bestLockSlotAndCostForTarget(scan, quota, required, nil, material, allow)
 	return slot, slot != 0
 }
@@ -215,10 +210,14 @@ func singleDesiredLockSlot(scan partScan, t singleTarget, material string) (int,
 // 复用了 plan_dp.go 的槽位概率/期望成本模型（含槽位限定与锁定排除）。
 // 返回 >= costUnreachable 表示目标不可达（例如需求词条被永久锁在了不允许的槽位）。
 func singleExpectedCost(scan partScan, t singleTarget) float64 {
+	return singleExpectedCostWithMaterial(scan, t, "")
+}
+
+func singleExpectedCostWithMaterial(scan partScan, t singleTarget, material string) float64 {
 	quota := singleQuota(t)
 	required := sortedTargetEffects(t)
 	allow := slotAllowMap(t)
-	_, cost := bestLockSlotAndCostForTarget(scan, quota, required, nil, "", allow)
+	_, cost := bestLockSlotAndCostForTarget(scan, quota, required, nil, material, allow)
 	return cost
 }
 
@@ -248,10 +247,16 @@ func DecideResultPageSingle(changed [maxSlot]string, currentScan partScan, t sin
 	return decideSingleCandidate(currentScan, cand, t)
 }
 
-// decideSingleCandidate 允许真实结果传入数值，使整组重复概率与候选快照一致。
+// decideSingleCandidate 比较动态加锁的续程成本，数值档位不参与效果目标取舍。
 func decideSingleCandidate(currentScan, cand partScan, t singleTarget) ResultDecision {
-	curCost := singleExpectedCost(currentScan, t)
-	candCost := singleExpectedCost(cand, t)
+	return decideSingleCandidateWithMaterial(currentScan, cand, t, "")
+}
+
+func decideSingleCandidateWithMaterial(currentScan, cand partScan, t singleTarget, material string) ResultDecision {
+	currentScan = effectPostRollScan(currentScan)
+	cand = effectPostRollScan(cand)
+	curCost := singleExpectedCostWithMaterial(currentScan, t, material)
+	candCost := singleExpectedCostWithMaterial(cand, t, material)
 	// 与配额路径一致：期望成本必须低至少 costDecisionEpsilon 才视为真实改善。
 	if candCost < curCost-costDecisionEpsilon {
 		return ResultDecisionAccept
@@ -261,4 +266,14 @@ func decideSingleCandidate(currentScan, cand partScan, t singleTarget) ResultDec
 		return ResultDecisionAccept
 	}
 	return ResultDecisionKeep
+}
+
+// effectPostRollScan 用结果产生后的锁状态估算下一轮，单次锁本轮已消耗。
+func effectPostRollScan(scan partScan) partScan {
+	for i := range scan.Slots {
+		if scan.Slots[i].Lock == LockOneTime {
+			scan.Slots[i].Lock = LockNone
+		}
+	}
+	return scan
 }

@@ -24,10 +24,6 @@ var (
 	dpCache   = make(map[string]float64)
 )
 
-// lockStrategyCache 缓存“当前装备状态 → [最优锁定位, 期望模块消耗]”的策略表。
-// 命中常用配额时直接查表；未命中时计算后也写入缓存。
-var lockStrategyCache sync.Map // key: string -> [2]float64{slot, cost}
-
 // choosePartCache 缓存全局 1 步前瞻的结果：四件快照 + 配额 → 最优部位。
 var choosePartCache sync.Map // key: string -> string
 
@@ -36,8 +32,9 @@ func clearDPCaches() {
 	dpCacheMu.Lock()
 	dpCache = make(map[string]float64)
 	dpCacheMu.Unlock()
-	lockStrategyCache = sync.Map{}
 	choosePartCache = sync.Map{}
+	quotaCostCache = sync.Map{}
+	resetDynamicEffectCostCache()
 }
 
 func mapToCacheKey(m map[string]int) string {
@@ -673,63 +670,9 @@ func pickCheapestCarriersForEffect(parts map[string]partScan, quota map[string]i
 	return carriers
 }
 
-// allocateQuotaRequired 把全局正数配额“持有名额”分配到各件，返回每件的 required 配额效果集合。
-//
-// 分配口径为“先按 12 词条、slot3 命中者晋升为承载者、其余退行”，并泛化到任意配额：
-//   - 满配额效果（quota[e] >= 件数，如 优4/攻4）分给全部件，占用该件槽位；
-//   - **每件承载稀缺效果的容量 = maxSlot − 满配额数**（满配额占槽，剩余槽可承载多个稀缺）；
-//   - 稀缺配额效果（quota[e] < 件数）按优先级选承载者：
-//     1. 优先选 **slot3 已命中 优/攻/装弹** 的件（继承了“slot3先中谁谁先当”的涌现规则）；
-//     2. 多件命中时，按“补齐该件 required 的期望成本最低”选择（槽位获得概率/效果权重）；
-//     3. 无命中时，在“未定”件（slot3 未命中且 slot2 非 攻/优）中选成本最低者；
-//     4. 再无未定件（全部是降格者：slot2=攻/优 且 slot3 未命中）时，被迫在降格者中强选成本最低者；
-//     5. 每件累计承载稀缺数不得超过容量（否则会超出 3 槽）。
-//   - 承载者之外的件退行为 {优,攻}（仅满配额效果，不额外承担稀缺效果）。
-//
-// 关键：稀缺配额只让需要的 quota[e] 件承担；承载者判定依赖 slot2/slot3 当前状态，随每步重算而“流转”。
+// allocateQuotaRequired 精确分配各件负责的效果，最小化单件动态续程成本之和。
 func allocateQuotaRequired(parts map[string]partScan, quota map[string]int) map[string][]string {
-	quota = normalizeQuota(quota)
-	assigned := make(map[string][]string, len(equipmentParts))
-	for _, p := range equipmentParts {
-		assigned[p] = []string{}
-	}
-
-	var posEffects []string
-	for e, c := range quota {
-		if c > 0 {
-			posEffects = append(posEffects, e)
-		}
-	}
-	sort.Strings(posEffects)
-
-	// 先分配“满配额”效果（所需数量 >= 件数 → 全部件承担），并统计满配额占用的槽数。
-	fullCount := 0
-	for _, e := range posEffects {
-		if quota[e] >= len(equipmentParts) {
-			for _, p := range equipmentParts {
-				assigned[p] = append(assigned[p], e)
-			}
-			fullCount++
-		}
-	}
-	// 每件承载稀缺效果的容量 = maxSlot - 满配额数（满配额占槽，剩余槽留给稀缺）。
-	capacity := maxSlot - fullCount
-	used := make(map[string]int, len(equipmentParts))
-
-	// 稀缺配额（quota[e] < 件数）：用“显式交换判定” pickCheapestCarriersForEffect 按期望成本
-	// 选择承载者（成本更低者晋升、原承载者退行/交换）。每件承载稀缺数 ≤ capacity。
-	for _, e := range posEffects {
-		need := quota[e]
-		if need >= len(equipmentParts) {
-			continue
-		}
-		carriers := pickCheapestCarriersForEffect(parts, quota, assigned, e, need, used, capacity)
-		for _, c := range carriers {
-			assigned[c] = append(assigned[c], e)
-			used[c]++
-		}
-	}
-	return assigned
+	return allocateQuotaRequiredWithMaterial(parts, quota, "")
 }
 
 // bestLockSlotAndCostForRequired 用“显式 required 集合”计算最优锁定位与期望成本（角色模式，不限槽位）。
@@ -745,116 +688,7 @@ func bestLockSlotAndCostForTarget(scan partScan, quota map[string]int, required,
 }
 
 func bestLockSlotAndCostCore(scan partScan, quota map[string]int, required, forbidden []string, material string, slotAllow map[string]map[int]bool) (int, float64) {
-	quota = normalizeQuota(quota)
-	lockMat := lockMaterialOrDefault(material)
-	cacheKey := "lock2:" + dpCacheKeyCore(scan, quota, required, forbidden, 0, slotAllow) + "#" + lockMat
-	if v, ok := lockStrategyCache.Load(cacheKey); ok {
-		pair := v.([2]float64)
-		return int(pair[0]), pair[1]
-	}
-	reqSet := requiredSet(required)
-	bestSlot := 0
-	bestCost := expectedModulesForPartCore(scan, quota, required, forbidden, 0, slotAllow)
-	for _, slot := range []int{3, 2} {
-		if scan.Slots[slot-1].Lock != LockNone {
-			continue
-		}
-		effect := scan.Slots[slot-1].Effect
-		if effect == "" || !reqSet[effect] {
-			continue
-		}
-		if allow := slotAllow[effect]; len(allow) > 0 && !allow[slot-1] {
-			continue
-		}
-		cost := expectedModulesForPartCore(scan, quota, required, forbidden, slot, slotAllow)
-		if lockMat == "订制模块" {
-			cost += float64(lockAcquireCost(countLocks(scan)))
-		}
-		if cost < bestCost {
-			bestCost = cost
-			bestSlot = slot
-		}
-	}
-	lockStrategyCache.Store(cacheKey, [2]float64{float64(bestSlot), bestCost})
-	return bestSlot, bestCost
-}
-
-// slotHoldsRequired 判断某可锁槽（2/3）是否已持有本件负责的配额效果。
-func slotHoldsRequired(scan partScan, slot int, reqSet map[string]bool) bool {
-	effect := scan.Slots[slot-1].Effect
-	return effect != "" && reqSet[effect]
-}
-
-// slotHoldsRequiredTarget 槽位感知版本：槽位必须同时是需求效果允许出现的槽位。
-func slotHoldsRequiredTarget(scan partScan, slot int, reqSet map[string]bool, slotAllow map[string]map[int]bool) bool {
-	effect := scan.Slots[slot-1].Effect
-	if effect == "" || !reqSet[effect] {
-		return false
-	}
-	if allow := slotAllow[effect]; len(allow) > 0 && !allow[slot-1] {
-		return false
-	}
-	return true
-}
-
-// lockStillWorthIt 校验“锁定某槽”在含获取成本（若用订制模组）下仍严格低于不锁（角色模式，不限槽位）。
-// 自订密钥获取成本为 0，仅比较效果变更期望成本。
-func lockStillWorthIt(scan partScan, quota map[string]int, required []string, slot int, material string) bool {
-	return lockStillWorthItCore(scan, quota, required, forbiddenEffects(quota), slot, material, nil)
-}
-
-// lockStillWorthItCore 槽位感知版本。
-func lockStillWorthItCore(scan partScan, quota map[string]int, required, forbidden []string, slot int, material string, slotAllow map[string]map[int]bool) bool {
-	lockCost := expectedModulesForPartCore(scan, quota, required, forbidden, slot, slotAllow)
-	noLockCost := expectedModulesForPartCore(scan, quota, required, forbidden, 0, slotAllow)
-	if lockMaterialOrDefault(material) == "订制模块" {
-		lockCost += float64(lockAcquireCost(countLocks(scan)))
-	}
-	return lockCost < noLockCost-1e-6
-}
-
-// desiredLockSlotBitterSweet 先苦后甜：饱和度配额（本件负责 >=3 种，每槽都需填配额，
-// 如 优4/攻4/装弹4 → 每件 优1/攻1/装弹1）下，先刷最难得出的 3 号（当前未持本件负责效果
-// 的最高难度槽），拿到才锁；不先锁已有效的低优先槽（角色模式，不限槽位）。
-// 难度序 3→2（获得概率 30%/50%，越高越难得，故“先苦后甜”先做 3 号）。
-// 返回 0 表示当前应便宜刷硬目标（不锁）；非 0 为建议锁定的槽位。
-func desiredLockSlotBitterSweet(scan partScan, quota map[string]int, required []string, material string) int {
-	return desiredLockSlotBitterSweetCore(scan, quota, required, forbiddenEffects(quota), material, nil)
-}
-
-// desiredLockSlotBitterSweetCore 槽位感知版本：需求效果仅在其允许槽位（slotAllow）算作持有。
-func desiredLockSlotBitterSweetCore(scan partScan, quota map[string]int, required, forbidden []string, material string, slotAllow map[string]map[int]bool) int {
-	reqSet := requiredSet(required)
-	hardOrder := [2]int{3, 2}
-	// 先苦：难度序中第一个“尚未在允许槽位持有本件负责效果”的槽 = 当前要刷的硬目标。
-	targetIdx := -1
-	for i, slot := range hardOrder {
-		if !slotHoldsRequiredTarget(scan, slot, reqSet, slotAllow) {
-			targetIdx = i
-			break
-		}
-	}
-	// 拿到就锁：先保护“优先于硬目标、已在允许槽位持有本件负责效果、且未锁定”的更高难度槽。
-	if targetIdx >= 0 {
-		for j := 0; j < targetIdx; j++ {
-			slot := hardOrder[j]
-			if scan.Slots[slot-1].Lock == LockNone && slotHoldsRequiredTarget(scan, slot, reqSet, slotAllow) {
-				if lockStillWorthItCore(scan, quota, required, forbidden, slot, material, slotAllow) {
-					return slot
-				}
-			}
-		}
-		return 0 // 无更高难度已持有槽可保 → 便宜刷硬目标
-	}
-	// 全部可锁槽都已在允许槽位持有本件负责效果 → 顺序锁最高难度未锁槽（拿到就锁）。
-	for _, slot := range hardOrder {
-		if scan.Slots[slot-1].Lock == LockNone && slotHoldsRequiredTarget(scan, slot, reqSet, slotAllow) {
-			if lockStillWorthItCore(scan, quota, required, forbidden, slot, material, slotAllow) {
-				return slot
-			}
-		}
-	}
-	return 0
+	return dynamicEffectPlan(scan, required, forbidden, slotAllow, material)
 }
 
 // lockMaterialOrDefault 归一化锁定材料：空串视为“自订密钥”。
@@ -890,20 +724,7 @@ func partExpectedCostForRequired(scan partScan, quota map[string]int, required [
 // （配额<件数）下让每件都去抢同一种效果，因此对 4/4/1、4/4/1/1 等不均匀配额更准确。
 // 全局配额已满足时返回 0。
 func expectedModulesForQuota(parts map[string]partScan, quota map[string]int) float64 {
-	quota = normalizeQuota(quota)
-	if AllPartsSatisfiedQuota(parts, quota) {
-		return 0
-	}
-	assigned := allocateQuotaRequired(parts, quota)
-	total := 0.0
-	for _, part := range equipmentParts {
-		scan, ok := parts[part]
-		if !ok {
-			continue
-		}
-		total += partExpectedCostForRequired(scan, quota, assigned[part], "")
-	}
-	return total
+	return expectedModulesForQuotaWithMaterial(parts, quota, "")
 }
 
 // chooseBestPartForQuota 使用 1 步全局前瞻选择"期望剩余成本降幅最大"的装备。
@@ -917,19 +738,23 @@ func expectedModulesForQuota(parts map[string]partScan, quota map[string]int) fl
 // 的部位，绝不因单步增益为负而返回“无部位”；仅当没有可动作部位（全部槽位锁定、
 // 成本非法或快照缺失）时才返回空。
 func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, order []string) (string, bool) {
+	return chooseBestPartForQuotaWithMaterial(parts, quota, order, "")
+}
+
+func chooseBestPartForQuotaWithMaterial(parts map[string]partScan, quota map[string]int, order []string, material string) (string, bool) {
 	quota = normalizeQuota(quota)
 	if AllPartsSatisfiedQuota(parts, quota) {
 		return "", false
 	}
 
-	cacheKey := "choose:" + strings.Join(order, ",") + "#" + partsCacheKey(parts, quota)
+	cacheKey := "choose:" + strings.Join(order, ",") + "#" + effectPartsCacheKey(parts, quota, material)
 	if v, ok := choosePartCache.Load(cacheKey); ok {
 		part := v.(string)
 		return part, part != ""
 	}
 
-	currentCost := expectedModulesForQuota(parts, quota)
-	assigned := allocateQuotaRequired(parts, quota)
+	currentCost := expectedModulesForQuotaWithMaterial(parts, quota, material)
+	assigned := allocateQuotaRequiredWithMaterial(parts, quota, material)
 
 	// 调度优先级（先找承载者 → 洗未完整非承载者探索交换 → 补完整承载者 → 兜底未完整件）：
 	//   - 无天然承载者（无 slot3 命中）→ 只洗“未完整非承载者”（降格者 + 未定者）；
@@ -1017,7 +842,7 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 			if !okq {
 				continue
 			}
-			_, c := bestLockSlotAndCostForRequired(qScan, quota, assigned[q], "")
+			_, c := bestLockSlotAndCostForRequired(qScan, quota, assigned[q], material)
 			bases[q] = qBase{required: assigned[q], cost: c}
 		}
 
@@ -1032,10 +857,10 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 				}
 				// 未获得效果时槽位应变为空，而不是保留旧效果
 				newScan.Slots[slot].Effect = v
-				newScan.Slots[slot].Value = "" // 合成效果候选的数值未知，使用档位碰撞率边缘化。
+				newScan.Slots[slot].Value = "" // 效果目标不依赖数值档位。
 			}
 			// 本件自身成本（分配感知）：required 集合不随本件结果变化（近似）。
-			_, costP := bestLockSlotAndCostForRequired(newScan, quota, assigned[part], "")
+			_, costP := bestLockSlotAndCostForRequired(newScan, quota, assigned[part], material)
 
 			// 其余件成本：近似用当前分配的基础成本（不重算候选引起的分配变化，属可接受近似）。
 			others := 0.0
@@ -1046,7 +871,8 @@ func chooseBestPartForQuota(parts map[string]partScan, quota map[string]int, ord
 				others += bases[q].cost
 			}
 
-			expectedCost += out.prob * (costP + others)
+			// 结果页允许维持旧效果，较差候选不应增加预计续程成本。
+			expectedCost += out.prob * min(currentCost, costP+others)
 		}
 
 		cost := float64(RerollModuleCost(countLocks(scan)))
