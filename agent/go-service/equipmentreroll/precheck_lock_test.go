@@ -295,7 +295,7 @@ func TestValidateCharacterPreexistingLocks(t *testing.T) {
 		}
 	})
 
-	t.Run("part scan slot 1 locked fails if unsatisfied", func(t *testing.T) {
+	t.Run("part scan slot 1 lock waits for global assignment", func(t *testing.T) {
 		scan := partScan{
 			Slots: [maxSlot]slotScanData{
 				{Effect: "攻击力增加", Lock: LockPermanent}, // 1槽有锁，但2/3槽是杂词条
@@ -304,8 +304,8 @@ func TestValidateCharacterPreexistingLocks(t *testing.T) {
 			},
 		}
 		res := validateCharacterPreexistingLocks(4004, "头部", scan, cfg)
-		if res.Passed {
-			t.Fatal("expected failure for slot 1 lock on unsatisfied part")
+		if !res.Passed || res.IsInfo {
+			t.Fatal("slot 1 policy check must wait for all four snapshots without reporting it as accepted")
 		}
 	})
 

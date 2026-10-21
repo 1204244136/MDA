@@ -43,11 +43,11 @@ func isLocksSubsequenceOrEqual(actualLocks, simLocks []int) bool {
 //   - 单件模式：按单件目标（Want/AllowSlots）及单件锁定策略验证；
 //   - 角色模式：按全局配额（GlobalQuota）先做部位初筛，四件齐全后再做全局策略核验。
 func validatePreexistingLocks(ctx *maa.Context, taskID int64, part string, scan partScan) PrecheckLockResult {
-	if countLocks(scan) == 0 {
-		return PrecheckLockResult{Passed: true}
-	}
+	return validatePreexistingLocksForConfig(taskID, part, scan, loadCarrierConfig(ctx))
+}
 
-	cfg := loadCarrierConfig(ctx)
+// validatePreexistingLocksForConfig 保留完整扫描的校验入口，末件无锁也须核对前面各件的已有锁。
+func validatePreexistingLocksForConfig(taskID int64, part string, scan partScan, cfg carrierConfig) PrecheckLockResult {
 	if cfg.isValue() {
 		// 数值任务在完整范围扫描后统一校验；不能套用效果任务“禁止锁第1槽”策略。
 		return PrecheckLockResult{Passed: true}
@@ -177,7 +177,7 @@ func validateSinglePreexistingLocks(part string, scan partScan, target singleTar
 
 // validateCharacterPreexistingLocks 角色模式已有锁前置检查。
 func validateCharacterPreexistingLocks(taskID int64, part string, scan partScan, cfg carrierConfig) PrecheckLockResult {
-	if countLocks(scan) == 0 {
+	if countLocks(scan) == 0 && part != equipmentParts[len(equipmentParts)-1] {
 		return PrecheckLockResult{Passed: true}
 	}
 
@@ -217,25 +217,12 @@ func validateCharacterPreexistingLocks(taskID int64, part string, scan partScan,
 		}
 	}
 
-	// 3. 检查 1 号槽锁定：除非该部位所有槽位均为正数配额效果（已达标），否则 1 号槽不可锁
-	if scan.Slots[0].Lock != LockNone {
-		allPositive := true
-		for _, s := range scan.Slots {
-			if quota[strings.TrimSpace(s.Effect)] <= 0 {
-				allPositive = false
-				break
-			}
+	// 本件是否还需要洗练取决于四件的目标分配，不能把空槽或不足三条当作未达标。
+	// 1号槽已有锁延后到完整快照中判断，此处通过只表示继续扫描，不宣称策略已认可。
+	if part != equipmentParts[len(equipmentParts)-1] {
+		if scan.Slots[0].Lock != LockNone {
+			return PrecheckLockResult{Passed: true}
 		}
-		if !allPositive {
-			return PrecheckLockResult{
-				Passed:  false,
-				Message: fmt.Sprintf(i18n.T("tasker.equipment_reroll.preexisting_lock_slot1"), part, lockDisplayLabel(scan.Slots[0].Lock)),
-			}
-		}
-	}
-
-	// 若尚未扫描到最后一部位（腿部），只要本部位初筛合格即放行继续扫描后续部位
-	if part != "腿部" {
 		firstLocked := 0
 		for i, s := range scan.Slots {
 			if s.Lock != LockNone {
@@ -262,20 +249,21 @@ func validateCharacterPreexistingLocks(taskID int64, part string, scan partScan,
 		return PrecheckLockResult{Passed: true}
 	}
 
-	return validateCharacterGlobalPreexistingLocks(parts, quota, "")
+	return validateCharacterGlobalPreexistingLocks(parts, quota, lockMaterialForTask(taskID, ""))
 }
 
 // validateCharacterGlobalPreexistingLocks 角色模式四件全量扫描完成后的全局已有锁策略校验。
 func validateCharacterGlobalPreexistingLocks(parts map[string]partScan, quota map[string]int, material string) PrecheckLockResult {
+	mat := lockMaterialOrDefault(material)
 	// 全局可达性检查
-	if expectedModulesForQuota(parts, quota) >= costUnreachable {
+	if expectedModulesForQuotaWithMaterial(parts, quota, mat) >= costUnreachable {
 		return PrecheckLockResult{
 			Passed:  false,
 			Message: i18n.T("tasker.equipment_reroll.quota_unreachable"),
 		}
 	}
 
-	mat := lockMaterialOrDefault(material)
+	assigned := allocateQuotaRequiredWithMaterial(parts, quota, mat)
 
 	// 逐部位核对已有锁是否符合策略
 	for _, p := range equipmentParts {
@@ -284,8 +272,14 @@ func validateCharacterGlobalPreexistingLocks(parts map[string]partScan, quota ma
 			continue
 		}
 		// 若该部位已不需要洗练（已达标），已有锁有效放行
-		if !PartNeedsRerollQuota(parts, p, quota) {
+		if partCompleteForQuota(scan, assigned[p], quota) {
 			continue
+		}
+		if scan.Slots[0].Lock != LockNone {
+			return PrecheckLockResult{
+				Passed:  false,
+				Message: fmt.Sprintf(i18n.T("tasker.equipment_reroll.preexisting_lock_slot1"), p, lockDisplayLabel(scan.Slots[0].Lock)),
+			}
 		}
 
 		// 该部位需要洗练：验证锁定是否符合“如果要洗第一件事就是把它锁上”
