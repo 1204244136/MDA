@@ -11,8 +11,8 @@
             "[JumpBack]BattleEntryFlow",
             "[JumpBack]CommonSkipPlot",
             "[JumpBack]MapPushingOpenMinimap",
-            "[JumpBack]MapPushingClickMonster",
-            "[JumpBack]MapPushingClickPlate"
+            "[JumpBack]MapPushingClickPlate",
+            "[JumpBack]MapPushingClickMonster"
         ],
         "focus": {
             "Node.Action.Succeeded": "$focus.MapPushingFlow.Action.Succeeded"
@@ -38,7 +38,7 @@
         }
     },
     "MapPushingClickMonster": {
-        "desc": "推图点击怪物后等待小地图稳定，再重新判断战斗或剧情；点击无效时重新选怪",
+        "desc": "推图点击怪物后等待小地图稳定，再优先判断战斗、剧情或机关；点击无效时重新选怪",
         "recognition": {
             "type": "And",
             "param": {
@@ -78,6 +78,7 @@
         },
         "next": [
             "MapPushingTravelInterrupted",
+            "MapPushingClickPlate",
             "MapPushingClickMonster"
         ]
     },
@@ -100,7 +101,7 @@
         }
     },
     "MapPushingClickPlate": {
-        "desc": "推图点击机关",
+        "desc": "推图优先点击未开启机关；大范围漏检时补充中央近景识别",
         "recognition": {
             "type": "And",
             "param": {
@@ -108,13 +109,34 @@
                     "MapPushingMinimapVisible",
                     {
                         "recognition": {
-                            "type": "Custom",
+                            "type": "Or",
                             "param": {
-                                "custom_recognition": "CenterPriorityRecognition",
-                                "custom_recognition_param": {
-                                    "entry": "MapPushingClickPlateRaw",
-                                    "fallback": "fail"
-                                }
+                                "any_of": [
+                                    {
+                                        "recognition": {
+                                            "type": "Custom",
+                                            "param": {
+                                                "custom_recognition": "CenterPriorityRecognition",
+                                                "custom_recognition_param": {
+                                                    "entry": "MapPushingClickPlateRaw",
+                                                    "fallback": "fail"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "recognition": {
+                                            "type": "Custom",
+                                            "param": {
+                                                "custom_recognition": "CenterPriorityRecognition",
+                                                "custom_recognition_param": {
+                                                    "entry": "MapPushingClickNearbyPlateRaw",
+                                                    "fallback": "fail"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
@@ -135,6 +157,24 @@
             ],
             "threshold": 0.98,
             "rate_limit": 100
+        }
+    },
+    "MapPushingClickNearbyPlateRaw": {
+        "desc": "推图中央近景未开启机关识别，避免大范围缩放后漏检脚下踏板",
+        "recognition": {
+            "type": "NeuralNetworkDetect",
+            "param": {
+                "roi": [
+                    360,
+                    200,
+                    550,
+                    400
+                ],
+                "expected": [
+                    2
+                ],
+                "model": "MapPushing.onnx"
+            }
         }
     },
     "MapPushingTravelInterrupted": {
