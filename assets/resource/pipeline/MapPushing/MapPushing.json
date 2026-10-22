@@ -38,7 +38,7 @@
         }
     },
     "MapPushingClickMonster": {
-        "desc": "推图点击怪物后等待战斗或剧情入口，行走期间不切换目标",
+        "desc": "推图点击怪物后等待小地图稳定，再重新判断战斗或剧情；点击无效时重新选怪",
         "recognition": {
             "type": "And",
             "param": {
@@ -60,11 +60,25 @@
                 "box_index": 1
             }
         },
+        "pre_delay": 0,
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": {
+            "time": 1200,
+            "target": [
+                20,
+                85,
+                122,
+                90
+            ],
+            "threshold": 0.98,
+            "rate_limit": 100,
+            "timeout": 20000
+        },
         "next": [
-            "MapPushingTravelInterrupted"
+            "MapPushingTravelInterrupted",
+            "MapPushingClickMonster"
         ]
     },
     "MapPushingClickPlateRaw": {

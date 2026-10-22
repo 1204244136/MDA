@@ -10,12 +10,44 @@
             }
         },
         "next": [
+            "[JumpBack]BattleCloseModeInfo",
             "[JumpBack]BattleEnterCharacterPage",
             "BattleEnterQuickBattleFlow",
             "BattleEnterNormalBattleFlow",
             "[JumpBack]BattleClosePage",
             "CommonEndTask"
         ]
+    },
+    "BattleCloseModeInfo": {
+        "desc": "关闭各种模式的胜利目标说明，避免遮罩下仍能读到进入战斗而反复空转",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    530,
+                                    184,
+                                    214,
+                                    32
+                                ],
+                                "expected": [
+                                    "各种模式的胜利目标"
+                                ]
+                            }
+                        }
+                    },
+                    "CommonClosePage"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "BattleEnterCharacterPage": {
         "desc": "战斗进入角色选择页面",
