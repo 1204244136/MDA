@@ -16,7 +16,7 @@ import (
 // 本文件实现自定义配额下的"效果锁定"流程：
 // 点击槽位 → 效果锁定页 → 选择材料 → 蓝色确认 → 返回原页面；实际变更时才扣费。
 // 材料策略：有自订密钥用自订密钥，不够再用订制模块（用户确认策略）。
-// 锁定位：由 plan_dp.go 的策略迭代决定；策略上只考虑 2/3 号槽（1 号不锁——1 号 100% 易得、锁 1 追 23 代价高）。
+// 锁定位：由动态成本模型比较三个槽位，计入获取锁和后续洗练费用。
 //
 // 文档索引：docs/zh_cn/nikke/EquipmentReroll/洗词条策略与Agent逻辑.md
 
@@ -78,7 +78,7 @@ func (p *lockCheckParam) normalize() {
 }
 
 // EquipmentRerollLockCheckRecognition 判断当前详情页的指定部位是否需要先锁定再洗。
-// 若命中，表示该部位存在可锁定槽（3/2号单一目标未锁），路由到锁定流程；否则直进效果变更。
+// 若命中，表示该部位存在值得锁定的未锁需求槽，路由到锁定流程；否则直进效果变更。
 type EquipmentRerollLockCheckRecognition struct{}
 
 var _ maa.CustomRecognitionRunner = &EquipmentRerollLockCheckRecognition{}
@@ -135,7 +135,7 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 	if slot == 0 {
 		return nil, false
 	}
-	// 防御性检查：DesiredLockSlotForQuota 只会返回未锁的 2/3 号槽，走到这里说明策略层与
+	// 防御性检查：DesiredLockSlotForQuota 只会返回未锁槽，走到这里说明策略层与
 	// 快照不一致。用 Debug 记录——正常运行不该出现，也不值得当成告警干扰用户日志。
 	if scan.Slots[slot-1].Lock != LockNone {
 		log.Debug().Str("component", "EquipmentReroll").Str("part", params.Part).Int("lock_slot", slot).Msg("target lock slot already locked; skip lock")
@@ -147,7 +147,7 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 }
 
 // lockCheckSingle 单件模式锁定检查：按目标（effect -> 槽位限定）判断是否需要锁定某槽。
-// 命中表示存在可锁定的 2/3 号槽（该槽已持有落在允许槽位的需求词条），路由到锁定流程。
+// 命中表示存在值得锁定的槽位（该槽已持有落在允许槽位的需求词条），路由到锁定流程。
 func (r *EquipmentRerollLockCheckRecognition) lockCheckSingle(arg *maa.CustomRecognitionArg, params lockCheckParam, cfg carrierConfig) (*maa.CustomRecognitionResult, bool) {
 	if !cfg.singleTargetOK() {
 		log.Error().
@@ -184,7 +184,7 @@ func (r *EquipmentRerollLockCheckRecognition) lockCheckSingle(arg *maa.CustomRec
 		log.Info().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Str("part", part).Msg("no lock needed for this part under current target")
 		return nil, false
 	}
-	// 防御性检查：singleDesiredLockSlot 只会返回未锁的 2/3 号槽，走到这里说明策略层与
+	// 防御性检查：singleDesiredLockSlot 只会返回未锁槽，走到这里说明策略层与
 	// 快照不一致。用 Debug 记录——正常运行不该出现，也不值得当成告警干扰用户日志。
 	if scan.Slots[slot-1].Lock != LockNone {
 		log.Debug().Str("component", "EquipmentReroll").Str("part", part).Int("lock_slot", slot).Msg("single equipment target lock slot already locked; skip lock")
@@ -305,7 +305,7 @@ func lockMaterialForScan(taskID int64, scan partScan) string {
 	return "订制模块"
 }
 
-// EquipmentRerollLockRouteSlotAction 根据待锁槽位路由到 Slot2/3 点击节点。
+// EquipmentRerollLockRouteSlotAction 把待锁流程引向效果变更确认页。
 type EquipmentRerollLockRouteSlotAction struct{}
 
 var _ maa.CustomActionRunner = &EquipmentRerollLockRouteSlotAction{}
@@ -692,7 +692,7 @@ func (a *EquipmentRerollLockDoneAction) Run(ctx *maa.Context, arg *maa.CustomAct
 }
 
 // EquipmentRerollKeepLockRouteSlotAction 在效果变更确认页完成锁定判定后，路由到确认页槽位点击节点。
-// 复用 EquipmentRerollLockCheckRecognition 写入的 pending 槽位：2/3 号路由到确认页点击节点；
+// 复用 EquipmentRerollLockCheckRecognition 写入的 pending 槽位，路由到相应的确认页点击节点；
 // 无需锁定（slot 缺失或 0）时直接路由到材料记录节点，随后进入确认页刷新。
 type EquipmentRerollKeepLockRouteSlotAction struct{}
 

@@ -75,12 +75,15 @@ func TestSlot1PrecheckSparseQuotaUsesAssignedResponsibility(t *testing.T) {
 	}
 }
 
-func TestSlot1PrecheckUnlockedForbiddenThirdSlotStillFails(t *testing.T) {
+func TestSlot1PrecheckUnlockedForbiddenThirdSlotCanBeCleaned(t *testing.T) {
 	body := slot1PrecheckScreenshotBody()
 	body.Slots[2].Effect = "最大装弹数增加"
 	parts := slot1PrecheckParts(body)
-	if result := validateCharacterGlobalPreexistingLocks(parts, slot1PrecheckQuota(), "订制模块"); result.Passed {
-		t.Fatal("attack/elemental body still needs reroll to remove forbidden unlocked ammo")
+	if result := validateCharacterGlobalPreexistingLocks(parts, slot1PrecheckQuota(), "订制模块"); !result.Passed {
+		t.Fatalf("locked attack/elemental must be retained while reroll removes unlocked forbidden ammo: %s", result.Message)
+	}
+	if !PartNeedsRerollQuota(parts, "身躯", slot1PrecheckQuota()) {
+		t.Fatal("forbidden ammo must still trigger cleanup")
 	}
 }
 

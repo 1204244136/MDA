@@ -149,3 +149,35 @@ func TestReloadRequiresCompleteInventoryBeforeClick(t *testing.T) {
 		t.Fatal("known insufficient keys must not allow reload")
 	}
 }
+
+func TestReusableLockPlanProtectsTargetsWhileRemovingForbidden(t *testing.T) {
+	for _, name := range []string{"matching cleanup", "wrong history", "insufficient keys", "insufficient modules", "goal already clean"} {
+		t.Run(name, func(t *testing.T) {
+			cfg := carrierConfig{Mode: rerollModeCharacter, Quota: map[string]int{
+				TargetEffectAttackIncrease: 4, TargetEffectElementalDamage: 4, "最大装弹数增加": -1,
+			}}
+			parts := make(map[string]partScan, len(equipmentParts))
+			for _, part := range equipmentParts {
+				parts[part] = partScanOf(TargetEffectAttackIncrease, TargetEffectElementalDamage, "")
+			}
+			parts["头部"] = partScanOf(TargetEffectAttackIncrease, TargetEffectElementalDamage, "最大装弹数增加")
+			history := previousLockSettings{Part: "头部", Locks: [maxSlot]SlotLock{LockOneTime, LockOneTime, LockNone}}
+			inv := Inventory{CustomModules: 100, CustomLockKeys: 100}
+			switch name {
+			case "wrong history":
+				history.Locks = [maxSlot]SlotLock{LockNone, LockOneTime, LockOneTime}
+			case "insufficient keys":
+				inv.CustomLockKeys = 49 // 两把单次锁共需 20+30 密钥。
+			case "insufficient modules":
+				inv.CustomModules = 2 // 两锁后的效果变更需 3 个模块。
+			case "goal already clean":
+				parts["头部"] = partScanOf(TargetEffectAttackIncrease, TargetEffectElementalDamage, "")
+			}
+			planned, ok := reusableLockPlan(cfg, parts, "头部", inv, history)
+			want := name == "matching cleanup"
+			if ok != want || (ok && planned != history.Locks) {
+				t.Fatalf("reuse=%v want=%v planned=%v history=%v", ok, want, planned, history.Locks)
+			}
+		})
+	}
+}

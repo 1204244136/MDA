@@ -258,7 +258,7 @@ func decideQuotaByExpectedCost(current, candidate map[string]partScan, quota map
 
 // DesiredLockSlotForQuota 按全局分配和动态续程成本选择下一把有收益的锁。
 //
-// 每件最多 2 锁；策略上只支持 2/3 号槽（1 号不锁——1 号 100% 易得、锁 1 追 23 代价高）。
+// 每件最多 2 锁；三个槽位统一比较续程成本，仅锁本件负责的需求效果。
 // material 指定锁定材料（“自订密钥”/“订制模块”，空串默认密钥）：用订制模组锁定时计入获取成本，决策更保守。
 func DesiredLockSlotForQuota(parts map[string]partScan, part string, quota map[string]int, material string) (int, bool) {
 	quota = normalizeQuota(quota)

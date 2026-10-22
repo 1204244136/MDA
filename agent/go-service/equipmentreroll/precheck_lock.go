@@ -49,7 +49,7 @@ func validatePreexistingLocks(ctx *maa.Context, taskID int64, part string, scan 
 // validatePreexistingLocksForConfig 保留完整扫描的校验入口，末件无锁也须核对前面各件的已有锁。
 func validatePreexistingLocksForConfig(taskID int64, part string, scan partScan, cfg carrierConfig) PrecheckLockResult {
 	if cfg.isValue() {
-		// 数值任务在完整范围扫描后统一校验；不能套用效果任务“禁止锁第1槽”策略。
+		// 数值任务在完整范围扫描后按自身锁定计划统一校验。
 		return PrecheckLockResult{Passed: true}
 	}
 	if cfg.isSingle() {
@@ -82,15 +82,7 @@ func validateSinglePreexistingLocks(part string, scan partScan, target singleTar
 		}
 	}
 
-	// 3. 检查 1 号槽锁定：1 号槽基础出现率最高（100%），锁 1 追 2/3 槽严重违背省材料策略
-	if scan.Slots[0].Lock != LockNone {
-		return PrecheckLockResult{
-			Passed:  false,
-			Message: fmt.Sprintf(i18n.T("tasker.equipment_reroll.preexisting_lock_slot1"), part, lockDisplayLabel(scan.Slots[0].Lock)),
-		}
-	}
-
-	// 4. 检查各锁定槽位词条是否在 target.Want 中，以及是否满足槽位限定
+	// 3. 检查各锁定槽位词条是否在 target.Want 中，以及是否满足槽位限定
 	for i, slot := range scan.Slots {
 		if slot.Lock == LockNone {
 			continue
@@ -117,7 +109,7 @@ func validateSinglePreexistingLocks(part string, scan partScan, target singleTar
 		}
 	}
 
-	// 5. 检查单件目标是否不可达（如已有锁定占满槽位导致剩余槽位不足）
+	// 4. 检查单件目标是否不可达（如已有锁定占满槽位导致剩余槽位不足）
 	if singleTargetUnreachable(scan, target) {
 		return PrecheckLockResult{
 			Passed:  false,
@@ -125,7 +117,7 @@ func validateSinglePreexistingLocks(part string, scan partScan, target singleTar
 		}
 	}
 
-	// 6. 策略一致性检查：如果该装备未加锁，按单件策略如果要洗它，期望加锁的槽位是否包含所有已有锁定
+	// 5. 策略一致性检查：如果该装备未加锁，按单件策略如果要洗它，期望加锁的槽位是否包含所有已有锁定
 	unlockedScan := scan
 	actualLocks := make([]int, 0, maxSlot)
 	for i, s := range unlockedScan.Slots {
@@ -275,14 +267,7 @@ func validateCharacterGlobalPreexistingLocks(parts map[string]partScan, quota ma
 		if partCompleteForQuota(scan, assigned[p], quota) {
 			continue
 		}
-		if scan.Slots[0].Lock != LockNone {
-			return PrecheckLockResult{
-				Passed:  false,
-				Message: fmt.Sprintf(i18n.T("tasker.equipment_reroll.preexisting_lock_slot1"), p, lockDisplayLabel(scan.Slots[0].Lock)),
-			}
-		}
-
-		// 该部位需要洗练：验证锁定是否符合“如果要洗第一件事就是把它锁上”
+		// 该部位需要洗练：三个槽位均按同一策略核对，包含保护需求后清除禁止项的锁定方案。
 		unlockedParts := make(map[string]partScan, len(parts))
 		for k, v := range parts {
 			unlockedParts[k] = v

@@ -40,7 +40,7 @@ func resetDynamicEffectCostCache() {
 }
 
 // dynamicEffectPlan 求解包含未来逐步加锁的单件效果成本，并返回当前最优的下一把锁。
-// 只新增第 2/3 槽中属于 required 且位置正确的锁，已有永久锁始终保留。
+// 三个槽位中属于 required 且位置正确的效果均可加锁，由续程成本决定是否值得，已有永久锁始终保留。
 // 模块模式按首锁 2、次锁 3 计费；已有一次性锁只保护本轮，之后重新保护要重新付费。
 // 密钥模式给出密钥可持续续用时的模块成本下界，密钥数量本身不折算为模块。
 func dynamicEffectPlan(scan partScan, required, forbidden []string, slotAllow map[string]map[int]bool, material string) (slot int, cost float64) {
@@ -124,7 +124,7 @@ func (m *effectCostModel) after(locks effectCostLocks, effects [maxSlot]string) 
 	if count >= maxSlot-1 {
 		return best
 	}
-	for _, slot := range []int{2, 1} {
+	for _, slot := range []int{2, 1, 0} {
 		if !m.canLock(slot, effects[slot], locks.Mask) {
 			continue
 		}
@@ -167,7 +167,7 @@ func (m *effectCostModel) future(locks effectCostLocks) float64 {
 		if m.satisfied(effects) {
 			cost = 0
 		} else if count < maxSlot-1 {
-			for _, slot := range []int{2, 1} {
+			for _, slot := range []int{2, 1, 0} {
 				if !m.canLock(slot, effects[slot], locks.Mask) {
 					continue
 				}
@@ -250,7 +250,7 @@ func (m *effectCostModel) withTemporary(locks effectCostLocks, temporary uint8, 
 		best.Cost = min(costUnreachable, float64(RerollModuleCost(count))+continuation/probability)
 	}
 	if count < maxSlot-1 {
-		for _, slot := range []int{2, 1} {
+		for _, slot := range []int{2, 1, 0} {
 			if !m.canLock(slot, effects[slot], protected.Mask) {
 				continue
 			}

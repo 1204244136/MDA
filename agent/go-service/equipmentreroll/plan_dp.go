@@ -601,7 +601,7 @@ func washPriority(scan partScan, quota map[string]int, assigned []string) float6
 			score += 1.0 / effectWeight(e)
 		}
 	}
-	// 1号槽风险：已持有但落在 1 号槽（不可锁保护）的本件负责效果。
+	// 1号槽位置分：仅用于调度收益持平时的历史顺位，不限制该槽参与加锁。
 	if slotIsPositiveQuota(scan.Slots[0].Effect, quota) && reqSet[scan.Slots[0].Effect] {
 		score += 0.5
 	}
