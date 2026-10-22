@@ -13,6 +13,8 @@
 
 `verify_small_event_routing.py` 加载实际项目资源，验证全部小活动 case 的路由替换、主题模板/动作隔离，以及更新当前主题后回选旧主题；无需设备。
 
+`verify_map_pushing_minimap.py` 用实际项目资源和虚拟控制器验证小地图收起态恢复、展开后的确认、已展开时不重复点击，以及点击无效时不放行。fixture 仅保留真实 UI 的识别区域，周边为合成画面；可用 `--image <截图路径>` 替换收起态输入。日志写入系统临时目录，不连接设备。
+
 ## 运行
 
 从仓库根目录：
@@ -22,6 +24,7 @@
 .venv/Scripts/python.exe tools/verify/verify_input_persistence.py
 .venv/Scripts/python.exe tools/verify/verify_base_as_latest.py
 .venv/Scripts/python.exe tools/verify/verify_small_event_routing.py
+.venv/Scripts/python.exe tools/verify/verify_map_pushing_minimap.py
 ```
 
 `verify_override.py` 依赖 `deps/bin/MaaFramework.dll` 及同目录配套 DLL，

@@ -10,6 +10,7 @@
         "next": [
             "[JumpBack]BattleEntryFlow",
             "[JumpBack]CommonSkipPlot",
+            "[JumpBack]MapPushingOpenMinimap",
             "[JumpBack]MapPushingClickMonster",
             "[JumpBack]MapPushingClickPlate"
         ],
@@ -133,6 +134,30 @@
                 ]
             }
         }
+    },
+    "MapPushingOpenMinimap": {
+        "desc": "识别收起的小地图按钮并展开，确认展开后再选择怪物或机关",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    13,
+                    53,
+                    36,
+                    38
+                ],
+                "template": [
+                    "MapPushing/MinimapCollapsed.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 5000,
+        "next": [
+            "MapPushingMinimapVisible"
+        ]
     },
     "MapPushingMinimapVisible": {
         "desc": "确认小地图展开，避免等待区域落入动态场景背景",
