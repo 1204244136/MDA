@@ -199,9 +199,9 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "[JumpBack]DailyRewardsConfirmRecruit",
-            "[JumpBack]CommonConfirmReward",
-            "CommonEndTask"
+            "DailyRewardsConfirmRecruit",
+            "CommonConfirmReward",
+            "LuckyBoxOpeningClickConfirm" //兜底
         ]
     }
 }
