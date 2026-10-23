@@ -6,7 +6,8 @@
             "entry": "CashShopMain",
             "description": "$task.CashShop.description",
             "option": [
-                "CashShopFreePackage"
+                "CashShopFreePackage",
+                "CashShopNetworkRetry"
             ],
             "group": [
                 "daily"
@@ -30,6 +31,30 @@
                     "name": "No",
                     "pipeline_override": {
                         "ShopChooseOrdinaryPackage": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "CashShopNetworkRetry": {
+            "type": "switch",
+            "default_case": "Yes",
+            "label": "$option.CashShopNetworkRetry.label",
+            "description": "$option.CashShopNetworkRetry.description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CashShopRetryNetworkError": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CashShopRetryNetworkError": {
                             "enabled": false
                         }
                     }

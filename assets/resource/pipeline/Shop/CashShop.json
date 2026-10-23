@@ -33,7 +33,82 @@
         "next": [
             "[JumpBack]CashShopConsumeLimitFlow", //日服进入付费商店会弹出消费限制弹窗，先处理再确认是否已进入商店
             "CashShopCornerFlow",
+            "CashShopNetworkErrorFlow",
             "HallEnterCashShop"
+        ]
+    },
+    "CashShopNetworkErrorVisible": {
+        "desc": "付费商店网络异常弹窗可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    300,
+                    220,
+                    45
+                ],
+                "expected": [
+                    "网络异常.*读取商城.*失败"
+                ]
+            }
+        }
+    },
+    "CashShopNetworkRetryButtonVisible": {
+        "desc": "付费商店重新再试按钮可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    685,
+                    433,
+                    110,
+                    38
+                ],
+                "expected": [
+                    "重新再试"
+                ]
+            }
+        }
+    },
+    "CashShopNetworkErrorFlow": {
+        "desc": "网络异常时等待商店页面，避免反复点击弹窗后的商店入口；重试由选项控制",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CashShopNetworkErrorVisible"
+                ]
+            }
+        },
+        "timeout": 20000,
+        "next": [
+            "CashShopRetryNetworkError",
+            "[JumpBack]CashShopConsumeLimitFlow",
+            "CashShopCornerFlow"
+        ]
+    },
+    "CashShopRetryNetworkError": {
+        "desc": "付费商店网络异常仅重试一次，随后等待商店页面，仍未进入则超时熔断",
+        "enabled": true,
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CashShopNetworkErrorVisible",
+                    "CashShopNetworkRetryButtonVisible"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 30000,
+        "next": [
+            "[JumpBack]CashShopConsumeLimitFlow",
+            "CashShopCornerFlow"
         ]
     },
     "CashShopMainPageEntered": {

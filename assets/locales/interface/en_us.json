@@ -337,5 +337,7 @@
     "option.EquipmentRerollValueTargets.invalid": "Enter an integer from 0 to 15",
     "option.EquipmentRerollValueTotalTargets.label": "Character minimum total tiers",
     "option.EquipmentRerollValueTotalTargets.description": "Sum of matching effect tiers across four pieces (0 ignores, 1–60 target). Stops once the total reaches target, or if a target exceeds the attainable cap (max T15 per piece).",
-    "option.EquipmentRerollValueTotalTargets.invalid": "Enter an integer from 0 to 60"
+    "option.EquipmentRerollValueTotalTargets.invalid": "Enter an integer from 0 to 60",
+    "option.CashShopNetworkRetry.label": "Auto Retry on Network Error",
+    "option.CashShopNetworkRetry.description": "If a network error appears when entering the cash shop, click Retry once and wait up to 30 seconds. When disabled, leave the dialog untouched and let the task time out."
 }
