@@ -1,5 +1,7 @@
 # MDA 公告
 
+推荐试试 [NIKKE CDK Tools](https://nikke.hayasa.link/#/announcement)，查看兑换码公告、管理账号和兑换 CDK，领取福利更方便。
+
 ## PC 端使用说明
 
 目前 MDA 的 PC 端**仅支持 AAA 操控模式**。使用前，请先安装 **Interception 驱动**，并在连接设置中选择 **AAA**。

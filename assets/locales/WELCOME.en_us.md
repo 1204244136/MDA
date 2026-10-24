@@ -1,5 +1,7 @@
 # MDA Announcements
 
+Try [NIKKE CDK Tools](https://nikke.hayasa.link/#/announcement) to browse gift code announcements, manage accounts, and redeem codes in one place.
+
 ## PC Setup
 
 The PC version of MDA currently **only supports the AAA control mode**. Before using it, install the **Interception driver** and select **AAA** in the connection settings.
