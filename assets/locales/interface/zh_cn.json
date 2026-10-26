@@ -132,7 +132,7 @@
     "option.EquipmentRerollMode.Character.label": "洗角色词条",
     "option.EquipmentRerollMode.Single.label": "洗单件词条",
     "task.MapPushing.label": "🗺️自动推图",
-    "task.MapPushing.description": "需要单独勾选，在地图中靠近怪的地方点击启动，会自动点击怪物进行战斗和触发机关\n**本任务为高级任务：消耗常规额度时按 5 倍额度消耗；专项额度与活动额度按实际时长扣减**",
+    "task.MapPushing.description": "需要单独勾选，在地图中靠近怪的地方点击启动，会自动点击怪物进行战斗和触发机关\n如果没有怪物了或遇到复杂地形，会卡死，需要人工介入。\n**本任务为高级任务：消耗常规额度时按 5 倍额度消耗；专项额度与活动额度按实际时长扣减**",
     "task.RedDotClear.label": "🔴清除红点",
     "task.RedDotClear.description": "清除各类界面中的红点",
     "option.RedDotClearCashShop.label": "清除商店红点",

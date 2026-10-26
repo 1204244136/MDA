@@ -132,7 +132,7 @@
     "option.EquipmentRerollMode.Character.label": "Character Reroll",
     "option.EquipmentRerollMode.Single.label": "Single Affix Reroll",
     "task.MapPushing.label": "🗺️Auto Map Pushing",
-    "task.MapPushing.description": "Must be selected separately. Click to start near monsters on the map; it will automatically click monsters for battle and trigger mechanisms\n**Advanced task: consumes runtime quota at 5x when using regular quota; special and event quota are charged at actual runtime**",
+    "task.MapPushing.description": "Must be selected separately. Click to start near monsters on the map; it will automatically click monsters for battle and trigger mechanisms\nIf no monsters remain or complex terrain is encountered, the task will get stuck and require manual intervention.\n**Advanced task: consumes runtime quota at 5x when using regular quota; special and event quota are charged at actual runtime**",
     "task.RedDotClear.label": "🔴Clear Red Dots",
     "task.RedDotClear.description": "Clear red dots across supported interfaces",
     "option.RedDotClearCashShop.label": "Clear Shop Red Dots",
