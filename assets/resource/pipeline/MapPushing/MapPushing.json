@@ -38,7 +38,7 @@
         }
     },
     "MapPushingClickMonster": {
-        "desc": "推图点击怪物后最多等待 6 秒小地图稳定，再优先判断战斗、剧情或机关；点击无效时重新选怪",
+        "desc": "推图点击怪物后最多等待 3 秒小地图稳定，再优先判断战斗、剧情或机关；点击无效时重新选怪",
         "recognition": {
             "type": "And",
             "param": {
@@ -65,7 +65,7 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 1200,
+            "time": 800,
             "target": [
                 20,
                 85,
@@ -74,7 +74,7 @@
             ],
             "threshold": 0.98,
             "rate_limit": 100,
-            "timeout": 6000
+            "timeout": 3000
         },
         "next": [
             "MapPushingTravelInterrupted",
@@ -101,7 +101,7 @@
         }
     },
     "MapPushingClickPlate": {
-        "desc": "推图优先点击未开启机关，最多等待 6 秒小地图稳定；大范围漏检时补充中央近景识别",
+        "desc": "推图优先点击未开启机关，最多等待 3 秒小地图稳定；大范围漏检时补充中央近景识别",
         "recognition": {
             "type": "And",
             "param": {
@@ -148,7 +148,7 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 1200,
+            "time": 800,
             "target": [
                 20,
                 85,
@@ -157,7 +157,7 @@
             ],
             "threshold": 0.98,
             "rate_limit": 100,
-            "timeout": 6000
+            "timeout": 3000
         }
     },
     "MapPushingClickNearbyPlateRaw": {
