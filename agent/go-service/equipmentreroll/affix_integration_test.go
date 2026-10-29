@@ -303,4 +303,27 @@ func (p *affixOfflineProbe) checkAffixSafety(ctx *maa.Context, arg *maa.CustomRe
 	if effect, _, known := read(); !known || effect != "防御力增加" {
 		t.Errorf("complete-name OCR failed: %q %v", effect, known)
 	}
+	// v1.11.8 / task 200001415 现场：装弹 77.15% 被读成 17.15%，
+	// 整行名称中的数值又漏成 7.15%。扫描必须依据官方档位恢复 T13，而不是保存
+	// tier=0 的错值。这里复用真实框架 OCR，再把结果替换成日志中的三路文本。
+	override(original)
+	override(map[string]any{
+		direct: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{
+			{`【优越代码伤害增加】23\.56`, "【最大装弹数增加】7.15%"},
+		}}}},
+		detected: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{
+			{"优越代码伤害增加", "最大装弹数增加"}, {`23\.56`, "17.15%"},
+		}}}},
+		valueNode: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{
+			{`^23\.56[%％]?$`, "17.15%"},
+		}}}},
+		valueFallback: map[string]any{"recognition": map[string]any{"param": map[string]any{"replace": [][]string{
+			{`^23\.56[%％]?$`, "17.15%"},
+		}}}},
+	})
+	scan := scanSlotByPipeline(ctx, arg.Img, 1)
+	if scan.Effect != "最大装弹数增加" || scan.RawValue != "17.15%" || scan.Value != "77.15%" || scan.Tier != 13 {
+		t.Errorf("blue ammo OCR should recover T13: %+v", scan)
+	}
+	override(original)
 }

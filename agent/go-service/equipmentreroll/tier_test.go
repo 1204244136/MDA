@@ -20,6 +20,15 @@ func TestResolveEffectTier(t *testing.T) {
 		{"暴击率增加", "3.32%", 4, "3.32%", true},
 		// OCR 抖动校准：11.80% 就近归到 11.81%(T11)，输出精确档位值。
 		{"蓄力伤害增加", "11.80%", 11, "11.81%", true},
+		// v1.11.8 现场：装弹 77.15% 漏掉/看错首位，官方档位中唯一相差一个字符，恢复 T13。
+		{"最大装弹数增加", "17.15%", 13, "77.15%", true},
+		{"最大装弹数增加", "7.15%", 13, "77.15%", true},
+		{"最大装弹数增加", "27.15", 13, "77.15%", true},
+		// 差异超过一个字符、交换字符、精度异常或候选不明确时不得猜测。
+		{"最大装弹数增加", "17.16%", 0, "", false},
+		{"最大装弹数增加", "77.51%", 0, "", false},
+		{"最大装弹数增加", "12.348%", 0, "", false},
+		{"最大装弹数增加", "99.99%", 0, "", false},
 		// 未知效果 / 空值 / 无法确认档位 → 不校准。
 		{"未知效果", "11.81%", 0, "", false},
 		{"蓄力伤害增加", "", 0, "", false},
@@ -32,6 +41,25 @@ func TestResolveEffectTier(t *testing.T) {
 		}
 		if tier != c.wantTier || calibrated != c.wantCalibr {
 			t.Fatalf("resolveEffectTier(%q,%q)=(tier=%d,val=%q) want (tier=%d,val=%q)", c.effect, c.ocr, tier, calibrated, c.wantTier, c.wantCalibr)
+		}
+	}
+}
+
+func TestOneCharacterEditApart(t *testing.T) {
+	for _, tc := range []struct {
+		a, b string
+		want bool
+	}{
+		{"17.15", "77.15", true}, // 单字替换
+		{"7.15", "77.15", true},  // 漏字
+		{"177.15", "77.15", true},
+		{"77.15", "77.15", false},
+		{"17.16", "77.15", false},
+		{"77.51", "77.15", false},
+		{"7.15", "77.150", false},
+	} {
+		if got := oneCharacterEditApart(tc.a, tc.b); got != tc.want {
+			t.Fatalf("oneCharacterEditApart(%q,%q)=%v, want %v", tc.a, tc.b, got, tc.want)
 		}
 	}
 }

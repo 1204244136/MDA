@@ -3,6 +3,7 @@ package equipmentreroll
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -38,8 +39,12 @@ func parsePercentValue(s string) (float64, bool) {
 	return v, true
 }
 
+var twoDecimalValuePattern = regexp.MustCompile(`^\d+\.\d{2}$`)
+
 // resolveEffectTier 根据效果名与 OCR 数值，求出对应档位并返回**校准后**的精确数值。
-// 允许微小 OCR 抖动（阈值 0.05%），取最近档位；找不到可确认的档位时 ok=false（不校准）。
+// 优先接受与官方档位相差不超过 0.05% 的数值抖动；否则仅在 OCR 文本仍是两位小数、
+// 且官方档位表中恰有一个候选与其相差一个字符时纠正误读（如 17.15% → 77.15%）。
+// 找不到可确认的档位或候选不唯一时 ok=false（不校准）。
 func resolveEffectTier(effect, ocrValue string) (tier int, calibratedValue string, ok bool) {
 	tiers, exists := effectTiers[effect]
 	if !exists {
@@ -57,8 +62,80 @@ func resolveEffectTier(effect, ocrValue string) (tier int, calibratedValue strin
 			bestI = i
 		}
 	}
-	if bestDiff > 0.05 {
+	if bestDiff <= 0.05 {
+		return bestI + 1, fmt.Sprintf("%.2f%%", tiers[bestI]), true
+	}
+
+	raw, formatted := normalizedTierText(ocrValue)
+	if !formatted {
 		return 0, "", false
 	}
-	return bestI + 1, fmt.Sprintf("%.2f%%", tiers[bestI]), true
+	matched := -1
+	for i, tv := range tiers {
+		if !oneCharacterEditApart(raw, fmt.Sprintf("%.2f", tv)) {
+			continue
+		}
+		if matched >= 0 {
+			return 0, "", false // 多个官方档位都只差一个字符时不猜测。
+		}
+		matched = i
+	}
+	if matched < 0 {
+		return 0, "", false
+	}
+	return matched + 1, fmt.Sprintf("%.2f%%", tiers[matched]), true
+}
+
+// normalizedTierText 去掉百分号并限制为两位小数的数值文本，避免把多余精度或
+// 非数值内容纳入单字符纠错。返回的文本保留原整数位，用于逐字符比较。
+func normalizedTierText(s string) (string, bool) {
+	s = strings.TrimSpace(s)
+	s = strings.ReplaceAll(s, "％", "%")
+	s = strings.TrimSpace(s)
+	s = strings.TrimSuffix(s, "%")
+	s = strings.TrimSpace(s)
+	if !twoDecimalValuePattern.MatchString(s) {
+		return "", false
+	}
+	return s, true
+}
+
+// oneCharacterEditApart 判断两个等格式数值串是否恰好相差一个字符：漏字、插字或单字替换。
+// 不支持交换两位或差异更大的情况，避免把另一个合法档位误当成 OCR 错字。
+func oneCharacterEditApart(a, b string) bool {
+	if a == b || absInt(len(a)-len(b)) > 1 {
+		return false
+	}
+	i, j, edits := 0, 0, 0
+	for i < len(a) && j < len(b) {
+		if a[i] == b[j] {
+			i++
+			j++
+			continue
+		}
+		edits++
+		if edits > 1 {
+			return false
+		}
+		switch {
+		case len(a) > len(b):
+			i++
+		case len(a) < len(b):
+			j++
+		default:
+			i++
+			j++
+		}
+	}
+	if i < len(a) || j < len(b) {
+		edits++
+	}
+	return edits == 1
+}
+
+func absInt(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
