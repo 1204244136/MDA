@@ -1,6 +1,11 @@
 package equipmentreroll
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/1204244136/MDA/agent/go-service/pkg/i18n"
+)
 
 // rerollOperation 描述重洗内容，与角色/单件范围无关。
 type rerollOperation string
@@ -28,7 +33,45 @@ func (c carrierConfig) validateOperation() error {
 		}
 		return c.ValueTargets.validate(15 * len(c.valueScope()))
 	}
+	if !c.isSingle() {
+		if c.GoalProblem != "" {
+			return &goalQuotaError{Number: c.GoalProblemIndex, Problem: c.GoalProblem}
+		}
+		// 无任何配额的旧配置仍可能依赖调用节点默认值，在最终入口再校验。
+		if c.quotaExplicit || len(c.Quota) > 0 {
+			if problem := goalQuotaProblem(c.Quota); problem != "" {
+				return &goalQuotaError{Number: 1, Problem: problem}
+			}
+		}
+		for i, enabled := range c.AlternativeEnabled {
+			if enabled {
+				if problem := goalQuotaProblem(c.AlternativeQuotas[i]); problem != "" {
+					return &goalQuotaError{Number: i + 2, Problem: problem}
+				}
+			}
+		}
+	}
 	return nil
+}
+
+type goalQuotaError struct {
+	Number  int
+	Problem string
+}
+
+func (e *goalQuotaError) Error() string {
+	return fmt.Sprintf("invalid goal %d: %s", e.Number, e.Problem)
+}
+
+func rerollConfigErrorMessage(err error) string {
+	var goalError *goalQuotaError
+	if errors.As(err, &goalError) {
+		if goalError.Problem == "empty quota" {
+			return i18n.T("tasker.equipment_reroll.goal_empty", goalError.Number)
+		}
+		return i18n.T("tasker.equipment_reroll.goal_invalid", goalError.Number)
+	}
+	return i18n.T("tasker.equipment_reroll.config_invalid")
 }
 
 // rerollDecisionTarget 是扫描后的业务分发点，供后续结果返回链复用。

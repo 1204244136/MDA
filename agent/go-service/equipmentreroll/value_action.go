@@ -21,7 +21,7 @@ func (a *EquipmentRerollConfigCheckAction) Run(ctx *maa.Context, arg *maa.Custom
 	cfg := loadCarrierConfig(ctx)
 	if err := cfg.validateOperation(); err != nil {
 		log.Error().Err(err).Msg("invalid equipment reroll config")
-		maafocus.Print(ctx, i18n.T("tasker.equipment_reroll.config_invalid"))
+		maafocus.Print(ctx, rerollConfigErrorMessage(err))
 		return false
 	}
 	return true

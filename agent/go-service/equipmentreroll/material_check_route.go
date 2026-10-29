@@ -1,6 +1,7 @@
 package equipmentreroll
 
 import (
+	"github.com/1204244136/MDA/agent/go-service/pkg/maafocus"
 	maa "github.com/MaaXYZ/maa-framework-go/v4"
 	"github.com/rs/zerolog/log"
 )
@@ -40,6 +41,9 @@ func (a *EquipmentRerollAfterMaterialCheckAction) Run(ctx *maa.Context, arg *maa
 	if !standalone {
 		if err := cfg.validateOperation(); err != nil {
 			log.Error().Err(err).Msg("invalid reroll operation")
+			message := rerollConfigErrorMessage(err)
+			setAbortReason(arg.TaskID, message)
+			maafocus.Print(ctx, message)
 			return false
 		}
 		target = rerollDecisionTarget(cfg)

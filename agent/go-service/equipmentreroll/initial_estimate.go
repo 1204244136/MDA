@@ -44,13 +44,10 @@ func initialModuleEstimate(parts map[string]partScan, cfg carrierConfig) (float6
 		}
 		_, cost = bestLockSlotAndCostForTarget(parts[cfg.Part], singleQuota(cfg.Target), sortedTargetEffects(cfg.Target), nil, "订制模块", slotAllowMap(cfg.Target))
 	} else {
-		quota := cfg.resolveQuota(nil)
-		if !quotaIsValid(quota) {
-			return 0, fmt.Errorf("invalid quota")
+		if err := cfg.validateGoalQuotas(nil); err != nil {
+			return 0, err
 		}
-		if !AllPartsSatisfiedQuota(parts, quota) {
-			cost = expectedModulesForQuotaWithMaterial(parts, quota, "订制模块")
-		}
+		cost = expectedModulesForQuotaAlternativesWithMaterial(parts, cfg.resolveGoalQuotas(nil), "订制模块")
 	}
 	if math.IsNaN(cost) || math.IsInf(cost, 0) || cost < 0 || cost >= costUnreachable {
 		return 0, fmt.Errorf("no finite estimate")

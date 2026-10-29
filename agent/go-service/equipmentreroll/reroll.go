@@ -57,7 +57,8 @@ type partNeedParam struct {
 	// Part 要判断的部位："头部"/"臂部"/"身躯"/"腿部"，或 "all" 表示判断四件全部达标。
 	Part string `json:"part"`
 	// GlobalQuota 自定义词条配额：-1 禁止 / 0 不要求 / 1~4 需求。
-	GlobalQuota map[string]int `json:"global_quota"`
+	GlobalQuota map[string]int   `json:"global_quota"`
+	Goals       []map[string]int `json:"-"`
 }
 
 func (p *partNeedParam) normalize() {
@@ -88,22 +89,25 @@ func (r *EquipmentRerollPartNeedRecognition) Run(ctx *maa.Context, arg *maa.Cust
 	params.normalize()
 
 	// 角色配额统一从承载点读取（attach.quota_* 优先，为空时回退本节点自带默认）。
-	params.GlobalQuota = loadCarrierConfig(ctx).resolveQuota(params.GlobalQuota)
-	if !quotaIsValid(params.GlobalQuota) {
-		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("part need recognition requires a valid 1 to 12 affix quota")
+	cfg := loadCarrierConfig(ctx)
+	if err := cfg.validateGoalQuotas(params.GlobalQuota); err != nil {
+		log.Error().Err(err).Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("part need recognition requires valid target alternatives")
 		return nil, false
 	}
+	params.Goals = cfg.resolveGoalQuotas(params.GlobalQuota)
 	return r.runQuota(arg, params)
 }
 
 func (r *EquipmentRerollPartNeedRecognition) runQuota(arg *maa.CustomRecognitionArg, params partNeedParam) (*maa.CustomRecognitionResult, bool) {
-	quota := normalizeQuota(params.GlobalQuota)
-	if !quotaIsValid(quota) {
+	goals := params.Goals
+	if len(goals) == 0 {
+		goals = []map[string]int{normalizeQuota(params.GlobalQuota)}
+	}
+	if !validGoalQuotas(goals) {
 		log.Error().
 			Str("component", "EquipmentReroll").
 			Int64("task_id", arg.TaskID).
-			Int("quota_total", quotaTotal(quota)).
-			Msg("custom quota requires 1 to 12 affixes")
+			Msg("custom target alternatives require valid quotas")
 		return nil, false
 	}
 
@@ -117,7 +121,7 @@ func (r *EquipmentRerollPartNeedRecognition) runQuota(arg *maa.CustomRecognition
 	}
 
 	if params.Part == partAll {
-		if AllPartsSatisfiedQuota(parts, quota) {
+		if allPartsSatisfiedQuotaAlternatives(parts, goals) {
 			log.Info().Str("component", "EquipmentReroll").Msg("all four parts satisfy custom quota target")
 			// 用户可见摘要由后继 EquipmentRerollFinalSummaryAction 统一通过 focus 输出。
 			return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: "{}"}, true
@@ -125,7 +129,14 @@ func (r *EquipmentRerollPartNeedRecognition) runQuota(arg *maa.CustomRecognition
 		return nil, false
 	}
 
-	if !PartNeedsRerollQuota(parts, params.Part, quota) {
+	needsReroll := false
+	if len(goals) == 1 {
+		needsReroll = PartNeedsRerollQuota(parts, params.Part, goals[0])
+	} else {
+		selected, selectedOK := chooseBestPartForQuotaAlternativesWithMaterial(parts, goals, equipmentParts, lockMaterialForTask(arg.TaskID, ""))
+		needsReroll = selectedOK && selected == params.Part
+	}
+	if !needsReroll {
 		log.Info().Str("component", "EquipmentReroll").Str("part", params.Part).Msg("part already satisfies custom quota target")
 		return nil, false
 	}
@@ -141,7 +152,8 @@ func (r *EquipmentRerollPartNeedRecognition) runQuota(arg *maa.CustomRecognition
 // resultDecideParam 是 EquipmentRerollResultDecideRecognition 的参数。
 type resultDecideParam struct {
 	// GlobalQuota 自定义词条配额：-1 禁止 / 0 不要求 / 1~4 需求（角色模式）。
-	GlobalQuota map[string]int `json:"global_quota"`
+	GlobalQuota map[string]int   `json:"global_quota"`
+	Goals       []map[string]int `json:"-"`
 }
 
 func (p *resultDecideParam) normalize() {
@@ -227,11 +239,11 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 	}
 
 	// 角色配额：承载点 attach.quota_* 优先，为空时回退本节点自带默认。
-	params.GlobalQuota = cfg.resolveQuota(params.GlobalQuota)
-	if !quotaIsValid(params.GlobalQuota) {
-		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("result decide requires a valid 1 to 12 affix quota")
+	if err := cfg.validateGoalQuotas(params.GlobalQuota); err != nil {
+		log.Error().Err(err).Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("result decide requires valid target alternatives")
 		return nil, false
 	}
+	params.Goals = cfg.resolveGoalQuotas(params.GlobalQuota)
 	return r.decideQuota(arg, params, part, changed, changedValues, changedRaw)
 }
 
@@ -285,13 +297,15 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 		log.Error().Str("component", "EquipmentReroll").Msg("result decide part scan is missing")
 		return nil, false
 	}
-	quota := normalizeQuota(params.GlobalQuota)
-	if !quotaIsValid(quota) {
+	goals := params.Goals
+	if len(goals) == 0 {
+		goals = []map[string]int{normalizeQuota(params.GlobalQuota)}
+	}
+	if !validGoalQuotas(goals) {
 		log.Error().
 			Str("component", "EquipmentReroll").
 			Int64("task_id", arg.TaskID).
-			Int("quota_total", quotaTotal(quota)).
-			Msg("custom quota requires 1 to 12 affixes")
+			Msg("custom target alternatives require valid quotas")
 		return nil, false
 	}
 
@@ -315,15 +329,19 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 		// 而非旧积分制的"已匹配配额数 × 100 + 槽位结构分"。
 		// 使用与下一轮锁定相同的材料口径；已消耗的单次锁不能当成永久保护。
 		material := lockMaterialForScan(arg.TaskID, allParts[part])
-		currentCost := expectedModulesForQuotaWithMaterial(allParts, quota, material)
-		candidateCost := expectedModulesForQuotaWithMaterial(candidateParts, quota, material)
-		if candidateCost < currentCost-costDecisionEpsilon {
-			decision = ResultDecisionAccept
-		}
-		decisionDetail = fmt.Sprintf("current_cost=%.2f candidate_cost=%.2f", currentCost, candidateCost)
+		currentCost := expectedModulesForQuotaAlternativesWithMaterial(allParts, goals, material)
+		candidateCost := expectedModulesForQuotaAlternativesWithMaterial(candidateParts, goals, material)
+		decision = decideQuotaAlternativesByExpectedCost(allParts, candidateParts, goals, material)
+		decisionDetail = fmt.Sprintf("current_cost=%.2f candidate_cost=%.2f current_goals=%v candidate_goals=%v", currentCost, candidateCost,
+			independentGoalCosts(allParts, goals, material), independentGoalCosts(candidateParts, goals, material))
 	} else {
+		if len(goals) != 1 {
+			// 多方案不能在残缺快照上逐词条拼接判定；保留现场等待完整状态。
+			log.Error().Int64("task_id", arg.TaskID).Msg("multi-goal result decision requires all four snapshots")
+			return nil, false
+		}
 		// 全局快照缺失时的降级路径（单件期望成本比较）。
-		decision = decideResultPageQuotaWithMaterial(current, changed, scan, quota, lockMaterialForScan(arg.TaskID, effectPostRollScan(scan)))
+		decision = decideResultPageQuotaWithMaterial(current, changed, scan, goals[0], lockMaterialForScan(arg.TaskID, effectPostRollScan(scan)))
 	}
 	stageResultDecision(arg.TaskID, part, decision, changed, changedValues)
 
@@ -545,11 +563,10 @@ func shouldContinueCurrentPartAfterAcceptWithMaterial(current string, cfg carrie
 			singlePartNeedsReroll(scan, cfg.Target) && !singleTargetUnreachable(scan, cfg.Target)
 	}
 
-	quota := cfg.resolveQuota(nil)
-	if !quotaIsValid(quota) || len(parts) != len(equipmentParts) {
+	if cfg.validateGoalQuotas(nil) != nil || len(parts) != len(equipmentParts) {
 		return false
 	}
-	best, ok := chooseBestPartForQuotaWithMaterial(parts, quota, equipmentParts, material)
+	best, ok := chooseBestPartForQuotaAlternativesWithMaterial(parts, cfg.resolveGoalQuotas(nil), equipmentParts, material)
 	return ok && best == current
 }
 

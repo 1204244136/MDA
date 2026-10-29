@@ -20,12 +20,13 @@ type effectCostChoice struct {
 }
 
 type effectCostModel struct {
-	mu          sync.Mutex
-	required    map[string]bool
-	forbidden   map[string]bool
-	allow       map[string]map[int]bool
-	moduleLocks bool
-	futureCosts map[effectCostLocks]float64
+	mu           sync.Mutex
+	required     map[string]bool
+	forbidden    map[string]bool
+	allow        map[string]map[int]bool
+	alternatives []effectCostTarget
+	moduleLocks  bool
+	futureCosts  map[effectCostLocks]float64
 }
 
 var dynamicEffectModels = struct {
@@ -37,6 +38,7 @@ func resetDynamicEffectCostCache() {
 	dynamicEffectModels.Lock()
 	dynamicEffectModels.models = make(map[string]*effectCostModel)
 	dynamicEffectModels.Unlock()
+	quotaAlternativeCache.Clear()
 }
 
 // dynamicEffectPlan 求解包含未来逐步加锁的单件效果成本，并返回当前最优的下一把锁。
@@ -65,6 +67,10 @@ func dynamicEffectPlan(scan partScan, required, forbidden []string, slotAllow ma
 		dynamicEffectModels.models[key] = model
 	}
 	dynamicEffectModels.Unlock()
+	return model.plan(scan)
+}
+
+func (model *effectCostModel) plan(scan partScan) (slot int, cost float64) {
 	model.mu.Lock()
 	defer model.mu.Unlock()
 
@@ -72,7 +78,7 @@ func dynamicEffectPlan(scan partScan, required, forbidden []string, slotAllow ma
 	if model.satisfied(effects) {
 		return 0, 0
 	}
-	if countLocks(scan) >= maxSlot || len(model.required) > maxSlot {
+	if countLocks(scan) >= maxSlot || (len(model.alternatives) == 0 && len(model.required) > maxSlot) {
 		return 0, costUnreachable
 	}
 	var locks effectCostLocks
@@ -98,6 +104,14 @@ func dynamicEffectPlan(scan partScan, required, forbidden []string, slotAllow ma
 }
 
 func (m *effectCostModel) satisfied(effects [maxSlot]string) bool {
+	if len(m.alternatives) > 0 {
+		for _, target := range m.alternatives {
+			if partHasRequiredAndNoForbidden(effects, target.required, target.forbidden) {
+				return true
+			}
+		}
+		return false
+	}
 	return partHasRequiredAndNoForbiddenSlot(effects, m.required, m.forbidden, m.allow)
 }
 
@@ -199,6 +213,14 @@ func (m *effectCostModel) future(locks effectCostLocks) float64 {
 }
 
 func (m *effectCostModel) reachable(locks effectCostLocks, unlocked int) bool {
+	if len(m.alternatives) > 0 {
+		for _, target := range m.alternatives {
+			if effectTargetReachable(locks, unlocked, target.required, target.forbidden) {
+				return true
+			}
+		}
+		return false
+	}
 	missing := len(m.required)
 	for i, effect := range locks.Effects {
 		if locks.Mask&(1<<i) == 0 {

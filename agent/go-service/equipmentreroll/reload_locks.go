@@ -27,7 +27,7 @@ func reusableLockPlan(cfg carrierConfig, parts map[string]partScan, part string,
 		if cfg.Part != part || !cfg.singleTargetOK() || len(cfg.Target.Want) == 0 {
 			return empty, false
 		}
-	} else if cfg.Mode != rerollModeCharacter || !quotaIsValid(cfg.Quota) || len(parts) != len(equipmentParts) {
+	} else if cfg.Mode != rerollModeCharacter || cfg.validateGoalQuotas(nil) != nil || len(parts) != len(equipmentParts) {
 		return empty, false
 	}
 	hasKey := false
@@ -67,7 +67,7 @@ func reusableLockPlan(cfg carrierConfig, parts map[string]partScan, part string,
 		if cfg.isSingle() {
 			slot, need = singleDesiredLockSlot(scan, cfg.Target, material)
 		} else {
-			slot, need = DesiredLockSlotForQuota(copyParts, part, cfg.Quota, material)
+			slot, need = desiredLockSlotForQuotaAlternatives(copyParts, part, cfg.resolveGoalQuotas(nil), material)
 		}
 		if !need {
 			break

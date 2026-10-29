@@ -42,11 +42,15 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 		return false
 	}
 	// 角色配额统一从承载点读取（attach.quota_* 优先，为空时回退本节点自带默认）。
-	quota := loadCarrierConfig(ctx).resolveQuota(params.GlobalQuota)
+	cfg := loadCarrierConfig(ctx)
+	goals := cfg.resolveGoalQuotas(params.GlobalQuota)
 
 	// 配额合法性校验：正数合计必须在 1~12 条内，避免无休止洗词条。
-	if !quotaIsValid(quota) {
-		log.Error().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Int("quota_total", quotaTotal(quota)).Msg("custom quota requires 1 to 12 affixes")
+	if err := cfg.validateGoalQuotas(params.GlobalQuota); err != nil {
+		log.Error().Err(err).Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("invalid effect target alternatives")
+		message := rerollConfigErrorMessage(err)
+		setAbortReason(arg.TaskID, message)
+		maafocus.Print(ctx, message)
 		if err := routeEquipmentRerollEnd(ctx, arg.CurrentTaskName); err != nil {
 			log.Error().Err(err).Str("component", "EquipmentReroll").Msg("failed to route end for invalid quota")
 			return false
@@ -63,7 +67,7 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 	// 不可达拦截：配额与现有永久锁冲突（例如禁止词条被永久锁死、需求数超过可用槽位）时，
 	// 再洗多少次也不可能达标。必须结束任务，否则会一路洗到订制模块耗尽为止。
 	material := lockMaterialForTask(arg.TaskID, "")
-	if expectedModulesForQuotaWithMaterial(parts, quota, material) >= costUnreachable {
+	if expectedModulesForQuotaAlternativesWithMaterial(parts, goals, material) >= costUnreachable {
 		log.Error().
 			Str("component", "EquipmentReroll").
 			Int64("task_id", arg.TaskID).
@@ -76,7 +80,7 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 		return true
 	}
 
-	part, ok := chooseBestPartForQuotaWithMaterial(parts, quota, equipmentParts, material)
+	part, ok := chooseBestPartForQuotaAlternativesWithMaterial(parts, goals, equipmentParts, material)
 	if !ok {
 		log.Warn().Str("component", "EquipmentReroll").Int64("task_id", arg.TaskID).Msg("no part selected by global lookahead; end task")
 		if err := routeEquipmentRerollEnd(ctx, arg.CurrentTaskName); err != nil {
@@ -107,6 +111,8 @@ func (a *EquipmentRerollChoosePartAction) Run(ctx *maa.Context, arg *maa.CustomA
 		Int64("task_id", arg.TaskID).
 		Str("part", part).
 		Str("target", target).
+		Floats64("goal_costs", independentGoalCosts(parts, goals, material)).
+		Float64("remaining_modules", expectedModulesForQuotaAlternativesWithMaterial(parts, goals, material)).
 		Msg("global lookahead chose part")
 	return true
 }

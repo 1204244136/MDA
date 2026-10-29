@@ -125,5 +125,7 @@
     "tasker.quota_display.event_expires": "🎁 Event quota (%s): about %d minutes remaining, expires at %s.",
     "tasker.quota_display.event_expired": "🎁 Event quota (%s): about %d minutes expired at %s and no longer counts toward available quota.",
     "tasker.equipment_reroll.scan_unreadable": "Equipment effects or lock states could not be reliably verified. The task stopped before rerolling. Check the equipment details page; the failed slot and recognition text are recorded in the logs.",
-    "tasker.equipment_reroll.result_unreadable": "The changed effects could not be fully read within the time limit. The task stopped before choosing Keep or Change. Review the current result page manually; the failed slot and recognition text are recorded in the logs."
+    "tasker.equipment_reroll.result_unreadable": "The changed effects could not be fully read within the time limit. The task stopped before choosing Keep or Change. Review the current result page manually; the failed slot and recognition text are recorded in the logs.",
+    "tasker.equipment_reroll.goal_empty": "Character reroll: goal %d has no required affixes. Task stopped. Require 1–4 copies of at least one effect, or disable this alternative goal. Ignore and Forbidden entries alone do not form a target.",
+    "tasker.equipment_reroll.goal_invalid": "Character reroll: goal %d is invalid. Task stopped. Each entry must be Forbidden, Ignore, or require 1–4 copies, with at most 12 required affixes per goal. You can also disable the invalid alternative goal."
 }

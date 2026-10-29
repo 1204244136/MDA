@@ -62,8 +62,7 @@ func rerollTargetSatisfied(parts map[string]partScan, cfg carrierConfig) bool {
 	if cfg.isSingle() {
 		return cfg.singleTargetOK() && singleTargetValid(cfg.Target) && singlePartSatisfied(parts[cfg.Part], cfg.Target)
 	}
-	quota := cfg.resolveQuota(nil)
-	return quotaIsValid(quota) && AllPartsSatisfiedQuota(parts, quota)
+	return cfg.validateGoalQuotas(nil) == nil && allPartsSatisfiedQuotaAlternatives(parts, cfg.resolveGoalQuotas(nil))
 }
 
 func buildLuckMessage(taskID int64, parts map[string]partScan, usage MaterialUsage) string {

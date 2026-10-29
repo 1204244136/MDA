@@ -111,10 +111,10 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 	if !ok {
 		return nil, false
 	}
-	quota := cfg.resolveQuota(params.GlobalQuota)
-	if !quotaIsValid(quota) {
+	if cfg.validateGoalQuotas(params.GlobalQuota) != nil {
 		return nil, false
 	}
+	goals := cfg.resolveGoalQuotas(params.GlobalQuota)
 	inv, inventoryReady := getInventory(arg.TaskID)
 	if !inventoryReady {
 		// 详情页阶段通常还没读到库存（库存改为进入效果锁定页时顺便读），
@@ -126,7 +126,7 @@ func (r *EquipmentRerollLockCheckRecognition) Run(ctx *maa.Context, arg *maa.Cus
 		return nil, false
 	}
 	lockIndex := countLocks(scan)
-	slot, material, outcome := desiredLockPlanForInventory(parts, params.Part, quota, inv, params.Material)
+	slot, material, outcome := desiredLockPlanForGoalInventory(parts, params.Part, goals, inv, params.Material)
 	if outcome != lockPlanLock {
 		logLockPlanSkipped(params.Part, arg.TaskID, lockIndex, outcome)
 		return nil, false
@@ -230,6 +230,10 @@ func logLockPlanSkipped(part string, taskID int64, lockIndex int, outcome lockPl
 }
 
 func desiredLockPlanForInventory(parts map[string]partScan, part string, quota map[string]int, inv Inventory, requested string) (int, string, lockPlanOutcome) {
+	return desiredLockPlanForGoalInventory(parts, part, []map[string]int{quota}, inv, requested)
+}
+
+func desiredLockPlanForGoalInventory(parts map[string]partScan, part string, goals []map[string]int, inv Inventory, requested string) (int, string, lockPlanOutcome) {
 	scan, ok := parts[part]
 	if !ok {
 		return 0, "", lockPlanUnknown
@@ -238,7 +242,7 @@ func desiredLockPlanForInventory(parts map[string]partScan, part string, quota m
 	if !ok {
 		return 0, "", lockPlanUnaffordable
 	}
-	slot, need := DesiredLockSlotForQuota(parts, part, quota, material)
+	slot, need := desiredLockSlotForQuotaAlternatives(parts, part, goals, material)
 	if !need {
 		return 0, material, lockPlanNotNeeded
 	}
@@ -276,14 +280,14 @@ func desiredLockSlotForConfig(cfg carrierConfig, taskID int64, part string) (int
 		}
 		return singleDesiredLockSlot(scan, cfg.Target, material)
 	}
-	if quotaTotal(cfg.Quota) == 0 {
+	if cfg.validateGoalQuotas(nil) != nil {
 		return 0, false
 	}
 	parts, ok := GetEquipmentSlotScans(taskID)
 	if !ok {
 		return 0, false
 	}
-	return DesiredLockSlotForQuota(parts, part, cfg.Quota, material)
+	return desiredLockSlotForQuotaAlternatives(parts, part, cfg.resolveGoalQuotas(nil), material)
 }
 
 // lockMaterialForTask 依据缓存库存决定本次锁定假设使用的材料：

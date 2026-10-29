@@ -125,5 +125,7 @@
     "tasker.quota_display.event_expires": "🎁 活动额度（%s）：剩余约 %d 分钟，%s 到期。",
     "tasker.quota_display.event_expired": "🎁 活动额度（%s）：剩余约 %d 分钟已于 %s 过期，不再计入可用额度。",
     "tasker.equipment_reroll.scan_unreadable": "无法可靠确认装备词条或锁定状态，任务已停止，未开始重洗。请检查当前装备详情页；失败槽位及识别文本已记录在日志中。",
-    "tasker.equipment_reroll.result_unreadable": "限定时间内未能完整识别变更结果，任务已停止，尚未选择效果维持或效果变更。请在当前结果页手动确认；失败槽位及识别文本已记录在日志中。"
+    "tasker.equipment_reroll.result_unreadable": "限定时间内未能完整识别变更结果，任务已停止，尚未选择效果维持或效果变更。请在当前结果页手动确认；失败槽位及识别文本已记录在日志中。",
+    "tasker.equipment_reroll.goal_empty": "洗角色词条：方案 %d 未设置需求词条，任务已停止。请至少设置一项需要 1～4 条的效果，或关闭该额外方案。只设置「不要求」或「禁止」不能作为目标。",
+    "tasker.equipment_reroll.goal_invalid": "洗角色词条：方案 %d 配置无效，任务已停止。请检查各项是否为「禁止」「不要求」或需求 1～4 条，且每套方案的需求总数不超过 12 条；也可关闭有误的额外方案。"
 }

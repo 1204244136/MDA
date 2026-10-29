@@ -1323,7 +1323,9 @@
                         "EquipmentRerollQuotaChargeSpeed",
                         "EquipmentRerollQuotaChargeDamage",
                         "EquipmentRerollQuotaHitRate",
-                        "EquipmentRerollQuotaDefense"
+                        "EquipmentRerollQuotaDefense",
+                        "EquipmentRerollAlternative2",
+                        "EquipmentRerollAlternative3"
                     ],
                     "pipeline_override": {
                         "EquipmentRerollLockNeed": {
@@ -1331,7 +1333,8 @@
                                 "mode": "character"
                             }
                         }
-                    }
+                    },
+                    "description": "$option.EquipmentRerollMode.Character.description"
                 },
                 {
                     "name": "Single",
@@ -1966,6 +1969,1398 @@
                         "EquipmentRerollLockNeed": {
                             "attach": {
                                 "slot3": 3
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollAlternative2": {
+            "type": "switch",
+            "label": "$option.EquipmentRerollAlternative2.label",
+            "description": "$option.EquipmentRerollAlternative.description",
+            "default_case": "No",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "EquipmentRerollQuota2ElementalDamage",
+                        "EquipmentRerollQuota2AttackIncrease",
+                        "EquipmentRerollQuota2MaxAmmo",
+                        "EquipmentRerollQuota2CritDamage",
+                        "EquipmentRerollQuota2CritRate",
+                        "EquipmentRerollQuota2ChargeSpeed",
+                        "EquipmentRerollQuota2ChargeDamage",
+                        "EquipmentRerollQuota2HitRate",
+                        "EquipmentRerollQuota2Defense"
+                    ],
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "enabled2": true
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "enabled2": false
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2ElementalDamage": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.ElementalDamage.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_优越代码伤害增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_优越代码伤害增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_优越代码伤害增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_优越代码伤害增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_优越代码伤害增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_优越代码伤害增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2AttackIncrease": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.AttackIncrease.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_攻击力增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_攻击力增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_攻击力增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_攻击力增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_攻击力增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_攻击力增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2MaxAmmo": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.MaxAmmo.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_最大装弹数增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_最大装弹数增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_最大装弹数增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_最大装弹数增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_最大装弹数增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_最大装弹数增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2CritDamage": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.CritDamage.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击伤害增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击伤害增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击伤害增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击伤害增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击伤害增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击伤害增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2CritRate": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.CritRate.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击率增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击率增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击率增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击率增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击率增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_暴击率增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2ChargeSpeed": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.ChargeSpeed.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力速度增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力速度增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力速度增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力速度增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力速度增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力速度增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2ChargeDamage": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.ChargeDamage.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力伤害增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力伤害增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力伤害增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力伤害增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力伤害增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_蓄力伤害增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2HitRate": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.HitRate.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_命中率增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_命中率增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_命中率增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_命中率增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_命中率增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_命中率增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota2Defense": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.Defense.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_防御力增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_防御力增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_防御力增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_防御力增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_防御力增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota2_防御力增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollAlternative3": {
+            "type": "switch",
+            "label": "$option.EquipmentRerollAlternative3.label",
+            "description": "$option.EquipmentRerollAlternative.description",
+            "default_case": "No",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "EquipmentRerollQuota3ElementalDamage",
+                        "EquipmentRerollQuota3AttackIncrease",
+                        "EquipmentRerollQuota3MaxAmmo",
+                        "EquipmentRerollQuota3CritDamage",
+                        "EquipmentRerollQuota3CritRate",
+                        "EquipmentRerollQuota3ChargeSpeed",
+                        "EquipmentRerollQuota3ChargeDamage",
+                        "EquipmentRerollQuota3HitRate",
+                        "EquipmentRerollQuota3Defense"
+                    ],
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "enabled3": true
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "enabled3": false
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3ElementalDamage": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.ElementalDamage.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_优越代码伤害增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_优越代码伤害增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_优越代码伤害增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_优越代码伤害增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_优越代码伤害增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_优越代码伤害增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3AttackIncrease": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.AttackIncrease.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_攻击力增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_攻击力增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_攻击力增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_攻击力增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_攻击力增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_攻击力增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3MaxAmmo": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.MaxAmmo.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_最大装弹数增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_最大装弹数增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_最大装弹数增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_最大装弹数增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_最大装弹数增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_最大装弹数增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3CritDamage": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.CritDamage.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击伤害增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击伤害增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击伤害增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击伤害增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击伤害增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击伤害增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3CritRate": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.CritRate.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击率增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击率增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击率增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击率增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击率增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_暴击率增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3ChargeSpeed": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.ChargeSpeed.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力速度增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力速度增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力速度增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力速度增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力速度增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力速度增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3ChargeDamage": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.ChargeDamage.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力伤害增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力伤害增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力伤害增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力伤害增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力伤害增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_蓄力伤害增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3HitRate": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.HitRate.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_命中率增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_命中率增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_命中率增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_命中率增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_命中率增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_命中率增加": 4
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "EquipmentRerollQuota3Defense": {
+            "type": "select",
+            "label": "$option.EquipmentRerollQuota.affix.Defense.label",
+            "default_case": "None",
+            "cases": [
+                {
+                    "name": "Forbid",
+                    "label": "$option.EquipmentRerollQuota.cases.Forbid.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_防御力增加": -1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "None",
+                    "label": "$option.EquipmentRerollQuota.cases.None.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_防御力增加": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need1",
+                    "label": "$option.EquipmentRerollQuota.cases.Need1.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_防御力增加": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need2",
+                    "label": "$option.EquipmentRerollQuota.cases.Need2.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_防御力增加": 2
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need3",
+                    "label": "$option.EquipmentRerollQuota.cases.Need3.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_防御力增加": 3
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Need4",
+                    "label": "$option.EquipmentRerollQuota.cases.Need4.label",
+                    "pipeline_override": {
+                        "EquipmentRerollLockNeed": {
+                            "attach": {
+                                "quota3_防御力增加": 4
                             }
                         }
                     }
