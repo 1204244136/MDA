@@ -86,12 +86,20 @@
                 ]
             }
         },
-        "post_wait_freezes": 2000,
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                475,
+                165,
+                330,
+                515
+            ],
+            "rate_limit": 100,
+            "timeout": 2000
+        },
         "next": [
-            "[JumpBack]ArchivesRedDotClickBottom",
-            "[JumpBack]ArchivesRedDotClickTop",
-            "CommonClosePage",
-            "CommonEndTask"
+            "RedDotClearArchivesCleared",
+            "ArchivesRedDotClickTop"
         ]
     },
     "ArchivesEntered": {
@@ -124,7 +132,9 @@
                 ],
                 "expected": [
                     ".*活动奖励.*"
-                ]
+                ],
+                "order_by": "Vertical",
+                "index": -1
             }
         },
         "action": {
@@ -229,14 +239,14 @@
         }
     },
     "ArchivesRedDotClickTop": {
-        "desc": "档案馆顶部点击红点",
+        "desc": "仅进入时点击剧情活动标签，后续翻页不重复点击",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
                     467,
                     118,
-                    264,
+                    130,
                     33
                 ],
                 "template": [
@@ -248,28 +258,100 @@
         "action": {
             "type": "Click",
             "param": {
-                "target_offset": [
-                    -10,
-                    10,
-                    0,
-                    0
+                "target": [
+                    535,
+                    135
                 ]
             }
+        },
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                475,
+                165,
+                330,
+                515
+            ],
+            "rate_limit": 100,
+            "timeout": 2000
         },
         "next": [
             "RedDotClearArchivesScrollUp"
         ]
     },
     "RedDotClearArchivesScrollUp": {
-        "desc": "向上滑动",
+        "desc": "进入剧情活动后连续大幅上滑，先前往最新活动所在的列表底部",
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    650
+                ],
+                "end": [
+                    640,
+                    180
+                ],
+                "end_hold": 100,
+                "duration": 150
+            }
+        },
+        "repeat": 30,
+        "repeat_delay": 100,
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                475,
+                165,
+                330,
+                515
+            ],
+            "rate_limit": 100,
+            "timeout": 2000
+        },
+        "next": [
+            "RedDotClearArchivesScanFlow"
+        ]
+    },
+    "RedDotClearArchivesScanFlow": {
+        "desc": "由最新活动向上检查；红点消失才结束，超过扫描上限仍有红点则超时报错",
+        "max_hit": 40,
+        "timeout": 5000,
+        "rate_limit": 200,
+        "next": [
+            "RedDotClearArchivesCleared",
+            "[JumpBack]ArchivesRedDotClickBottom",
+            "RedDotClearArchivesScrollDown"
+        ]
+    },
+    "ArchivesStoryNew": {
+        "desc": "剧情活动标签仍有红点或 New",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    460,
-                    84,
-                    362,
-                    50
+                    467,
+                    118,
+                    130,
+                    33
+                ],
+                "template": [
+                    "Common/RedDot.png",
+                    "Common/New.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearArchivesCleared": {
+        "desc": "外层已确认处于档案馆，且剧情活动红点已消失时正常返回",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    467,
+                    118,
+                    130,
+                    33
                 ],
                 "template": [
                     "Common/RedDot.png",
@@ -277,20 +359,51 @@
                 ]
             }
         },
+        "inverse": true,
+        "next": [
+            "CommonGoBack"
+        ]
+    },
+    "RedDotClearArchivesScrollDown": {
+        "desc": "有红点时反向逐页检查，保留视口重叠；最多 40 次，不以滑到顶作为成功条件",
+        "max_hit": 40,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "ArchivesEntered",
+                    "ArchivesStoryNew"
+                ]
+            }
+        },
         "action": {
             "type": "Swipe",
             "param": {
                 "begin": [
-                    627,
-                    528
+                    640,
+                    220
                 ],
                 "end": [
-                    627,
-                    238
+                    640,
+                    600
                 ],
-                "end_hold": 300
+                "end_hold": 200,
+                "duration": 300
             }
         },
-        "post_wait_freezes": 20
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                475,
+                165,
+                330,
+                515
+            ],
+            "rate_limit": 100,
+            "timeout": 2000
+        },
+        "next": [
+            "RedDotClearArchivesScanFlow"
+        ]
     }
 }
