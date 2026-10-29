@@ -7,8 +7,8 @@
             }
         },
         "next": [
-            "ArkEnterInterception",
-            "[JumpBack]CommonEnterArk"
+            "InterceptionBattleFlow",
+            "[JumpBack]SceneEnterInterception"
         ]
     },
     "ArkEnterInterception": {

@@ -3,8 +3,11 @@
         "desc": "魔方强化",
         "max_hit": 1,
         "next": [
+            "AccountNurturingCubeEnhancementEnterHarmonyCubeFlow",
+            "AccountNurturingCubeEnhancementLostSectorFlow",
+            "AccountNurturingCubeEnhancementArkFlow",
             "AccountNurturingCubeEnhancementEnterFlow",
-            "[JumpBack]CommonReturnHall"
+            "[JumpBack]SceneEnterHall"
         ]
     },
     "AccountNurturingCubeEnhancementEnterFlow": {

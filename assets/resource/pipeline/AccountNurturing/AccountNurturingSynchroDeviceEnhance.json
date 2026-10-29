@@ -3,23 +3,9 @@
         "desc": "同步器增强",
         "max_hit": 1,
         "next": [
-            "AccountNurturingSynchroDeviceEnhanceEnterHall",
-            "[JumpBack]CommonReturnHall"
-        ]
-    },
-    "AccountNurturingSynchroDeviceEnhanceEnterHall": {
-        "desc": "同步器增强入口",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "CommonArkVisible"
-                ]
-            }
-        },
-        "next": [
+            "SynchroDeviceEnhanceFlow",
             "AccountNurturingSynchroDeviceEnhanceEnterFlow",
-            "[JumpBack]CommonEnterOutpost"
+            "[JumpBack]SceneEnterOutpost"
         ]
     },
     "AccountNurturingSynchroDeviceEnhanceEnterFlow": {

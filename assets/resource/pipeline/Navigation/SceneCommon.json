@@ -1,0 +1,69 @@
+{
+    "SceneEnterHall": {
+        "desc": "恢复大厅；已在大厅时直接返回，登录、签到和弹窗沿用原恢复流程",
+        "timeout": 10000,
+        "next": [
+            "CommonArkVisible",
+            "[JumpBack]__ScenePrivateRecoverHall"
+        ]
+    },
+    "__ScenePrivateRecoverHall": {
+        "desc": "仅不在大厅时调用既有完整恢复流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "CommonReturnHall"
+        ]
+    },
+    "SceneEnterArk": {
+        "desc": "纯导航到方舟；已在方舟时不退回大厅",
+        "timeout": 10000,
+        "next": [
+            "CommonArkEntered",
+            "__ScenePrivateClickArk",
+            "[JumpBack]__ScenePrivateRecoverHallForArk"
+        ]
+    },
+    "__ScenePrivateClickArk": {
+        "desc": "只点击大厅的方舟入口；点击无效时最多重试三次，不点击左上角层级文字",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": [
+            "CommonArkEntered",
+            "__ScenePrivateClickArk"
+        ]
+    },
+    "__ScenePrivateRecoverHallForArk": {
+        "desc": "仅不在父页面时恢复；父页入口缺失时等待超时，不反复空转",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterHall"
+        ]
+    }
+}

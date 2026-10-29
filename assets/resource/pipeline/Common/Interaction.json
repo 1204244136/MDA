@@ -506,9 +506,7 @@
     "CommonEnterArk": {
         "desc": "进入方舟",
         "next": [
-            "CommonArkEntered",
-            "CommonClickArk",
-            "[JumpBack]CommonReturnHall"
+            "SceneEnterArk"
         ]
     },
     "CommonArkEntered": {

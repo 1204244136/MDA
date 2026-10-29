@@ -8,20 +8,11 @@
             }
         },
         "next": [
-            "AccountNurturingEntryFlow",
-            "[JumpBack]CommonReturnHall"
+            "AccountNurturingEntryFlow"
         ]
     },
     "AccountNurturingEntryFlow": {
-        "desc": "账号养成流程",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "CommonArkVisible"
-                ]
-            }
-        },
+        "desc": "账号养成编排，各子任务自行恢复最近入口",
         "next": [
             "[JumpBack]AccountNurturingCharacterBreakthrough",
             "[JumpBack]AccountNurturingSynchroDeviceEnhance",

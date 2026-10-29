@@ -13,6 +13,8 @@
 
 `verify_small_event_routing.py` 加载实际项目资源，验证全部小活动 case 的路由替换、主题模板/动作隔离，以及更新当前主题后回选旧主题；无需设备。
 
+`verify_scene_navigation.py` 加载实际项目资源，通过当前框架 DLL 和虚拟控制器验证目标页复用、纯导航与业务分离、跳回后额度检查次数、选项关闭和无效点击上限。识别探针与虚拟动作只用于验证控制流，不证明实机识别或落点；日志写入系统临时目录，不连接设备。
+
 `verify_map_pushing_minimap.py` 用实际项目资源和虚拟控制器验证小地图收起态恢复、展开后的确认、已展开时不重复点击，以及点击无效时不放行。fixture 仅保留真实 UI 的识别区域，周边为合成画面；可用 `--image <截图路径>` 替换收起态输入。日志写入系统临时目录，不连接设备。
 
 ## 运行
@@ -24,6 +26,7 @@
 .venv/Scripts/python.exe tools/verify/verify_input_persistence.py
 .venv/Scripts/python.exe tools/verify/verify_base_as_latest.py
 .venv/Scripts/python.exe tools/verify/verify_small_event_routing.py
+.venv/Scripts/python.exe tools/verify/verify_scene_navigation.py
 .venv/Scripts/python.exe tools/verify/verify_map_pushing_minimap.py
 ```
 

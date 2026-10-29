@@ -3,8 +3,9 @@
         "desc": "宝箱开启",
         "max_hit": 1,
         "next": [
+            "LuckyBoxOpeningEnterFlow",
             "LuckyBoxOpeningEnterHall",
-            "[JumpBack]CommonReturnHall"
+            "[JumpBack]SceneEnterHall"
         ]
     },
     "LuckyBoxOpeningEnterHall": {

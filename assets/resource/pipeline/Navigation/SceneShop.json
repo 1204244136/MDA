@@ -1,0 +1,48 @@
+{
+    "SceneEnterShop": {
+        "desc": "纯导航到百货商店，不执行购买",
+        "timeout": 10000,
+        "next": [
+            "ShopMainPageEntered",
+            "__ScenePrivateClickShop",
+            "[JumpBack]__ScenePrivateRecoverHallForShop"
+        ]
+    },
+    "__ScenePrivateClickShop": {
+        "desc": "从大厅点击商店，复用既有入口识别",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible",
+                    "HallEnterShop"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": [
+            "ShopMainPageEntered",
+            "__ScenePrivateClickShop"
+        ]
+    },
+    "__ScenePrivateRecoverHallForShop": {
+        "desc": "仅不在父页面时恢复；父页入口缺失时等待超时，不反复空转",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterHall"
+        ]
+    }
+}

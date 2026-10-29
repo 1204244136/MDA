@@ -8,8 +8,8 @@
             }
         },
         "next": [
-            "FriendManagementEntryFlow",
-            "[JumpBack]CommonReturnHall"
+            "FriendManagementOnFriendPage",
+            "[JumpBack]SceneEnterFriend"
         ]
     },
     "FriendManagementEntryFlow": {

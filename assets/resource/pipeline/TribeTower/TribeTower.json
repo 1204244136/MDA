@@ -7,8 +7,8 @@
             }
         },
         "next": [
-            "ArkEnterTribeTower",
-            "[JumpBack]CommonEnterArk"
+            "TribeTowerTaskFlow",
+            "[JumpBack]SceneEnterTribeTower"
         ]
     },
     "ArkEnterTribeTower": {

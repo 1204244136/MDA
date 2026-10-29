@@ -1,0 +1,217 @@
+{
+    "SceneEnterArena": {
+        "desc": "纯导航：到达竞技场首页后返回调用方，不领取奖励或执行竞技场任务",
+        "timeout": 10000,
+        "next": [
+            "ArenaMainPageEntered",
+            "__SceneArkClickArena",
+            "[JumpBack]__SceneArkRecoverForArena"
+        ]
+    },
+    "__SceneArkClickArena": {
+        "desc": "已确认方舟页时点击竞技场入口，只等待目标页面",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkEntered",
+                    "ArkEnterArena"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "timeout": 10000,
+        "next": [
+            "ArenaMainPageEntered",
+            "__SceneArkClickArena"
+        ]
+    },
+    "__SceneArkRecoverForArena": {
+        "desc": "不在方舟时恢复父场景；父页已到但入口不可见时不重复空转",
+        "max_hit": 1,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "CommonArkEntered"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterArk"
+        ]
+    },
+    "SceneEnterInterception": {
+        "desc": "纯导航：到达拦截战首页后返回调用方，不执行拦截战任务",
+        "timeout": 10000,
+        "next": [
+            "InterceptionMainPageEntered",
+            "__SceneArkClickInterception",
+            "[JumpBack]__SceneArkRecoverForInterception"
+        ]
+    },
+    "__SceneArkClickInterception": {
+        "desc": "已确认方舟页时点击拦截战入口，沿用原入场后的空白弹窗处理",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkEntered",
+                    "ArkEnterInterception"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "timeout": 10000,
+        "next": [
+            "InterceptionMainPageEntered",
+            "__SceneArkClickInterception",
+            "[JumpBack]__SceneArkDismissInterceptionEntry"
+        ]
+    },
+    "__SceneArkDismissInterceptionEntry": {
+        "desc": "仅在拦截战入场后沿用公共空白点击，每个任务最多尝试三次，不耗尽公共节点的一百二十次预算",
+        "max_hit": 3,
+        "next": [
+            "CommonClickBlank"
+        ]
+    },
+    "__SceneArkRecoverForInterception": {
+        "desc": "不在方舟时恢复父场景；父页已到但入口不可见时不重复空转",
+        "max_hit": 1,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "CommonArkEntered"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterArk"
+        ]
+    },
+    "SceneEnterSimulationRoom": {
+        "desc": "纯导航：到达模拟室首页后返回调用方，不选择模拟或超频任务",
+        "timeout": 10000,
+        "next": [
+            "SimulationRoomMainPageEntered",
+            "__SceneArkClickSimulationRoom",
+            "[JumpBack]__SceneArkRecoverForSimulationRoom"
+        ]
+    },
+    "__SceneArkClickSimulationRoom": {
+        "desc": "已确认方舟页时点击模拟室入口，保留入场时的BIOS更新确认",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkEntered",
+                    "SimulationRoomEnterMain"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": [
+            "[JumpBack]__SceneArkConfirmSimulationBiosUpdate",
+            "SimulationRoomMainPageEntered",
+            "__SceneArkClickSimulationRoom"
+        ]
+    },
+    "__SceneArkConfirmSimulationBiosUpdate": {
+        "desc": "只在点击模拟室后的入场链确认一次BIOS更新，避免弹窗持续存在时无限点击",
+        "max_hit": 1,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SimulationRoomConfirmBiosUpdate"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "__SceneArkRecoverForSimulationRoom": {
+        "desc": "不在方舟时恢复父场景；父页已到但入口不可见时不重复空转",
+        "max_hit": 1,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "CommonArkEntered"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterArk"
+        ]
+    },
+    "SceneEnterTribeTower": {
+        "desc": "纯导航：到达无限之塔首页后返回调用方，不选择塔或关卡",
+        "timeout": 10000,
+        "next": [
+            "TribeTowerMainPageEntered",
+            "__SceneArkClickTribeTower",
+            "[JumpBack]__SceneArkRecoverForTribeTower"
+        ]
+    },
+    "__SceneArkClickTribeTower": {
+        "desc": "已确认方舟页时点击无限之塔入口，只等待目标页面",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkEntered",
+                    "ArkEnterTribeTower"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "timeout": 10000,
+        "next": [
+            "TribeTowerMainPageEntered",
+            "__SceneArkClickTribeTower"
+        ]
+    },
+    "__SceneArkRecoverForTribeTower": {
+        "desc": "不在方舟时恢复父场景；父页已到但入口不可见时不重复空转",
+        "max_hit": 1,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "CommonArkEntered"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterArk"
+        ]
+    }
+}

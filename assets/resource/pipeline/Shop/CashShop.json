@@ -7,8 +7,24 @@
             }
         },
         "next": [
+            "CashShopResumeFlow",
             "HallEnterCashShop",
-            "[JumpBack]CommonReturnHall"
+            "[JumpBack]SceneEnterHall"
+        ]
+    },
+    "CashShopResumeFlow": {
+        "desc": "仅在付费商店标题和普通礼包页签均可见时复用当前页面，避免把百货商店误当付费商店",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CashShopMainPageEntered",
+                    "ShopChooseOrdinaryPackage"
+                ]
+            }
+        },
+        "next": [
+            "CashShopCornerFlow"
         ]
     },
     "HallEnterCashShop": {

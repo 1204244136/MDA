@@ -7,8 +7,8 @@
             }
         },
         "next": [
-            "HallEnterOutpost",
-            "[JumpBack]CommonReturnHall"
+            "OutpostTaskFlow",
+            "[JumpBack]SceneEnterOutpost"
         ]
     },
     "HallEnterOutpost": {

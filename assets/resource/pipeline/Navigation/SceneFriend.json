@@ -1,0 +1,59 @@
+{
+    "SceneEnterFriend": {
+        "desc": "纯导航到好友页，不删除好友、接受申请或领取友情点",
+        "timeout": 10000,
+        "next": [
+            "__ScenePrivateFriendPageEntered",
+            "__ScenePrivateClickFriend",
+            "[JumpBack]__ScenePrivateRecoverHallForFriend"
+        ]
+    },
+    "__ScenePrivateFriendPageEntered": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "FriendManagementOnFriendPage"
+                ]
+            }
+        }
+    },
+    "__ScenePrivateClickFriend": {
+        "desc": "从大厅点击好友，复用按钮模板",
+        "max_hit": 3,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible",
+                    "FriendManagementClickFriendEntry"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "timeout": 10000,
+        "next": [
+            "__ScenePrivateFriendPageEntered",
+            "__ScenePrivateClickFriend"
+        ]
+    },
+    "__ScenePrivateRecoverHallForFriend": {
+        "desc": "仅不在父页面时恢复；父页入口缺失时等待超时，不反复空转",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "SceneEnterHall"
+        ]
+    }
+}

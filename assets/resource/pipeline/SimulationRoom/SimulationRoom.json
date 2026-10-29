@@ -7,8 +7,8 @@
             }
         },
         "next": [
-            "SimulationRoomEnterMain",
-            "[JumpBack]CommonEnterArk"
+            "SimulationRoomCornerFlow",
+            "[JumpBack]SceneEnterSimulationRoom"
         ]
     },
     "SimulationRoomEnterMain": {

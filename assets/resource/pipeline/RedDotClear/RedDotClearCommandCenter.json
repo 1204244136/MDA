@@ -3,23 +3,9 @@
         "desc": "清除指挥中心红点",
         "max_hit": 1,
         "next": [
-            "RedDotClearCommandCenterEnterHall",
-            "[JumpBack]CommonReturnHall"
-        ]
-    },
-    "RedDotClearCommandCenterEnterHall": {
-        "desc": "清除指挥中心红点入口",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "CommonArkVisible"
-                ]
-            }
-        },
-        "next": [
+            "CommandCenterFlow",
             "RedDotClearCommandCenterEnterFlow",
-            "[JumpBack]CommonEnterOutpost"
+            "[JumpBack]SceneEnterOutpost"
         ]
     },
     "RedDotClearCommandCenterEnterFlow": {

@@ -3,8 +3,9 @@
         "desc": "角色突破",
         "max_hit": 1,
         "next": [
+            "AccountNurturingCharacterBreakthroughFlow",
             "AccountNurturingCharacterBreakthroughEnterHall",
-            "[JumpBack]CommonReturnHall"
+            "[JumpBack]SceneEnterHall"
         ]
     },
     "AccountNurturingCharacterBreakthroughEnterHall": {
