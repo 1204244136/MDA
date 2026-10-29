@@ -267,6 +267,44 @@
                     }
                 },
                 {
+                    "name": "MARIAn",
+                    "label": "$option.LargeEventTheme.MARIAn",
+                    "pipeline_override": {
+                        "LargeEventEnterMainPage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/MARIAn/MARIAnLogo.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventClickStoryStage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/MARIAn/MARIAnStory1Stage.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventClickStoryStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "LargeEventMiniGame": {
+                            "next": [
+                                "CommonEndTask"
+                            ]
+                        }
+                    }
+                },
+                {
                     "name": "Other",
                     "label": "$option.LargeEventTheme.Other",
                     "pipeline_override": {
