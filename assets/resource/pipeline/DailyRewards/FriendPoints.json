@@ -71,8 +71,7 @@
         },
         "next": [
             "DailyRewardsConfirmReceive",
-            "DailyRewardsClickSendAndReceiveButton",
-            "CommonEndTask"
+            "DailyRewardsClickSendAndReceiveButton"
         ]
     },
     "DailyRewardsConfirmReceive": {
@@ -81,10 +80,10 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    574,
-                    434,
-                    36,
-                    33
+                    560,
+                    605,
+                    160,
+                    48
                 ],
                 "template": [
                     "Common/ConfirmWithCircle.png"
