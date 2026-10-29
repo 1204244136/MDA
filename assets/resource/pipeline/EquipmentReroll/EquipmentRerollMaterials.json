@@ -120,7 +120,7 @@
         }
     },
     "__EquipmentRerollConfirmHeldModule": {
-        "desc": "持有材料标签右侧的模组库存；先执行标签定位，限定第一种材料数字区域，归一化千位分隔符（逗号可能被 OCR 读成点）",
+        "desc": "持有材料标签右侧的模组库存；限定第一种材料区域，归一化千位分隔符后取最右数字，排除左侧图标误读",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -137,7 +137,9 @@
                         "[.,，]",
                         ""
                     ]
-                ]
+                ],
+                "order_by": "Horizontal",
+                "index": -1
             }
         }
     }

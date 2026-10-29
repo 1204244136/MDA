@@ -1077,6 +1077,8 @@ EquipmentRerollMain
 - 模拟（单件、达到“三槽各含 优/攻/装弹”，200k 样本）：**最优锁定策略在两种材料下一致（饱和下先苦后甜最优）**，仅模块成本略有差异（密钥版 44.5 vs 模块版 50.4 模块；从不锁约 650；只锁2赌3 约 230；渐进去重 49.4/54.0）。因此**当自订密钥耗尽、脚本回退用订制模组时，无需改变锁定策略（先苦后甜/拿到就锁）**，只需把“买锁的模块”计入真实成本。
 - 决策实现：`bestLockSlotAndCostForRequired(scan, quota, required, material)` 接受锁定材料。材料来源：进入**效果锁定页**时由 `EquipmentRerollMaterialCheckRecognition` 用 OCR 读取一次材料「持有」数量（`__EquipmentRerollLockModuleHeld` / `__EquipmentRerollLockKeyHeld`）初始化 `Inventory` 余额；之后 `EquipmentRerollLockSelectRecognition` 直接读该余额并用 `Inventory.ChooseLockMaterial` 决策（有密钥用密钥、不足用订制模组），同时把材料传入 `DesiredLockSlotForQuota` / `desiredLockSlotForCurrentMode`。当材料为“订制模块”时，会把 `lockAcquireCost(当前锁数)`（0→1=2、1→2=3）计入锁定成本，使**模块锁定时决策更保守**；自订密钥获取成本为 0。详情页规划阶段若尚未读到库存（库存现在进锁定页才读），`EquipmentRerollLockCheckRecognition` 按“材料充足”乐观规划，真实持有量在锁定页读到后修正材料选择；两种材料都付不起时 `LockSelectRecognition` 返回 `material_code=0`，由 `EquipmentRerollLockAbort` 清状态并按关闭后的真实页面继续。
 
+- 库存 OCR 的候选过滤、千位分隔符归一化和最右数字选择统一由 Pipeline 的 `expected`、`replace`、`order_by: Horizontal` 与 `index: -1` 声明。Go 只读取框架选定的 `Best` 并转换为非负整数，不再按置信度、坐标或文本长度重新挑选候选，也不回退到未过滤的 `All`。
+
 **去重与轮转**：自定义配额每件最多 2 锁。`expireOneTimeLocks` 在每次 reroll 后使橙锁失效，蓝锁保留。Keep 分支回到 `ConfirmChangeEffect` 直接重洗同件（确认页内，Flag 不参与），Accept 分支经 `ReturnToDecide→Decide` 重调度（基于快照，Flag 重新锚定）。
 
 ### 8.6 决策页就绪与按钮兜底

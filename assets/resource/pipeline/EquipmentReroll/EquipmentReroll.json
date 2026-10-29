@@ -1607,7 +1607,7 @@
         ]
     },
     "__EquipmentRerollLockModuleHeld": {
-        "desc": "效果锁定页持有量：只接受数字，排除拆分 OCR 的持有标签，归一化千位分隔符",
+        "desc": "效果锁定页模组持有量：数字过滤及千位分隔符归一化后取最右结果，排除左侧标签和图标误读",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1623,14 +1623,16 @@
                         "[.,，]",
                         ""
                     ]
-                ]
+                ],
+                "order_by": "Horizontal",
+                "index": -1
             }
         },
         "rate_limit": 100,
         "next": []
     },
     "__EquipmentRerollLockKeyHeld": {
-        "desc": "效果锁定页持有量：只接受数字，排除拆分 OCR 的持有标签，归一化千位分隔符",
+        "desc": "效果锁定页密钥持有量：数字过滤及千位分隔符归一化后取最右结果，排除左侧标签和图标误读",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1646,7 +1648,9 @@
                         "[.,，]",
                         ""
                     ]
-                ]
+                ],
+                "order_by": "Horizontal",
+                "index": -1
             }
         },
         "rate_limit": 100,

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -479,107 +478,7 @@ func (r *EquipmentRerollLockSelectRecognition) Run(ctx *maa.Context, arg *maa.Cu
 	return &maa.CustomRecognitionResult{Box: arg.Roi, Detail: fmt.Sprintf(`{"material_code":%d}`, materialCode)}, true
 }
 
-type heldCandidate struct {
-	num   int
-	text  string
-	score float64
-	x     int
-}
-
-// extractHeldCandidates 从识别结果中提取所有合法的持有数量候选。
-// 优先使用经过 Pipeline 的 expected/replace 过滤后的 Filtered 结果；
-// 若 Filtered 为空，则回退到 Best，最后回退到 All。
-func extractHeldCandidates(detail *maa.RecognitionDetail) []heldCandidate {
-	if detail == nil || !detail.Hit || detail.Results == nil {
-		return nil
-	}
-
-	var results []*maa.RecognitionResult
-	if len(detail.Results.Filtered) > 0 {
-		results = detail.Results.Filtered
-	} else if detail.Results.Best != nil {
-		results = []*maa.RecognitionResult{detail.Results.Best}
-	} else if len(detail.Results.All) > 0 {
-		results = detail.Results.All
-	}
-
-	re := regexp.MustCompile(`\d+`)
-	replacer := strings.NewReplacer(",", "", "，", "")
-
-	var candidates []heldCandidate
-	for _, res := range results {
-		if res == nil {
-			continue
-		}
-		ocr, ok := res.AsOCR()
-		if !ok {
-			continue
-		}
-		rawText := strings.TrimSpace(ocr.Text)
-		if rawText == "" {
-			continue
-		}
-		cleanText := replacer.Replace(rawText)
-		matches := re.FindAllString(cleanText, -1)
-		if len(matches) == 0 {
-			continue
-		}
-		lastNumStr := matches[len(matches)-1]
-		n, err := strconv.Atoi(lastNumStr)
-		if err != nil {
-			continue
-		}
-		candidates = append(candidates, heldCandidate{
-			num:   n,
-			text:  cleanText,
-			score: ocr.Score,
-			x:     ocr.Box.X(),
-		})
-	}
-	return candidates
-}
-
-// selectBestHeldCandidate 从候选列表中选出最可信的持有数量。
-// 避免仅因几何位置排在最左侧就盲信低置信度（如图标被误认为 "0"）的结果。
-func selectBestHeldCandidate(candidates []heldCandidate) (heldCandidate, bool) {
-	if len(candidates) == 0 {
-		return heldCandidate{}, false
-	}
-	if len(candidates) == 1 {
-		return candidates[0], true
-	}
-
-	best := candidates[0]
-	for i := 1; i < len(candidates); i++ {
-		cur := candidates[i]
-		if isBetterHeldCandidate(cur, best) {
-			best = cur
-		}
-	}
-	return best, true
-}
-
-func isBetterHeldCandidate(cur, best heldCandidate) bool {
-	scoreDiff := cur.score - best.score
-	// 置信度差异显著（>= 0.15）时，置信度高的优先
-	if scoreDiff >= 0.15 {
-		return true
-	}
-	if scoreDiff <= -0.15 {
-		return false
-	}
-	// 置信度相近时，持有数量在图标右侧，X 坐标更靠右（差值 > 5 像素）优先
-	if cur.x > best.x+5 {
-		return true
-	}
-	if best.x > cur.x+5 {
-		return false
-	}
-	// 位置相近时，位数更长的优先（避免图标被误认为单字符 "0"）
-	return len(cur.text) > len(best.text)
-}
-
-// readHeldCount 读取页面「持有 N」的数量：从 OCR 候选结果中挑选最优结果。
+// readHeldCount 读取 Pipeline 已过滤并按位置选定的库存数字。
 // 同时服务于效果锁定页（两种材料持有量）与效果变更确认页（订制模块持有量）。
 // 返回 (数量, 是否识别到)；识别失败/未命中时数量为 0。
 func readHeldCount(ctx *maa.Context, img image.Image, nodeName string) (int, bool) {
@@ -592,22 +491,27 @@ func readHeldCount(ctx *maa.Context, img image.Image, nodeName string) (int, boo
 			Msg("lock held count not recognized")
 		return 0, false
 	}
-	candidates := extractHeldCandidates(detail)
-	best, ok := selectBestHeldCandidate(candidates)
+	return heldCountFromResult(detail)
+}
+
+func heldCountFromResult(detail *maa.RecognitionDetail) (int, bool) {
+	if detail == nil || !detail.Hit || detail.Results == nil || detail.Results.Best == nil {
+		return 0, false
+	}
+	ocr, ok := detail.Results.Best.AsOCR()
 	if !ok {
 		return 0, false
 	}
-	return best.num, true
+	// Best 已包含 Pipeline 的 expected、replace、order_by/index；不重选候选或回退 All。
+	return parseHeldCountText(ocr.Text)
 }
 
-// matchedHeldText 返回最优候选的文本内容，兼容单测或调试调用。
-func matchedHeldText(detail *maa.RecognitionDetail) string {
-	candidates := extractHeldCandidates(detail)
-	best, ok := selectBestHeldCandidate(candidates)
-	if !ok {
-		return ""
+func parseHeldCountText(text string) (int, bool) {
+	count, err := strconv.ParseUint(strings.TrimSpace(text), 10, strconv.IntSize-1)
+	if err != nil {
+		return 0, false
 	}
-	return best.text
+	return int(count), true
 }
 
 // EquipmentRerollLockSelectRouteAction 根据 LockSelectRecognition 的 Box 路由到模块/密钥 SELECT 点击。

@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	maa "github.com/MaaXYZ/maa-framework-go/v4"
 )
 
 // 回归真实日志中的分块 OCR：持有标签和 5,867 分开，筛选后必须只剩库存数字。
@@ -20,6 +22,8 @@ func TestLockInventoryOCRFiltersSplitLabel(t *testing.T) {
 			Param struct {
 				Expected any         `json:"expected"`
 				Replace  [][2]string `json:"replace"`
+				OrderBy  string      `json:"order_by"`
+				Index    int         `json:"index"`
 			} `json:"param"`
 		} `json:"recognition"`
 	}
@@ -34,6 +38,9 @@ func TestLockInventoryOCRFiltersSplitLabel(t *testing.T) {
 	} {
 		t.Run(tc.node+tc.text, func(t *testing.T) {
 			param := nodes[tc.node].Recognition.Param
+			if param.OrderBy != "Horizontal" || param.Index != -1 {
+				t.Fatal("inventory candidate selection must be declared by Pipeline")
+			}
 			pattern, ok := param.Expected.(string)
 			if !ok {
 				t.Fatalf("inventory expected must be a numeric pattern, got %v", param.Expected)
@@ -58,58 +65,47 @@ func TestLockInventoryOCRFiltersSplitLabel(t *testing.T) {
 	}
 }
 
-// TestSelectBestHeldCandidate 验证多候选择优逻辑，确保不会盲信左侧低分误识别。
-func TestSelectBestHeldCandidate(t *testing.T) {
+// TestHeldCountTextRequiresCompleteNumber 不在 Go 中截取、纠正或重排 OCR 候选。
+func TestHeldCountTextRequiresCompleteNumber(t *testing.T) {
 	tests := []struct {
-		name       string
-		candidates []heldCandidate
-		wantNum    int
-		wantOk     bool
+		text string
+		want int
+		ok   bool
 	}{
-		{
-			name: "真实复现：左侧图标误识为0(0.568)与右侧真实1049(0.972)",
-			candidates: []heldCandidate{
-				{num: 0, text: "0", score: 0.568166, x: 652},
-				{num: 1049, text: "1049", score: 0.971734, x: 667},
-			},
-			wantNum: 1049,
-			wantOk:  true,
-		},
-		{
-			name: "单个真实0",
-			candidates: []heldCandidate{
-				{num: 0, text: "0", score: 0.95, x: 667},
-			},
-			wantNum: 0,
-			wantOk:  true,
-		},
-		{
-			name: "score相近时更靠右优先",
-			candidates: []heldCandidate{
-				{num: 1, text: "1", score: 0.90, x: 650},
-				{num: 200, text: "200", score: 0.91, x: 670},
-			},
-			wantNum: 200,
-			wantOk:  true,
-		},
-		{
-			name:       "空候选列表",
-			candidates: nil,
-			wantNum:    0,
-			wantOk:     false,
-		},
+		{"1049", 1049, true},
+		{"0", 0, true},
+		{" 5867 ", 5867, true},
+		{"", 0, false},
+		{"持有1049", 0, false},
+		{"0 1049", 0, false},
+		{"1,049", 0, false},
+		{"-1", 0, false},
+		{"+1", 0, false},
+		{"999999999999999999999999999999", 0, false},
 	}
-
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, ok := selectBestHeldCandidate(tt.candidates)
-			if ok != tt.wantOk {
-				t.Fatalf("selectBestHeldCandidate() ok = %v, want %v", ok, tt.wantOk)
-			}
-			if ok && got.num != tt.wantNum {
-				t.Fatalf("selectBestHeldCandidate() got.num = %v, want %v", got.num, tt.wantNum)
+		t.Run(tt.text, func(t *testing.T) {
+			got, ok := parseHeldCountText(tt.text)
+			if ok != tt.ok || (ok && got != tt.want) {
+				t.Fatalf("count = %d/%v, want %d/%v", got, ok, tt.want, tt.ok)
 			}
 		})
+	}
+}
+
+func TestHeldCountRequiresPipelineBest(t *testing.T) {
+	for _, detail := range []*maa.RecognitionDetail{
+		nil,
+		{},
+		{Hit: true},
+		{Hit: true, Results: &maa.RecognitionResults{
+			All: []*maa.RecognitionResult{{}}, Filtered: []*maa.RecognitionResult{{}},
+		}},
+		{Hit: true, Results: &maa.RecognitionResults{Best: &maa.RecognitionResult{}}},
+	} {
+		if _, ok := heldCountFromResult(detail); ok {
+			t.Fatal("missing or non-OCR Best must not fall back to raw candidates")
+		}
 	}
 }
 
