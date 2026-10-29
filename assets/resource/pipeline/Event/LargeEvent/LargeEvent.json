@@ -55,6 +55,7 @@
                 ]
             }
         },
+        "post_delay": 1500, //点完固定等 1.5 秒再重判：游戏要 1 秒左右才切到加载页，否则会对着同一个入口连点两次
         "next": [
             "LargeEventMainPageFlow",
             "LargeEventEnterMainPage"
