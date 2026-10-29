@@ -283,7 +283,8 @@
                             "recognition": {
                                 "param": {
                                     "template": [
-                                        "LargeEvent/MARIAn/MARIAnStory1Stage.png"
+                                        "LargeEvent/MARIAn/MARIAnStory1Stage.png",
+                                        "LargeEvent/MARIAn/MARIAnStory1StageLeft.png"
                                     ]
                                 }
                             }
