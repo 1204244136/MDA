@@ -143,28 +143,38 @@
                 ]
             }
         },
-        "post_wait_freezes": 500,
         "next": [
             "LargeEventEventStagePageFlow"
         ]
     },
-    "LargeEventEventStagePageEntered": {
-        "desc": "已进入大活动活动关卡页面",
+    "LargeEventEnterStagePageRetry": {
+        "desc": "仍在剧情活动入口页时重试进入活动关卡", //有「剩余时间」即仍在入口页；无 next，靠 [JumpBack] 回上一级重扫
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    5,
-                    18,
-                    50,
-                    16
+                    314,
+                    377,
+                    661,
+                    330
                 ],
                 "expected": [
-                    ".*活动关.*"
-                ],
-                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
+                    ".*[剩刺到]余.*" //剩余时间；字符类已容忍误读，无需 replace 归一化
+                ]
             }
-        }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": 500
     },
     "LargeEventEventStagePageFlow": {
         "desc": "大活动活动关卡页面流程",
@@ -172,7 +182,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "LargeEventEventStagePageEntered"
+                    "LargeEventStoryVisible"
                 ]
             }
         },
@@ -186,6 +196,7 @@
             ]
         },
         "next": [
+            "[JumpBack]LargeEventEnterStagePageRetry", //仍停在入口页则再点一次 ENTER
             "[JumpBack]LargeEventUnlockStage",
             "LargeEventEventStageBattleFlow"
         ]
@@ -249,7 +260,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "LargeEventEventStagePageEntered"
+                    "LargeEventStoryVisible"
                 ]
             }
         },
@@ -268,7 +279,7 @@
         ]
     },
     "LargeEventStoryVisible": {
-        "desc": "大活动剧情活动页面标识",
+        "desc": "大活动剧情活动区域标识", //入口页与关卡页共用「剧情活动」标签，二者由 LargeEventEnterStagePageRetry 区分
         "recognition": {
             "type": "OCR",
             "param": {
@@ -280,7 +291,8 @@
                 ],
                 "expected": [
                     "剧情活动"
-                ]
+                ],
+                "only_rec": true //避免 batch OCR 降采样后 det 读不出小字
             }
         }
     },
