@@ -16,6 +16,12 @@ const TargetEffectElementalDamage = "优越代码伤害增加"
 // TargetEffectAttackIncrease 是常用目标效果（官方名称）。
 const TargetEffectAttackIncrease = "攻击力增加"
 
+// TargetEffectCritRate 是暴击率效果（官方名称），与暴击伤害同属可替换组。
+const TargetEffectCritRate = "暴击率增加"
+
+// TargetEffectCritDamage 是暴击伤害效果（官方名称），与暴击率同属可替换组。
+const TargetEffectCritDamage = "暴击伤害增加"
+
 // costDecisionEpsilon 是"期望剩余成本"接受阈值：候选状态的期望成本必须比当前状态
 // 低至少该值，才认为发生了真实改善。单位与期望成本一致（订制模块数）。
 // 取值 0.01 用于滤掉浮点累计与离散枚举带来的极小差值——这类差值不是策略信号，

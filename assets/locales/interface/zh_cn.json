@@ -341,8 +341,12 @@
     "option.EquipmentRerollValueTotalTargets.invalid": "请输入 0～60 的整数",
     "option.CashShopNetworkRetry.label": "网络异常自动重试",
     "option.CashShopNetworkRetry.description": "进入付费商店遇到网络异常时，自动点击一次“重新再试”，最多等待 30 秒；关闭后不处理，等待任务自行熔断。",
-    "option.EquipmentRerollMode.Character.description": "原有九项词条要求为方案1，始终启用。可额外启用方案2、3，满足任意一组即停止；各组内数量要求均为至少，禁止项仅约束本组。根据当前结果的预计材料成本选择部位、锁定及结果，方案编号不表示优先级。",
-    "option.EquipmentRerollAlternative2.label": "同时接受方案2",
-    "option.EquipmentRerollAlternative3.label": "同时接受方案3",
-    "option.EquipmentRerollAlternative.description": "开启后独立配置本方案：至少要求1条词条，总需求不超过12条。组内要求必须全部满足，任意一组达标即停止。关闭后本方案不参与判定，已填写的设置可以保留。"
+    "option.EquipmentRerollMode.Character.description": "九项词条要求构成唯一一组目标。开启「允许词条替换」后，可选择任意两项词条互相替代。根据当前结果的预计材料成本选择部位、锁定及结果，各项数量要求均为至少。",
+    "option.EquipmentRerollAllowSubstitution.label": "允许词条替换",
+    "option.EquipmentRerollAllowSubstitution.description": "开启后在下方选择两项可互相替换的词条，两项需求合并为合计条数，任意一种都计入。关闭时分别满足各自数量；「禁止」不参与替换。",
+    "option.EquipmentRerollSubstitutionAffix1.label": "替换词条 1",
+    "option.EquipmentRerollSubstitutionAffix1.description": "替换词条对的第 1 项，需与第 2 项不同。",
+    "option.EquipmentRerollSubstitutionAffix2.label": "替换词条 2",
+    "option.EquipmentRerollSubstitutionAffix2.description": "替换词条对的第 2 项，需与第 1 项不同。",
+    "option.EquipmentRerollSubstitutionAffix.None.label": "不替换"
 }

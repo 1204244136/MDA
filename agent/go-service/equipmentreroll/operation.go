@@ -3,6 +3,7 @@ package equipmentreroll
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/1204244136/MDA/agent/go-service/pkg/i18n"
 )
@@ -35,19 +36,17 @@ func (c carrierConfig) validateOperation() error {
 	}
 	if !c.isSingle() {
 		if c.GoalProblem != "" {
-			return &goalQuotaError{Number: c.GoalProblemIndex, Problem: c.GoalProblem}
+			return &goalQuotaError{Problem: c.GoalProblem}
+		}
+		if c.AllowSubstitution {
+			if problem := substitutionProblem(c.Substitution); problem != "" {
+				return &goalQuotaError{Problem: problem}
+			}
 		}
 		// 无任何配额的旧配置仍可能依赖调用节点默认值，在最终入口再校验。
 		if c.quotaExplicit || len(c.Quota) > 0 {
 			if problem := goalQuotaProblem(c.Quota); problem != "" {
-				return &goalQuotaError{Number: 1, Problem: problem}
-			}
-		}
-		for i, enabled := range c.AlternativeEnabled {
-			if enabled {
-				if problem := goalQuotaProblem(c.AlternativeQuotas[i]); problem != "" {
-					return &goalQuotaError{Number: i + 2, Problem: problem}
-				}
+				return &goalQuotaError{Problem: problem}
 			}
 		}
 	}
@@ -55,21 +54,23 @@ func (c carrierConfig) validateOperation() error {
 }
 
 type goalQuotaError struct {
-	Number  int
 	Problem string
 }
 
 func (e *goalQuotaError) Error() string {
-	return fmt.Sprintf("invalid goal %d: %s", e.Number, e.Problem)
+	return fmt.Sprintf("invalid equipment reroll target: %s", e.Problem)
 }
 
 func rerollConfigErrorMessage(err error) string {
 	var goalError *goalQuotaError
 	if errors.As(err, &goalError) {
 		if goalError.Problem == "empty quota" {
-			return i18n.T("tasker.equipment_reroll.goal_empty", goalError.Number)
+			return i18n.T("tasker.equipment_reroll.goal_empty")
 		}
-		return i18n.T("tasker.equipment_reroll.goal_invalid", goalError.Number)
+		if strings.HasPrefix(goalError.Problem, "substitution:") {
+			return i18n.T("tasker.equipment_reroll.substitution_invalid")
+		}
+		return i18n.T("tasker.equipment_reroll.goal_invalid")
 	}
 	return i18n.T("tasker.equipment_reroll.config_invalid")
 }

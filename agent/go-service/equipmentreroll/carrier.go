@@ -24,8 +24,8 @@ import (
 //   - want1/2/3：      单件模式的需求词条效果名（空串表示该行不需求）；
 //   - slot1/2/3：      单件模式各需求词条的槽位限定（0=任意，1-3=限定第 N 号槽）；
 //   - quota_<效果名>： 角色模式每个效果的配额（-1 禁止 / 0 不要求 / 1-4 需求数）。
-//   - enabled2/3：     是否同时接受额外方案，缺失时关闭；仅洗角色效果时生效。
-//   - quota2/3_<效果名>：额外方案各自的配额，不能合并为同一个嵌套对象。
+//   - allow_substitution：是否允许两项可替换词条按合计条数判定（仅角色效果模式生效）。
+//   - substitution_affix1/2：可替换词条对的两个官方效果名；两项都填写且不同才生效。
 //
 // 模式判定只认 attach.mode 这一个来源。不要再用"单件目标是否为空"反推模式：
 // 一个非法的单件配置（例如同一效果被重复选择）会让目标解析为空，从而静默退化成
@@ -67,13 +67,13 @@ type carrierConfig struct {
 	TargetProblem string
 	// Quota 角色模式的全局配额。
 	Quota map[string]int
-	// AlternativeQuotas 与 AlternativeEnabled 分别保存方案 2、3；关闭时残留字段不参与解析或判定。
-	AlternativeQuotas  [2]map[string]int
-	AlternativeEnabled [2]bool
-	// GoalProblem 保留完整原因供日志使用，方案编号用于本地化用户提示。
-	GoalProblem      string
-	GoalProblemIndex int
-	quotaExplicit    bool
+	// AllowSubstitution 开启后，Substitution 两项词条按合计条数判定。
+	AllowSubstitution bool
+	// Substitution 是可互相替换的两项官方效果名；顺序不影响语义。
+	Substitution [2]string
+	// GoalProblem 保留完整原因供日志使用。
+	GoalProblem   string
+	quotaExplicit bool
 }
 
 // isSingle 判断是否为单件模式。
@@ -82,8 +82,8 @@ func (c carrierConfig) isSingle() bool { return c.Mode == rerollModeSingle }
 // singleTargetOK 判断单件目标是否可直接用于决策。
 func (c carrierConfig) singleTargetOK() bool { return c.TargetProblem == "" }
 
-// resolveQuota 返回方案 1；只有完全缺少配置时才使用调用节点的默认值。
-// 显式选择全为“不要求”必须保留为空并报错，不能静默变成默认方案。
+// resolveQuota 返回用户配置的单一配额；只有完全缺少配置时才使用调用节点的默认值。
+// 显式选择全为“不要求”必须保留为空并报错，不能静默变成默认目标。
 func (c carrierConfig) resolveQuota(nodeDefault map[string]int) map[string]int {
 	if c.quotaExplicit || len(c.Quota) > 0 {
 		return normalizeQuota(c.Quota)
@@ -91,21 +91,20 @@ func (c carrierConfig) resolveQuota(nodeDefault map[string]int) map[string]int {
 	return normalizeQuota(nodeDefault)
 }
 
-// resolveGoalQuotas 按方案编号返回已启用的完整目标，方案之间是 OR 而非逐效果合并。
+// resolveGoalQuotas 返回需要同时考虑的目标集合。
+//
+// 默认只有用户配额一个目标；开启「允许词条替换」且两项词条配置有效后，可替换词条对
+// 会展开为若干完整等价目标，交给既有 OR 规划器联合估值。目标之间是 OR 而非逐效果合并。
 func (c carrierConfig) resolveGoalQuotas(nodeDefault map[string]int) []map[string]int {
-	goals := []map[string]int{c.resolveQuota(nodeDefault)}
-	if c.isValue() || c.isSingle() {
-		return goals
+	quota := c.resolveQuota(nodeDefault)
+	if c.isValue() || c.isSingle() || !c.AllowSubstitution || substitutionProblem(c.Substitution) != "" {
+		return []map[string]int{quota}
 	}
-	for i, enabled := range c.AlternativeEnabled {
-		if enabled {
-			goals = append(goals, normalizeQuota(c.AlternativeQuotas[i]))
-		}
-	}
-	return goals
+	return substitutionGoalQuotas(quota, c.Substitution)
 }
 
-// validateGoalQuotas 校验每个已启用方案；不能让空方案把 OR 目标变成无条件成功。
+// validateGoalQuotas 校验用户配额与可替换词条对；展开后的等价目标必须同样合法，
+// 不能让空目标把 OR 判定变成无条件成功。
 func (c carrierConfig) validateGoalQuotas(nodeDefault map[string]int) error {
 	if err := c.validateOperation(); err != nil {
 		return err
@@ -114,14 +113,13 @@ func (c carrierConfig) validateGoalQuotas(nodeDefault map[string]int) error {
 		return nil
 	}
 	if problem := goalQuotaProblem(c.resolveQuota(nodeDefault)); problem != "" {
-		return &goalQuotaError{Number: 1, Problem: problem}
+		return &goalQuotaError{Problem: problem}
 	}
-	for i, enabled := range c.AlternativeEnabled {
-		if !enabled {
-			continue
-		}
-		if problem := goalQuotaProblem(c.AlternativeQuotas[i]); problem != "" {
-			return &goalQuotaError{Number: i + 2, Problem: problem}
+	if c.AllowSubstitution {
+		for _, goal := range c.resolveGoalQuotas(nodeDefault) {
+			if problem := goalQuotaProblem(goal); problem != "" {
+				return &goalQuotaError{Problem: problem}
+			}
 		}
 	}
 	return nil
@@ -150,9 +148,9 @@ func goalQuotaProblem(quota map[string]int) string {
 	return ""
 }
 
-func (c *carrierConfig) setGoalProblem(number int, problem string) {
-	if c.GoalProblem == "" && problem != "" {
-		c.GoalProblemIndex, c.GoalProblem = number, problem
+func (c *carrierConfig) setGoalProblem(problem string) {
+	if c.GoalProblem == "" {
+		c.GoalProblem = problem
 	}
 }
 
@@ -237,35 +235,28 @@ func parseCarrierConfig(raw string) carrierConfig {
 		cfg.TargetProblem = singleTargetProblemDuplicatedAffix
 	}
 
-	// 角色配额保持顶层逐键承载；额外组只有开关启用时才读取其字段。
+	// 角色配额保持顶层逐键承载；是否允许词条替换是独立布尔开关。
 	quota, present, problem := parseQuotaAttach(data.Attach, quotaAttachPrefix)
 	cfg.Quota, cfg.quotaExplicit = normalizeQuota(quota), present
 	// 兜底：attach 未携带任何配额键时（旧客户端未应用选项），回落承载点自带的默认配额。
 	if !present {
 		cfg.Quota = normalizeQuota(data.Recognition.Param.CustomRecognitionParam.GlobalQuota)
 	}
-	if !cfg.isValue() && !cfg.isSingle() {
-		cfg.setGoalProblem(1, problem)
-		if present {
-			cfg.setGoalProblem(1, goalQuotaProblem(quota))
+	if raw, exists := data.Attach["allow_substitution"]; exists {
+		if err := json.Unmarshal(raw, &cfg.AllowSubstitution); err != nil || strings.TrimSpace(string(raw)) == "null" {
+			cfg.ConfigProblem = "invalid allow_substitution flag"
 		}
-		for i := range cfg.AlternativeEnabled {
-			number := i + 2
-			rawEnabled, exists := data.Attach[fmt.Sprintf("enabled%d", number)]
-			if !exists {
-				continue
-			}
-			if err := json.Unmarshal(rawEnabled, &cfg.AlternativeEnabled[i]); err != nil || strings.TrimSpace(string(rawEnabled)) == "null" {
-				cfg.setGoalProblem(number, "invalid enabled flag")
-				continue
-			}
-			if !cfg.AlternativeEnabled[i] {
-				continue
-			}
-			quota, _, problem := parseQuotaAttach(data.Attach, fmt.Sprintf("quota%d_", number))
-			cfg.AlternativeQuotas[i] = normalizeQuota(quota)
-			cfg.setGoalProblem(number, problem)
-			cfg.setGoalProblem(number, goalQuotaProblem(quota))
+	}
+	for i, key := range []string{"substitution_affix1", "substitution_affix2"} {
+		cfg.Substitution[i] = strings.TrimSpace(attachString(data.Attach, key))
+	}
+	if !cfg.isValue() && !cfg.isSingle() {
+		cfg.setGoalProblem(problem)
+		if present {
+			cfg.setGoalProblem(goalQuotaProblem(quota))
+		}
+		if cfg.AllowSubstitution {
+			cfg.setGoalProblem(substitutionProblem(cfg.Substitution))
 		}
 	}
 	return cfg

@@ -338,7 +338,7 @@ func (r *EquipmentRerollResultDecideRecognition) decideQuota(arg *maa.CustomReco
 			independentGoalCosts(allParts, goals, material), independentGoalCosts(candidateParts, goals, material))
 	} else {
 		if len(goals) != 1 {
-			// 多方案不能在残缺快照上逐词条拼接判定；保留现场等待完整状态。
+			// 替换目标不能在残缺快照上逐词条拼接判定；保留现场等待完整状态。
 			log.Error().Int64("task_id", arg.TaskID).Msg("multi-goal result decision requires all four snapshots")
 			return nil, false
 		}

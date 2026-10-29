@@ -341,8 +341,12 @@
     "option.EquipmentRerollValueTotalTargets.invalid": "Enter an integer from 0 to 60",
     "option.CashShopNetworkRetry.label": "Auto Retry on Network Error",
     "option.CashShopNetworkRetry.description": "If a network error appears when entering the cash shop, click Retry once and wait up to 30 seconds. When disabled, leave the dialog untouched and let the task time out.",
-    "option.EquipmentRerollMode.Character.description": "The original nine effect requirements form plan 1, which is always active. Optionally enable plans 2 and 3; stop when any complete plan is met. Counts are minimum requirements, and forbidden effects apply only to their own plan. Choose gear, locks and results by the expected material cost from the current state. Plan numbers do not indicate priority.",
-    "option.EquipmentRerollAlternative2.label": "Also accept plan 2",
-    "option.EquipmentRerollAlternative3.label": "Also accept plan 3",
-    "option.EquipmentRerollAlternative.description": "Configure this plan independently when enabled: require at least one effect and no more than 12 effects in total. All conditions within a plan must be met; stop when any complete plan is satisfied. Disabled plans do not participate, and their saved settings may be retained."
+    "option.EquipmentRerollMode.Character.description": "The nine effect requirements form a single target. When \"Allow Affix Substitution\" is enabled, any two affixes can be chosen as interchangeable. Choose gear, locks and results by the expected material cost from the current state; every count is a minimum.",
+    "option.EquipmentRerollAllowSubstitution.label": "Allow Affix Substitution",
+    "option.EquipmentRerollAllowSubstitution.description": "Choose two interchangeable affixes below; their requirements are pooled and either affix counts. When disabled, each affix must meet its own count; Forbidden affixes do not participate.",
+    "option.EquipmentRerollSubstitutionAffix1.label": "Substitute Affix 1",
+    "option.EquipmentRerollSubstitutionAffix1.description": "First affix of the pair; must differ from the second.",
+    "option.EquipmentRerollSubstitutionAffix2.label": "Substitute Affix 2",
+    "option.EquipmentRerollSubstitutionAffix2.description": "Second affix of the pair; must differ from the first.",
+    "option.EquipmentRerollSubstitutionAffix.None.label": "No Substitution"
 }

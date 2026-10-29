@@ -7,6 +7,10 @@ import (
 	"sync"
 )
 
+// 本文件实现多目标 OR 规划：每个目标是完整配额，满足任意一个即整体达标。
+// 当前 UI 只有一份配额；这里的多目标由 substitution.go 按 substitution_affix1/2
+// 选中的词条对展开产生，不再对应额外方案开关。换一对词条无需改这里。
+
 // effectAlternative 是单件必须完整满足的一组条件；不同组之间只做 OR。
 type effectAlternative struct {
 	required  []string
