@@ -99,3 +99,23 @@ func TestResultRecognitionWaitCannotRepeatConsumption(t *testing.T) {
 		t.Fatal("result polling must not use the sliding retry window that resets after each five-second wait")
 	}
 }
+
+// TestRecordRerollCostHasResultUnreadableExit 守护结果页等待链路上的第二个缺口：
+//
+//	EquipmentRerollRecordRerollCost 是记账节点，本身没有识别兜底。它的 next 里若只剩
+//	EquipmentRerollResultPage（数值模式 override 即如此），而该节点在 5 秒窗口内始终
+//	识别不出，则 next 列表失败后就地裸失败——没有 on_error 就没有 result_unreadable
+//	提示，也不会走 EquipmentRerollFailAction 清理投机状态。
+//
+// 参见 v1.11.8 用户日志 task 200000001：数值模式在 19:04:43.6~19:04:49.28 重复
+// OCR 同一静止帧 6 次后 Tasker.Task.Failed，材料已扣而结果未选。
+func TestRecordRerollCostHasResultUnreadableExit(t *testing.T) {
+	nodes := loadRecoveryPipeline(t, "EquipmentReroll.json")
+	const failed = "EquipmentRerollResultUnreadableFailed"
+	node := nodes["EquipmentRerollRecordRerollCost"]
+	// 基础流程经 __EquipmentRerollResultButtonsVisible 中转，该节点自带 on_error；
+	// 数值模式 override 把 next 直连 EquipmentRerollResultPage，因此记账节点也必须自带出口。
+	if len(node.OnError) != 1 || node.OnError[0] != failed {
+		t.Fatalf("EquipmentRerollRecordRerollCost on_error = %v; unreadable result would fail the task without a user-visible reason", node.OnError)
+	}
+}

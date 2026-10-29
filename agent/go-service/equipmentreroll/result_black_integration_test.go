@@ -53,7 +53,7 @@ type blackResultOfflineProbe struct{ t *testing.T }
 
 func (p *blackResultOfflineProbe) Run(ctx *maa.Context, arg *maa.CustomRecognitionArg) (*maa.CustomRecognitionResult, bool) {
 	t := p.t
-	effects, values, raws, known := recognizeChangedEffects(ctx, arg.Img, partScan{})
+	effects, values, raws, known := recognizeChangedEffects(ctx, arg.Img, partScan{}, false)
 	if !known || effects != [3]string{"暴击率增加", "", "攻击力增加"} || values != [3]string{"7.07%", "", "13.22%"} {
 		t.Errorf("black result: known=%v effects=%v values=%v raw=%v", known, effects, values, raws)
 		return nil, false

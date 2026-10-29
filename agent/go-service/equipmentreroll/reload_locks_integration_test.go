@@ -104,12 +104,12 @@ func (p *reloadOfflineProbe) Run(ctx *maa.Context, arg *maa.CustomActionArg) boo
 		// 23:12 故障结果页第三槽被解除锁定提示遮挡；本轮锁定快照可直接补全。
 		var source partScan
 		source.Slots[2] = slotScanData{Effect: "优越代码伤害增加", Value: "15.15%", Lock: LockOneTime}
-		effects, values, _, ok := recognizeChangedEffects(ctx, p.img, source)
+		effects, values, _, ok := recognizeChangedEffects(ctx, p.img, source, false)
 		if !ok || effects != ([maxSlot]string{"暴击伤害增加", "蓄力伤害增加", "优越代码伤害增加"}) || values[2] != "15.15%" {
 			t.Errorf("locked result replay failed: effects=%v values=%v ok=%v", effects, values, ok)
 			return false
 		}
-		if _, _, _, ok := recognizeChangedEffects(ctx, p.img, partScan{}); ok {
+		if _, _, _, ok := recognizeChangedEffects(ctx, p.img, partScan{}, false); ok {
 			t.Error("transient unlocked slot must still reject the frame without a trusted source")
 			return false
 		}
@@ -326,7 +326,7 @@ func (p *reloadOfflineProbe) verifyValueSample(ctx *maa.Context, arg *maa.Custom
 	if !checkNode("__EquipmentRerollChangeEffectTitle", false) {
 		return false
 	}
-	effects, values, _, ok := recognizeChangedEffects(ctx, p.img, partScan{})
+	effects, values, _, ok := recognizeChangedEffects(ctx, p.img, partScan{}, false)
 	if !ok || effects != ([maxSlot]string{"优越代码伤害增加", "暴击伤害增加", "攻击力增加"}) || values != ([maxSlot]string{"23.56%", "6.64%", "11.11%"}) {
 		t.Errorf("result effects=%v values=%v ok=%v", effects, values, ok)
 		return false

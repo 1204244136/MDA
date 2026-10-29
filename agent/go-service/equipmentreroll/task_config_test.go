@@ -309,7 +309,8 @@ func TestPipelineNodeReferencesResolve(t *testing.T) {
 			Cases []struct {
 				Name             string `json:"name"`
 				PipelineOverride map[string]struct {
-					Next []string `json:"next"`
+					Next    []string `json:"next"`
+					OnError []string `json:"on_error"`
 				} `json:"pipeline_override"`
 			} `json:"cases"`
 		} `json:"option"`
@@ -326,6 +327,11 @@ func TestPipelineNodeReferencesResolve(t *testing.T) {
 				for _, target := range ov.Next {
 					if !isResolvablePipelineTarget(target, defined) {
 						t.Errorf("%s case %s next %q does not resolve to a defined node", optName, c.Name, target)
+					}
+				}
+				for _, target := range ov.OnError {
+					if !isResolvablePipelineTarget(target, defined) {
+						t.Errorf("%s case %s on_error %q does not resolve to a defined node", optName, c.Name, target)
 					}
 				}
 			}
@@ -362,4 +368,58 @@ func wantOptionName(n int) string {
 
 func slotOptionName(n int) string {
 	return "EquipmentRerollSingleWant" + strconv.Itoa(n) + "Slot"
+}
+
+// TestValueModeResultUnreadableRouteIsExplicit 守护数值模式的结果页失败出口。
+//
+// 数值模式用 pipeline_override 把 EquipmentRerollRecordRerollCost.next 换成直连
+// EquipmentRerollResultPage，绕过了基础流程里带 on_error 的
+// __EquipmentRerollResultButtonsVisible。override 若不同时带上 on_error，
+// 结果页读不出来时就会裸失败：既没有 result_unreadable 提示，也不会走
+// EquipmentRerollFailAction 清理投机状态（v1.11.8 task 200000001 即此现象）。
+//
+// 基础节点当前也带同一出口；override 里显式重复是为了防止这条出口再次被省略。
+func TestValueModeResultUnreadableRouteIsExplicit(t *testing.T) {
+	taskPath := filepath.Join("..", "..", "..", "assets", "tasks", "EquipmentReroll.json")
+	data, err := os.ReadFile(taskPath)
+	if err != nil {
+		t.Skipf("skip: task config not found: %v", err)
+	}
+	var cfg struct {
+		Option map[string]struct {
+			Cases []struct {
+				Name             string `json:"name"`
+				PipelineOverride map[string]struct {
+					Next    []string `json:"next"`
+					OnError []string `json:"on_error"`
+				} `json:"pipeline_override"`
+			} `json:"cases"`
+		} `json:"option"`
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatalf("failed to parse task config: %v", err)
+	}
+	const costNode = "EquipmentRerollRecordRerollCost"
+	const failed = "EquipmentRerollResultUnreadableFailed"
+
+	found := false
+	for _, c := range cfg.Option["EquipmentRerollOperation"].Cases {
+		if c.Name != "Value" {
+			continue
+		}
+		found = true
+		override, ok := c.PipelineOverride[costNode]
+		if !ok {
+			t.Fatalf("Value case must override %s", costNode)
+		}
+		if len(override.Next) != 1 || override.Next[0] != "EquipmentRerollResultPage" {
+			t.Fatalf("Value case %s next = %v; it must route straight to the result page", costNode, override.Next)
+		}
+		if len(override.OnError) != 1 || override.OnError[0] != failed {
+			t.Fatalf("Value case %s on_error = %v; a bypassed safety net leaves the task failing with no user-visible reason", costNode, override.OnError)
+		}
+	}
+	if !found {
+		t.Fatal("EquipmentRerollOperation has no Value case")
+	}
 }

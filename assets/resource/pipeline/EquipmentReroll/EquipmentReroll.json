@@ -679,7 +679,7 @@
         }
     },
     "EquipmentRerollRecordRerollCost": {
-        "desc": "结果页已出现后同时扣记本轮模组和密钥，仅记账一次",
+        "desc": "结果页已出现后同时扣记本轮模组和密钥，仅记账一次；等待窗口内结果页始终不可读时显式失败并保留现场",
         "recognition": {
             "type": "And",
             "param": {
@@ -699,6 +699,9 @@
         "timeout": 5000,
         "next": [
             "__EquipmentRerollResultButtonsVisible"
+        ],
+        "on_error": [
+            "EquipmentRerollResultUnreadableFailed"
         ]
     },
     "EquipmentRerollConfirmChangeEffect": {

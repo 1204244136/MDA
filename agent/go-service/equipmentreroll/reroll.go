@@ -193,7 +193,11 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 		return nil, false
 	}
 
-	changed, changedValues, changedRaw, ok := recognizeChangedEffects(ctx, arg.Img, resultSourceForTask(arg.TaskID))
+	// 全部任务选项统一从承载点读取；一次 Run 只读一次。
+	// 数值重洗保持效果种类不变，结果页名称读不出时可按本轮快照补齐，因此必须先取配置。
+	cfg := loadCarrierConfig(ctx)
+
+	changed, changedValues, changedRaw, ok := recognizeChangedEffects(ctx, arg.Img, resultSourceForTask(arg.TaskID), cfg.isValue())
 	if !ok {
 		log.Warn().
 			Str("component", "EquipmentReroll").
@@ -209,8 +213,6 @@ func (r *EquipmentRerollResultDecideRecognition) Run(ctx *maa.Context, arg *maa.
 		return nil, false
 	}
 
-	// 全部任务选项统一从承载点读取；一次 Run 只读一次。
-	cfg := loadCarrierConfig(ctx)
 	if err := cfg.validateOperation(); err != nil {
 		log.Error().Err(err).Msg("invalid result decision config")
 		return nil, false
@@ -378,8 +380,10 @@ func isTransientUnlockText(raw string) bool {
 // 槽位读到官方效果或"未获得效果"都有效；其他任何非空但未识别的文本（如 OCR 截断的
 // “击增加]”）都不能当作空槽，必须让整次识别失败并重试，避免因漏读目标词条导致误决策。
 // 本轮已锁且快照完整的槽位沿用快照；未锁槽的瞬时“已解除效果锁定”仍视为无效帧。
+// valueMode 为真时（数值重洗），读到数值但读不出官方词条名的槽位改用本轮变更前快照补齐，
+// 见 fillUnreadableEffectsFromSource。
 // 返回：effects（词条名）、values（从 OCR 原文提取的数值）、raws（OCR 原文）。
-func recognizeChangedEffects(ctx *maa.Context, img image.Image, source partScan) ([maxSlot]string, [maxSlot]string, [maxSlot]string, bool) {
+func recognizeChangedEffects(ctx *maa.Context, img image.Image, source partScan, valueMode bool) ([maxSlot]string, [maxSlot]string, [maxSlot]string, bool) {
 	if ctx == nil || img == nil {
 		return [maxSlot]string{}, [maxSlot]string{}, [maxSlot]string{}, false
 	}
@@ -410,12 +414,85 @@ func recognizeChangedEffects(ctx *maa.Context, img image.Image, source partScan)
 		return effects, values, rawTexts, false
 	}
 
+	if valueMode {
+		effects, rawTexts, recognized = fillUnreadableEffectsFromSource(effects, values, rawTexts, recognized, source)
+	}
+
 	// 验证识别完整性
 	if !validateSlotRecognitionCompleteness(effects, values, rawTexts, recognized) {
 		return effects, values, rawTexts, false
 	}
 
 	return effects, values, rawTexts, true
+}
+
+// fillUnreadableEffectsFromSource 在数值重洗时用本轮变更前快照补齐读不出名称的槽位。
+//
+// 数值重洗保持效果种类不变，evaluateValueResult 也以 changed[i] == 本轮快照词条名为前提；
+// 因此「读到数值、名称却不像官方词条」时按同槽快照补齐不会改变最终决策。真正读出了另一个
+// 官方词条的槽位不会被补齐，仍由 evaluateValueResult 判为“效果在数值重洗中变化”并重试。
+//
+// 补齐条件（全部满足才补）：
+//   - 该槽未识别出官方词条，但 OCR 确实产出非空原文（空原文代表未渲染或未命中，必须重试）；
+//   - 该槽读到了百分比（缺数值无法评估，不能猜名称）；
+//   - 快照同槽词条能归一化为官方词条；
+//   - 补齐后三槽词条仍互不重复（装备不可能出现重复词条，重复说明槽位可能错位）。
+//
+// 补齐失败时原样返回，交由 validateSlotRecognitionCompleteness 走原有的重试/降级路径。
+func fillUnreadableEffectsFromSource(effects, values, rawTexts [maxSlot]string, recognized [maxSlot]bool, source partScan) ([maxSlot]string, [maxSlot]string, [maxSlot]bool) {
+	if source == (partScan{}) {
+		return effects, rawTexts, recognized
+	}
+
+	patchedEffects, patchedRaw, patchedRecognized := effects, rawTexts, recognized
+	var filledSlots []int
+	for i := range effects {
+		if recognized[i] || rawTexts[i] == "" || values[i] == "" {
+			continue
+		}
+		fallback, ok := normalizeEffect(source.Slots[i].Effect)
+		if !ok || fallback == "" {
+			continue
+		}
+		patchedEffects[i] = fallback
+		patchedRaw[i] = fmt.Sprintf("%s（词条名沿用本轮快照）", rawTexts[i])
+		patchedRecognized[i] = true
+		filledSlots = append(filledSlots, i+1)
+	}
+	if len(filledSlots) == 0 {
+		return effects, rawTexts, recognized
+	}
+	if !effectsAreDistinct(patchedEffects, patchedRecognized) {
+		log.Warn().
+			Str("component", "EquipmentReroll").
+			Ints("filled_slots", filledSlots).
+			Strs("raw_slots", rawTexts[:]).
+			Msg("snapshot effect fallback would duplicate an affix; retry recognition")
+		return effects, rawTexts, recognized
+	}
+
+	log.Warn().
+		Str("component", "EquipmentReroll").
+		Ints("filled_slots", filledSlots).
+		Strs("raw_slots", rawTexts[:]).
+		Strs("snapshot_effects", patchedEffects[:]).
+		Msg("result page effect name unreadable; filled from pre-reroll snapshot")
+	return patchedEffects, patchedRaw, patchedRecognized
+}
+
+// effectsAreDistinct 判断已识别词条是否互不重复；空槽（未获得效果）不参与比较。
+func effectsAreDistinct(effects [maxSlot]string, recognized [maxSlot]bool) bool {
+	seen := make(map[string]struct{}, maxSlot)
+	for i, effect := range effects {
+		if !recognized[i] || effect == "" {
+			continue
+		}
+		if _, exists := seen[effect]; exists {
+			return false
+		}
+		seen[effect] = struct{}{}
+	}
+	return true
 }
 
 // extractSlotOCRData 合并本轮锁定快照与未锁槽 OCR；不完整快照回退到实际识别。
