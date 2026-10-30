@@ -31,23 +31,28 @@ func (c *HDRChecker) OnTaskerTask(tasker *maa.Tasker, event maa.EventStatus, det
 		Str("entry", detail.Entry).
 		Msg("Checking HDR status before task execution")
 
-	hdrEnabled, err := IsHDREnabled()
+	state, err := QueryColorState()
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to check HDR status")
 		return
 	}
 
-	if hdrEnabled {
-		log.Warn().Msg("HDR is enabled! This may cause issues with image recognition.")
+	switch {
+	case state.HDR:
+		log.Warn().Int("displays", state.Displays).Msg("HDR is enabled! This may cause issues with image recognition.")
 
 		// Print warning message (HTML formatted for MXU display)
 		maafocus.PrintLargeContentTrimNewline(
 			i18n.RenderHTML("tasker.hdr_warning", nil),
 		)
 
-		// Mark as warned to avoid repeated warnings
+		// Mark as warned to avoid repeated warning
 		c.warned = true
-	} else {
+	case state.WCG:
+		// Windows 11 的「進階色彩 / ACM」也開著 advanced color，但不是 HDR，不影響辨識。
+		log.Debug().Int("displays", state.Displays).
+			Msg("HDR check passed: advanced color (WCG/ACM) is on, HDR is off")
+	default:
 		log.Debug().Msg("HDR check passed: HDR is not enabled")
 	}
 }

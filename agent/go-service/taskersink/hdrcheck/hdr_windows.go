@@ -21,8 +21,19 @@ const (
 )
 
 // DISPLAYCONFIG_DEVICE_INFO_TYPE
+//
+// 注意編號：GET_ADVANCED_COLOR_INFO_2 是 15，不是 11（11 是 GET_SDR_WHITE_LEVEL，
+// 用錯型別只會拿到 ERROR_INVALID_PARAMETER=87）。
 const (
-	DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO = 9
+	DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO  = 9
+	DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2 = 15
+)
+
+// DISPLAYCONFIG_ADVANCED_COLOR_MODE
+const (
+	advancedColorModeSDR uint32 = 0
+	advancedColorModeWCG uint32 = 1
+	advancedColorModeHDR uint32 = 2
 )
 
 // LUID represents a locally unique identifier
@@ -90,6 +101,23 @@ type DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO struct {
 	BitsPerColorChannel uint32
 }
 
+// DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 多出 activeColorMode，這是唯一能區分
+// 「進階色彩 / WCG」與「HDR」的欄位；v1 的 advancedColorEnabled 兩者都會是 1。
+type DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 struct {
+	Header              DISPLAYCONFIG_DEVICE_INFO_HEADER
+	Value               uint32
+	ColorEncoding       uint32
+	BitsPerColorChannel uint32
+	ActiveColorMode     uint32
+}
+
+// ColorState 是所有作用中螢幕的色彩模式摘要。
+type ColorState struct {
+	HDR      bool // 任一螢幕處於 HDR
+	WCG      bool // 任一螢幕處於 WCG（Windows 進階色彩 / ACM），但不是 HDR
+	Displays int  // 成功查詢的螢幕數
+}
+
 // Windows error codes
 const (
 	ERROR_INSUFFICIENT_BUFFER = 122
@@ -100,65 +128,86 @@ const maxRetries = 3
 
 // IsHDREnabled checks if HDR is enabled on any display
 func IsHDREnabled() (bool, error) {
+	state, err := QueryColorState()
+	if err != nil {
+		return false, err
+	}
+	return state.HDR, nil
+}
+
+// QueryColorState 逐台查詢作用中螢幕的色彩模式。
+//
+// 只把 activeColorMode == HDR 當成 HDR：v1 的 advancedColorEnabled 在 Windows 11 開啟
+// 「進階色彩（ACM / WCG）」時也會是 1，先前因此誤報（實測兩台螢幕 activeColorMode=1/WCG、
+// HDR 沒開，卻印出「HDR is enabled」）。舊版 Windows 沒有 INFO_2 時才退回 v1。
+func QueryColorState() (ColorState, error) {
+	var state ColorState
+
 	// Check if required APIs are available (may not exist on older Windows)
 	if err := procGetDisplayConfigBufferSizes.Find(); err != nil {
-		return false, err
+		return state, err
 	}
 	if err := procQueryDisplayConfig.Find(); err != nil {
-		return false, err
+		return state, err
 	}
 	if err := procDisplayConfigGetDeviceInfo.Find(); err != nil {
-		return false, err
+		return state, err
 	}
 
 	// Query display config with retry logic for topology changes
 	pathArray, err := queryDisplayConfigWithRetry()
 	if err != nil {
-		return false, err
+		return state, err
 	}
 
 	if len(pathArray) == 0 {
-		return false, nil
+		return state, nil
 	}
 
-	// Check each active path for HDR
-	var successCount int
+	// Check each active path
 	for i := range pathArray {
-		colorInfo := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{
-			Header: DISPLAYCONFIG_DEVICE_INFO_HEADER{
-				Type:      DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO,
-				Size:      uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{})),
-				AdapterId: pathArray[i].TargetInfo.AdapterId,
-				Id:        pathArray[i].TargetInfo.Id,
-			},
+		header := DISPLAYCONFIG_DEVICE_INFO_HEADER{
+			AdapterId: pathArray[i].TargetInfo.AdapterId,
+			Id:        pathArray[i].TargetInfo.Id,
 		}
 
-		ret, _, _ := procDisplayConfigGetDeviceInfo.Call(
-			uintptr(unsafe.Pointer(&colorInfo)),
-		)
-		if ret != 0 {
+		colorInfo2 := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2{Header: header}
+		colorInfo2.Header.Type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2
+		colorInfo2.Header.Size = uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2{}))
+
+		if ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo2))); ret == 0 {
+			state.Displays++
+			switch colorInfo2.ActiveColorMode {
+			case advancedColorModeHDR:
+				state.HDR = true
+			case advancedColorModeWCG:
+				state.WCG = true
+			}
+			continue
+		}
+
+		colorInfo := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{Header: header}
+		colorInfo.Header.Type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO
+		colorInfo.Header.Size = uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{}))
+
+		if ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo))); ret != 0 {
 			// Skip this display if we can't get info
 			continue
 		}
-		successCount++
+		state.Displays++
 
-		// Check if HDR is enabled (bit 1 of Value field)
-		// Bit 0: advancedColorSupported
-		// Bit 1: advancedColorEnabled (HDR is ON)
-		// Bit 2: wideColorEnforced
-		// Bit 3: advancedColorForceDisabled
-		advancedColorEnabled := (colorInfo.Value & 0x2) != 0
-		if advancedColorEnabled {
-			return true, nil
+		// Bit 1: advancedColorEnabled。舊系統沒有 ACM，這個位元等同 HDR。
+		if (colorInfo.Value & 0x2) != 0 {
+			state.HDR = true
 		}
 	}
 
 	// If we couldn't query any display successfully, return error
-	if successCount == 0 {
-		return false, windows.ERROR_GEN_FAILURE
+	if state.Displays == 0 {
+		return state, windows.ERROR_GEN_FAILURE
 	}
 
-	return false, nil
+	return state, nil
 }
 
 // queryDisplayConfigWithRetry queries display config with retry on ERROR_INSUFFICIENT_BUFFER
