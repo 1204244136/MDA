@@ -12,6 +12,7 @@
     "version": "0.1.0",
     "languages": {
         "zh_cn": "locales/interface/zh_cn.json",
+        "zh_tw": "locales/interface/zh_tw.json",
         "en_us": "locales/interface/en_us.json"
     },
     "controller": [
