@@ -196,6 +196,12 @@ class NavigationRun:
             "RookieArenaVisible": {"arena"},
             "SpecialArenaVisible": {"arena"},
             "ChampionArenaVisible": {"arena"},
+            # Arena sub pages are a distinct state: the top-left title is the
+            # arena name, and only the back button can return to the hub.
+            "RookieArenaMainPageEntered": {"arena_sub"},
+            "SpecialArenaMainPageEntered": {"arena_sub"},
+            "ChampionArenaMainPageEntered": {"arena_sub"},
+            "CommonGoBack": {"arena_sub"},
             "InterceptionMainPageEntered": {"interception"},
             "SimulationRoomMainPageEntered": {"simulation"},
             "TribeTowerMainPageEntered": {"tower"},
@@ -243,6 +249,7 @@ class NavigationRun:
                 "CommonClickArk": "ark",
                 "__ScenePrivateClickArk": "ark",
                 "__ScenePrivateClickOutpost": "outpost", "__SceneArkClickArena": "arena",
+                "CommonGoBack": "arena",
                 "__SceneArkClickInterception": "interception",
                 "__SceneArkClickSimulationRoom": "simulation", "__SceneArkClickTribeTower": "tower",
                 "__ScenePrivateClickShop": "shop", "__ScenePrivateClickFriend": "friend",
@@ -326,6 +333,14 @@ def check_behaviors(run):
     count += 1
     print("[PASS] 未知页面经大厅和方舟恢复目标")
 
+    # 误入新人/特殊/冠军竞技场子页时，只能用左下角返回键退回首页；缺了这条
+    # 逃生路径，子页上所有首页识别必然失败，整条任务会等到导航超时才判失败。
+    assert run.run("SceneEnterArena", "arena_sub") == SUCCEEDED, (run.completed, run.actions)
+    assert run.page == "arena" and run.actions == ["CommonGoBack"], run.actions
+    assert "__SceneArkEscapeArenaSubPage" in run.completed, run.completed
+    count += 1
+    print("[PASS] 误入竞技场子页时点返回回到竞技场首页，不再以超时判失败")
+
     assert run.run("SceneEnterInterception", "ark", missing={"ArkEnterInterception"}) == FAILED
     assert not run.actions and run.recognition_count < 50000
     count += 1
@@ -356,6 +371,15 @@ def check_behaviors(run):
     assert run.page == "interception" and "InterceptionBattleFlow" in run.completed
     count += 1
     print("[PASS] Main跨场景恢复后额度动作只执行一次")
+
+    # 累积奖励徽章只写 ^[0-9] 时，竞技场首页同一 ROI 的「剩余…小时」倒计时也会
+    # 命中并把流程点进竞技场子页；这里静态守住「只认百分比」。
+    claim_expected = run.nodes["ArenaClaimSpecialReward"]["recognition"]["param"]["expected"]
+    claim_pattern = re.compile("|".join(claim_expected))
+    assert claim_pattern.search("94%") and claim_pattern.search("100％"), claim_expected
+    assert not claim_pattern.search("17小时"), claim_expected
+    count += 1
+    print("[PASS] 竞技场累积奖励只认百分比，赛季倒计时不再命中")
 
     disabled = option_overrides("Arena.json", ArenaEnterRookieArena="No", ArenaEnterSpecialArena="No",
                                 ArenaEnterChampionArena="No")

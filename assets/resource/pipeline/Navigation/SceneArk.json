@@ -5,7 +5,25 @@
         "next": [
             "ArenaMainPageEntered",
             "__SceneArkClickArena",
+            "[JumpBack]__SceneArkEscapeArenaSubPage",
             "[JumpBack]__SceneArkRecoverForArena"
+        ]
+    },
+    "__SceneArkEscapeArenaSubPage": {
+        "desc": "误入新人/特殊/冠军竞技场子页时点返回回到竞技场首页，避免整条任务等到超时才判失败",
+        "max_hit": 2,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "RookieArenaMainPageEntered",
+                    "SpecialArenaMainPageEntered",
+                    "ChampionArenaMainPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "CommonGoBack"
         ]
     },
     "__SceneArkClickArena": {
