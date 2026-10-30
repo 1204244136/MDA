@@ -336,7 +336,8 @@
                     604
                 ],
                 "template": [
-                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png" //当前活动，随最新主题更新（story2 未开放）
+                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png", //当前活动，随最新主题更新（story2 未开放）；右列卡片样式
+                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatableLeft.png" //左列卡片样式，两列 Repeat 外观不同，需两张模板一起覆盖
                 ],
                 "order_by": "Vertical",
                 "index": -1
