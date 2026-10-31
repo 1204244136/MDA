@@ -51,7 +51,8 @@
             }
         },
         "next": [
-            "LuckyBoxOpeningEnterFlow"
+            "LuckyBoxOpeningEnterFlow",
+            "LuckyBoxOpeningClickEntryRedDot" //兜底：点击未生效、仍停在入口页时重新点一次
         ]
     },
     "LuckyBoxOpeningEnterFlow": {
