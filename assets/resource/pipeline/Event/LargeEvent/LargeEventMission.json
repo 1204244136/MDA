@@ -33,8 +33,27 @@
             "LargeEventMissionFlow"
         ]
     },
-    "LargeEventMissionVisible": {
-        "desc": "大活动任务内部的标识",
+    "LargeEventMissionFlow": {
+        "desc": "大活动任务流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LargeEventMissionClaimAllButtonVisible"
+                ]
+            }
+        },
+        "next": [
+            "LargeEventMissionClaimedFlow",
+            "[JumpBack]LargeEventMissionClaimAll",
+            "[JumpBack]CommonConfirmReward",
+            "[JumpBack]CommonConfirmAction",
+            "[JumpBack]CommonClosePage",
+            "CommonEndTask"
+        ]
+    },
+    "LargeEventMissionClaimAllButtonVisible": {
+        "desc": "全部领取按钮可见",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -50,29 +69,83 @@
             }
         }
     },
-    "LargeEventMissionFlow": {
-        "desc": "大活动任务流程",
-        "max_hit": 8, //硬上限：正常约 3 次（进入、两次领取后各重判一次），防状态异常时空转
+    "LargeEventMissionAvailable": {
+        "desc": "全部领取按钮可用",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "LargeEventMissionClaimAllButtonVisible",
+                "lower": [
+                    200,
+                    200,
+                    200
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 100
+            }
+        }
+    },
+    "LargeEventMissionClaimed": {
+        "desc": "全部领取按钮已领取",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "LargeEventMissionClaimAllButtonVisible",
+                "lower": [
+                    190,
+                    190,
+                    190
+                ],
+                "upper": [
+                    219,
+                    219,
+                    219
+                ],
+                "count": 100
+            }
+        }
+    },
+    "LargeEventMissionClaimAll": {
+        "desc": "点击全部领取",
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "LargeEventMissionVisible"
+                    "LargeEventMissionClaimAllButtonVisible",
+                    "LargeEventMissionAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "LargeEventMissionClaimedFlow": {
+        "desc": "大活动任务本页签已领完",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LargeEventMissionClaimAllButtonVisible",
+                    "LargeEventMissionClaimed"
                 ]
             }
         },
         "next": [
-            "LargeEventMissionClaimedFlow", //已领取（灰字）→ 关闭任务页
-            "[JumpBack]LargeEventMissionClaimAll", //未领取 → 点“全部领取”；点完父节点会自动重跑本列表继续领，直到按钮变灰
-            "[JumpBack]CommonConfirmReward",
-            "[JumpBack]CommonConfirmAction",
-            "CommonClosePage", //兜底：领到上限仍未变灰时，关掉任务页收束本分支
-            "CommonEndTask" //收束：页面关闭后剩余识别必然全部失败，用空节点让本分支正常结束，避免整条任务被判决失败
+            "[JumpBack]LargeEventMissionEnterDaily",
+            "[JumpBack]LargeEventMissionEnterAchievement",
+            "[JumpBack]CommonClosePage",
+            "CommonEndTask"
         ]
     },
     "LargeEventMissionEnterDaily": {
-        "desc": "切到“每日任务”页签",
-        "max_hit": 1, //只切一次，避免在页签间来回跳
+        "desc": "切到每日任务页签",
+        "max_hit": 1, //只切一次，避免在两个页签之间来回跳
         "recognition": {
             "type": "OCR",
             "param": {
@@ -96,8 +169,8 @@
         ]
     },
     "LargeEventMissionEnterAchievement": {
-        "desc": "切到“成就”页签",
-        "max_hit": 1, //只切一次，避免在页签间来回跳
+        "desc": "切到成就页签",
+        "max_hit": 1, //只切一次，避免在两个页签之间来回跳
         "recognition": {
             "type": "OCR",
             "param": {
@@ -119,97 +192,5 @@
         "next": [
             "LargeEventMissionFlow"
         ]
-    },
-    "LargeEventMissionClaimedVisible": {
-        "desc": "大活动任务奖励已领取文本可见",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    680,
-                    624,
-                    137,
-                    35
-                ],
-                "expected": [
-                    "全部领取"
-                ]
-            }
-        }
-    },
-    "LargeEventMissionClaimed": {
-        "desc": "大活动任务奖励已领取文本颜色",
-        "recognition": {
-            "type": "ColorMatch",
-            "param": {
-                "roi": "LargeEventMissionClaimedVisible",
-                "lower": [
-                    190,
-                    190,
-                    190
-                ],
-                "upper": [
-                    219,
-                    219,
-                    219
-                ],
-                "count": 100
-            }
-        }
-    },
-    "LargeEventMissionClaimedFlow": {
-        "desc": "大活动任务奖励已领取流程（本页签领完 → 依次去两个页签，最后关页）",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "LargeEventMissionClaimedVisible",
-                    "LargeEventMissionClaimed"
-                ]
-            }
-        },
-        "next": [
-            "[JumpBack]LargeEventMissionEnterDaily", //先确保在“每日任务”
-            "[JumpBack]LargeEventMissionEnterAchievement", //再去“成就”
-            "[JumpBack]CommonClosePage",
-            "CommonEndTask" //必须有：关页后本节点重跑必然识别失败，缺了它整条任务会被判失败（已 A/B 验证）
-        ]
-    },
-    "LargeEventMissionAvailable": {
-        "desc": "大活动任务奖励按钮可用（白字，非灰）",
-        "recognition": {
-            "type": "ColorMatch",
-            "param": {
-                "roi": "LargeEventMissionVisible", //沿用 OCR 命中的按钮文字框
-                "lower": [
-                    200,
-                    200,
-                    200
-                ],
-                "upper": [
-                    255,
-                    255,
-                    255
-                ],
-                "count": 100
-            }
-        }
-    },
-    "LargeEventMissionClaimAll": {
-        "desc": "大活动任务奖励领取",
-        "max_hit": 6, //领到按钮变灰为止（通常两次：先领任务积分，再领积分奖励）；6 次是安全上限
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "LargeEventMissionVisible",
-                    "LargeEventMissionAvailable"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500
     }
 }
