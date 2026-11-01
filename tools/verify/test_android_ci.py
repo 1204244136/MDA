@@ -1,5 +1,6 @@
-"""防止 CI 会员包意外进入 dev、版本倒退、签名漂移或混入旧 Agent。"""
+"""防止 Android 测试包/正式包意外进入 dev、版本倒退、签名漂移或混入旧 Agent。"""
 
+import base64
 import io
 import json
 import sys
@@ -19,6 +20,14 @@ class AndroidCITest(unittest.TestCase):
         with patch.object(ci.subprocess, "check_output", side_effect=[tag, "a" * 40]):
             return ci.metadata(run, attempt)
 
+    def release_meta(self, tag="v1.12.3", sha="b" * 40, tagged=None, count="1200"):
+        if tagged is None:
+            tagged = sha
+        with patch.object(
+            ci.subprocess, "check_output", side_effect=[sha, tagged, count]
+        ):
+            return ci.release_metadata(tag)
+
     def test_version_codes_increase_on_rerun_and_next_run(self):
         first = self.meta()
         retry = self.meta(attempt=99)
@@ -35,6 +44,51 @@ class AndroidCITest(unittest.TestCase):
         for tag in ["v0.1.0", "dev", "a" * 8, "v2.5.0\nunsafe"]:
             with self.assertRaises(ValueError):
                 self.meta(tag=tag)
+
+    def test_release_metadata_uses_tag_and_commit_count(self):
+        meta = self.release_meta()
+        self.assertEqual(meta["version"], "1.12.3")
+        self.assertEqual(meta["version_code"], 1200)
+        self.assertEqual(meta["mode"], "release")
+        self.assertEqual(meta["commit"], "b" * 40)
+        prerelease = self.release_meta(tag="v1.12.3-beta.1")
+        self.assertEqual(prerelease["version"], "1.12.3-beta.1")
+
+    def test_release_metadata_rejects_bad_tag_and_version_code(self):
+        for tag in [
+            "1.12.3",
+            "v0.1.0",
+            "v1.12",
+            "v1.12.3-",
+            "v1.12.3+build",
+            "dev",
+            "",
+        ]:
+            with self.assertRaises(ValueError):
+                self.release_meta(tag=tag)
+        for count in ["0", "2100000001"]:
+            with self.assertRaises(ValueError):
+                self.release_meta(count=count)
+
+    def test_release_metadata_rejects_tag_not_on_head(self):
+        with self.assertRaisesRegex(ValueError, "不指向当前提交"):
+            self.release_meta(tagged="c" * 40)
+
+    def test_release_identity_is_separate_from_test_packages(self):
+        self.assertEqual(ci.expected_package("test"), "com.aliothmoon.maafw.mda.membershiptest")
+        self.assertEqual(ci.expected_package("pr"), "com.aliothmoon.maafw.mda.membershippr")
+        self.assertEqual(ci.expected_package("release"), "com.aliothmoon.maafw.mda")
+        self.assertEqual(ci.artifact_prefix("test"), "MDA-android-arm64-test")
+        self.assertEqual(ci.artifact_prefix("pr"), "MDA-android-arm64-pr")
+        self.assertEqual(ci.artifact_prefix("release"), "MDA-android-arm64-v8a")
+
+    def test_github_output_only_contains_scalars(self):
+        scalars = ci.scalar_metadata(self.release_meta())
+        self.assertNotIn("release", scalars)
+        self.assertNotIn("{}", str(scalars))
+        self.assertEqual(scalars["assemble"], "release")
+        self.assertEqual(scalars["package"], "com.aliothmoon.maafw.mda")
+        self.assertEqual(scalars["artifact_prefix"], "MDA-android-arm64-v8a")
 
     def test_explicit_code_does_not_read_local_counter_or_shell_history(self):
         with (
@@ -58,12 +112,57 @@ class AndroidCITest(unittest.TestCase):
                 ci.sign_apk(Path("missing.apk"), Path("tools"))
             run.assert_not_called()
 
+    def test_release_signing_requires_all_material(self):
+        with (
+            patch.dict(ci.os.environ, {}, clear=True),
+            self.assertRaises(ValueError),
+        ):
+            ci.prepare_release_signing()
+
+    def test_release_signing_reports_missing_cert_variable(self):
+        env = {name: "fixture" for name in ci.RELEASE_SIGNING_SECRETS}
+        with (
+            patch.dict(ci.os.environ, env, clear=True),
+            self.assertRaisesRegex(ValueError, ci.RELEASE_CERT_VARIABLE),
+        ):
+            ci.prepare_release_signing()
+
+    def test_release_signing_writes_keystore_and_github_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "github-output.txt"
+            env = {
+                "ANDROID_KEYSTORE_BASE64": base64.b64encode(b"fixture").decode(),
+                "ANDROID_STORE_PASSWORD": "fixture",
+                "ANDROID_KEY_ALIAS": "fixture",
+                "ANDROID_KEY_PASSWORD": "fixture",
+                "ANDROID_CERT_SHA256": "a" * 64,
+                "RUNNER_TEMP": directory,
+                "GITHUB_OUTPUT": str(output),
+            }
+            with patch.dict(ci.os.environ, env, clear=True):
+                key = ci.prepare_release_signing()
+                self.assertEqual(key.read_bytes(), b"fixture")
+                self.assertIn(f"path={key}", output.read_text(encoding="utf-8"))
+
     def make_apk(
-        self, path, *, version="2.5.0-ci.1", enabled="1", probe=False, ocr=True
+        self,
+        path,
+        *,
+        version="2.5.0-ci.1",
+        enabled="1",
+        probe=False,
+        ocr=True,
+        update=False,
     ):
         pi = io.BytesIO()
+        interface = {"version": version}
+        if update:
+            interface.update(
+                mirrorchyan_rid="MDA",
+                github="https://github.com/1204244136/MDA",
+            )
         with zipfile.ZipFile(pi, "w") as archive:
-            archive.writestr("interface.json", json.dumps({"version": version}))
+            archive.writestr("interface.json", json.dumps(interface))
             if ocr:
                 archive.writestr("resource/model/ocr/rec.onnx", b"fixture")
         with zipfile.ZipFile(path, "w") as archive:
@@ -92,7 +191,7 @@ class AndroidCITest(unittest.TestCase):
             with patch.object(
                 ci.subprocess, "check_output", side_effect=["same", "same", info]
             ):
-                ci.inspect_contents(apk, "2.5.0-ci.1", agent)
+                ci.inspect_contents(apk, "2.5.0-ci.1", agent, False)
             with (
                 patch.object(
                     ci.subprocess,
@@ -101,7 +200,7 @@ class AndroidCITest(unittest.TestCase):
                 ),
                 self.assertRaisesRegex(ValueError, "Agent"),
             ):
-                ci.inspect_contents(apk, "2.5.0-ci.1", agent)
+                ci.inspect_contents(apk, "2.5.0-ci.1", agent, False)
             for changes in [
                 {"version": "old"},
                 {"ocr": False},
@@ -117,7 +216,29 @@ class AndroidCITest(unittest.TestCase):
                     ),
                     self.assertRaises(ValueError),
                 ):
-                    ci.inspect_contents(apk, "2.5.0-ci.1", agent)
+                    ci.inspect_contents(apk, "2.5.0-ci.1", agent, False)
+
+    def test_release_apk_requires_update_sources(self):
+        info = "GOOS=android GOARCH=arm64"
+        with tempfile.TemporaryDirectory() as directory:
+            apk = Path(directory) / "release.apk"
+            agent = Path(directory) / "agent.so"
+            agent.write_bytes(b"unused")
+            self.make_apk(apk, update=True)
+            with patch.object(
+                ci.subprocess, "check_output", side_effect=["same", "same", info]
+            ):
+                ci.inspect_contents(apk, "2.5.0-ci.1", agent, True)
+            self.make_apk(apk, update=False)
+            with (
+                patch.object(
+                    ci.subprocess,
+                    "check_output",
+                    side_effect=["same", "same", info],
+                ),
+                self.assertRaisesRegex(ValueError, "更新源"),
+            ):
+                ci.inspect_contents(apk, "2.5.0-ci.1", agent, True)
 
     def test_manual_build_rejects_wrong_certificate(self):
         with (
@@ -138,7 +259,29 @@ class AndroidCITest(unittest.TestCase):
                 Path("fixture.apk"),
                 Path("tools"),
                 {"version": "2.5.0", "version_code": 1},
-                False,
+                "test",
+            )
+
+    def test_release_build_rejects_wrong_certificate(self):
+        with (
+            patch.object(ci.subprocess, "run"),
+            patch.object(
+                ci.subprocess,
+                "check_output",
+                side_effect=[
+                    "package: name='com.aliothmoon.maafw.mda' versionCode='1200' versionName='1.12.3'",
+                    "Verified using v2 scheme (APK Signature Scheme v2): true\nSigner #1 certificate SHA-256 digest: "
+                    + "a" * 64,
+                ],
+            ),
+            patch.dict(ci.os.environ, {"ANDROID_CERT_SHA256": "b" * 64}),
+            self.assertRaisesRegex(ValueError, "证书"),
+        ):
+            ci.verify_apk(
+                Path("fixture.apk"),
+                Path("tools"),
+                {"version": "1.12.3", "version_code": 1200},
+                "release",
             )
 
     def test_signing_and_verification_explicitly_cover_v2(self):
@@ -185,7 +328,10 @@ class AndroidCITest(unittest.TestCase):
                 self.assertRaisesRegex(ValueError, "证书"),
             ):
                 ci.verify_apk(
-                    apk, Path("tools"), {"version": "2.5.0", "version_code": 1}, False
+                    apk,
+                    Path("tools"),
+                    {"version": "2.5.0", "version_code": 1},
+                    "test",
                 )
 
 

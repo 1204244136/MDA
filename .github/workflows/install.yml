@@ -68,10 +68,28 @@ jobs:
           echo tag=$tag | tee -a $GITHUB_OUTPUT
           echo is_release=$is_release | tee -a $GITHUB_OUTPUT
           echo is_prerelease=$is_prerelease | tee -a $GITHUB_OUTPUT
+      - id: maafw
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PINNED: ${{ env.MAAFW_VERSION }}
+        run: |
+          set -euo pipefail
+          # 桌面包与 Android 包必须使用同一版 MaaFramework；未固定时取最新 release。
+          if [[ -n "$PINNED" ]]; then
+            version="$PINNED"
+          else
+            version=$(gh release view --repo MaaXYZ/MaaFramework --json tagName -q .tagName)
+          fi
+          if [[ "$version" != v* ]]; then
+            echo "::error::MaaFramework 版本必须形如 v5.14.3，实际为 $version"
+            exit 1
+          fi
+          echo "version=$version" | tee -a $GITHUB_OUTPUT
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
       is_release: ${{ steps.set_tag.outputs.is_release }}
       is_prerelease: ${{ steps.set_tag.outputs.is_prerelease }}
+      maafw_version: ${{ steps.maafw.outputs.version }}
 
   install:
     needs: meta
@@ -109,8 +127,8 @@ jobs:
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-${{ matrix.os }}-${{ matrix.arch }}*"
-          latest: ${{ env.MAAFW_VERSION == '' }}
-          tag: ${{ env.MAAFW_VERSION }}
+          latest: false
+          tag: ${{ needs.meta.outputs.maafw_version }}
           out-file-path: "deps"
           extract: true
 
@@ -248,20 +266,50 @@ jobs:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}
 
+  # 正式版的 Android APK：与桌面包同一 tag、同一 MaaFramework 版本，一起进 Release
+  android:
+    if: ${{ needs.meta.outputs.is_release == 'true' }}
+    needs: meta
+    uses: ./.github/workflows/android.yml
+    with:
+      assemble: release
+      ref: ${{ github.ref }}
+      tag: ${{ needs.meta.outputs.tag }}
+      maafw_version: ${{ needs.meta.outputs.maafw_version }}
+    secrets:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
   release:
     if: ${{ needs.meta.outputs.is_release == 'true' }}
-    needs: [ meta, install, changelog ]
+    needs: [ meta, install, changelog, android ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v7
         with:
+          # 只取最终安装包；android.yml 的中间产物（metadata / agent-dist）不进 Release。
+          pattern: MDA-*
           path: assets
 
-      - run: |
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          set -euo pipefail
           cd assets
-          for f in *; do
-            (cd "$f" && zip -r "../$f.zip" .)
+          # Android APK 直接作为 Release 资产，不再压缩；构建信息留在 Actions artifact。
+          for dir in MDA-android-arm64-v8a-*; do
+            [ -d "$dir" ] || continue
+            find "$dir" -maxdepth 1 -name '*.apk' -exec mv {} . \;
+            rm -rf "$dir"
           done
+          for dir in *; do
+            [ -d "$dir" ] || continue
+            (cd "$dir" && zip -r "../$dir.zip" .)
+            rm -rf "$dir"
+          done
+          ls -la
 
       - uses: softprops/action-gh-release@v2
         with:

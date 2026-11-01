@@ -72,12 +72,17 @@ footer = """
 {%- endfor -%}
 
 {% if latest_version -%}
+{%- set android_version = latest_version | trim_start_matches(pat="v") -%}
 **绝大部分用户请下载 [MDA-win-x86_64-{{ latest_version }}.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/MDA-win-x86_64-{{ latest_version }}.zip)**
+
+**手机版（Android，arm64-v8a，需要 Shizuku 或 root）请下载 [MDA-android-arm64-v8a-{{ android_version }}.apk]({{ self::remote_url() }}/releases/download/{{ latest_version }}/MDA-android-arm64-v8a-{{ android_version }}.apk)**
 {%- else -%}
 **绝大部分用户请下载 MDA-win-x86_64-vx.x.x.zip，没找到的请点 show all x assets**
 {%- endif %}
 
 [已有 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=MDA&source=mdagh-release)
+
+[手机版 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=MDA_android&source=mdagh-release)
 """
 
 [git]
