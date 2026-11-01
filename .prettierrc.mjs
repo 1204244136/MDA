@@ -4,8 +4,6 @@ import * as maafwSort from "@nekosu/prettier-plugin-maafw-sort";
 export default {
     plugins: [maafwSort.patchPlugin(multilineArrays)],
     multilineArraysWrapThreshold: 1,
-    // 本地化键序按声明顺序维护。
-    maafwLocalePatterns: [],
     maafwInterfacePatterns: [
         "/interface.json",
         "/tasks/.*\\.json",
