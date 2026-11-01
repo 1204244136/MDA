@@ -2,12 +2,13 @@
 
 import argparse
 import json
-import shutil
+import re
 import subprocess
 from pathlib import Path
 
 FRAMEWORK_REVISION = "8963191215ca49d6b037802acd07d20a4213160a"
-MXU_REVISION = "968f4315a6d43ddb03c5cee091b8314737081d03"
+MXU_REVISION = "dbce2f2e124a67d5df9e481730e801fd1dfe2469"
+MXU_VERSION = "2.8.1"
 HERE = Path(__file__).resolve().parent
 
 
@@ -116,6 +117,19 @@ def patch_loader(text):
                    "    pi.controller = pi.controller.filter((c) => c.name !== 'Logitech' && c.name !== 'Razer');")
 
 
+def patch_json_version(text):
+    return replace(text, '"version": "0.1.0"', f'"version": "{MXU_VERSION}"')
+
+
+def patch_cargo_version(text):
+    return replace(text, 'name = "mxu"\nversion = "0.1.0"', f'name = "mxu"\nversion = "{MXU_VERSION}"')
+
+
+def verify_input_methods(text):
+    if re.search(r'MaaWin32InputMethod_\w+\s+\(1ULL << (?:11|12)\)', text):
+        raise RuntimeError('MaaFramework 已占用实验性输入的方法位')
+
+
 def verify(repo, revision):
     actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo, text=True).strip()
     if actual != revision:
@@ -147,11 +161,16 @@ def main():
     framework, mxu = args.framework.resolve(), args.mxu.resolve()
     verify(framework, FRAMEWORK_REVISION)
     verify(mxu, MXU_REVISION)
+    verify_input_methods((framework / 'include/MaaFramework/MaaDef.h').read_text(encoding='utf-8'))
     plan = []
     update(plan, framework, FRAMEWORK_REVISION, 'source/MaaWin32ControlUnit/Manager/Win32ControlUnitMgr.cpp', patch_manager)
     update(plan, framework, FRAMEWORK_REVISION, 'source/MaaWin32ControlUnit/Screencap/FramePoolScreencap.cpp', patch_framepool)
     for name in ('ExperimentalInputApi.h', 'ExperimentalInputCore.h', 'ExperimentalInputLibrary.h', 'ExperimentalInput.h'):
         copy_new(plan, HERE / name, framework / 'source/MaaWin32ControlUnit/Input' / name)
+    update(plan, mxu, MXU_REVISION, 'package.json', patch_json_version)
+    update(plan, mxu, MXU_REVISION, 'src-tauri/tauri.conf.json', patch_json_version)
+    update(plan, mxu, MXU_REVISION, 'src-tauri/Cargo.toml', patch_cargo_version)
+    update(plan, mxu, MXU_REVISION, 'src-tauri/Cargo.lock', patch_cargo_version)
     update(plan, mxu, MXU_REVISION, 'src/types/maa.ts', patch_types)
     update(plan, mxu, MXU_REVISION, 'src-tauri/src/commands/maa_core.rs', patch_rust)
     update(plan, mxu, MXU_REVISION, 'src-tauri/src/commands/maa_agent.rs', patch_agent)

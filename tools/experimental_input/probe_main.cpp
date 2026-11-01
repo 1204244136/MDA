@@ -39,6 +39,10 @@ private:
 
 int wmain(int argc, wchar_t** argv)
 {
+    // 光标用物理坐标，显示器范围也要按物理坐标读取。
+    if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)) {
+        std::cerr << "无法启用 DPI 感知，检测已取消。"; return 1;
+    }
     if (argc != 3 || (std::wstring(argv[1]) != L"Logitech" && std::wstring(argv[1]) != L"Razer")) {
         std::cerr << "只能检测 Logitech 或 Razer。"; return 1;
     }

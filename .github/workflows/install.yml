@@ -157,7 +157,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: MistEO/MXU
-          ref: 968f4315a6d43ddb03c5cee091b8314737081d03
+          ref: dbce2f2e124a67d5df9e481730e801fd1dfe2469
           path: .experimental-input-build/mxu
 
       - name: Setup pnpm
@@ -181,6 +181,15 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
+
+      - name: Test Windows input support
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        shell: pwsh
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python tools/experimental_input/tests/run.py
 
       - name: Build Windows input support
         if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
@@ -206,6 +215,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
           cargo build --manifest-path src-tauri/Cargo.toml --locked --release --features tauri/custom-protocol
+          cargo test --manifest-path src-tauri/Cargo.toml --locked --release --features tauri/custom-protocol --lib experimental_input
 
       - name: Clean install directory
         shell: bash
