@@ -1,0 +1,86 @@
+# CodeRabbit 代码审查配置
+# 参考：https://docs.coderabbit.ai/reference/configuration
+#
+# 仓库根的 AGENTS.md 会被 CodeRabbit 自动读取作为审查标准，
+# 这里只补 AGENTS.md 没有按路径固定下来的部分。
+
+language: zh-CN
+tone_instructions: "简洁直接，指出具体文件与行号，不要复述代码"
+
+reviews:
+  # quiet / chill / assertive，默认 chill
+  profile: chill
+
+  # 排除没有审查价值的文件，避免对着二进制和锁文件说话
+  path_filters:
+    - "!assets/resource/image/**"
+    - "!assets/resource/model/**"
+    - "!assets/MaaCommonAssets/**"
+    - "!deps/**"
+    - "!3rdparty/**"
+    - "!node_modules/**"
+    - "!**/*.lock"
+    - "!uv.lock"
+    - "!pnpm-lock.yaml"
+
+  path_instructions:
+    - path: "assets/resource/pipeline/**"
+      instructions: |
+        - OCR 节点不允许出现 threshold，阈值只对 TemplateMatch / ColorMatch 有效。
+        - 检查 next 引用的节点名能否在 Pipeline 资源范围内找到，范围含其他目录与 Themes 子目录，
+          不要只查本文件或同目录，否则跨目录引用会被误报为缺失。
+        - 识别与动作参数（roi、roi_offset、expected、count）应留在 Pipeline 声明，
+          不要挪进 Go 代码。
+    - path: "assets/tasks/**"
+      instructions: |
+        - CurrentEvent 这个 case 不允许携带非空 pipeline_override，
+          它是「当前活动」自动跟随机制的前提。
+        - 小活动主题的 pipeline_override 若覆盖 SmallEventEventStageQuickBattleFlow，
+          其 next 末尾必须是 SmallEventGoBack。
+        - 界面任务显示顺序由 assets/interface.json 的 import 决定，不要在 tasks/*.json 里调整。
+    - path: "assets/locales/interface/**"
+      instructions: |
+        - zh_cn.json 与 en_us.json 的键集必须一致，新增键要同时补到两个文件。
+        - 键序由 Prettier 排序插件维护，不要对键序提建议。
+    - path: "agent/go-service/**"
+      instructions: |
+        - 识别参数硬编码在 Go 里要指出，应改为 ctx.RunRecognition 复用 Pipeline 节点。
+        - 关注 goroutine 泄漏、context 取消传递、defer 遗漏。
+
+  pre_merge_checks:
+    custom_checks:
+      - name: "Pipeline 节点命名与职责一致"
+        mode: warning
+        instructions: |
+          检查本 PR 新增或重命名的 pipeline 节点。节点名必须反映实际职责，不能只看后缀：
+          名为 xxxClick 的节点，action 应当是 Click；名为 xxxDetect 的节点不应带点击动作。
+          若名称与职责不符，指出节点名和实际 action。
+      - name: "Go 侧不得硬编码识别参数"
+        mode: warning
+        instructions: |
+          Fail：agent/go-service 下新增或修改的 Go 代码出现 roi、roi_offset、template、
+          expected、阈值或颜色区间的硬编码字面量。这类参数应下沉到 Pipeline 节点，
+          Go 侧只通过 ctx.RunRecognition 引用节点名。
+          例外：纯内部常量且有注释说明为何无法在 Pipeline 表达。
+      - name: "小活动素材命名体系"
+        mode: warning
+        instructions: |
+          范围限定在 assets/tasks/SmallEvent.json 与 assets/resource/pipeline/Event/SmallEvent/**
+          的 template 字段。不要对 LargeEvent 或其他任务的模板套用本规则。
+          图片目录被 path_filters 排除，因此从引用处判断。
+          合法命名：
+          - 入口图：{Theme}Logo.png
+          - 无 Story 的普通小活动：{Theme}StageNormal.png、{Theme}StageHard.png
+          - 有 Story 切换按钮的大型小活动：{Theme}Story1Stage.png、{Theme}Story2StageNormal.png
+          - 扫荡按钮在关卡名后加 Repeatable，如 {Theme}StageNormalRepeatable.png
+          - 同一模式的不同外观变体可加 SP 后缀，如 {Theme}StageNormalSP.png
+          判定有无 Story 的依据是活动主页是否存在 STORY I / STORY II 切换按钮，
+          不是关卡批次数量——同一 Story 下的多关卡是 1-01、1-02 这类序号。
+          Fail：在没有 Story 按钮的活动上使用 Story1 / Story2 前缀。
+      - name: "i18n 双语言键集同步"
+        mode: warning
+        instructions: |
+          检查 assets/locales/interface/zh_cn.json 与 en_us.json。
+          Fail：两个文件的键集不一致，存在只出现在其中一个文件的键。
+          键序由 Prettier 插件维护，不需要检查顺序。
+          通过时说明新增了哪些键。
