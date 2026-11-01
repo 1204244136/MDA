@@ -34,6 +34,6 @@ app:
   id: mda
   label: MDA
   icon: ../assets/locales/MDA-Tiny.png
-# 手机版在 Mirror酱单独发布为 MDA_android；PI 里的 MDA 是桌面包
+# 手机版复用桌面 RID MDA，Mirror酱按 os=android / arch=arm64 区分平台。
 update:
-  mirrorchyanRid: MDA_android
+  mirrorchyanRid: MDA

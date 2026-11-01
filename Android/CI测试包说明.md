@@ -6,17 +6,17 @@
 
 ## 发布与测试链路
 
-| 触发                                   | 产物                              | 去向                                    |
-| -------------------------------------- | --------------------------------- | --------------------------------------- |
-| `v*` tag → `install.yml`               | 正式包 `com.aliothmoon.maafw.mda` | GitHub Release + Mirror酱 `MDA_android` |
-| PR 改动 Android、资源、Go Agent 或工具 | PR 包 `...membershippr`           | 仅 Actions artifact                     |
-| 手动运行（`assemble: debug`）          | 联调包 `...membershiptest`        | 仅 Actions artifact                     |
+| 触发                                   | 产物                              | 去向                                             |
+| -------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| `v*` tag → `install.yml`               | 正式包 `com.aliothmoon.maafw.mda` | GitHub Release + Mirror酱 `MDA`（android/arm64） |
+| PR 改动 Android、资源、Go Agent 或工具 | PR 包 `...membershippr`           | 仅 Actions artifact                              |
+| 手动运行（`assemble: debug`）          | 联调包 `...membershiptest`        | 仅 Actions artifact                              |
 
 `android.yml` 也支持手动选 `assemble: release` 出正式包，同样需要正式签名 Secrets；常规发版走 tag 链路，不要在手动构建里另造版本号。
 `workflow_dispatch` 的 `tag` 留空时要求 HEAD 正好在某个 `v*` tag 上，不再回退到「最近可达 tag」；`maafw_version` 留空沿用 `Android/ci-versions.json`。tag 链路会显式传入 tag 与桌面包同版本的 MaaFramework。
 
 正式包资产名为 `MDA-android-arm64-v8a-<version>.apk`，`<version>` 是 tag 去掉 `v`。Release 步骤只把 APK 放到资产根目录，SHA256 与 JSON 构建信息留在 Actions artifact。
-Mirror酱 由 `mirrorchyan_release.yml` 的两个 job 分担：桌面 `MDA` 走 `os` × `arch` 矩阵，`mirrorchyan_android` 用 `rid=MDA_android`、`os=android`、`arch=arm64` 匹配 `MDA-android-arm64-v8a-*`。
+Mirror酱 由 `mirrorchyan_release.yml` 的两个 job 分担，二者共用桌面 RID `MDA`：桌面 job 走 `os` × `arch` 矩阵，`mirrorchyan_android` 用 `os=android`、`arch=arm64` 匹配 `MDA-android-arm64-v8a-*`。
 
 ## 如何拿测试包
 
@@ -99,7 +99,7 @@ CI 不修改旁边的 MaaFwApp 仓库，独立检出到 runner 的 `.cache/andro
 ## 发布前检查
 
 1. 仓库 Secrets 已配置 `ANDROID_KEYSTORE_BASE64`、`ANDROID_STORE_PASSWORD`、`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD`，Variable `ANDROID_CERT_SHA256` 与实际证书指纹一致。
-2. Mirror酱 已创建 Android 项目 `MDA_android`（`os=android`、`arch=arm64`）。
+2. Mirror酱 的 `MDA` 项目已支持 `android` / `arm64` 平台（客服确认复用原 RID，不需要新建项目）。
 3. 正式 tag 一旦推送，`install.yml` 会立即触发发布流程，因此无法在推送前用同一个 tag 干跑正式包。发布前只做不依赖 tag 的检查：正式签名 Secrets/Variable、Mirror酱 项目，以及 `Android/release.profile.yaml` 与 `Android/ci-versions.json` 的包名、ABI、产物名一致。
 4. 想在合并后提前验证 release 变体，只能在本地按「开发与构建」执行 `assembleRelease`（自行设置 `KEYSTORE_*`，不发布），或接受正式包的 tag 相关校验随发布流程一起完成。
 5. 推送 `v*` tag 后，`install.yml` 会调用本工作流。Android 失败会阻断整个 Release，因此正式 tag 应尽量在 release 变体本地构建通过后再推。

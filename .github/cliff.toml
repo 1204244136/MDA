@@ -82,7 +82,7 @@ footer = """
 
 [已有 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=MDA&source=mdagh-release)
 
-[手机版 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=MDA_android&source=mdagh-release)
+[手机版 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=MDA&os=android&arch=arm64&source=mdagh-release)
 """
 
 [git]
