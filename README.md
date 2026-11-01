@@ -169,7 +169,7 @@ pwsh -File "<MDA 目录>\scripts\phone-display-16x9.ps1" -Restore
 
 除桌面版外，MDA 还提供独立的 Android 客户端（arm64-v8a，需要 Shizuku 或 root），与桌面版共用同一套任务与预设。
 
-从 GitHub Release 下载 `MDA-android-arm64-v8a-<version>.apk`，或从 Mirror酱 的 `MDA_android` 项目获取。安装后先在应用内运行「Agent 自检」，再运行「启动国际服」。
+从 GitHub Release 下载 `MDA-android-arm64-v8a-<version>.apk`，或从 Mirror酱 的 `MDA` 项目（Android 平台）获取。安装后先在应用内运行「Agent 自检」，再运行「启动国际服」。
 
 手机版与桌面版需要分别绑定会员、分别开通。实体键盘功能（自定义爆裂、COIN RUSH SHOWDOWN、PERSONA ON FRONTLINE）暂未适配触控，请勿在手机上运行；详见 [Android 说明](Android/README.md)。
 

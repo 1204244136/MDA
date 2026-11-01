@@ -1,6 +1,6 @@
 # Android 手机版
 
-MDA 手机版面向国际服 NIKKE，与桌面版共用同一套任务、选项和预设。正式包随 `v*` tag 构建，与桌面安装包一起进入 GitHub Release，并在 Mirror酱 的独立项目 `MDA_android` 分发；安装后可在应用内检查更新。
+MDA 手机版面向国际服 NIKKE，与桌面版共用同一套任务、选项和预设。正式包随 `v*` tag 构建，与桌面安装包一起进入 GitHub Release，并与桌面共用 Mirror酱 的 `MDA` 项目（按 `os=android`、`arch=arm64` 区分平台）分发；安装后可在应用内检查更新。
 
 | 项目   | 正式版                     |
 | ------ | -------------------------- |
@@ -17,7 +17,7 @@ MDA 手机版面向国际服 NIKKE，与桌面版共用同一套任务、选项�
 
 Release 资产名为 `MDA-android-arm64-v8a-<version>.apk`，`<version>` 是 tag 去掉 `v`：`v1.12.3` 对应 `MDA-android-arm64-v8a-1.12.3.apk`。同一 tag 的桌面包与该 APK 一起发布，构建时使用与桌面版相同的 MaaFramework 版本，Android 与桌面统一由 `install.yml` 调用 `android.yml`（`assemble: release`）产出。
 
-Mirror酱 上的手机版是独立项目 `MDA_android`（`os=android`、`arch=arm64`），与桌面的 `MDA` 项目分开注册、分开上传。应用内更新由 `Android/release.profile.yaml` 的 `update.mirrorchyanRid: MDA_android` 指定，只查询手机项目；PI 资源中的 `mirrorchyan_rid` 仍沿用桌面的 `MDA`。
+Mirror酱 上的手机版复用桌面 `MDA` 项目（`os=android`、`arch=arm64`），不需要单独 RID。应用内更新由 `Android/release.profile.yaml` 的 `update.mirrorchyanRid: MDA` 指定；PI 资源中的 `mirrorchyan_rid` 同样是 `MDA`。
 
 ## 包一览
 
