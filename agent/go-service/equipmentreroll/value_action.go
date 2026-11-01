@@ -39,7 +39,9 @@ func (a *EquipmentRerollValueDecideAction) Run(ctx *maa.Context, arg *maa.Custom
 	}
 	clearValuePlan(arg.TaskID)
 	started := time.Now()
-	plan, err := planValueRerollWithInventory(getScannedParts(arg.TaskID), loadCarrierConfig(ctx), valueInventory(arg.TaskID), "")
+	parts := getScannedParts(arg.TaskID)
+	cfg := loadCarrierConfig(ctx)
+	plan, err := planValueRerollWithInventory(parts, cfg, valueInventory(arg.TaskID), "")
 	if err != nil {
 		log.Error().Err(err).Int64("task_id", arg.TaskID).Msg("cannot plan value reroll")
 		maafocus.Print(ctx, i18n.T("tasker.equipment_reroll.value_invalid", err.Error()))
@@ -50,7 +52,12 @@ func (a *EquipmentRerollValueDecideAction) Run(ctx *maa.Context, arg *maa.Custom
 		return routeEquipmentRerollEnd(ctx, arg.CurrentTaskName) == nil
 	}
 	log.Info().Int64("task_id", arg.TaskID).Dur("elapsed_ms", time.Since(started)).Interface("plan", plan).Msg("value reroll plan prepared")
-	maafocus.Print(ctx, i18n.T("tasker.equipment_reroll.value_pending", plan.Pending, plan.Part))
+	// 进度摘要放在提示语前面：先给出各目标的当前合计档位与换算百分比，用户不必自己查表。
+	message := i18n.T("tasker.equipment_reroll.value_pending", plan.Pending, plan.Part)
+	if progress := buildValueProgressMessage(parts, cfg); progress != "" {
+		message = progress + "\n" + message
+	}
+	maafocus.Print(ctx, message)
 	if err := setCurrentPart(arg.TaskID, plan.Part); err != nil {
 		log.Error().Err(err).Msg("failed to select value reroll part")
 		return false
