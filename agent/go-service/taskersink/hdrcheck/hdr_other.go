@@ -2,8 +2,8 @@
 
 package hdrcheck
 
-// IsHDREnabled always returns false on non-Windows platforms
-// HDR detection is only supported on Windows
-func IsHDREnabled() (bool, error) {
-	return false, nil
+// QueryColorState always reports nothing on non-Windows platforms
+// Advanced color detection is only supported on Windows
+func QueryColorState() (ColorState, error) {
+	return ColorState{}, nil
 }

@@ -5,6 +5,7 @@ package hdrcheck
 import (
 	"unsafe"
 
+	"github.com/rs/zerolog/log"
 	"golang.org/x/sys/windows"
 )
 
@@ -21,8 +22,19 @@ const (
 )
 
 // DISPLAYCONFIG_DEVICE_INFO_TYPE
+//
+// 注意編號：GET_ADVANCED_COLOR_INFO_2 是 15，不是 11（11 是 GET_SDR_WHITE_LEVEL，
+// 用錯型別只會拿到 ERROR_INVALID_PARAMETER=87）。
 const (
-	DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO = 9
+	DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO  = 9
+	DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2 = 15
+)
+
+// DISPLAYCONFIG_ADVANCED_COLOR_MODE
+const (
+	advancedColorModeSDR uint32 = 0
+	advancedColorModeWCG uint32 = 1
+	advancedColorModeHDR uint32 = 2
 )
 
 // LUID represents a locally unique identifier
@@ -90,6 +102,15 @@ type DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO struct {
 	BitsPerColorChannel uint32
 }
 
+// DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 reports the active HDR/WCG mode separately.
+type DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 struct {
+	Header              DISPLAYCONFIG_DEVICE_INFO_HEADER
+	Value               uint32
+	ColorEncoding       uint32
+	BitsPerColorChannel uint32
+	ActiveColorMode     uint32
+}
+
 // Windows error codes
 const (
 	ERROR_INSUFFICIENT_BUFFER = 122
@@ -98,67 +119,87 @@ const (
 // Maximum retry attempts for display config query
 const maxRetries = 3
 
-// IsHDREnabled checks if HDR is enabled on any display
-func IsHDREnabled() (bool, error) {
+// QueryColorState queries color modes on active display paths.
+//
+// INFO_2 separates HDR from WCG. If it fails, the legacy advanced-color bit
+// preserves compatibility but may still report WCG as HDR.
+func QueryColorState() (ColorState, error) {
+	var state ColorState
+
 	// Check if required APIs are available (may not exist on older Windows)
 	if err := procGetDisplayConfigBufferSizes.Find(); err != nil {
-		return false, err
+		return state, err
 	}
 	if err := procQueryDisplayConfig.Find(); err != nil {
-		return false, err
+		return state, err
 	}
 	if err := procDisplayConfigGetDeviceInfo.Find(); err != nil {
-		return false, err
+		return state, err
 	}
 
 	// Query display config with retry logic for topology changes
 	pathArray, err := queryDisplayConfigWithRetry()
 	if err != nil {
-		return false, err
+		return state, err
 	}
 
 	if len(pathArray) == 0 {
-		return false, nil
+		return state, nil
 	}
 
-	// Check each active path for HDR
-	var successCount int
+	// Check each active path
 	for i := range pathArray {
-		colorInfo := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{
-			Header: DISPLAYCONFIG_DEVICE_INFO_HEADER{
-				Type:      DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO,
-				Size:      uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{})),
-				AdapterId: pathArray[i].TargetInfo.AdapterId,
-				Id:        pathArray[i].TargetInfo.Id,
-			},
+		header := DISPLAYCONFIG_DEVICE_INFO_HEADER{
+			AdapterId: pathArray[i].TargetInfo.AdapterId,
+			Id:        pathArray[i].TargetInfo.Id,
 		}
 
-		ret, _, _ := procDisplayConfigGetDeviceInfo.Call(
-			uintptr(unsafe.Pointer(&colorInfo)),
-		)
-		if ret != 0 {
-			// Skip this display if we can't get info
+		colorInfo2 := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2{Header: header}
+		colorInfo2.Header.Type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2
+		colorInfo2.Header.Size = uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2{}))
+
+		ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo2)))
+		if ret == 0 {
+			state.Displays++
+			switch colorInfo2.ActiveColorMode {
+			case advancedColorModeHDR:
+				state.HDR = true
+			case advancedColorModeWCG:
+				state.WCG = true
+			}
 			continue
 		}
-		successCount++
 
-		// Check if HDR is enabled (bit 1 of Value field)
-		// Bit 0: advancedColorSupported
-		// Bit 1: advancedColorEnabled (HDR is ON)
-		// Bit 2: wideColorEnforced
-		// Bit 3: advancedColorForceDisabled
-		advancedColorEnabled := (colorInfo.Value & 0x2) != 0
-		if advancedColorEnabled {
-			return true, nil
+		log.Debug().
+			Err(windows.Errno(ret)).
+			Uint32("display_id", header.Id).
+			Msg("Advanced color INFO_2 query failed; using legacy HDR detection")
+
+		colorInfo := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{Header: header}
+		colorInfo.Header.Type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO
+		colorInfo.Header.Size = uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{}))
+
+		if ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo))); ret != 0 {
+			log.Debug().
+				Err(windows.Errno(ret)).
+				Uint32("display_id", header.Id).
+				Msg("Failed to query legacy advanced color status")
+			continue
+		}
+		state.Displays++
+
+		// Preserve the legacy bit-1 check; it cannot reliably distinguish WCG from HDR.
+		if (colorInfo.Value & 0x2) != 0 {
+			state.HDR = true
 		}
 	}
 
 	// If we couldn't query any display successfully, return error
-	if successCount == 0 {
-		return false, windows.ERROR_GEN_FAILURE
+	if state.Displays == 0 {
+		return state, windows.ERROR_GEN_FAILURE
 	}
 
-	return false, nil
+	return state, nil
 }
 
 // queryDisplayConfigWithRetry queries display config with retry on ERROR_INSUFFICIENT_BUFFER

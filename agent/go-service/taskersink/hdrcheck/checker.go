@@ -31,14 +31,15 @@ func (c *HDRChecker) OnTaskerTask(tasker *maa.Tasker, event maa.EventStatus, det
 		Str("entry", detail.Entry).
 		Msg("Checking HDR status before task execution")
 
-	hdrEnabled, err := IsHDREnabled()
+	state, err := QueryColorState()
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to check HDR status")
 		return
 	}
 
-	if hdrEnabled {
-		log.Warn().Msg("HDR is enabled! This may cause issues with image recognition.")
+	switch {
+	case state.HDR:
+		log.Warn().Int("displays", state.Displays).Msg("HDR is enabled! This may cause issues with image recognition.")
 
 		// Print warning message (HTML formatted for MXU display)
 		maafocus.PrintLargeContentTrimNewline(
@@ -47,7 +48,11 @@ func (c *HDRChecker) OnTaskerTask(tasker *maa.Tasker, event maa.EventStatus, det
 
 		// Mark as warned to avoid repeated warnings
 		c.warned = true
-	} else {
+	case state.WCG:
+		// WCG/ACM is advanced color, but should not trigger the HDR warning.
+		log.Debug().Int("displays", state.Displays).
+			Msg("HDR check passed: advanced color (WCG/ACM) is on, HDR is off")
+	default:
 		log.Debug().Msg("HDR check passed: HDR is not enabled")
 	}
 }
