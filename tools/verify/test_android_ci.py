@@ -55,7 +55,15 @@ class AndroidCITest(unittest.TestCase):
         self.assertEqual(prerelease["version"], "1.12.3-beta.1")
 
     def test_release_metadata_rejects_bad_tag_and_version_code(self):
-        for tag in ["1.12.3", "v0.1.0", "v1.12", "v1.12.3-", "dev", ""]:
+        for tag in [
+            "1.12.3",
+            "v0.1.0",
+            "v1.12",
+            "v1.12.3-",
+            "v1.12.3+build",
+            "dev",
+            "",
+        ]:
             with self.assertRaises(ValueError):
                 self.release_meta(tag=tag)
         for count in ["0", "2100000001"]:

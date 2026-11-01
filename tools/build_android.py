@@ -27,7 +27,10 @@ DEV_VERSION = "0.0.0-dev.2"
 TEST_VERSION = DEV_VERSION
 DEFAULT_TEST_VERSION = "2.5.0-android-test.2"
 # 正式版本同时覆盖 MaaFwApp 的 versionName 与 PI 的 version，必须能被会员检查识别。
-RELEASE_VERSION = re.compile(
+# 正式 tag 不接受 +build：git-cliff 的正式版 tag-pattern 不匹配它，发布正文会错位。
+RELEASE_VERSION = re.compile(r"[1-9]\d*\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?")
+# 测试版本带 +commit，供会员检查区分 Android CI 包。
+MEMBER_VERSION = re.compile(
     r"[1-9]\d*\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
 )
 # 与实体按键审计测试对应；只给出提示，不替换原有动作。
@@ -366,7 +369,7 @@ def main() -> None:
         TEST_VERSION = args.version or DEFAULT_TEST_VERSION
     elif args.version:
         TEST_VERSION = args.version
-    if args.membership and not RELEASE_VERSION.fullmatch(TEST_VERSION):
+    if args.membership and not MEMBER_VERSION.fullmatch(TEST_VERSION):
         parser.error("会员测试需要 major >= 1 的版本，防止进入 dev 免会员模式")
     if args.release and not args.prepare_only:
         # 正式包必须签名；在复制整仓资源前失败，避免几十秒后才报缺 keystore。

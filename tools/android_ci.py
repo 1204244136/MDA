@@ -24,9 +24,7 @@ DIST = ROOT / "Android/build/ci"
 MEMBERSHIP = ROOT / "Android/build/membership"
 RELEASE = builder.RELEASE
 TEST_PACKAGE_PREFIX = "com.aliothmoon.maafw.mda."
-RELEASE_TAG = re.compile(
-    r"v([1-9]\d*\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?:\+[0-9A-Za-z.-]+)?"
-)
+RELEASE_TAG = re.compile(r"v([1-9]\d*\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)")
 TEST_SIGNING_NAMES = [
     "ANDROID_TEST_KEYSTORE_BASE64",
     "ANDROID_TEST_STORE_PASSWORD",

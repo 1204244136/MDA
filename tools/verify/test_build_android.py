@@ -79,6 +79,13 @@ class AndroidAssetsTest(unittest.TestCase):
         self.assertIn("mirrorchyanRid: MDA_android", profile)
         self.assertIn("MDA_ANDROID_MEMBERSHIP_ENABLED", profile)
 
+    def test_release_version_rejects_build_metadata(self):
+        self.assertIsNone(BUILDER.RELEASE_VERSION.fullmatch("1.12.3+build"))
+        self.assertIsNotNone(BUILDER.RELEASE_VERSION.fullmatch("1.12.3-beta.1"))
+        self.assertIsNotNone(
+            BUILDER.MEMBER_VERSION.fullmatch("2.5.0-android.ci.1.1+aaaaaaaa")
+        )
+
     def test_keyboard_actions_are_covered_and_not_adapted(self):
         found = set()
         for path in (ROOT / "assets/resource/pipeline").rglob("*.json"):
