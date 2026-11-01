@@ -46,10 +46,10 @@ func (c *HDRChecker) OnTaskerTask(tasker *maa.Tasker, event maa.EventStatus, det
 			i18n.RenderHTML("tasker.hdr_warning", nil),
 		)
 
-		// Mark as warned to avoid repeated warning
+		// Mark as warned to avoid repeated warnings
 		c.warned = true
 	case state.WCG:
-		// Windows 11 的「進階色彩 / ACM」也開著 advanced color，但不是 HDR，不影響辨識。
+		// WCG/ACM is advanced color, but should not trigger the HDR warning.
 		log.Debug().Int("displays", state.Displays).
 			Msg("HDR check passed: advanced color (WCG/ACM) is on, HDR is off")
 	default:

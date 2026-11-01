@@ -5,6 +5,7 @@ package hdrcheck
 import (
 	"unsafe"
 
+	"github.com/rs/zerolog/log"
 	"golang.org/x/sys/windows"
 )
 
@@ -101,21 +102,13 @@ type DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO struct {
 	BitsPerColorChannel uint32
 }
 
-// DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 多出 activeColorMode，這是唯一能區分
-// 「進階色彩 / WCG」與「HDR」的欄位；v1 的 advancedColorEnabled 兩者都會是 1。
+// DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 reports the active HDR/WCG mode separately.
 type DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 struct {
 	Header              DISPLAYCONFIG_DEVICE_INFO_HEADER
 	Value               uint32
 	ColorEncoding       uint32
 	BitsPerColorChannel uint32
 	ActiveColorMode     uint32
-}
-
-// ColorState 是所有作用中螢幕的色彩模式摘要。
-type ColorState struct {
-	HDR      bool // 任一螢幕處於 HDR
-	WCG      bool // 任一螢幕處於 WCG（Windows 進階色彩 / ACM），但不是 HDR
-	Displays int  // 成功查詢的螢幕數
 }
 
 // Windows error codes
@@ -126,20 +119,10 @@ const (
 // Maximum retry attempts for display config query
 const maxRetries = 3
 
-// IsHDREnabled checks if HDR is enabled on any display
-func IsHDREnabled() (bool, error) {
-	state, err := QueryColorState()
-	if err != nil {
-		return false, err
-	}
-	return state.HDR, nil
-}
-
-// QueryColorState 逐台查詢作用中螢幕的色彩模式。
+// QueryColorState queries color modes on active display paths.
 //
-// 只把 activeColorMode == HDR 當成 HDR：v1 的 advancedColorEnabled 在 Windows 11 開啟
-// 「進階色彩（ACM / WCG）」時也會是 1，先前因此誤報（實測兩台螢幕 activeColorMode=1/WCG、
-// HDR 沒開，卻印出「HDR is enabled」）。舊版 Windows 沒有 INFO_2 時才退回 v1。
+// INFO_2 separates HDR from WCG. If it fails, the legacy advanced-color bit
+// preserves compatibility but may still report WCG as HDR.
 func QueryColorState() (ColorState, error) {
 	var state ColorState
 
@@ -175,7 +158,8 @@ func QueryColorState() (ColorState, error) {
 		colorInfo2.Header.Type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO2
 		colorInfo2.Header.Size = uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2{}))
 
-		if ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo2))); ret == 0 {
+		ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo2)))
+		if ret == 0 {
 			state.Displays++
 			switch colorInfo2.ActiveColorMode {
 			case advancedColorModeHDR:
@@ -186,17 +170,25 @@ func QueryColorState() (ColorState, error) {
 			continue
 		}
 
+		log.Debug().
+			Err(windows.Errno(ret)).
+			Uint32("display_id", header.Id).
+			Msg("Advanced color INFO_2 query failed; using legacy HDR detection")
+
 		colorInfo := DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{Header: header}
 		colorInfo.Header.Type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO
 		colorInfo.Header.Size = uint32(unsafe.Sizeof(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO{}))
 
 		if ret, _, _ := procDisplayConfigGetDeviceInfo.Call(uintptr(unsafe.Pointer(&colorInfo))); ret != 0 {
-			// Skip this display if we can't get info
+			log.Debug().
+				Err(windows.Errno(ret)).
+				Uint32("display_id", header.Id).
+				Msg("Failed to query legacy advanced color status")
 			continue
 		}
 		state.Displays++
 
-		// Bit 1: advancedColorEnabled。舊系統沒有 ACM，這個位元等同 HDR。
+		// Preserve the legacy bit-1 check; it cannot reliably distinguish WCG from HDR.
 		if (colorInfo.Value & 0x2) != 0 {
 			state.HDR = true
 		}
