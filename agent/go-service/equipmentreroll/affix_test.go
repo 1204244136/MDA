@@ -68,6 +68,72 @@ func TestRecognizeAffixNameOCRSeparatesNameFromValueEvidence(t *testing.T) {
 	}
 }
 
+// 结果页同一槽位的两条 OCR 路径对数值精度不同：整行识别（only_rec）会吞掉小字号的
+// 小数位。以下读数全部取自 MDA-logs-v1.12.2-20261101-120023 的真实失败帧，修复前这些帧
+// 会被判成「数值冲突」而反复重试，直到 result_unreadable 让任务停在结果页。
+func TestAffixReadingMergeToleratesTruncatedPercent(t *testing.T) {
+	inline := func(text string) []*maa.OCRResult {
+		return []*maa.OCRResult{{Text: text, Box: maa.Rect{535, 404, 258, 24}, Score: 0.838}}
+	}
+	split := func(name, value string) []*maa.OCRResult {
+		return []*maa.OCRResult{
+			{Text: name, Box: maa.Rect{571, 409, 69, 13}, Score: 0.994},
+			{Text: value, Box: maa.Rect{656, 408, 49, 14}, Score: 0.964},
+		}
+	}
+
+	tests := []struct {
+		name   string
+		direct []*maa.OCRResult
+		detect []*maa.OCRResult
+		value  string
+		ok     bool
+	}{
+		{"6.64 dropped last digit", inline("【暴击伤害增加】 6.6%"), split("【暴击伤害增加】", "6.64%"), "6.64%", true},
+		{"11.11 dropped decimals", inline("【命中率增加】11%"), split("【命中率增加】", "11.11%"), "11.11%", true},
+		{"11.11 dropped leading digit", inline("【蓄力伤害增加】1.1%"), split("【蓄力伤害增加】", "11.11%"), "11.11%", true},
+		{"10.94 dropped last digit", inline("【优越代码伤害增加】 10.9%"), split("【优越代码伤害增加】", "10.94%"), "10.94%", true},
+		{"another official tier stays a conflict", inline("【暴击伤害增加】 6.64%"), split("【暴击伤害增加】", "8.60%"), "", false},
+		{"name conflict stays a conflict", inline("【暴击伤害增加】 6.64%"), split("【防御力增加】", "6.64%"), "", false},
+	}
+
+	for _, tt := range tests {
+		for _, order := range []string{"direct first", "detected first"} {
+			t.Run(tt.name+"/"+order, func(t *testing.T) {
+				readings := [][]*maa.OCRResult{tt.direct, tt.detect}
+				if order == "detected first" {
+					readings[0], readings[1] = readings[1], readings[0]
+				}
+				var state affixReading
+				ok := true
+				for _, results := range readings {
+					effect, raw, recognized, conflicting := recognizeAffixOCR(results)
+					state, ok = state.merge(effect, raw, recognized, conflicting)
+					if !ok {
+						break
+					}
+				}
+				if ok != tt.ok {
+					t.Fatalf("ok=%v want %v (raw=%q)", ok, tt.ok, state.raw)
+				}
+				if tt.ok && extractPercentValue(state.raw) != tt.value {
+					t.Fatalf("value=%q want %q (raw=%q)", extractPercentValue(state.raw), tt.value, state.raw)
+				}
+			})
+		}
+	}
+}
+
+// 空槽（未获得效果）不能靠档位表把任何数值洗白，含糊的数值仍要判冲突。
+func TestReconcileAffixValueRequiresKnownEffect(t *testing.T) {
+	if value, ok := reconcileAffixValue("", "6.6%", "6.64%"); ok {
+		t.Fatalf("empty effect reconciled to %q", value)
+	}
+	if value, ok := reconcileAffixValue("未知效果", "6.6%", "6.64%"); ok {
+		t.Fatalf("unknown effect reconciled to %q", value)
+	}
+}
+
 func TestRecognizeAffixOCRPairsOnlyUnambiguousSameRowValues(t *testing.T) {
 	ocr := func(text string, box maa.Rect) *maa.OCRResult {
 		return &maa.OCRResult{Text: text, Box: box, Score: 0.99}
