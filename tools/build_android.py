@@ -10,6 +10,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+if __package__:
+    from .generate_zh_tw import generate_zh_tw
+else:
+    from generate_zh_tw import generate_zh_tw
+
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / "Android" / "build"
 ANDROID_VERSIONS = json.loads(
@@ -165,6 +170,7 @@ def prepare_assets() -> Path:
         },
     )
     annotate_keyboard_features(target)
+    generate_zh_tw(target)
     write_json(
         target / "resource/pipeline/AndroidTest.json",
         {

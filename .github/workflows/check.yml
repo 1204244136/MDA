@@ -66,6 +66,9 @@ jobs:
       - name: Test event template preparation
         run: uv run --frozen --only-group schema --with opencv-python python .agents/skills/mda-event-update/scripts/test_prepare_templates.py
 
+      - name: Test generated Traditional Chinese resources
+        run: uv run --frozen --only-group install python -m unittest discover -s tools/verify -p 'test_generate_zh_tw.py'
+
       - name: Validate JSON Schema
         run: |
           uv run --frozen --only-group schema python tools/validate_schema.py --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --interface-files assets/interface.json --task-dirs assets/tasks

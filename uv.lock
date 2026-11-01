@@ -61,6 +61,7 @@ source = { editable = "." }
 install = [
     { name = "json-with-comments" },
     { name = "jsonschema" },
+    { name = "opencc-py" },
 ]
 schema = [
     { name = "jsonschema" },
@@ -69,6 +70,7 @@ schema = [
 scripts = [
     { name = "json-with-comments" },
     { name = "jsonschema" },
+    { name = "opencc-py" },
     { name = "referencing" },
 ]
 
@@ -78,6 +80,7 @@ scripts = [
 install = [
     { name = "json-with-comments" },
     { name = "jsonschema", specifier = ">=4.0" },
+    { name = "opencc-py", specifier = "==1.4.2" },
 ]
 schema = [
     { name = "jsonschema", specifier = "==4.26.0" },
@@ -87,7 +90,29 @@ scripts = [
     { name = "json-with-comments" },
     { name = "jsonschema", specifier = "==4.26.0" },
     { name = "jsonschema", specifier = ">=4.0" },
+    { name = "opencc-py", specifier = "==1.4.2" },
     { name = "referencing", specifier = "==0.37.0" },
+]
+
+[[package]]
+name = "opencc-data"
+version = "1.4.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/e7/a78db1e7bc83a2a5dc397de4db14d8e765774454eae56c6e690ad3364396/opencc_data-1.4.2.tar.gz", hash = "sha256:620e55a9fe65c446a539a0515c69a111b892c7e088a45433e36291d700ff1ff3", size = 542308, upload-time = "2026-08-22T22:46:43.209Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/91/30/6a07c72c8215ad065bd4dbeb22d40575daba0109d44a18899a0d4e421677/opencc_data-1.4.2-py3-none-any.whl", hash = "sha256:60aa561acd3f0a122fad71ba141356a877bb3305c72573177c76ecb0b26e26ef", size = 553157, upload-time = "2026-08-22T22:46:41.436Z" },
+]
+
+[[package]]
+name = "opencc-py"
+version = "1.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "opencc-data" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b9/f1/236b8d6f8792b4047467cd1273f1e2d2c1fe0eb763f6a7edf12b4b8681d2/opencc_py-1.4.2.tar.gz", hash = "sha256:0e5de8d6b81b2822bfc7a19b39c0414cb17bea033c0da9c6a77b4fa6293cd306", size = 22369, upload-time = "2026-08-23T00:36:38.195Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/c4/7a6e6dbc7247b829216f362e759eb1409ac5257b67b767597d4656537af4/opencc_py-1.4.2-py3-none-any.whl", hash = "sha256:ffdfd8cec7cd7661fcf959188c37b59e9e9bf9cea6c6a60b777396fb3117568f", size = 16008, upload-time = "2026-08-23T00:36:36.898Z" },
 ]
 
 [[package]]

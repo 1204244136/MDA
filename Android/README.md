@@ -39,6 +39,7 @@ CI 的两种包均启用实际会员和额度检查。手机需要单独绑定�
 ## 开发工具
 
 `tools/build_android.py` 负责复制和标注 Android 专用资源、构建 Agent、部署框架和调用外壳 Gradle。
+本地构建同样通过 `uv run --frozen --only-group install python tools/build_android.py <构建参数>` 运行，以加载繁体资源生成依赖。
 `tools/android_shell.py` 只对锁定版本的独立外壳 checkout 应用会员桥接补丁。
 `Android/ci-versions.json` 锁定依赖版本，CI 显式传入统一版本及构建号。
 生成资源、APK、工具链、签名文件、真机日志均不得提交。

@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 import jsonc
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
 SPEC = importlib.util.spec_from_file_location(
     "build_android", ROOT / "tools/build_android.py"
 )
@@ -85,9 +87,9 @@ class AndroidAssetsTest(unittest.TestCase):
                     case.get("pipeline_override"), source_case.get("pipeline_override")
                 )
 
-    def test_both_languages_warn_at_task_option_theme_and_preset(self):
+    def test_all_languages_warn_at_task_option_theme_and_preset(self):
         event = read_json(self.assets / "tasks/LargeEvent.json")
-        for language in ("zh_cn", "en_us"):
+        for language in ("zh_cn", "en_us", "zh_tw"):
             locale = read_json(self.assets / f"locales/interface/{language}.json")
             self.assertIn("A/S/D", locale["task.CustomBurst.description"])
             self.assertIn("COIN RUSH SHOWDOWN", locale["task.LargeEvent.description"])

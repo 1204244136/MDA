@@ -146,6 +146,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - uses: astral-sh/setup-uv@v9.0.0
       - uses: actions/setup-java@v5
         with:
           java-version: '21'
@@ -193,12 +194,13 @@ jobs:
           IS_PR: ${{ github.event_name == 'pull_request' }}
         shell: python
         run: |
-          import os, subprocess, sys
+          import os, subprocess
           from pathlib import Path
           shell = Path('.cache/android-shell').resolve()
           (shell / 'gradlew').chmod(0o755)
           (shell / 'local.properties').write_text('sdk.dir=' + os.environ['ANDROID_HOME'] + '\n')
-          command = [sys.executable, 'tools/build_android.py', '--membership', '--skip-agent',
+          command = ['uv', 'run', '--frozen', '--only-group', 'install', 'python',
+                     'tools/build_android.py', '--membership', '--skip-agent',
                      '--shell', str(shell), '--ndk', os.environ['ANDROID_HOME'] + '/ndk/' + os.environ['NDK_VERSION'],
                      '--version', os.environ['VERSION'], '--version-code', os.environ['VERSION_CODE'],
                      '--maafw-tag', os.environ['MAAFW_TAG'], '--ndk-version', os.environ['NDK_VERSION']]

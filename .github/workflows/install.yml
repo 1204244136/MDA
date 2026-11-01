@@ -18,6 +18,8 @@ on:
       - "assets/**"
       - "agent/**"
       - "**.py"
+      - "pyproject.toml"
+      - "uv.lock"
   pull_request:
     branches:
       - "**"
@@ -26,6 +28,8 @@ on:
       - "assets/**"
       - "agent/**"
       - "**.py"
+      - "pyproject.toml"
+      - "uv.lock"
   workflow_dispatch:
 
 jobs:

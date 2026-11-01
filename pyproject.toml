@@ -21,6 +21,7 @@ schema = [
 install = [
     "json-with-comments",
     "jsonschema>=4.0",
+    "opencc-py==1.4.2",
 ]
 scripts = [
     { include-group = "schema" },
