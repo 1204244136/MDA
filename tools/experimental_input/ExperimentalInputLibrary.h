@@ -12,10 +12,10 @@
 #include <filesystem>
 #include <string>
 
-#include "CccCore.h"
-#include "ccc_api.h"
+#include "ExperimentalInputCore.h"
+#include "ExperimentalInputApi.h"
 
-namespace ccc {
+namespace experimental_input {
 
 class Library final : public Backend {
 public:
@@ -98,4 +98,4 @@ private:
     inline static std::atomic_bool in_use_ { false };
 };
 
-} // namespace ccc
+} // namespace experimental_input

@@ -34,7 +34,7 @@ export function ExperimentalInputSection() {
     } catch (error) { setMessage(String(error)); }
     finally { setBusy(false); }
   };
-  const probe = async (backend: 'BBB' | 'CCC') => {
+  const probe = async (backend: 'Logitech' | 'Razer') => {
     const current = ++sequence.current;
     setBusy(true);
     setMessage('');
@@ -47,7 +47,7 @@ export function ExperimentalInputSection() {
       setCountdown(0);
       const controllers = useAppStore.getState().projectInterface?.controller ?? [];
       const defaultController = controllers.find((controller) => controller.name === 'Win32-Window') ??
-        controllers.find((controller) => controller.type === 'Win32' && controller.name !== 'BBB' && controller.name !== 'CCC');
+        controllers.find((controller) => controller.type === 'Win32' && controller.name !== 'Logitech' && controller.name !== 'Razer');
       const defaultConfig = buildDesktopWindowControllerConfig(defaultController, 0);
       setMessage(await invoke<string>('mda_probe_experimental', { backend, defaultConfig }));
     } catch (error) { setMessage(String(error)); }
@@ -67,7 +67,7 @@ export function ExperimentalInputSection() {
         {enabled && <>
         <p className="text-xs text-text-muted">{t('experimentalInput.instructions')}</p>
         <div className="flex gap-2">
-          {(['BBB', 'CCC'] as const).map((backend) => <button key={backend} type="button"
+          {(['Logitech', 'Razer'] as const).map((backend) => <button key={backend} type="button"
             disabled={!loaded || !enabled || busy || running} onClick={() => void probe(backend)}
             className="px-3 py-2 rounded-lg text-sm border border-border hover:bg-bg-hover disabled:opacity-50">
             {t('experimentalInput.test', { backend })}

@@ -19,18 +19,18 @@ def replace(text, old, new):
 
 def patch_manager(text):
     text = replace(text, '#include "Input/InterceptionInput.h"',
-                   '#include "Input/InterceptionInput.h"\n#include "Input/CccInput.h"')
+                   '#include "Input/InterceptionInput.h"\n#include "Input/ExperimentalInput.h"')
     text = replace(text, '    connected_ = true;\n    return true;',
                    '    const auto experimental = [](MaaWin32InputMethod method) {\n'
-                   '        return method == MdaBbbInputMethod || method == MdaCccInputMethod;\n'
+                   '        return method == MdaLogitechInputMethod || method == MdaRazerInputMethod;\n'
                    '    };\n'
                    '    if ((experimental(mouse_method_) && !mouse_) ||\n'
                    '        (experimental(keyboard_method_) && !keyboard_)) return false;\n\n'
                    '    connected_ = true;\n    return true;')
     return replace(text, '    case MaaWin32InputMethod_Interception:',
-                   '    case MdaBbbInputMethod:\n    case MdaCccInputMethod: {\n'
-                   '        auto input = std::make_shared<CccInput>(hwnd_,\n'
-                   '            method == MdaBbbInputMethod ? L"bbb_connector.dll" : L"ccc_connector.dll");\n'
+                   '    case MdaLogitechInputMethod:\n    case MdaRazerInputMethod: {\n'
+                   '        auto input = std::make_shared<ExperimentalInput>(hwnd_,\n'
+                   '            method == MdaLogitechInputMethod ? L"logitech_connector.dll" : L"razer_connector.dll");\n'
                    '        return input->initialize() ? input : nullptr;\n    }\n'
                    '    case MaaWin32InputMethod_Interception:')
 
@@ -45,10 +45,10 @@ def patch_framepool(text):
 
 def patch_types(text):
     text = replace(text, '  Interception: 1n << 9n,',
-                   '  Interception: 1n << 9n,\n  BBB: 1n << 11n,\n  CCC: 1n << 12n,')
+                   '  Interception: 1n << 9n,\n  Logitech: 1n << 11n,\n  Razer: 1n << 12n,')
     return replace(text, '  Interception: Win32InputMethod.Interception,',
                    '  Interception: Win32InputMethod.Interception,\n'
-                   '  BBB: Win32InputMethod.BBB,\n  CCC: Win32InputMethod.CCC,')
+                   '  Logitech: Win32InputMethod.Logitech,\n  Razer: Win32InputMethod.Razer,')
 
 
 def patch_rust(text):
@@ -107,13 +107,13 @@ def patch_loader(text):
     text = replace(text, '    filterControllersByPlatform(pi, backendOS);',
                    '    filterControllersByPlatform(pi, backendOS);\n'
                    "    const enabled = await invoke<boolean>('mda_experimental_status').catch(() => false);\n"
-                   "    if (!enabled) pi.controller = pi.controller.filter((c) => c.name !== 'BBB' && c.name !== 'CCC');")
+                   "    if (!enabled) pi.controller = pi.controller.filter((c) => c.name !== 'Logitech' && c.name !== 'Razer');")
     text = replace(text, "      filterControllersByPlatform(apiResult.interface, apiResult.backendOS ?? '');",
                    "      filterControllersByPlatform(apiResult.interface, apiResult.backendOS ?? '');\n"
-                   "      apiResult.interface.controller = apiResult.interface.controller.filter((c) => c.name !== 'BBB' && c.name !== 'CCC');")
+                   "      apiResult.interface.controller = apiResult.interface.controller.filter((c) => c.name !== 'Logitech' && c.name !== 'Razer');")
     return replace(text, "    filterControllersByPlatform(pi, '');",
                    "    filterControllersByPlatform(pi, '');\n"
-                   "    pi.controller = pi.controller.filter((c) => c.name !== 'BBB' && c.name !== 'CCC');")
+                   "    pi.controller = pi.controller.filter((c) => c.name !== 'Logitech' && c.name !== 'Razer');")
 
 
 def verify(repo, revision):
@@ -150,7 +150,7 @@ def main():
     plan = []
     update(plan, framework, FRAMEWORK_REVISION, 'source/MaaWin32ControlUnit/Manager/Win32ControlUnitMgr.cpp', patch_manager)
     update(plan, framework, FRAMEWORK_REVISION, 'source/MaaWin32ControlUnit/Screencap/FramePoolScreencap.cpp', patch_framepool)
-    for name in ('ccc_api.h', 'CccCore.h', 'CccLibrary.h', 'CccInput.h'):
+    for name in ('ExperimentalInputApi.h', 'ExperimentalInputCore.h', 'ExperimentalInputLibrary.h', 'ExperimentalInput.h'):
         copy_new(plan, HERE / name, framework / 'source/MaaWin32ControlUnit/Input' / name)
     update(plan, mxu, MXU_REVISION, 'src/types/maa.ts', patch_types)
     update(plan, mxu, MXU_REVISION, 'src-tauri/src/commands/maa_core.rs', patch_rust)

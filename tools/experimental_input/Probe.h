@@ -1,11 +1,11 @@
 #pragma once
 
-#include "CccCore.h"
+#include "ExperimentalInputCore.h"
 
 #include <cstdint>
 #include <cstdlib>
 
-namespace ccc {
+namespace experimental_input {
 
 enum class ProbeResult { success, invalid_delta, position_error, preexisting_motion, move_failed, no_motion, unexpected_motion, return_failed };
 
@@ -64,4 +64,4 @@ inline ProbeResult probe(ProbeIO& io, int dx, int dy, ProbeTrace* trace = nullpt
     return close_enough(current, origin, 2) ? ProbeResult::success : ProbeResult::return_failed;
 }
 
-} // namespace ccc
+} // namespace experimental_input

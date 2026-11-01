@@ -12,17 +12,17 @@
 #include "InputUtils.h"
 #include "MaaUtils/Logger.h"
 
-#include "CccCore.h"
-#include "CccLibrary.h"
+#include "ExperimentalInputCore.h"
+#include "ExperimentalInputLibrary.h"
 
 MAA_CTRL_UNIT_NS_BEGIN
 
-constexpr MaaWin32InputMethod MdaCccInputMethod = 1ULL << 12;
-constexpr MaaWin32InputMethod MdaBbbInputMethod = 1ULL << 11;
+constexpr MaaWin32InputMethod MdaRazerInputMethod = 1ULL << 12;
+constexpr MaaWin32InputMethod MdaLogitechInputMethod = 1ULL << 11;
 
-class CccCursor final : public ccc::Cursor {
+class ExperimentalInputCursor final : public experimental_input::Cursor {
 public:
-    explicit CccCursor(HWND hwnd) : hwnd_(hwnd) { }
+    explicit ExperimentalInputCursor(HWND hwnd) : hwnd_(hwnd) { }
     void set_enabled_path(std::filesystem::path path) { enabled_path_ = std::move(path); }
     bool focused() const override
     {
@@ -32,7 +32,7 @@ public:
         const HWND root = hwnd_ ? GetAncestor(hwnd_, GA_ROOT) : nullptr;
         return root && IsWindow(root) && !IsIconic(root) && GetForegroundWindow() == root;
     }
-    bool target(int x, int y, ccc::Point& out) const override
+    bool target(int x, int y, experimental_input::Point& out) const override
     {
         DpiScope dpi;
         RECT rect {};
@@ -42,7 +42,7 @@ public:
         out = { p.x, p.y };
         return true;
     }
-    bool position(ccc::Point& out) const override
+    bool position(experimental_input::Point& out) const override
     {
         DpiScope dpi;
         POINT p {};
@@ -61,10 +61,10 @@ private:
     std::filesystem::path enabled_path_;
 };
 
-class CccInput final : public RelativeMoveInput {
+class ExperimentalInput final : public RelativeMoveInput {
 public:
-    explicit CccInput(HWND hwnd, const wchar_t* connector) : connector_(connector), cursor_(hwnd), session_(library_, cursor_) { }
-    ~CccInput() override
+    explicit ExperimentalInput(HWND hwnd, const wchar_t* connector) : connector_(connector), cursor_(hwnd), session_(library_, cursor_) { }
+    ~ExperimentalInput() override
     {
         watcher_.request_stop();
         if (watcher_.joinable()) watcher_.join();
@@ -143,9 +143,9 @@ private:
     static void module_anchor() { }
     static bool checked(bool ok) { if (!ok) LogError << "Input operation failed; release was attempted"; return ok; }
     std::filesystem::path connector_;
-    ccc::Library library_;
-    CccCursor cursor_;
-    ccc::Session session_;
+    experimental_input::Library library_;
+    ExperimentalInputCursor cursor_;
+    experimental_input::Session session_;
     std::mutex mutex_;
     std::jthread watcher_;
 };

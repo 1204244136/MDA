@@ -1,4 +1,4 @@
-#include "../CccCore.h"
+#include "../ExperimentalInputCore.h"
 #include "../Probe.h"
 
 #include <cassert>
@@ -6,16 +6,16 @@
 #include <utility>
 #include <vector>
 
-struct FakeCursor : ccc::Cursor {
+struct FakeCursor : experimental_input::Cursor {
     bool active = true;
-    ccc::Point pos { 0, 0 };
+    experimental_input::Point pos { 0, 0 };
     bool focused() const override { return active; }
-    bool target(int x, int y, ccc::Point& p) const override { p = {x + 100, y + 200}; return x >= 0 && y >= 0; }
-    bool position(ccc::Point& p) const override { p = pos; return true; }
+    bool target(int x, int y, experimental_input::Point& p) const override { p = {x + 100, y + 200}; return x >= 0 && y >= 0; }
+    bool position(experimental_input::Point& p) const override { p = pos; return true; }
     void pause() const override { }
 };
 
-struct FakeBackend : ccc::Backend {
+struct FakeBackend : experimental_input::Backend {
     FakeCursor& cursor;
     bool fail_press = false, fail_release = false, fail_wheel = false;
     std::vector<std::string> events;
@@ -27,12 +27,12 @@ struct FakeBackend : ccc::Backend {
     bool release_all() override { events.push_back("release"); return !fail_release; }
 };
 
-struct FakeProbe : ccc::ProbeIO {
-    ccc::Point pos {50, 50};
+struct FakeProbe : experimental_input::ProbeIO {
+    experimental_input::Point pos {50, 50};
     std::vector<std::pair<int,int>> moves;
     bool no_motion = false, wrong_motion = false, interrupt_wait = false, bad_return = false;
     int pauses = 0;
-    bool position(ccc::Point& p) override { p = pos; return true; }
+    bool position(experimental_input::Point& p) override { p = pos; return true; }
     bool move(int32_t x, int32_t y) override {
         moves.emplace_back(x,y);
         if (!no_motion) { pos.x += x; pos.y += y; }
@@ -47,7 +47,7 @@ int main()
 {
     FakeCursor cursor;
     FakeBackend backend(cursor);
-    ccc::Session session(backend, cursor);
+    experimental_input::Session session(backend, cursor);
     assert(session.touch_down(0, 0, 20, 30));
     assert(cursor.pos.x >= 119 && cursor.pos.x <= 121 && cursor.pos.y >= 229 && cursor.pos.y <= 231);
     assert(session.touch_move(0, 30, 40));
@@ -78,7 +78,7 @@ int main()
 
     FakeCursor scroll_cursor;
     FakeBackend scroll_backend(scroll_cursor);
-    ccc::Session scroll_session(scroll_backend, scroll_cursor);
+    experimental_input::Session scroll_session(scroll_backend, scroll_cursor);
     assert(!scroll_session.touch_move(0, -1, 10));
     assert(!scroll_session.scroll(0, 120));
     assert(scroll_backend.events.empty());
@@ -97,15 +97,15 @@ int main()
     assert(scroll_backend.events.size() == after_failed_wheel);
 
     FakeProbe ok;
-    ccc::ProbeTrace trace;
-    assert(ccc::probe(ok, 5, 0, &trace) == ccc::ProbeResult::success);
+    experimental_input::ProbeTrace trace;
+    assert(experimental_input::probe(ok, 5, 0, &trace) == experimental_input::ProbeResult::success);
     assert(ok.moves.size() == 2 && trace.have_origin && trace.have_outward && trace.have_last);
     assert(trace.dx == 5 && trace.dy == 0 && trace.outward.x - trace.origin.x == 5 && trace.last.x == trace.origin.x);
-    FakeProbe none; none.no_motion = true; assert(ccc::probe(none, 5, 0) == ccc::ProbeResult::no_motion); assert(none.moves.size() == 1);
+    FakeProbe none; none.no_motion = true; assert(experimental_input::probe(none, 5, 0) == experimental_input::ProbeResult::no_motion); assert(none.moves.size() == 1);
     FakeProbe wrong; wrong.wrong_motion = true;
-    assert(ccc::probe(wrong, 5, 0, &trace) == ccc::ProbeResult::unexpected_motion);
+    assert(experimental_input::probe(wrong, 5, 0, &trace) == experimental_input::ProbeResult::unexpected_motion);
     assert(wrong.moves.size() == 1 && trace.have_outward && trace.last.y - trace.origin.y == 20);
-    FakeProbe interrupted; interrupted.interrupt_wait = true; assert(ccc::probe(interrupted, 5, 0) == ccc::ProbeResult::unexpected_motion); assert(interrupted.moves.size() == 1);
-    FakeProbe bad; bad.bad_return = true; assert(ccc::probe(bad, 0, -7) == ccc::ProbeResult::return_failed); assert(bad.moves.size() == 2);
-    FakeProbe invalid; assert(ccc::probe(invalid, 40, 0) == ccc::ProbeResult::invalid_delta); assert(invalid.moves.empty());
+    FakeProbe interrupted; interrupted.interrupt_wait = true; assert(experimental_input::probe(interrupted, 5, 0) == experimental_input::ProbeResult::unexpected_motion); assert(interrupted.moves.size() == 1);
+    FakeProbe bad; bad.bad_return = true; assert(experimental_input::probe(bad, 0, -7) == experimental_input::ProbeResult::return_failed); assert(bad.moves.size() == 2);
+    FakeProbe invalid; assert(experimental_input::probe(invalid, 40, 0) == experimental_input::ProbeResult::invalid_delta); assert(invalid.moves.empty());
 }

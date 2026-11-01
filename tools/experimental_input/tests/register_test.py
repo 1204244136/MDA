@@ -23,7 +23,7 @@ class RegisterTest(unittest.TestCase):
             subprocess.run([sys.executable, str(script), str(root)], check=True)
             result = json.loads((root / 'interface.json').read_text(encoding='utf-8'))
             self.assertEqual(result['controller'][0], interface['controller'][0])
-            for entry, name in zip(result['controller'][1:], ('BBB', 'CCC'), strict=True):
+            for entry, name in zip(result['controller'][1:], ('Logitech', 'Razer'), strict=True):
                 self.assertEqual(entry['name'], name)
                 self.assertEqual(entry['win32']['mouse'], name)
                 self.assertEqual(entry['win32']['keyboard'], name)

@@ -1,4 +1,4 @@
-"""构建并运行不触碰实际设备的 CCC 核心和加载器测试。"""
+"""构建并运行不触碰实际设备的实验性输入核心和加载器测试。"""
 
 import argparse
 import shutil
@@ -48,7 +48,7 @@ def main():
         run(out / 'core_test.exe')
         run(out / 'library_test.exe', out)
         run('python', '-m', 'unittest', 'discover', '-s', HERE, '-p', '*_test.py', '-v')
-    print('CCC 模拟测试通过；未加载真实连接器或发送输入。')
+    print('实验性输入模拟测试通过；未加载真实连接器或发送输入。')
 
 
 if __name__ == '__main__':

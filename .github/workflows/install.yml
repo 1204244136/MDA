@@ -17,7 +17,7 @@ on:
       - ".github/workflows/install.yml"
       - "assets/**"
       - "agent/**"
-      - "tools/ccc/**"
+      - "tools/experimental_input/**"
       - "**.py"
   pull_request:
     branches:
@@ -26,7 +26,7 @@ on:
       - ".github/workflows/install.yml"
       - "assets/**"
       - "agent/**"
-      - "tools/ccc/**"
+      - "tools/experimental_input/**"
       - "**.py"
   workflow_dispatch:
 
@@ -149,7 +149,7 @@ jobs:
         with:
           repository: MaaXYZ/MaaFramework
           ref: 8963191215ca49d6b037802acd07d20a4213160a
-          path: .ccc-build/framework
+          path: .experimental-input-build/framework
           submodules: false
 
       - name: Checkout MXU source
@@ -158,7 +158,7 @@ jobs:
         with:
           repository: MistEO/MXU
           ref: 968f4315a6d43ddb03c5cee091b8314737081d03
-          path: .ccc-build/mxu
+          path: .experimental-input-build/mxu
 
       - name: Setup pnpm
         if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
@@ -190,17 +190,17 @@ jobs:
           PYTHONUTF8: "1"
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          git -C .ccc-build/framework submodule update --init source/MaaUtils
-          python tools/ccc/prepare.py .ccc-build/framework .ccc-build/mxu
-          python .ccc-build/framework/tools/maadeps-download.py x64-windows
-          cmake -S .ccc-build/framework -B .ccc-build/framework/build-ccc -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_ADB_CONTROLLER=OFF -DWITH_GAMEPAD_CONTROLLER=OFF -DWITH_MAA_AGENT=OFF -DBUILD_PICLI=OFF -DWITH_RECORD_CONTROLLER=OFF -DWITH_REPLAY_CONTROLLER=OFF -DENABLE_CCACHE=OFF '-DMAA_HASH_VERSION=v5.14.3-ccc'
-          cmake --build .ccc-build/framework/build-ccc --target MaaWin32ControlUnit --parallel 4
-          cl /nologo /std:c++20 /EHsc /O2 /utf-8 tools/ccc/probe_main.cpp /Fe:.ccc-build/ccc-probe.exe user32.lib
+          git -C .experimental-input-build/framework submodule update --init source/MaaUtils
+          python tools/experimental_input/prepare.py .experimental-input-build/framework .experimental-input-build/mxu
+          python .experimental-input-build/framework/tools/maadeps-download.py x64-windows
+          cmake -S .experimental-input-build/framework -B .experimental-input-build/framework/build-experimental-input -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_ADB_CONTROLLER=OFF -DWITH_GAMEPAD_CONTROLLER=OFF -DWITH_MAA_AGENT=OFF -DBUILD_PICLI=OFF -DWITH_RECORD_CONTROLLER=OFF -DWITH_REPLAY_CONTROLLER=OFF -DENABLE_CCACHE=OFF '-DMAA_HASH_VERSION=v5.14.3-experimental-input'
+          cmake --build .experimental-input-build/framework/build-experimental-input --target MaaWin32ControlUnit --parallel 4
+          cl /nologo /std:c++20 /EHsc /O2 /utf-8 tools/experimental_input/probe_main.cpp /Fe:.experimental-input-build/experimental-input-probe.exe user32.lib
 
       - name: Build Windows client
         if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
         shell: pwsh
-        working-directory: .ccc-build/mxu
+        working-directory: .experimental-input-build/mxu
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           pnpm install --frozen-lockfile
@@ -261,11 +261,11 @@ jobs:
           PYTHONUTF8: "1"
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          Copy-Item .ccc-build/mxu/src-tauri/target/release/mxu.exe install/MDA.exe
-          Copy-Item .ccc-build/framework/build-ccc/bin/MaaWin32ControlUnit.dll install/maafw/MaaWin32ControlUnit.dll
-          Copy-Item .ccc-build/framework/build-ccc/bin/MaaUtils.dll install/maafw/MaaUtils.dll
-          Copy-Item .ccc-build/ccc-probe.exe install/maafw/ccc-probe.exe
-          python tools/ccc/register.py install
+          Copy-Item .experimental-input-build/mxu/src-tauri/target/release/mxu.exe install/MDA.exe
+          Copy-Item .experimental-input-build/framework/build-experimental-input/bin/MaaWin32ControlUnit.dll install/maafw/MaaWin32ControlUnit.dll
+          Copy-Item .experimental-input-build/framework/build-experimental-input/bin/MaaUtils.dll install/maafw/MaaUtils.dll
+          Copy-Item .experimental-input-build/experimental-input-probe.exe install/maafw/experimental-input-probe.exe
+          python tools/experimental_input/register.py install
 
       - name: Convert PNG to ICO
         if: matrix.os == 'win' && matrix.arch == 'x86_64'

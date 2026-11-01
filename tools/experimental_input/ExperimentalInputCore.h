@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cstdint>
 
-namespace ccc {
+namespace experimental_input {
 
 struct Point { int x; int y; };
 
@@ -158,4 +158,4 @@ private:
     bool scroll_move_failed_ {};
 };
 
-} // namespace ccc
+} // namespace experimental_input

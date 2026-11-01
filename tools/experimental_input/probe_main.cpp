@@ -12,13 +12,13 @@
 #include <string>
 #include <thread>
 
-#include "CccLibrary.h"
+#include "ExperimentalInputLibrary.h"
 #include "Probe.h"
 
-class ProbeIO final : public ccc::ProbeIO {
+class ProbeIO final : public experimental_input::ProbeIO {
 public:
-    ProbeIO(ccc::Library& library, DWORD parent_pid) : library_(library), parent_pid_(parent_pid) { }
-    bool position(ccc::Point& out) override
+    ProbeIO(experimental_input::Library& library, DWORD parent_pid) : library_(library), parent_pid_(parent_pid) { }
+    bool position(experimental_input::Point& out) override
     {
         POINT p {};
         if (!GetPhysicalCursorPos(&p)) return false;
@@ -33,14 +33,14 @@ public:
     }
     void pause(int ms) override { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 private:
-    ccc::Library& library_;
+    experimental_input::Library& library_;
     DWORD parent_pid_ {};
 };
 
 int wmain(int argc, wchar_t** argv)
 {
-    if (argc != 3 || (std::wstring(argv[1]) != L"BBB" && std::wstring(argv[1]) != L"CCC")) {
-        std::cerr << "只能检测 BBB 或 CCC。"; return 1;
+    if (argc != 3 || (std::wstring(argv[1]) != L"Logitech" && std::wstring(argv[1]) != L"Razer")) {
+        std::cerr << "只能检测 Logitech 或 Razer。"; return 1;
     }
     wchar_t* end = nullptr;
     const auto parent_pid = std::wcstoul(argv[2], &end, 10);
@@ -57,9 +57,9 @@ int wmain(int argc, wchar_t** argv)
     if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY)) {
         std::cerr << "实验性输入尚未开启。"; return 1;
     }
-    const auto file = std::wstring(argv[1]) == L"BBB" ? L"bbb_connector.dll" : L"ccc_connector.dll";
+    const auto file = std::wstring(argv[1]) == L"Logitech" ? L"logitech_connector.dll" : L"razer_connector.dll";
     const auto connector_path = root / file;
-    ccc::Library library;
+    experimental_input::Library library;
     if (!library.open(connector_path)) {
         const auto code = library.last_system_error();
         if (code == ERROR_SHARING_VIOLATION || code == ERROR_LOCK_VIOLATION) {
@@ -77,7 +77,7 @@ int wmain(int argc, wchar_t** argv)
         return 1;
     }
     ProbeIO io(library, parent_pid);
-    ccc::Point origin {};
+    experimental_input::Point origin {};
     if (!io.position(origin)) { std::cerr << "无法读取光标位置。"; return 1; }
     POINT p { origin.x, origin.y };
     MONITORINFO monitor {};
@@ -93,16 +93,16 @@ int wmain(int argc, wchar_t** argv)
         const int tx = origin.x + x * distance, ty = origin.y + y * distance;
         if (tx < monitor.rcMonitor.left + 2 || tx >= monitor.rcMonitor.right - 2 ||
             ty < monitor.rcMonitor.top + 2 || ty >= monitor.rcMonitor.bottom - 2) continue;
-        const auto result = ccc::probe(io, x * distance, y * distance);
+        const auto result = experimental_input::probe(io, x * distance, y * distance);
         switch (result) {
-        case ccc::ProbeResult::success:
+        case experimental_input::ProbeResult::success:
             std::cout << "鼠标输入可用。";
             return 0;
-        case ccc::ProbeResult::no_motion: std::cerr << "鼠标输入不可用，请检查连接器。"; break;
-        case ccc::ProbeResult::preexisting_motion: std::cerr << "检测已取消，请松开鼠标后重试。"; break;
-        case ccc::ProbeResult::unexpected_motion: std::cerr << "检测已中止，鼠标位置异常。"; break;
-        case ccc::ProbeResult::return_failed: std::cerr << "鼠标输入异常，未能回到原位。"; break;
-        case ccc::ProbeResult::move_failed: std::cerr << "检测未完成，请检查连接器并保持窗口在前台。"; break;
+        case experimental_input::ProbeResult::no_motion: std::cerr << "鼠标输入不可用，请检查连接器。"; break;
+        case experimental_input::ProbeResult::preexisting_motion: std::cerr << "检测已取消，请松开鼠标后重试。"; break;
+        case experimental_input::ProbeResult::unexpected_motion: std::cerr << "检测已中止，鼠标位置异常。"; break;
+        case experimental_input::ProbeResult::return_failed: std::cerr << "鼠标输入异常，未能回到原位。"; break;
+        case experimental_input::ProbeResult::move_failed: std::cerr << "检测未完成，请检查连接器并保持窗口在前台。"; break;
         default: std::cerr << "检测未完成，请重试。"; break;
         }
         return 1;

@@ -129,7 +129,7 @@ fn connect(config: &ControllerConfig, app: Option<&AppHandle>) -> Result<Control
 
 fn run_probe(backend: &str) -> Result<String, String> {
     let root = super::utils::get_exe_directory()?;
-    let mut cmd = Command::new(root.join("maafw/ccc-probe.exe"));
+    let mut cmd = Command::new(root.join("maafw/experimental-input-probe.exe"));
     cmd.current_dir(&root)
         .arg(backend)
         .arg(std::process::id().to_string())
@@ -334,7 +334,7 @@ pub async fn mda_probe_experimental(
     if !mda_experimental_status() {
         return Err("实验性输入尚未开启".into());
     }
-    if backend != "BBB" && backend != "CCC" {
+    if backend != "Logitech" && backend != "Razer" {
         return Err("输入类型无效".into());
     }
     let gate = PROBE_TASK_GATE
