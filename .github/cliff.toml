@@ -72,7 +72,7 @@ footer = """
 {%- endfor -%}
 
 {% if latest_version -%}
-{%- set android_version = latest_version | replace(from="v", to="") -%}
+{%- set android_version = latest_version | trim_start_matches(pat="v") -%}
 **绝大部分用户请下载 [MDA-win-x86_64-{{ latest_version }}.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/MDA-win-x86_64-{{ latest_version }}.zip)**
 
 **手机版（Android，arm64-v8a，需要 Shizuku 或 root）请下载 [MDA-android-arm64-v8a-{{ android_version }}.apk]({{ self::remote_url() }}/releases/download/{{ latest_version }}/MDA-android-arm64-v8a-{{ android_version }}.apk)**

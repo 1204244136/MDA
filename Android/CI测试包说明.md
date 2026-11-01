@@ -100,9 +100,10 @@ CI 不修改旁边的 MaaFwApp 仓库，独立检出到 runner 的 `.cache/andro
 
 1. 仓库 Secrets 已配置 `ANDROID_KEYSTORE_BASE64`、`ANDROID_STORE_PASSWORD`、`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD`，Variable `ANDROID_CERT_SHA256` 与实际证书指纹一致。
 2. Mirror酱 已创建 Android 项目 `MDA_android`（`os=android`、`arch=arm64`）。
-3. 在 Actions 手动运行 **build-android-apk → Run workflow**，Use workflow from 选准备发布的 tag，`assemble` 选 `release`，`tag` 填同一个 tag；确认 `assembleRelease`、正式签名与 `verify --release` 全部通过。
-4. 再推同一个 `v*` tag。tag 构建会通过 `install.yml` 调用本工作流，Android 失败会阻断整个 Release，因此不要跳过第 3 步。
-5. 正式包需要能覆盖安装上一版：新旧包必须使用同一正式签名；换签名后只能卸载重装。
+3. 正式 tag 一旦推送，`install.yml` 会立即触发发布流程，因此无法在推送前用同一个 tag 干跑正式包。发布前只做不依赖 tag 的检查：正式签名 Secrets/Variable、Mirror酱 项目，以及 `Android/release.profile.yaml` 与 `Android/ci-versions.json` 的包名、ABI、产物名一致。
+4. 想在合并后提前验证 release 变体，只能在本地按「开发与构建」执行 `assembleRelease`（自行设置 `KEYSTORE_*`，不发布），或接受正式包的 tag 相关校验随发布流程一起完成。
+5. 推送 `v*` tag 后，`install.yml` 会调用本工作流。Android 失败会阻断整个 Release，因此正式 tag 应尽量在 release 变体本地构建通过后再推。
+6. 正式包需要能覆盖安装上一版：新旧包必须使用同一正式签名；换签名后只能卸载重装。
 
 ## 构建校验
 
