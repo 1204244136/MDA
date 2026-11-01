@@ -9,6 +9,11 @@ on:
 #   release:
 #     types: [released]
 
+# 上传 action 只读 Release 资产；失败通知会创建 Issue，因此需要 issues: write。
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   mirrorchyan:
     runs-on: macos-latest
