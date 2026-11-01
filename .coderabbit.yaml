@@ -27,7 +27,8 @@ reviews:
     - path: "assets/resource/pipeline/**"
       instructions: |
         - OCR 节点不允许出现 threshold，阈值只对 TemplateMatch / ColorMatch 有效。
-        - 检查 next 引用的节点名能否在本文件或同目录其他文件中找到。
+        - 检查 next 引用的节点名能否在 Pipeline 资源范围内找到，范围含其他目录与 Themes 子目录，
+          不要只查本文件或同目录，否则跨目录引用会被误报为缺失。
         - 识别与动作参数（roi、roi_offset、expected、count）应留在 Pipeline 声明，
           不要挪进 Go 代码。
     - path: "assets/tasks/**"
@@ -64,10 +65,13 @@ reviews:
       - name: "小活动素材命名体系"
         mode: warning
         instructions: |
-          检查 assets/resource/image 下新增的小活动主题模板命名。
-          无 Story 的普通小活动用 {Theme}StageNormal.png / {Theme}StageHard.png。
+          检查本 PR 在 assets/tasks/** 或 assets/resource/pipeline/** 中新增或修改的
+          模板路径引用（template 字段）。图片目录被 path_filters 排除，所以从引用处判断。
+          文件名需符合小活动命名体系：
+          无 Story 的普通小活动用 {Theme}StageNormal.png / {Theme}StageHard.png；
           有 Story 切换按钮的大型小活动用 {Theme}Story1Stage.png / {Theme}Story2StageNormal.png。
-          判断依据是活动主页有没有 STORY I / STORY II 切换按钮，而不是关卡批次数量。
+          判断依据是活动主页有没有 STORY I / STORY II 切换按钮，不是关卡批次数量——
+          同一 Story 下的多个关卡是 1-01、1-02 这类序号，不算 Story。
           Fail：在没有 Story 按钮的活动上使用 Story1 / Story2 前缀。
       - name: "i18n 双语言键集同步"
         mode: warning
