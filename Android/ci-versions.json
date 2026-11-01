@@ -4,5 +4,11 @@
     "maafw_tag": "v5.14.3",
     "ndk_version": "29.0.14206865",
     "build_tools": "36.0.0",
-    "compile_sdk": "android-37.0"
+    "compile_sdk": "android-37.0",
+    "release": {
+        "app_id": "mda",
+        "package": "com.aliothmoon.maafw.mda",
+        "abi": "arm64-v8a",
+        "artifact_prefix": "MDA-android-arm64-v8a"
+    }
 }

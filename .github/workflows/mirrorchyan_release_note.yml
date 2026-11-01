@@ -25,3 +25,20 @@ jobs:
           repo: MDA
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}
+
+  # 手机版在 Mirror酱是独立项目，更新说明也要单独同步。
+  mirrorchyan_android:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == '1204244136' }}
+
+    steps:
+      - id: uploading
+        uses: MirrorChyan/release-note-action@v1
+        with:
+          mirrorchyan_rid: MDA_android
+          version_name: ${{ inputs.tag }}
+
+          owner: 1204244136
+          repo: MDA
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          upload_token: ${{ secrets.MirrorChyanUploadToken }}

@@ -16,7 +16,7 @@ jobs:
       - name: Remove old artifacts
         uses: c-hive/gha-remove-artifacts@v1
         with:
-          age: "14 days" # 与 Android 志愿者测试包的保留期一致，避免手动清理提前删包
+          age: "90 days" # 正式 Android 构建信息保留 90 天；测试包自身 14 天过期
           # Optional inputs
           # skip-tags: true
           # skip-recent: 5

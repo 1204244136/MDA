@@ -85,6 +85,16 @@ Go to **Settings (top-right corner) → Hotkeys** and enable global hotkeys, in 
 
 ---
 
+## Android App
+
+Besides the desktop client, MDA ships a standalone Android app (arm64-v8a, requires Shizuku or root) that shares the same tasks and presets.
+
+Download `MDA-android-arm64-v8a-<version>.apk` from GitHub Releases or the `MDA_android` project on MirrorChyan. After installing, run "Agent Self-check" first, then "Launch Global Client".
+
+Android and desktop memberships are bound and activated separately. Features that need a physical keyboard (Custom Burst, COIN RUSH SHOWDOWN, PERSONA ON FRONTLINE) have no touch adaptation yet; do not run them on Android. See the [Android guide](Android/README.md).
+
+---
+
 ## Language Compatibility
 
 MDA's interface supports multiple languages including Chinese and English, but **the script's functionality is currently only adapted for the Chinese game interface**.

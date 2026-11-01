@@ -165,6 +165,14 @@ pwsh -File "<MDA 目录>\scripts\phone-display-16x9.ps1" -Restore
 
 > 手机端左右贴边元素（左上角返回键、左侧功能列等）的识别窗口，已经按挖孔安全区导致的偏移加宽过，不需要额外配置。
 
+### 5. 手机版 APK（独立客户端）
+
+除桌面版外，MDA 还提供独立的 Android 客户端（arm64-v8a，需要 Shizuku 或 root），与桌面版共用同一套任务与预设。
+
+从 GitHub Release 下载 `MDA-android-arm64-v8a-<version>.apk`，或从 Mirror酱 的 `MDA_android` 项目获取。安装后先在应用内运行「Agent 自检」，再运行「启动国际服」。
+
+手机版与桌面版需要分别绑定会员、分别开通。实体键盘功能（自定义爆裂、COIN RUSH SHOWDOWN、PERSONA ON FRONTLINE）暂未适配触控，请勿在手机上运行；详见 [Android 说明](Android/README.md)。
+
 ---
 
 ## 语言适配说明

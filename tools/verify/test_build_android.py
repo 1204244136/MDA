@@ -1,4 +1,4 @@
-"""Android 测试资源的任务覆盖、按键提示及桌面行为保留回归。"""
+"""Android 测试/正式资源的任务覆盖、按键提示及桌面行为保留回归。"""
 
 import importlib.util
 import json
@@ -27,8 +27,10 @@ class AndroidAssetsTest(unittest.TestCase):
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory()
         cls.previous_build = BUILDER.BUILD
-        BUILDER.BUILD = Path(cls.temp.name)
-        cls.assets = BUILDER.prepare_assets()
+        BUILDER.BUILD = Path(cls.temp.name) / "test"
+        cls.assets = BUILDER.prepare_assets("2.5.0-android-test.2", False)
+        BUILDER.BUILD = Path(cls.temp.name) / "release"
+        cls.release_assets = BUILDER.prepare_assets("1.12.3", True)
 
     @classmethod
     def tearDownClass(cls):
@@ -44,13 +46,38 @@ class AndroidAssetsTest(unittest.TestCase):
             staged = read_json(self.assets / name)
             self.assertEqual(staged.get("task"), source.get("task"), name)
             self.assertEqual(staged.get("preset"), source.get("preset"), name)
-        extra = read_json(self.assets / "tasks/AndroidTest.json")
+        extra = read_json(self.assets / "tasks/Android.json")
         self.assertEqual(
             {task["name"] for task in extra["task"]},
             {"AndroidOpenGame", "AndroidAgentCheck"},
         )
+
+    def test_test_build_has_no_update_source(self):
+        prepared = read_json(self.assets / "interface.json")
+        self.assertEqual(prepared["name"], "MDA Android 测试")
+        self.assertEqual(prepared["welcome"], "AndroidTestNotice.md")
+        self.assertEqual(prepared["version"], "2.5.0-android-test.2")
         self.assertNotIn("github", prepared)
         self.assertNotIn("mirrorchyan_rid", prepared)
+        self.assertNotIn("mirrorchyan_multiplatform", prepared)
+        self.assertTrue((self.assets / "AndroidTestNotice.md").is_file())
+
+    def test_release_build_keeps_release_identity_and_update_sources(self):
+        prepared = read_json(self.release_assets / "interface.json")
+        self.assertEqual(prepared["name"], "MDA")
+        self.assertEqual(prepared["welcome"], "AndroidNotice.md")
+        self.assertEqual(prepared["version"], "1.12.3")
+        self.assertEqual(prepared["github"], "https://github.com/1204244136/MDA")
+        self.assertEqual(prepared["mirrorchyan_rid"], "MDA")
+        self.assertNotIn("mirrorchyan_multiplatform", prepared)
+        self.assertTrue((self.release_assets / "AndroidNotice.md").is_file())
+
+    def test_release_profile_matches_ci_versions(self):
+        profile = (ROOT / "Android/release.profile.yaml").read_text(encoding="utf-8")
+        self.assertIn(f"id: {BUILDER.RELEASE['app_id']}", profile)
+        self.assertIn(f"abi: [{BUILDER.RELEASE['abi']}]", profile)
+        self.assertIn("mirrorchyanRid: MDA_android", profile)
+        self.assertIn("MDA_ANDROID_MEMBERSHIP_ENABLED", profile)
 
     def test_keyboard_actions_are_covered_and_not_adapted(self):
         found = set()

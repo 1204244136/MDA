@@ -33,3 +33,24 @@ jobs:
           repo: MDA
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}
+
+  # Android 在 Mirror酱单独注册为 MDA_android；arch 与 MaaFwApp 的
+  # AndroidAbi.ARM64.mirrorArch（arm64）保持一致，客户端按 os=android&arch=arm64 查询。
+  mirrorchyan_android:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == '1204244136' }}
+    steps:
+      - uses: MirrorChyan/uploading-action@v1
+        with:
+          filetype: latest-release
+          filename: MDA-android-arm64-v8a-*
+          mirrorchyan_rid: MDA_android
+          tag: ${{ inputs.tag }}
+
+          os: android
+          arch: arm64
+
+          owner: 1204244136
+          repo: MDA
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          upload_token: ${{ secrets.MirrorChyanUploadToken }}
