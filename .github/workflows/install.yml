@@ -187,13 +187,14 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHONUTF8: "1"
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           git -C .ccc-build/framework submodule update --init source/MaaUtils
           python tools/ccc/prepare.py .ccc-build/framework .ccc-build/mxu
           python .ccc-build/framework/tools/maadeps-download.py x64-windows
-          cmake -S .ccc-build/framework -B .ccc-build/framework/build-ccc -G 'Visual Studio 17 2022' -A x64 -DWITH_ADB_CONTROLLER=OFF -DWITH_GAMEPAD_CONTROLLER=OFF -DWITH_MAA_AGENT=OFF -DBUILD_PICLI=OFF -DWITH_RECORD_CONTROLLER=OFF -DWITH_REPLAY_CONTROLLER=OFF -DENABLE_CCACHE=OFF -DMAA_HASH_VERSION=v5.14.3-ccc
-          cmake --build .ccc-build/framework/build-ccc --config Release --target MaaWin32ControlUnit --parallel 4
+          cmake -S .ccc-build/framework -B .ccc-build/framework/build-ccc -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_ADB_CONTROLLER=OFF -DWITH_GAMEPAD_CONTROLLER=OFF -DWITH_MAA_AGENT=OFF -DBUILD_PICLI=OFF -DWITH_RECORD_CONTROLLER=OFF -DWITH_REPLAY_CONTROLLER=OFF -DENABLE_CCACHE=OFF '-DMAA_HASH_VERSION=v5.14.3-ccc'
+          cmake --build .ccc-build/framework/build-ccc --target MaaWin32ControlUnit --parallel 4
           cl /nologo /std:c++20 /EHsc /O2 /utf-8 tools/ccc/probe_main.cpp /Fe:.ccc-build/ccc-probe.exe user32.lib
 
       - name: Build Windows client
@@ -256,11 +257,13 @@ jobs:
       - name: Integrate Windows input support
         if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
         shell: pwsh
+        env:
+          PYTHONUTF8: "1"
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           Copy-Item .ccc-build/mxu/src-tauri/target/release/mxu.exe install/MDA.exe
-          Copy-Item .ccc-build/framework/build-ccc/bin/Release/MaaWin32ControlUnit.dll install/maafw/MaaWin32ControlUnit.dll
-          Copy-Item .ccc-build/framework/build-ccc/bin/Release/MaaUtils.dll install/maafw/MaaUtils.dll
+          Copy-Item .ccc-build/framework/build-ccc/bin/MaaWin32ControlUnit.dll install/maafw/MaaWin32ControlUnit.dll
+          Copy-Item .ccc-build/framework/build-ccc/bin/MaaUtils.dll install/maafw/MaaUtils.dll
           Copy-Item .ccc-build/ccc-probe.exe install/maafw/ccc-probe.exe
           python tools/ccc/register.py install
 
