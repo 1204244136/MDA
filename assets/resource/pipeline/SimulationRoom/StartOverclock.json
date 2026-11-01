@@ -286,13 +286,13 @@
         },
         "post_wait_freezes": {
             "time": 1000,
-            "rate_limit": 200,
             "target": [
                 474,
                 406,
                 333,
                 158
-            ]
+            ],
+            "rate_limit": 200
         }
     }
 }

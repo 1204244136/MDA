@@ -5,6 +5,9 @@
             "label": "$task.RedDotClear.label",
             "entry": "RedDotClearMain",
             "description": "$task.RedDotClear.description",
+            "group": [
+                "utility"
+            ],
             "option": [
                 "RedDotClearCashShop",
                 "RedDotClearNotice",
@@ -16,9 +19,6 @@
                 "RedDotClearBlaBla",
                 "RedDotClearArcade",
                 "RedDotClearCommandCenter"
-            ],
-            "group": [
-                "utility"
             ]
         }
     ],

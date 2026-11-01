@@ -5,12 +5,12 @@
             "label": "$task.CashShop.label",
             "entry": "CashShopMain",
             "description": "$task.CashShop.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "CashShopFreePackage",
                 "CashShopNetworkRetry"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
@@ -39,7 +39,6 @@
         },
         "CashShopNetworkRetry": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.CashShopNetworkRetry.label",
             "description": "$option.CashShopNetworkRetry.description",
             "cases": [
@@ -59,7 +58,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         }
     }
 }

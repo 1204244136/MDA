@@ -78,8 +78,8 @@ metadata:
             "label": "$task.PipelineName.label",
             "entry": "PipelineName",
             "description": "$task.PipelineName.description",
-            "option": ["OptionKey"],
-            "group": ["daily"]
+            "group": ["daily"],
+            "option": ["OptionKey"]
         }
     ],
     "option": {

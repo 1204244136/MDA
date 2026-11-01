@@ -5,21 +5,20 @@
             "label": "$task.AccountNurturing.label",
             "entry": "AccountNurturingMain",
             "description": "$task.AccountNurturing.description",
+            "group": [
+                "utility"
+            ],
             "option": [
                 "AccountNurturingCharacterBreakthrough",
                 "AccountNurturingSynchroDeviceEnhance",
                 "AccountNurturingCubeEnhancement",
                 "AccountNurturingRecycleRoomUpgrade"
-            ],
-            "group": [
-                "utility"
             ]
         }
     ],
     "option": {
         "AccountNurturingCharacterBreakthrough": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.AccountNurturingCharacterBreakthrough.label",
             "description": "$option.AccountNurturingCharacterBreakthrough.description",
             "cases": [
@@ -39,24 +38,24 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "AccountNurturingSynchroDeviceEnhance": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.AccountNurturingSynchroDeviceEnhance.label",
             "cases": [
                 {
                     "name": "Yes",
+                    "option": [
+                        "AutoAllocation",
+                        "UseConsumables"
+                    ],
                     "pipeline_override": {
                         "AccountNurturingSynchroDeviceEnhance": {
                             "enabled": true
                         }
-                    },
-                    "option": [
-                        "AutoAllocation",
-                        "UseConsumables"
-                    ]
+                    }
                 },
                 {
                     "name": "No",
@@ -66,11 +65,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "AccountNurturingCubeEnhancement": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.AccountNurturingCubeEnhancement.label",
             "cases": [
                 {
@@ -89,11 +88,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "AccountNurturingRecycleRoomUpgrade": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.AccountNurturingRecycleRoomUpgrade.label",
             "cases": [
                 {
@@ -112,11 +111,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "AutoAllocation": {
             "type": "switch",
-            "default_case": "No",
             "label": "$option.AutoAllocation.label",
             "cases": [
                 {
@@ -135,11 +134,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "UseConsumables": {
             "type": "switch",
-            "default_case": "No",
             "label": "$option.UseConsumables.label",
             "cases": [
                 {
@@ -158,7 +157,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         }
     }
 }

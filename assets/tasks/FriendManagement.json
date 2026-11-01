@@ -5,22 +5,21 @@
             "label": "$task.FriendManagement.label",
             "entry": "FriendManagementMain",
             "description": "$task.FriendManagement.description",
-            "doc": [
-                "$task.FriendManagement.doc"
+            "group": [
+                "utility"
             ],
             "option": [
                 "FriendManagementDeleteInactiveFriends",
                 "FriendManagementAcceptFriendRequests"
             ],
-            "group": [
-                "utility"
+            "doc": [
+                "$task.FriendManagement.doc"
             ]
         }
     ],
     "option": {
         "FriendManagementDeleteInactiveFriends": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.FriendManagementDeleteInactiveFriends.label",
             "cases": [
                 {
@@ -39,11 +38,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "FriendManagementAcceptFriendRequests": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.FriendManagementAcceptFriendRequests.label",
             "cases": [
                 {
@@ -62,7 +61,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         }
     }
 }

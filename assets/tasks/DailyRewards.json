@@ -5,6 +5,9 @@
             "label": "$task.DailyRewards.label",
             "entry": "DailyRewardsMain",
             "description": "$task.DailyRewards.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "DailyRewardsFriendPoints",
                 "DailyRewardsEmail",
@@ -13,9 +16,6 @@
                 "DailyRewardsPassMain",
                 "DailyRewardsDailyLogin",
                 "DailyRewardsFreeRecruit"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],

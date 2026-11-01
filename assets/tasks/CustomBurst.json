@@ -5,18 +5,17 @@
             "label": "$task.CustomBurst.label",
             "entry": "CustomBurstMain",
             "description": "$task.CustomBurst.description",
-            "option": [
-                "BurstRoundCount"
-            ],
             "group": [
                 "realtime"
+            ],
+            "option": [
+                "BurstRoundCount"
             ]
         }
     ],
     "option": {
         "BurstRoundCount": {
             "type": "select",
-            "default_case": "1",
             "label": "$option.BurstRoundCount.label",
             "description": "$option.BurstRoundCount.description",
             "cases": [
@@ -155,11 +154,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "1"
         },
         "BurstRound1Stage1": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound1Stage1.label",
             "description": "$option.BurstRound1Stage1.description",
             "cases": [
@@ -204,11 +203,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound1Stage2": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound1Stage2.label",
             "description": "$option.BurstRound1Stage2.description",
             "cases": [
@@ -253,11 +252,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound1Stage3": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound1Stage3.label",
             "description": "$option.BurstRound1Stage3.description",
             "cases": [
@@ -302,11 +301,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound2Stage1": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound2Stage1.label",
             "description": "$option.BurstRound2Stage1.description",
             "cases": [
@@ -351,11 +350,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound2Stage2": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound2Stage2.label",
             "description": "$option.BurstRound2Stage2.description",
             "cases": [
@@ -400,11 +399,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound2Stage3": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound2Stage3.label",
             "description": "$option.BurstRound2Stage3.description",
             "cases": [
@@ -449,11 +448,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound3Stage1": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound3Stage1.label",
             "description": "$option.BurstRound3Stage1.description",
             "cases": [
@@ -498,11 +497,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound3Stage2": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound3Stage2.label",
             "description": "$option.BurstRound3Stage2.description",
             "cases": [
@@ -547,11 +546,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound3Stage3": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound3Stage3.label",
             "description": "$option.BurstRound3Stage3.description",
             "cases": [
@@ -596,11 +595,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound4Stage1": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound4Stage1.label",
             "description": "$option.BurstRound4Stage1.description",
             "cases": [
@@ -645,11 +644,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound4Stage2": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound4Stage2.label",
             "description": "$option.BurstRound4Stage2.description",
             "cases": [
@@ -694,11 +693,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound4Stage3": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound4Stage3.label",
             "description": "$option.BurstRound4Stage3.description",
             "cases": [
@@ -743,11 +742,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound5Stage1": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound5Stage1.label",
             "description": "$option.BurstRound5Stage1.description",
             "cases": [
@@ -792,11 +791,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound5Stage2": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound5Stage2.label",
             "description": "$option.BurstRound5Stage2.description",
             "cases": [
@@ -841,11 +840,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound5Stage3": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound5Stage3.label",
             "description": "$option.BurstRound5Stage3.description",
             "cases": [
@@ -890,11 +889,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound6Stage1": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound6Stage1.label",
             "description": "$option.BurstRound6Stage1.description",
             "cases": [
@@ -939,11 +938,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound6Stage2": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound6Stage2.label",
             "description": "$option.BurstRound6Stage2.description",
             "cases": [
@@ -988,11 +987,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "BurstRound6Stage3": {
             "type": "select",
-            "default_case": "None",
             "label": "$option.BurstRound6Stage3.label",
             "description": "$option.BurstRound6Stage3.description",
             "cases": [
@@ -1037,7 +1036,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         }
     }
 }

@@ -5,12 +5,12 @@
             "label": "$task.Interception.label",
             "entry": "InterceptionMain",
             "description": "$task.Interception.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "InterceptionType",
                 "ManualInterceptionBattle"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
@@ -22,6 +22,9 @@
                 {
                     "name": "NormalInterception",
                     "label": "$option.NormalInterception.label",
+                    "option": [
+                        "NormalInterceptionLevel"
+                    ],
                     "pipeline_override": {
                         "InterceptionEnterNormalInterception": {
                             "enabled": true
@@ -29,14 +32,14 @@
                         "InterceptionEnterAnomalyInterception": {
                             "enabled": false
                         }
-                    },
-                    "option": [
-                        "NormalInterceptionLevel"
-                    ]
+                    }
                 },
                 {
                     "name": "AnomalyInterception",
                     "label": "$option.AnomalyInterception.label",
+                    "option": [
+                        "AnomalyInterceptionTarget"
+                    ],
                     "pipeline_override": {
                         "InterceptionEnterNormalInterception": {
                             "enabled": false
@@ -44,10 +47,7 @@
                         "InterceptionEnterAnomalyInterception": {
                             "enabled": true
                         }
-                    },
-                    "option": [
-                        "AnomalyInterceptionTarget"
-                    ]
+                    }
                 }
             ],
             "default_case": "AnomalyInterception"

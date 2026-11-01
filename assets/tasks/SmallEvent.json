@@ -5,21 +5,20 @@
             "label": "$task.SmallEvent.label",
             "entry": "SmallEventMain",
             "description": "$task.SmallEvent.description",
+            "group": [
+                "periodic"
+            ],
             "option": [
                 "SmallEventTheme",
                 "SmallEventChallenge",
                 "SmallEventStory",
                 "SmallEventMission"
-            ],
-            "group": [
-                "periodic"
             ]
         }
     ],
     "option": {
         "SmallEventTheme": {
             "type": "select",
-            "default_case": "CurrentEvent",
             "label": "$option.SmallEventTheme.label",
             "cases": [
                 {
@@ -189,11 +188,11 @@
                     "name": "Other",
                     "label": "$option.SmallEventTheme.Other"
                 }
-            ]
+            ],
+            "default_case": "CurrentEvent"
         },
         "SmallEventChallenge": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.SmallEventContent.SmallEventChallenge",
             "cases": [
                 {
@@ -212,11 +211,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "SmallEventStory": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.SmallEventContent.SmallEventStory",
             "cases": [
                 {
@@ -235,11 +234,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "SmallEventMission": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.SmallEventContent.SmallEventMission",
             "cases": [
                 {
@@ -258,7 +257,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         }
     }
 }

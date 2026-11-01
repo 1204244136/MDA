@@ -5,12 +5,12 @@
             "label": "$task.Advise.label",
             "entry": "AdviseMain",
             "description": "$task.Advise.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "NikkeAdvise",
                 "AdviseEpisodeViewingReward"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
@@ -22,14 +22,14 @@
             "cases": [
                 {
                     "name": "Yes",
+                    "option": [
+                        "AdviseEpisodeReward"
+                    ],
                     "pipeline_override": {
                         "AdviseEnterAdvisePage": {
                             "enabled": true
                         }
-                    },
-                    "option": [
-                        "AdviseEpisodeReward"
-                    ]
+                    }
                 },
                 {
                     "name": "No",

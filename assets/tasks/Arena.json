@@ -5,14 +5,14 @@
             "label": "$task.Arena.label",
             "entry": "ArenaMain",
             "description": "$task.Arena.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "SpecialReward",
                 "ArenaEnterRookieArena",
                 "ArenaEnterSpecialArena",
                 "ArenaEnterChampionArena"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],

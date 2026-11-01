@@ -5,22 +5,21 @@
             "label": "$task.Shop.label",
             "entry": "ShopMain",
             "description": "$task.Shop.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "CommonShop",
                 "UnionShop",
                 "ArenaShop",
                 "RecyclingShop",
                 "BodyLabelShop"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
     "option": {
         "CommonShop": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.CommonShop.label",
             "cases": [
                 {
@@ -42,13 +41,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "CommonShopItemList": {
             "type": "checkbox",
-            "default_case": [
-                "FreeGoods"
-            ],
             "label": "$option.CommonShopItemList.label",
             "description": "$option.CommonShopItemList.description",
             "cases": [
@@ -94,11 +91,13 @@
                         }
                     }
                 }
+            ],
+            "default_case": [
+                "FreeGoods"
             ]
         },
         "UnionShop": {
             "type": "switch",
-            "default_case": "No",
             "label": "$option.UnionShop.label",
             "cases": [
                 {
@@ -120,11 +119,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "UnionShopItemList": {
             "type": "checkbox",
-            "default_case": [],
             "label": "$option.UnionShopItemList.label",
             "description": "$option.UnionShopItemList.description",
             "cases": [
@@ -298,11 +297,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": []
         },
         "ArenaShop": {
             "type": "switch",
-            "default_case": "No",
             "label": "$option.ArenaShop.label",
             "cases": [
                 {
@@ -324,11 +323,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "ArenaShopItemList": {
             "type": "checkbox",
-            "default_case": [],
             "label": "$option.ArenaShopItemList.label",
             "cases": [
                 {
@@ -411,11 +410,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": []
         },
         "RecyclingShop": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.RecyclingShop.label",
             "cases": [
                 {
@@ -437,13 +436,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "RecyclingShopList": {
             "type": "checkbox",
-            "default_case": [
-                "Gem"
-            ],
             "label": "$option.RecyclingShopList.label",
             "cases": [
                 {
@@ -555,11 +552,13 @@
                         }
                     }
                 }
+            ],
+            "default_case": [
+                "Gem"
             ]
         },
         "BodyLabelShop": {
             "type": "switch",
-            "default_case": "No",
             "label": "$option.BodyLabelShop.label",
             "cases": [
                 {
@@ -581,13 +580,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "BodyLabelShopItemList": {
             "type": "checkbox",
-            "default_case": [
-                "DiscountedItem"
-            ],
             "label": "$option.BodyLabelShopItemList.label",
             "description": "$option.BodyLabelShopItemList.description",
             "cases": [
@@ -600,6 +597,9 @@
                         }
                     }
                 }
+            ],
+            "default_case": [
+                "DiscountedItem"
             ]
         }
     }

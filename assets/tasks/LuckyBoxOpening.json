@@ -5,6 +5,9 @@
             "label": "$task.LuckyBoxOpening.label",
             "entry": "LuckyBoxOpeningMain",
             "description": "$task.LuckyBoxOpening.description",
+            "group": [
+                "utility"
+            ],
             "option": [
                 "LuckyBoxOpeningRecruitmentRelatedPage",
                 "LuckyBoxOpeningEquipmentRelatedPage",
@@ -12,16 +15,12 @@
                 "LuckyBoxOpeningUpgradingRelatedPage",
                 "LuckyBoxOpeningSkillsRelatedPage",
                 "LuckyBoxOpeningOthersRelatedPage"
-            ],
-            "group": [
-                "utility"
             ]
         }
     ],
     "option": {
         "LuckyBoxOpeningRecruitmentRelatedPage": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LuckyBoxOpeningRecruitmentRelatedPage.label",
             "description": "$option.LuckyBoxOpeningRecruitmentRelatedPage.description",
             "cases": [
@@ -41,11 +40,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LuckyBoxOpeningEquipmentRelatedPage": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LuckyBoxOpeningEquipmentRelatedPage.label",
             "description": "$option.LuckyBoxOpeningEquipmentRelatedPage.description",
             "cases": [
@@ -65,11 +64,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LuckyBoxOpeningCollectionRelatedPage": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LuckyBoxOpeningCollectionRelatedPage.label",
             "description": "$option.LuckyBoxOpeningCollectionRelatedPage.description",
             "cases": [
@@ -89,11 +88,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LuckyBoxOpeningUpgradingRelatedPage": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LuckyBoxOpeningUpgradingRelatedPage.label",
             "description": "$option.LuckyBoxOpeningUpgradingRelatedPage.description",
             "cases": [
@@ -113,11 +112,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LuckyBoxOpeningSkillsRelatedPage": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LuckyBoxOpeningSkillsRelatedPage.label",
             "description": "$option.LuckyBoxOpeningSkillsRelatedPage.description",
             "cases": [
@@ -137,11 +136,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LuckyBoxOpeningOthersRelatedPage": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LuckyBoxOpeningOthersRelatedPage.label",
             "description": "$option.LuckyBoxOpeningOthersRelatedPage.description",
             "cases": [
@@ -161,7 +160,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         }
     }
 }

@@ -5,6 +5,9 @@
             "label": "$task.LargeEvent.label",
             "entry": "LargeEventMain",
             "description": "$task.LargeEvent.description",
+            "group": [
+                "periodic"
+            ],
             "option": [
                 "LargeEventTheme",
                 "LargeEventStoryPriority",
@@ -13,16 +16,12 @@
                 "LargeEventStory",
                 "LargeEventMiniGame",
                 "LargeEventMission"
-            ],
-            "group": [
-                "periodic"
             ]
         }
     ],
     "option": {
         "LargeEventTheme": {
             "type": "select",
-            "default_case": "CurrentEvent",
             "label": "$option.LargeEventTheme.label",
             "cases": [
                 {
@@ -317,11 +316,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "CurrentEvent"
         },
         "LargeEventLoginStamp": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LargeEventContent.LargeEventLoginStamp",
             "cases": [
                 {
@@ -340,11 +339,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LargeEventChallenge": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LargeEventContent.LargeEventChallenge",
             "cases": [
                 {
@@ -363,11 +362,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LargeEventStory": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LargeEventContent.LargeEventStory",
             "cases": [
                 {
@@ -386,11 +385,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LargeEventMiniGame": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LargeEventContent.LargeEventMiniGame",
             "cases": [
                 {
@@ -409,11 +408,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LargeEventMission": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LargeEventContent.LargeEventMission",
             "cases": [
                 {
@@ -432,11 +431,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LargeEventStarAnisMerchBagClick": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.LargeEventStarAnisMerchBagClick.label",
             "cases": [
                 {
@@ -458,11 +457,11 @@
                 {
                     "name": "No"
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "LargeEventStoryPriority": {
             "type": "select",
-            "default_case": "Story2First",
             "label": "$option.LargeEventStoryPriority.label",
             "cases": [
                 {
@@ -482,7 +481,8 @@
                     "name": "Story1First",
                     "label": "$option.LargeEventStoryPriority.Story1First"
                 }
-            ]
+            ],
+            "default_case": "Story2First"
         }
     }
 }

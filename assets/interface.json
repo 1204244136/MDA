@@ -1,75 +1,75 @@
 {
     "interface_version": 2,
-    "name": "MDA",
-    "description": "$description.file",
-    "contact": "$contact.file",
-    "license": "locales/LICENSE_SHORT.md",
-    "welcome": "$welcome.file",
-    "icon": "locales/MDA-Tiny.png",
-    "github": "https://github.com/1204244136/MDA",
-    "mirrorchyan_rid": "MDA",
-    "mirrorchyan_multiplatform": true,
-    "version": "0.1.0",
     "languages": {
         "zh_cn": "locales/interface/zh_cn.json",
         "en_us": "locales/interface/en_us.json"
     },
+    "name": "MDA",
+    "icon": "locales/MDA-Tiny.png",
+    "mirrorchyan_rid": "MDA",
+    "mirrorchyan_multiplatform": true,
+    "github": "https://github.com/1204244136/MDA",
+    "version": "0.1.0",
+    "contact": "$contact.file",
+    "license": "locales/LICENSE_SHORT.md",
+    "welcome": "$welcome.file",
+    "description": "$description.file",
     "controller": [
         {
             "name": "Win32-Window",
             "label": "$controller.Win32-Window.label",
             "description": "$controller.Win32-Window.description",
             "type": "Win32",
+            "permission_required": true,
             "win32": {
                 "class_regex": "UnityWndClass",
                 "window_regex": "(NIKKE|勝利女神：妮姬)",
                 "screencap": "Background",
                 "mouse": "SendMessageWithCursorPos",
                 "keyboard": "PostMessage"
-            },
-            "permission_required": true
+            }
         },
         {
             "name": "Win32-Window-Background",
             "label": "$controller.Win32-Window-Background.label",
             "description": "$controller.Win32-Window-Background.description",
             "type": "Win32",
+            "permission_required": true,
             "win32": {
                 "class_regex": "UnityWndClass",
                 "window_regex": "(NIKKE|勝利女神：妮姬)",
                 "screencap": "PrintWindow",
                 "mouse": "SendMessageWithWindowPos",
                 "keyboard": "PostMessage"
-            },
-            "permission_required": true
+            }
         },
         {
             "name": "Win32-Front",
             "label": "$controller.Win32-Front.label",
             "description": "$controller.Win32-Front.description",
             "type": "Win32",
+            "permission_required": true,
             "win32": {
                 "class_regex": "UnityWndClass",
                 "window_regex": "(NIKKE|勝利女神：妮姬)",
                 "screencap": "ScreenDC",
                 "mouse": "Seize",
                 "keyboard": "Seize"
-            },
-            "permission_required": true
+            }
         },
         {
             "name": "AAA",
             "label": "$controller.AAA.label",
             "description": "$controller.AAA.description",
             "type": "Win32",
+            "permission_required": true,
             "win32": {
                 "class_regex": "UnityWndClass",
                 "window_regex": "(NIKKE|勝利女神：妮姬)",
                 "screencap": "ScreenDC",
                 "mouse": "Interception",
                 "keyboard": "Seize"
-            },
-            "permission_required": true
+            }
         },
         {
             "name": "ADB",
@@ -90,7 +90,6 @@
         "child_exec": "agent/go-service",
         "child_args": []
     },
-    "task": [],
     "group": [
         {
             "name": "preprocess",
@@ -118,6 +117,7 @@
             "description": "$group.utility.description"
         }
     ],
+    "task": [],
     "import": [
         "tasks/EnterHall.json",
         "tasks/CashShop.json",

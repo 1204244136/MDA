@@ -65,13 +65,13 @@
             }
         },
         "post_wait_freezes": {
+            "time": 2500,
             "target": [
                 1198,
                 3,
                 66,
                 47
-            ],
-            "time": 2500
+            ]
         },
         "next": [
             "[JumpBack]AdviseStoryFlow",

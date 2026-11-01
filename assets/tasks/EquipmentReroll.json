@@ -5,11 +5,11 @@
             "label": "$task.EquipmentReroll.label",
             "entry": "EquipmentRerollMain",
             "description": "$task.EquipmentReroll.description",
-            "option": [
-                "EquipmentRerollOperation"
-            ],
             "group": [
                 "utility"
+            ],
+            "option": [
+                "EquipmentRerollOperation"
             ]
         }
     ],
@@ -17,7 +17,6 @@
         "EquipmentRerollOperation": {
             "type": "select",
             "label": "$option.EquipmentRerollOperation.label",
-            "default_case": "Effect",
             "cases": [
                 {
                     "name": "Effect",
@@ -415,12 +414,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Effect"
         },
         "EquipmentRerollValueMode": {
             "type": "select",
             "label": "$option.EquipmentRerollMode.label",
-            "default_case": "Character",
             "cases": [
                 {
                     "name": "Character",
@@ -461,7 +460,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Character"
         },
         "EquipmentRerollValueTotalTargets": {
             "type": "input",
@@ -654,7 +654,6 @@
         "EquipmentRerollQuotaElementalDamage": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.ElementalDamage.label",
-            "default_case": "Need4",
             "cases": [
                 {
                     "name": "Forbid",
@@ -722,12 +721,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Need4"
         },
         "EquipmentRerollQuotaAttackIncrease": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.AttackIncrease.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -795,12 +794,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaMaxAmmo": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.MaxAmmo.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -868,12 +867,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaCritDamage": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.CritDamage.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -941,12 +940,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaCritRate": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.CritRate.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -1014,12 +1013,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaChargeSpeed": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.ChargeSpeed.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -1087,12 +1086,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaChargeDamage": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.ChargeDamage.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -1160,12 +1159,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaHitRate": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.HitRate.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -1233,12 +1232,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollQuotaDefense": {
             "type": "select",
             "label": "$option.EquipmentRerollQuota.affix.Defense.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "Forbid",
@@ -1306,17 +1305,18 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollMode": {
             "type": "select",
             "label": "$option.EquipmentRerollMode.label",
             "description": "$option.EquipmentRerollMode.description",
-            "default_case": "Character",
             "cases": [
                 {
                     "name": "Character",
                     "label": "$option.EquipmentRerollMode.Character.label",
+                    "description": "$option.EquipmentRerollMode.Character.description",
                     "option": [
                         "EquipmentRerollQuotaElementalDamage",
                         "EquipmentRerollQuotaAttackIncrease",
@@ -1335,8 +1335,7 @@
                                 "mode": "character"
                             }
                         }
-                    },
-                    "description": "$option.EquipmentRerollMode.Character.description"
+                    }
                 },
                 {
                     "name": "Single",
@@ -1360,12 +1359,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Character"
         },
         "EquipmentRerollSinglePart": {
             "type": "select",
             "label": "$option.EquipmentRerollSinglePart.label",
-            "default_case": "Head",
             "cases": [
                 {
                     "name": "Head",
@@ -1411,12 +1410,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Head"
         },
         "EquipmentRerollSingleWant1": {
             "type": "select",
             "label": "$option.EquipmentRerollSingleWant1.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "None",
@@ -1548,12 +1547,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollSingleWant1Slot": {
             "type": "select",
             "label": "$option.EquipmentRerollSingleWant1Slot.label",
-            "default_case": "Any",
             "cases": [
                 {
                     "name": "Any",
@@ -1599,12 +1598,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Any"
         },
         "EquipmentRerollSingleWant2": {
             "type": "select",
             "label": "$option.EquipmentRerollSingleWant2.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "None",
@@ -1736,12 +1735,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollSingleWant2Slot": {
             "type": "select",
             "label": "$option.EquipmentRerollSingleWant2Slot.label",
-            "default_case": "Any",
             "cases": [
                 {
                     "name": "Any",
@@ -1787,12 +1786,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Any"
         },
         "EquipmentRerollSingleWant3": {
             "type": "select",
             "label": "$option.EquipmentRerollSingleWant3.label",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "None",
@@ -1924,12 +1923,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollSingleWant3Slot": {
             "type": "select",
             "label": "$option.EquipmentRerollSingleWant3Slot.label",
-            "default_case": "Any",
             "cases": [
                 {
                     "name": "Any",
@@ -1975,27 +1974,27 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Any"
         },
         "EquipmentRerollAllowSubstitution": {
             "type": "switch",
             "label": "$option.EquipmentRerollAllowSubstitution.label",
             "description": "$option.EquipmentRerollAllowSubstitution.description",
-            "default_case": "No",
             "cases": [
                 {
                     "name": "Yes",
+                    "option": [
+                        "EquipmentRerollSubstitutionAffix1",
+                        "EquipmentRerollSubstitutionAffix2"
+                    ],
                     "pipeline_override": {
                         "EquipmentRerollLockNeed": {
                             "attach": {
                                 "allow_substitution": true
                             }
                         }
-                    },
-                    "option": [
-                        "EquipmentRerollSubstitutionAffix1",
-                        "EquipmentRerollSubstitutionAffix2"
-                    ]
+                    }
                 },
                 {
                     "name": "No",
@@ -2007,13 +2006,13 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "EquipmentRerollSubstitutionAffix1": {
             "type": "select",
             "label": "$option.EquipmentRerollSubstitutionAffix1.label",
             "description": "$option.EquipmentRerollSubstitutionAffix1.description",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "None",
@@ -2118,13 +2117,13 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         },
         "EquipmentRerollSubstitutionAffix2": {
             "type": "select",
             "label": "$option.EquipmentRerollSubstitutionAffix2.label",
             "description": "$option.EquipmentRerollSubstitutionAffix2.description",
-            "default_case": "None",
             "cases": [
                 {
                     "name": "None",
@@ -2229,7 +2228,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "None"
         }
     }
 }

@@ -5,15 +5,15 @@
             "label": "$task.TribeTower.label",
             "entry": "TribeTowerMain",
             "description": "$task.TribeTower.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "TribeTowerEnterCommonTower",
                 "TribeTowerEnterElysionTower",
                 "TribeTowerEnterMissilisTower",
                 "TribeTowerEnterTetraTower",
                 "TribeTowerEnterPilgrimTower"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],

@@ -5,20 +5,19 @@
             "label": "$task.Outpost.label",
             "entry": "OutpostMain",
             "description": "$task.Outpost.description",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "DefenseRewards",
                 "BulletinBoard",
                 "BriefEncounter"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
     "option": {
         "DefenseRewards": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.DefenseRewards.label",
             "cases": [
                 {
@@ -37,11 +36,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "BulletinBoard": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.BulletinBoard.label",
             "cases": [
                 {
@@ -60,11 +59,11 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         },
         "BriefEncounter": {
             "type": "switch",
-            "default_case": "Yes",
             "label": "$option.BriefEncounter.label",
             "cases": [
                 {
@@ -83,7 +82,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "default_case": "Yes"
         }
     }
 }
