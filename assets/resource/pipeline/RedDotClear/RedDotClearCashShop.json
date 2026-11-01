@@ -65,8 +65,10 @@
             }
         },
         "next": [
-            "[JumpBack]CashShopConsumeLimitFlow", //日服进入付费商店会弹出消费限制弹窗，先处理再清红点
-            "RedDotClearClickCashShopNew"
+            "[JumpBack]CashShopConsumeLimitFlow",
+            "[JumpBack]RedDotClearClickCashShopNew",
+            "[JumpBack]RedDotClearCashShopActivityRedDot",
+            "CommonEndTask"
         ]
     },
     "RedDotClearClickCashShopNew": {
@@ -103,6 +105,91 @@
             "[JumpBack]RedDotClearPurchaseStepUpPackage",
             "RedDotClearClickCashShopNew",
             "CommonEndTask"
+        ]
+    },
+    "RedDotClearCashShopActivityRedDot": {
+        "desc": "清除付费商店右侧累充活动入口红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1200,
+                    55,
+                    80,
+                    90
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    //红点贴在横幅右上角，往左下方偏移点到横幅本体
+                    -21,
+                    11,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearCashShopActivityPageVisible"
+        ]
+    },
+    "RedDotClearCashShopActivityPageVisible": {
+        "desc": "付费商店累充活动页可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    220,
+                    80
+                ],
+                "expected": [
+                    "点数活动"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]RedDotClearCashShopActivityReward",
+            "CommonGoBack"
+        ]
+    },
+    "RedDotClearCashShopActivityReward": {
+        "desc": "领取付费商店累充活动红点奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    330,
+                    100,
+                    620,
+                    520
+                ],
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    //红点在奖励图标右上角，往左下方偏移点到图标本体
+                    -20,
+                    8,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "CommonConfirmReward"
         ]
     },
     "RedDotClearPurchaseStepUpPackage": {

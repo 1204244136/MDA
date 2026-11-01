@@ -52,10 +52,10 @@
                     "name": "SmallEvent"
                 },
                 {
-                    "name": "LargeEvent"
+                    "name": "DailyRewards"
                 },
                 {
-                    "name": "DailyRewards"
+                    "name": "LargeEvent"
                 },
                 {
                     "name": "RedDotClear"

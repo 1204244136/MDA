@@ -113,8 +113,105 @@
             "[JumpBack]LargeEventEnterStory",
             "[JumpBack]LargeEventMiniGame",
             "[JumpBack]LargeEventEnterMission",
+            "[JumpBack]LargeEventEnterPass",
             "CommonEndTask"
         ]
+    },
+    "LargeEventEnterPass": {
+        "desc": "活动PASS入口",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1180,
+                    20,
+                    100,
+                    92
+                ],
+                "template": [
+                    "Common/RedDot.png",
+                    "Common/RedDotSP.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -40,
+                    25,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "LargeEventPassFlow"
+        ]
+    },
+    "LargeEventPassFlow": {
+        "desc": "活动PASS领取流程",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "DailyRewardsPassClaimAllButtonVisible"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]LargeEventPassEnterTask",
+            "[JumpBack]DailyRewardsPassClaimAll",
+            "CommonConfirmReward",
+            "[JumpBack]LargeEventPassEnterReward",
+            "[JumpBack]CommonClosePage",
+            "CommonEndTask"
+        ]
+    },
+    "LargeEventPassEnterTask": {
+        "desc": "切到PASS任务页签",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    695,
+                    210,
+                    80,
+                    45
+                ],
+                "expected": [
+                    "任务"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "LargeEventPassEnterReward": {
+        "desc": "切到PASS奖励页签",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    510,
+                    210,
+                    80,
+                    45
+                ],
+                "expected": [
+                    "奖励"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
     },
     "LargeEventMiniGame": {
         "desc": "大活动小游戏",

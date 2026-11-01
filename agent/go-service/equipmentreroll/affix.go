@@ -49,47 +49,94 @@ func readEquipmentAffixName(ctx *maa.Context, img image.Image, direct, detected 
 	return effect, raw, known
 }
 
+// affixReading 累积 readEquipmentAffixResult 在两条 OCR 路径之间的读取状态。
+// effect 是已确认的官方词条名（空串表示槽位为空），raw 是对外展示的 OCR 原文，
+// known 表示已有至少一条读数确认过该槽位。
+type affixReading struct {
+	effect string
+	raw    string
+	known  bool
+}
+
+// merge 并入一条 OCR 读数；ok=false 表示两条路径给出无法调和的证据，本次识别必须失败重试。
+//
+// 数值不一致时先按官方档位表仲裁：整行识别（only_rec）会吞掉小字号的小数位，同一帧
+// 可能读出 "6.6%" 与 "6.64%"、"11%" 与 "11.11%" 这类只差精度的结果（见
+// MDA-logs-v1.12.2-20261101-120023）。取校准值继续，只有落到**不同**官方档位才是
+// 真冲突（另一个合法数值），此时仍拒绝决策。
+func (r affixReading) merge(candidate, text string, recognized, conflicting bool) (affixReading, bool) {
+	if conflicting || isTransientUnlockText(text) {
+		r.raw = text
+		return r, false
+	}
+	if !recognized {
+		if !r.known && r.raw == "" {
+			r.raw = text
+		}
+		return r, true
+	}
+	if r.known && candidate != r.effect {
+		return r, false
+	}
+	if previous, value := extractPercentValue(r.raw), extractPercentValue(text); r.known && previous != "" && value != "" && previous != value {
+		reconciled, ok := reconcileAffixValue(r.effect, previous, value)
+		if !ok {
+			return r, false
+		}
+		r.raw = strings.Replace(r.raw, previous, reconciled, 1)
+	}
+	if !r.known || (extractPercentValue(r.raw) == "" && extractPercentValue(text) != "") {
+		r.raw = text
+	}
+	r.effect, r.known = candidate, true
+	return r, true
+}
+
+// reconcileAffixValue 用官方档位表仲裁两条 OCR 路径的数值差异，返回应采用（已校准）的数值。
+// 两条读数落到同一档位、或只有一条能落到档位时视为同源读数；落到不同档位说明是另一个
+// 合法数值，属真冲突，返回 ok=false 交由调用方拒绝决策。
+func reconcileAffixValue(effect, a, b string) (string, bool) {
+	tierA, calibratedA, okA := resolveEffectTier(effect, a)
+	tierB, calibratedB, okB := resolveEffectTier(effect, b)
+	switch {
+	case okA && okB:
+		if tierA != tierB {
+			return "", false
+		}
+		return calibratedA, true
+	case okA:
+		return calibratedA, true
+	case okB:
+		return calibratedB, true
+	default:
+		return "", false
+	}
+}
+
 // readEquipmentAffixResult 在同一截图上读取结果页名称与数值，任一冲突都拒绝决策。
 // 两条路径共用 OCR 模型，不把结果一致当作正确性证明。
 func readEquipmentAffixResult(ctx *maa.Context, img image.Image, direct, detected string) (string, string, bool) {
 	if ctx == nil || img == nil {
 		return "", "", false
 	}
-	effect, known := "", false
-	raw := ""
+	var state affixReading
 	for _, node := range []string{direct, detected} {
 		detail, err := ctx.RunRecognition(node, img, nil)
 		if err != nil {
-			return "", raw, false
+			return "", state.raw, false
 		}
 		candidate, text, recognized, conflicting := firstRecognizedEffect(detail)
-		if conflicting || isTransientUnlockText(text) {
-			return "", text, false
+		next, ok := state.merge(candidate, text, recognized, conflicting)
+		if !ok {
+			return "", next.raw, false
 		}
-		if !recognized {
-			if !known && raw == "" {
-				raw = text
-			}
-			continue
-		}
-		if known && candidate != effect {
-			return "", raw, false
-		}
-		if previous, value := extractPercentValue(raw), extractPercentValue(text); known && previous != "" && value != "" && previous != value {
-			return "", raw, false
-		}
-		if !known || (extractPercentValue(raw) == "" && extractPercentValue(text) != "") {
-			raw = text
-		}
-		effect, known = candidate, true
+		state = next
 	}
 	// 明确空槽不能同时带有数值。
-	if known && effect == "" {
-		if strings.IndexFunc(raw, unicode.IsDigit) >= 0 {
-			return "", raw, false
-		}
+	if state.known && state.effect == "" && strings.IndexFunc(state.raw, unicode.IsDigit) >= 0 {
+		return "", state.raw, false
 	}
-	return effect, raw, known
+	return state.effect, state.raw, state.known
 }
 
 // recognizeAffixOCR 解释单槽内已通过框架过滤的 OCR，名称和百分比允许分框。
