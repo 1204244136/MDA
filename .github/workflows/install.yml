@@ -17,6 +17,7 @@ on:
       - ".github/workflows/install.yml"
       - "assets/**"
       - "agent/**"
+      - "tools/ccc/**"
       - "**.py"
   pull_request:
     branches:
@@ -25,6 +26,7 @@ on:
       - ".github/workflows/install.yml"
       - "assets/**"
       - "agent/**"
+      - "tools/ccc/**"
       - "**.py"
   workflow_dispatch:
 
@@ -101,6 +103,7 @@ jobs:
         uses: astral-sh/setup-uv@v9.0.0
 
       - name: Download MaaFramework
+        if: ${{ !(matrix.os == 'win' && matrix.arch == 'x86_64') }}
         uses: robinraju/release-downloader@v1
         with:
           repository: MaaXYZ/MaaFramework
@@ -110,8 +113,18 @@ jobs:
           out-file-path: "deps"
           extract: true
 
+      - name: Download MaaFramework for Windows x64
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: MaaXYZ/MaaFramework
+          fileName: "MAA-win-x86_64*"
+          tag: "v5.14.3"
+          out-file-path: "deps"
+          extract: true
+
       - name: Download MXU
-        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') && !(matrix.os == 'win' && matrix.arch == 'x86_64') }}
         id: download_mxu
         uses: robinraju/release-downloader@v1
         with:
@@ -123,12 +136,75 @@ jobs:
           extract: true
 
       - name: Clean up MXU archive
-        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') && !(matrix.os == 'win' && matrix.arch == 'x86_64') }}
         shell: bash
         run: |
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MXU."
+
+      - name: Checkout MaaFramework source
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: actions/checkout@v5
+        with:
+          repository: MaaXYZ/MaaFramework
+          ref: 8963191215ca49d6b037802acd07d20a4213160a
+          path: .ccc-build/framework
+          submodules: false
+
+      - name: Checkout MXU source
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: actions/checkout@v5
+        with:
+          repository: MistEO/MXU
+          ref: 968f4315a6d43ddb03c5cee091b8314737081d03
+          path: .ccc-build/mxu
+
+      - name: Setup pnpm
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - name: Setup Node.js
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup MSVC
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build Windows input support
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          git -C .ccc-build/framework submodule update --init source/MaaUtils
+          python tools/ccc/prepare.py .ccc-build/framework .ccc-build/mxu
+          python .ccc-build/framework/tools/maadeps-download.py x64-windows
+          cmake -S .ccc-build/framework -B .ccc-build/framework/build-ccc -G 'Visual Studio 17 2022' -A x64 -DWITH_ADB_CONTROLLER=OFF -DWITH_GAMEPAD_CONTROLLER=OFF -DWITH_MAA_AGENT=OFF -DBUILD_PICLI=OFF -DWITH_RECORD_CONTROLLER=OFF -DWITH_REPLAY_CONTROLLER=OFF -DENABLE_CCACHE=OFF -DMAA_HASH_VERSION=v5.14.3-ccc
+          cmake --build .ccc-build/framework/build-ccc --config Release --target MaaWin32ControlUnit --parallel 4
+          cl /nologo /std:c++20 /EHsc /O2 /utf-8 tools/ccc/probe_main.cpp /Fe:.ccc-build/ccc-probe.exe user32.lib
+
+      - name: Build Windows client
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        shell: pwsh
+        working-directory: .ccc-build/mxu
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          pnpm install --frozen-lockfile
+          pnpm build
+          cargo build --manifest-path src-tauri/Cargo.toml --locked --release --features tauri/custom-protocol
 
       - name: Clean install directory
         shell: bash
@@ -147,7 +223,7 @@ jobs:
           uv run --frozen --only-group install python tools/install.py ${{ needs.meta.outputs.tag }} ${{ matrix.os }} ${{ matrix.arch }}
 
       - name: Integrate MXU into install directory
-        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
+        if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') && !(matrix.os == 'win' && matrix.arch == 'x86_64') }}
         shell: bash
         run: |
           if [ -d "MXU" ]; then
@@ -176,6 +252,17 @@ jobs:
           else
             echo "MXU directory not found, skipping MXU integration."
           fi
+
+      - name: Integrate Windows input support
+        if: ${{ matrix.os == 'win' && matrix.arch == 'x86_64' }}
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          Copy-Item .ccc-build/mxu/src-tauri/target/release/mxu.exe install/MDA.exe
+          Copy-Item .ccc-build/framework/build-ccc/bin/Release/MaaWin32ControlUnit.dll install/maafw/MaaWin32ControlUnit.dll
+          Copy-Item .ccc-build/framework/build-ccc/bin/Release/MaaUtils.dll install/maafw/MaaUtils.dll
+          Copy-Item .ccc-build/ccc-probe.exe install/maafw/ccc-probe.exe
+          python tools/ccc/register.py install
 
       - name: Convert PNG to ICO
         if: matrix.os == 'win' && matrix.arch == 'x86_64'
