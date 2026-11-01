@@ -423,16 +423,18 @@ func TestEventQuotaChargesEarliestExpiryFirst(t *testing.T) {
 // 它必须排在永久的活动额度之前被消耗，而不是永远排在最后。
 func TestSpecialQuotaChargedBeforePermanentEventQuota(t *testing.T) {
 	path := isolateQuotaState(t)
+	// 固定到业务日边界之后的中午，避免 00:00-04:00 常规额度先到期导致用例随运行时刻漂移。
+	now := time.Date(2026, 6, 15, 12, 0, 0, 0, beijingLocation)
 	status := testStatus(10, "device-a") // 常规额度 600 秒
 	status.SpecialPeriodRuntimeMinutes = 5
-	status.ExpiresOn = time.Now().In(beijingLocation).Format("2006-01-02") // 本周期今天结束
-	now := time.Now()
+	status.StartsOn = now.Format("2006-01-02")
+	status.ExpiresOn = now.Format("2006-01-02") // 当天 24:00 失效，晚于常规额度的次日 04:00
 	state := normalizeQuotaPools(status, quotaState{}, []quotaPool{quotaPoolRegularDaily, quotaPoolSpecialPeriod}, now)
 	state.EventGrants = []eventQuotaGrant{{LimitSeconds: 600}}
 	mustSaveQuotaState(t, path, state)
 
-	// 专项额度（次日 0 点失效）先于常规额度（次日 4 点失效）与永久活动额度被消耗。
-	if _, _, _, err := addQuotaRouteUsageRealSeconds(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 400, false); err != nil {
+	// 专项额度（当天 24:00 失效）先于常规额度（次日 4 点失效）与永久活动额度被消耗。
+	if _, _, _, err := addQuotaRouteUsageRealSecondsAt(status, entryMapPushingFlow, quotaRouteSpecialThenRegular, 400, false, now); err != nil {
 		t.Fatal(err)
 	}
 	state = mustLoadQuotaState(t, path)
