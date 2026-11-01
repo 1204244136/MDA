@@ -735,12 +735,17 @@ func chargeQuotaByPriority(status *MembershipStatus, entry string, route quotaRo
 // 注意：quotaMu 与文件锁必须按“quotaMu → 文件锁”的顺序同时持有、整体释放，
 // 与其他配额路径保持一致；若持文件锁期间再等 quotaMu，会造成锁序倒置死锁。
 func addQuotaRouteUsageRealSeconds(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool) (QuotaSnapshot, quotaMultiplier, bool, error) {
-	return addQuotaRouteUsageRealSecondsAt(status, entry, route, realSeconds, flush, time.Now())
+	return addQuotaRouteUsageRealSecondsWithNow(status, entry, route, realSeconds, flush, time.Now)
 }
 
-// addQuotaRouteUsageRealSecondsAt 允许调用方注入时间，供测试覆盖业务日边界附近的额度优先级；
-// 生产路径仍由 addQuotaRouteUsageRealSeconds 传入当前时间。
+// addQuotaRouteUsageRealSecondsAt 允许调用方注入固定时间，供测试覆盖业务日边界附近的额度优先级。
 func addQuotaRouteUsageRealSecondsAt(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool, now time.Time) (QuotaSnapshot, quotaMultiplier, bool, error) {
+	return addQuotaRouteUsageRealSecondsWithNow(status, entry, route, realSeconds, flush, func() time.Time { return now })
+}
+
+// addQuotaRouteUsageRealSecondsWithNow 在拿到 quotaMu 与文件锁后再读取时间，避免等待锁期间
+// 跨过业务日边界时用旧业务日覆盖新业务日的用量。
+func addQuotaRouteUsageRealSecondsWithNow(status *MembershipStatus, entry string, route quotaRoute, realSeconds int64, flush bool, nowFn func() time.Time) (QuotaSnapshot, quotaMultiplier, bool, error) {
 	if realSeconds <= 0 {
 		snapshot, _, err := EnsureQuotaRouteAvailable(status, route, entry)
 		return snapshot, quotaMultiplier{BasePermille: multiplierScale, ExtraPermille: multiplierScale}, false, err
@@ -755,6 +760,7 @@ func addQuotaRouteUsageRealSecondsAt(status *MembershipStatus, entry string, rou
 	}
 	defer unlock()
 
+	now := nowFn()
 	path, err := quotaStatePath()
 	if err != nil {
 		fallback := routeSnapshotFromState(status, quotaState{Pools: map[string]quotaPoolState{}}, route)
