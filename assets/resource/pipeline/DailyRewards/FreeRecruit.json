@@ -64,7 +64,8 @@
         },
         "next": [
             "DailyRewardsClickFreeRecruit",
-            "DailyRewardsFreeRecruitClickNextRecruit"
+            "DailyRewardsFreeRecruitClickNextRecruit",
+            "DailyRewardsFreeRecruitFlow" //兜底
         ]
     },
     "DailyRewardsClickFreeRecruit": {
