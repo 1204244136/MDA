@@ -41,7 +41,7 @@
         ]
     },
     "DailyRewardsMissionFlow": {
-        "desc": "任务页面流程",
+        "desc": "任务页面流程：有红点就循环领取，红点清空后收尾",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -58,7 +58,8 @@
         },
         "next": [
             "[JumpBack]DailyRewardsClickMissionRedDot",
-            "CommonEndTask"
+            "DailyRewardsMissionClaimedVisible",
+            "CommonClosePage"
         ]
     },
     "DailyRewardsClickMissionRedDot": {
@@ -89,14 +90,34 @@
             }
         },
         "next": [
-            "[JumpBack]DailyRewardsMissionClaimAll",
-            "[JumpBack]CommonConfirmReward",
-            "DailyRewardsClickMissionRedDot",
-            "CommonClosePage"
+            "DailyRewardsMissionClaimAll"
+        ]
+    },
+    "DailyRewardsMissionClaimAll": {
+        "desc": "任务奖励领取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    707,
+                    630,
+                    108,
+                    35
+                ],
+                "expected": [
+                    ".*全部.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CommonConfirmReward"
         ]
     },
     "DailyRewardsMissionClaimedVisible": {
-        "desc": "已领取",
+        "desc": "任务奖励已领取，全部领取按钮变灰",
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -118,26 +139,9 @@
                 ],
                 "count": 200
             }
-        }
-    },
-    "DailyRewardsMissionClaimAll": {
-        "desc": "任务奖励领取",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    707,
-                    630,
-                    108,
-                    35
-                ],
-                "expected": [
-                    ".*全部.*"
-                ]
-            }
         },
-        "action": {
-            "type": "Click"
-        }
+        "next": [
+            "CommonClosePage"
+        ]
     }
 }
