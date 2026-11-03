@@ -156,7 +156,7 @@ description: MaaFramework Pipeline JSON 编写指南。用于编写、修改或�
 ## 流程控制
 
 - `next`：按序识别，首个命中节点执行其 action 后成为当前节点；全部超时或为空则流程结束。
-- `on_error`：识别超时或动作失败后的兜底节点。
+- `on_error`：识别超时或动作失败后的兜底节点。只用于明确失败后的处置，不能当作 `next` 的 else 分支；正常分派、可选功能、常态重试应写进 `next` 或 `[JumpBack]`。进入错误路径会产生失败事件与 `on_error` 截图，且不会执行 `[JumpBack]` 回跳。
 - `[JumpBack]`：执行完子链后返回父节点继续识别，适合弹窗、加载、奖励确认等中断处理。
 - `[Anchor]`：动态引用锚点，按 MaaFramework 当前协议使用。
 - `max_hit`：限制节点最大命中次数，适合避免重复领取或循环点击。
