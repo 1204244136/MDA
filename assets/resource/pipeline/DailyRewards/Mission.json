@@ -113,7 +113,8 @@
             "type": "Click"
         },
         "next": [
-            "CommonConfirmReward"
+            "CommonConfirmReward",
+            "DailyRewardsMissionClaimAll" //兜底
         ]
     },
     "DailyRewardsMissionClaimedVisible": {
