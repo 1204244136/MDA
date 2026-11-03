@@ -1,8 +1,8 @@
 {
     "CustomBurstConfig": {
-        "desc": "自定义爆裂配置承载节点：选项通过 pipeline_override 写 attach 顶层键（按 key 浅合并）。r{轮}s{阶段}=角色（空=不指定）；round_count=使用轮数（默认1）",
+        "desc": "爆裂选项承载",
         "attach": {
-            "round_count": 1,
+            "round_count": 1, // 选项统一写本节点 attach：pipeline_override 按 key 浅合并，分散声明会互相覆盖。r{轮}s{阶段}=该阶段释放的角色（A/S/D，空=不指定，整轮空走高频 ASD）；取值 1..6
             "r1s1": "",
             "r1s2": "",
             "r1s3": "",
@@ -24,9 +24,9 @@
         }
     },
     "FastBurstStage": {
-        "desc": "爆裂阶段汇总：一次识别返回Ⅰ/Ⅱ/Ⅲ颜色子节点结果",
+        "desc": "爆裂阶段三色汇总",
         "recognition": {
-            "type": "Or",
+            "type": "Or", // 三色共用一个 Or，同帧同轮往返；合并结果没有子 Hit 标志，消费方按子框非空判命中
             "param": {
                 "any_of": [
                     "FastBurstHexGreen",
@@ -37,9 +37,9 @@
         }
     },
     "FastBurstChargeBar": {
-        "desc": "爆裂充能条：右上角 BURST 横条的中性灰充能段（不使用绿色/红色阶段长条）",
+        "desc": "爆裂充能中",
         "recognition": {
-            "type": "ColorMatch",
+            "type": "ColorMatch", // 只取 BURST 横条的中性灰充能段：绿/红阶段长条会随阶段变色，拿它当“已开始充能”的判据会跟着阶段误判
             "param": {
                 "roi": [
                     1192,
@@ -154,9 +154,9 @@
         }
     },
     "FastBurstSlot1": {
-        "desc": "爆裂第1槽位：头像框右侧不透明灰条（绝对位置，判断是否有头像）",
+        "desc": "爆裂1号槽有头像",
         "recognition": {
-            "type": "ColorMatch",
+            "type": "ColorMatch", // 头像框右侧的不透明灰条：条在=该槽有人；绝对位置，不挂在任何锚点上
             "param": {
                 "roi": [
                     1262,
@@ -180,9 +180,9 @@
         }
     },
     "FastBurstSlot2": {
-        "desc": "爆裂第2槽位：头像框右侧不透明灰条（绝对位置，判断是否有头像）",
+        "desc": "爆裂2号槽有头像",
         "recognition": {
-            "type": "ColorMatch",
+            "type": "ColorMatch", // 判据同 FastBurstSlot1，只有槽位纵向位置不同
             "param": {
                 "roi": [
                     1262,
@@ -206,9 +206,9 @@
         }
     },
     "FastBurstSlot3": {
-        "desc": "爆裂第3槽位：头像框右侧不透明灰条（绝对位置，判断是否有头像）",
+        "desc": "爆裂3号槽有头像",
         "recognition": {
-            "type": "ColorMatch",
+            "type": "ColorMatch", // 判据同 FastBurstSlot1，只有槽位纵向位置不同
             "param": {
                 "roi": [
                     1262,
@@ -232,7 +232,7 @@
         }
     },
     "FastBurstSlot1CDDark": {
-        "desc": "爆裂第1槽位冷却：头像框下沿固定区域为黑色（占比>=50%）",
+        "desc": "爆裂1号槽冷却中",
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -253,12 +253,12 @@
                     30,
                     30
                 ],
-                "count": 175
+                "count": 175 // 70×5 区域的一半：黑色占比 ≥50% 判为冷却中
             }
         }
     },
     "FastBurstSlot2CDDark": {
-        "desc": "爆裂第2槽位冷却：头像框下沿固定区域为黑色（占比>=50%）",
+        "desc": "爆裂2号槽冷却中",
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -279,12 +279,12 @@
                     30,
                     30
                 ],
-                "count": 175
+                "count": 175 // 70×5 区域的一半：黑色占比 ≥50% 判为冷却中
             }
         }
     },
     "FastBurstSlot3CDDark": {
-        "desc": "爆裂第3槽位冷却：头像框下沿固定区域为黑色（占比>=50%）",
+        "desc": "爆裂3号槽冷却中",
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -305,13 +305,13 @@
                     30,
                     30
                 ],
-                "count": 175
+                "count": 175 // 70×5 区域的一半：黑色占比 ≥50% 判为冷却中
             }
         }
     },
     "FastBurstClickKeyA": {
-        "desc": "使用 MaaFramework 内置点按时长释放 A 键对应槽位角色",
-        "pre_delay": 0,
+        "desc": "A键释放1号槽位",
+        "pre_delay": 0, // 内置 ClickKey 单次点按，前后延时都置 0：是否再按一次由 CustomBurstLoop 的动作侧判断，这里加延时只会错过爆裂窗口
         "action": {
             "type": "ClickKey",
             "param": {
@@ -321,8 +321,8 @@
         "post_delay": 0
     },
     "FastBurstClickKeyS": {
-        "desc": "使用 MaaFramework 内置点按时长释放 S 键对应槽位角色",
-        "pre_delay": 0,
+        "desc": "S键释放2号槽位",
+        "pre_delay": 0, // 点按策略同 FastBurstClickKeyA
         "action": {
             "type": "ClickKey",
             "param": {
@@ -332,8 +332,8 @@
         "post_delay": 0
     },
     "FastBurstClickKeyD": {
-        "desc": "使用 MaaFramework 内置点按时长释放 D 键对应槽位角色",
-        "pre_delay": 0,
+        "desc": "D键释放3号槽位",
+        "pre_delay": 0, // 点按策略同 FastBurstClickKeyA
         "action": {
             "type": "ClickKey",
             "param": {
@@ -343,9 +343,9 @@
         "post_delay": 0
     },
     "CustomBurstMain": {
-        "desc": "自定义爆裂入口：等待进入战斗画面（参考项目原有战斗识别节点 BattleCombatHudVisible）；不出现则正常超时",
+        "desc": "等战斗画面就绪",
         "recognition": {
-            "type": "Or",
+            "type": "Or", // 复用项目原有战斗识别 BattleCombatHudVisible，不另维护一套战斗画面判据；迟迟不出现就按普通超时结束，不在这里重试
             "param": {
                 "any_of": [
                     "BattleCombatHudVisible"
@@ -357,9 +357,9 @@
         ]
     },
     "CustomBurstWaitCharge": {
-        "desc": "低频等待爆裂进入可检测状态：灰色充能条命中=已开始充能，进入高频检测（不是“可按键”）；阶段色(Ⅰ/Ⅱ/Ⅲ)出现=已就绪，同样进入高频。二者任一命中即切入 CustomBurstLoop",
+        "desc": "低频等待爆裂开始",
         "recognition": {
-            "type": "Or",
+            "type": "Or", // 命中任一即切高频：灰色充能条=已开始充能（不是“可按键”）；阶段色Ⅰ/Ⅱ/Ⅲ=已就绪
             "param": {
                 "any_of": [
                     "FastBurstChargeBar",
@@ -369,14 +369,14 @@
         },
         "pre_delay": 0,
         "post_delay": 0,
-        "rate_limit": 300,
+        "rate_limit": 300, // 充能空窗里 300ms 一探足够，不必和后面的高频循环同频
         "next": [
             "CustomBurstLoop",
             "CustomBurstWaitCharge"
         ]
     },
     "CustomBurstLoop": {
-        "desc": "循环：高频检测并释放；每1s经安全门检查暂停/结算，避免OCR占用爆裂转换窗口",
+        "desc": "高频检测并释放", // next 顺序即优先级：面板消失（一轮结束）→ 安全门（每 1s 放行一次暂停/结算检查）→ 自环继续高频。安全门排在自环前面，避免 OCR 挤占爆裂阶段切换的窗口
         "recognition": {
             "type": "Custom",
             "param": {
@@ -391,7 +391,7 @@
             }
         },
         "post_delay": 0,
-        "rate_limit": 0,
+        "rate_limit": 0, // 发键时机由动作侧判断，这里不做限速
         "next": [
             "CustomBurstReturnToLowFrequency",
             "CustomBurstSafetyGate",
@@ -399,9 +399,9 @@
         ]
     },
     "CustomBurstReturnToLowFrequency": {
-        "desc": "一轮爆裂结束状态门：仅在面板消失后命中一次，返回低频充能条检测",
+        "desc": "一轮结束的回退门", // 先回低频充能等待；充能条还没出现时才落到等待期安全门
         "recognition": {
-            "type": "Custom",
+            "type": "Custom", // 面板消失后由动作侧置位一次、本节点消费即失效，所以高频循环不会反复回退到低频
             "param": {
                 "custom_recognition": "CustomBurstReturnToLowFrequencyRecognition"
             }
@@ -415,9 +415,9 @@
         ]
     },
     "CustomBurstWaitSafetyGate": {
-        "desc": "等待充能期间低频暂停/结算检查门：每1s放行一次，未到间隔立即回到等待；命中暂停/结算则结束任务",
+        "desc": "等待期暂停结算检查门",
         "recognition": {
-            "type": "Custom",
+            "type": "Custom", // 与 CustomBurstSafetyGate 是同一个 1s 节流识别，区别在未到间隔时回低频等待而不是回高频循环——充能空窗里别把爆裂循环拉起来
             "param": {
                 "custom_recognition": "CustomBurstSafetyGateRecognition"
             }
@@ -432,9 +432,9 @@
         ]
     },
     "CustomBurstSafetyGate": {
-        "desc": "暂停/结算低频检测门：仅每1s放行一次，未到间隔时立即回到高频爆裂循环",
+        "desc": "循环中的暂停结算检查门",
         "recognition": {
-            "type": "Custom",
+            "type": "Custom", // custom_recognition 只做 1s 节流（safetyProbeInterval），真正的暂停/结算判断在下游 OCR 节点；未到间隔直接回 CustomBurstLoop
             "param": {
                 "custom_recognition": "CustomBurstSafetyGateRecognition"
             }
@@ -449,9 +449,9 @@
         ]
     },
     "CustomBurstCheckPause": {
-        "desc": "检测用户是否暂停（暂停菜单标题「暂停」OCR）；命中则停止任务并输出提示",
+        "desc": "用户暂停检测",
         "recognition": {
-            "type": "OCR",
+            "type": "OCR", // 暂停菜单标题区域认「暂停」；命中后 next 为空即结束任务，focus 把 focus.CustomBurst.paused 交给客户端提示
             "param": {
                 "roi": [
                     610,
@@ -470,9 +470,9 @@
         }
     },
     "CustomBurstCheckSettle": {
-        "desc": "检测战斗结算；命中则停止任务并输出提示",
+        "desc": "战斗结束判定",
         "recognition": {
-            "type": "Or",
+            "type": "Or", // 与主战斗流程同一套判据（结算 ESC / 战败），命中即结束任务并 focus 输出 settled 提示
             "param": {
                 "any_of": [
                     "BattleSettlementEscVisible",

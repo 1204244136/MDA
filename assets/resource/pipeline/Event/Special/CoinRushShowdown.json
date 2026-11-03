@@ -1,11 +1,10 @@
 {
     "LargeEventCoinRushShowdownMiniGame": {
-        "desc": "小游戏",
+        "desc": "小游戏", // roi 收在右下角，排除地图中央同名的「小游戏」标签
         "max_hit": 1,
         "recognition": {
             "type": "OCR",
             "param": {
-                //roi 收在右下角，排除地图中央同名的「小游戏」标签
                 "roi": [
                     730,
                     548,
@@ -42,8 +41,7 @@
             }
         },
         "post_wait_freezes": {
-            //等待小游戏页面完全加载
-            "time": 2000,
+            "time": 2000, // 等待小游戏页面完全加载
             "target": [
                 454,
                 466,
@@ -57,11 +55,10 @@
         ]
     },
     "CoinRushShowdownMiniGameClickStart": {
-        "desc": "小游戏点击开始",
+        "desc": "小游戏点击开始", // 锚点「每日奖励」：位于 START 艺术字左下方，几何关系固定；偏移至中央 START 艺术字中心，避开艺术字识别的大小写抖动
         "recognition": {
             "type": "OCR",
             "param": {
-                //锚点「每日奖励」：位于 START 艺术字左下方，几何关系固定
                 "roi": [
                     540,
                     580,
@@ -76,7 +73,6 @@
         "action": {
             "type": "Click",
             "param": {
-                //偏移至中央 START 艺术字中心，避开艺术字识别的大小写抖动
                 "target_offset": [
                     63,
                     -88,
@@ -143,8 +139,7 @@
                 "key": 32 //空格，切换人物行进方向
             }
         },
-        //间隔需足够大，让人物走出一段距离扫怪
-        "post_delay": 3000,
+        "post_delay": 3000, // 间隔需足够大，让人物走出一段距离扫怪
         "next": [
             "CoinRushShowdownMiniGameCheckPoint",
             "CoinRushShowdownMiniGameResultReturn",
@@ -182,7 +177,7 @@
         ]
     },
     "CoinRushShowdownMiniGameClickPause": {
-        "desc": "小游戏点击暂停",
+        "desc": "小游戏点击暂停", // ESC 文字在暂停图标下方，需上移点到图标
         "recognition": {
             "type": "OCR",
             "param": {
@@ -200,7 +195,6 @@
         "action": {
             "type": "Click",
             "param": {
-                //ESC 文字在暂停图标下方，需上移点到图标
                 "target_offset": [
                     0,
                     -26,
@@ -210,9 +204,7 @@
             }
         },
         "next": [
-            //此处不可兜底：暂停弹窗上仍显示 ESC，兜底回本节点会反复点击暂停图标。
-            //依靠 next 列表自身的重试等待「快速完成」加载即可。
-            "CoinRushShowdownMiniGameClickQuickComplete"
+            "CoinRushShowdownMiniGameClickQuickComplete" // 此处不可兜底：暂停弹窗上仍显示 ESC，兜底回本节点会反复点击暂停图标。依靠 next 列表自身的重试等待「快速完成」加载即可
         ]
     },
     "CoinRushShowdownMiniGameClickQuickComplete": {
@@ -240,11 +232,10 @@
         ]
     },
     "CoinRushShowdownMiniGameResultReturn": {
-        "desc": "小游戏结算返回",
+        "desc": "小游戏结算返回", // 角色心数耗尽会自行 GAME OVER，此时从结算画面退出
         "recognition": {
             "type": "OCR",
             "param": {
-                //角色心数耗尽会自行 GAME OVER，此时从结算画面退出
                 "roi": [
                     530,
                     650,

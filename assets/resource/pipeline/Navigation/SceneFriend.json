@@ -19,16 +19,15 @@
         }
     },
     "__ScenePrivateClickFriend": {
-        "desc": "从大厅点击好友，复用按钮模板",
+        "desc": "点击大厅好友入口", // 复用 FriendManagementClickFriendEntry 的按钮模板，只点大厅里的好友入口
         "max_hit": 3,
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "CommonArkVisible",
-                    "FriendManagementClickFriendEntry"
-                ],
-                "box_index": 1
+                    "FriendManagementClickFriendEntry",
+                    "CommonArkVisible"
+                ]
             }
         },
         "action": {
@@ -42,7 +41,7 @@
         ]
     },
     "__ScenePrivateRecoverHallForFriend": {
-        "desc": "仅不在父页面时恢复；父页入口缺失时等待超时，不反复空转",
+        "desc": "不在好友页时回大厅",
         "recognition": {
             "type": "And",
             "param": {
@@ -51,7 +50,7 @@
                 ]
             }
         },
-        "inverse": true,
+        "inverse": true, // CommonArkVisible 不命中时才回大厅；父页入口缺失就让外层等到超时，不反复空转
         "next": [
             "SceneEnterHall"
         ]

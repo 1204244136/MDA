@@ -133,10 +133,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "SoloRaidSelectLevelVisible",
-                    "SoloRaidSelectLevelAvailable"
-                ],
-                "box_index": 1
+                    "SoloRaidSelectLevelAvailable",
+                    "SoloRaidSelectLevelVisible"
+                ]
             }
         },
         "action": {

@@ -218,7 +218,7 @@
         ]
     },
     "RedDotClearArchivesDismissIntro": {
-        "desc": "未检测到左上角活动地区哨兵时，点击画面内空白处跳过首次活动封面",
+        "desc": "跳过首次活动封面", // 左上角活动地区哨兵没出现，说明还停在首次活动封面，此时才点空白跳过；固定点画面下沿空白，跳过封面不依赖识别
         "recognition": {
             "type": "And",
             "param": {
@@ -280,7 +280,7 @@
         ]
     },
     "RedDotClearArchivesScrollUp": {
-        "desc": "进入剧情活动后连续大幅上滑，先前往最新活动所在的列表底部",
+        "desc": "上滑到列表底部", // 最新活动排在列表最底部，先连续上滑到底，再交给 RedDotClearArchivesScanFlow 自下而上扫
         "action": {
             "type": "Swipe",
             "param": {
@@ -296,7 +296,7 @@
                 "duration": 150
             }
         },
-        "repeat": 30,
+        "repeat": 30, // 单次上滑约 470px，30 次足够从列表顶部滑到底部
         "repeat_delay": 100,
         "post_wait_freezes": {
             "time": 200,
@@ -314,8 +314,8 @@
         ]
     },
     "RedDotClearArchivesScanFlow": {
-        "desc": "由最新活动向上检查；红点消失才结束，超过扫描上限仍有红点则超时报错",
-        "max_hit": 40,
+        "desc": "从最新活动向上扫描", // 由最新活动向上检查，红点消失才结束
+        "max_hit": 40, // 与 ScrollDown 同步：超过扫描上限仍有红点即超时报错
         "timeout": 5000,
         "rate_limit": 200,
         "next": [
@@ -343,7 +343,7 @@
         }
     },
     "RedDotClearArchivesCleared": {
-        "desc": "外层已确认处于档案馆，且剧情活动红点已消失时正常返回",
+        "desc": "红点清完返回", // 外层 RedDotClearArchivesFlow 已确认处于档案馆，这里只判剧情活动标签的红点/New 消失就正常返回
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -365,8 +365,8 @@
         ]
     },
     "RedDotClearArchivesScrollDown": {
-        "desc": "有红点时反向逐页检查，保留视口重叠；最多 40 次，不以滑到顶作为成功条件",
-        "max_hit": 40,
+        "desc": "逐页下滑检查红点", // 有红点才反向逐页检查；滑动保留视口重叠，避免跨页的活动被整页跳过
+        "max_hit": 40, // 滑到顶不算成功，红点消失才结束
         "recognition": {
             "type": "And",
             "param": {

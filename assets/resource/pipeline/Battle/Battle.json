@@ -19,11 +19,12 @@
         ]
     },
     "BattleCloseModeInfo": {
-        "desc": "关闭各种模式的胜利目标说明，避免遮罩下仍能读到进入战斗而反复空转",
+        "desc": "胜利目标说明弹窗",
         "recognition": {
-            "type": "And",
+            "type": "And", // 模式说明弹窗是半透明遮罩，底下仍能读到「进入战斗」；不先关掉，入口会一直空转
             "param": {
                 "all_of": [
+                    "CommonClosePage", // 放首位：命中框就是关闭按钮，点击落在按钮上
                     {
                         "recognition": {
                             "type": "OCR",
@@ -39,10 +40,8 @@
                                 ]
                             }
                         }
-                    },
-                    "CommonClosePage"
-                ],
-                "box_index": 1
+                    }
+                ]
             }
         },
         "action": {

@@ -1,6 +1,6 @@
 {
     "__EquipmentRerollChangeEffectTitle": {
-        "desc": "OCR 定位顶部蓝底白字的大标题“效果变更”，限定顶部区域以排除底部同名按钮",
+        "desc": "效果变更页标题", // 只认顶部蓝底白字大标题：底部同名按钮也在同一画面，ROI 限 y=90~190 才能排除。本节点还是 Slot1-3 与锁定判定的 ROI 基准，改 ROI 会连带挪动增量框
         "recognition": {
             "type": "OCR",
             "param": {
@@ -15,7 +15,7 @@
         }
     },
     "__EquipmentRerollPreviousLockSettings": {
-        "desc": "加载先前锁定设置区域（仅定位，不自动点击；载入行为需与本轮锁定计划一致）",
+        "desc": "历史锁设置入口", // 只做定位：既是 ReloadLocks 的点击目标，也是 ChangeEffectButton 的相对 ROI 基准
         "recognition": {
             "type": "OCR",
             "param": {
@@ -25,12 +25,12 @@
                     250,
                     185
                 ],
-                "expected": "加载先前的锁定设置"
+                "expected": "加载先前的锁定设置" // 是否载入由 Go 的 reusableLockPlan 决定（完整计划一致才恢复），本节点自身从不点击
             }
         }
     },
     "__EquipmentRerollChangeEffectButton": {
-        "desc": "相对加载设置文字定位底部效果变更按钮，不受材料区域高度影响",
+        "desc": "底部效果变更按钮", // 相对「加载先前的锁定设置」下移 27px 取按钮：材料区高度会变，按钮跟着上下浮动，绝对 ROI 会失效
         "recognition": {
             "type": "OCR",
             "param": {

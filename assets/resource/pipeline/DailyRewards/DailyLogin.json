@@ -134,12 +134,11 @@
         }
     },
     "DailyLoginRewardsAvailable": {
-        "desc": "登录奖励可用",
+        "desc": "登录奖励可用", // 多段区间取并集：任一区间达到 count 即命中，避免每期活动换主题时改颜色
         "recognition": {
             "type": "ColorMatch",
             "param": {
                 "roi": "DailyLoginClaimAllButtonVisible",
-                //多段区间取并集：任一区间达到 count 即命中，避免每期活动换主题时改颜色
                 "lower": [
                     [
                         200,

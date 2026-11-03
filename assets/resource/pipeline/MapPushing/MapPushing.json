@@ -38,12 +38,11 @@
         }
     },
     "MapPushingClickMonster": {
-        "desc": "推图点击怪物后最多等待 3 秒小地图稳定，再优先判断战斗、剧情或机关；点击无效时重新选怪",
+        "desc": "选怪并点击出发", // next 顺序即优先级：战斗/剧情已出现 → 机关 → 再选怪（点不出去就重选）
         "recognition": {
-            "type": "And",
+            "type": "And", // 取离画面中心最近的那只怪；fallback=fail 表示没有候选就判未命中，不拿检测框兜底去点空地
             "param": {
                 "all_of": [
-                    "MapPushingMinimapVisible",
                     {
                         "recognition": {
                             "type": "Custom",
@@ -55,9 +54,9 @@
                                 }
                             }
                         }
-                    }
-                ],
-                "box_index": 1
+                    }, // 放首位：命中框就是选怪结果，Click 才会落在怪身上
+                    "MapPushingMinimapVisible"
+                ]
             }
         },
         "pre_delay": 0,
@@ -65,7 +64,7 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 800,
+            "time": 800, // 点击后等小地图区域静止 800ms（threshold 0.98）才算走完一步，最多等 3 秒（timeout 3000）
             "target": [
                 20,
                 85,
@@ -101,12 +100,11 @@
         }
     },
     "MapPushingClickPlate": {
-        "desc": "推图优先点击未开启机关，最多等待 3 秒小地图稳定；大范围漏检时补充中央近景识别",
+        "desc": "点未开启的机关",
         "recognition": {
-            "type": "And",
+            "type": "And", // 先全图机关检测，再用中央近景补漏；两条都走中心优先、fallback=fail 不兜底
             "param": {
                 "all_of": [
-                    "MapPushingMinimapVisible",
                     {
                         "recognition": {
                             "type": "Or",
@@ -139,16 +137,16 @@
                                 ]
                             }
                         }
-                    }
-                ],
-                "box_index": 1
+                    }, // 放首位：命中框就是机关结果，Click 才会落在机关上
+                    "MapPushingMinimapVisible"
+                ]
             }
         },
         "action": {
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 800,
+            "time": 800, // 与选怪同一套“等小地图稳定”参数：静止 800ms、最多等 3 秒
             "target": [
                 20,
                 85,
@@ -161,9 +159,9 @@
         }
     },
     "MapPushingClickNearbyPlateRaw": {
-        "desc": "推图中央近景未开启机关识别，避免大范围缩放后漏检脚下踏板",
+        "desc": "中央近景机关补检",
         "recognition": {
-            "type": "NeuralNetworkDetect",
+            "type": "NeuralNetworkDetect", // 大范围缩放后脚下踏板容易漏检，用小 ROI 近景再检一次；仍是同一模型，expected 2 即机关类
             "param": {
                 "roi": [
                     360,
@@ -191,9 +189,9 @@
         }
     },
     "MapPushingOpenMinimap": {
-        "desc": "识别收起的小地图按钮并展开，确认展开后再选择怪物或机关",
+        "desc": "展开收起的小地图",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "TemplateMatch", // 点开后必须确认 MapPushingMinimapVisible 展开成功再往下走，否则后续选怪/机关会对着收起的小地图找不到目标；5 秒内没展开就失败退出
             "param": {
                 "roi": [
                     13,

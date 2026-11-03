@@ -83,10 +83,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "CommonGemCostNoticeVisible",
-                    "CommonCancelOptionVisible"
-                ],
-                "box_index": 1 //取「取消」按钮的识别框作为本节点结果框，Click 才会落在取消上
+                    "CommonCancelOptionVisible", // 放首位：命中框就是取消按钮，点击落在取消上
+                    "CommonGemCostNoticeVisible"
+                ]
             }
         },
         "action": {

@@ -171,10 +171,9 @@
                                 "type": "And",
                                 "param": {
                                     "all_of": [
-                                        "__EquipmentRerollValueDetailsPage",
-                                        "__EquipmentRerollValueDetailsButton"
-                                    ],
-                                    "box_index": 1
+                                        "__EquipmentRerollValueDetailsButton",
+                                        "__EquipmentRerollValueDetailsPage"
+                                    ]
                                 }
                             }
                         },
@@ -183,10 +182,9 @@
                                 "type": "And",
                                 "param": {
                                     "all_of": [
-                                        "__EquipmentRerollValueDetailsPage",
-                                        "__EquipmentRerollValueDetailsButton"
-                                    ],
-                                    "box_index": 1
+                                        "__EquipmentRerollValueDetailsButton",
+                                        "__EquipmentRerollValueDetailsPage"
+                                    ]
                                 }
                             },
                             "action": {

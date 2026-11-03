@@ -67,9 +67,9 @@
         ]
     },
     "AdviseEnterAdvisePage": {
-        "desc": "咨询业务入口，保留 NikkeAdvise 选项开关",
+        "desc": "咨询业务入口",
         "recognition": {
-            "type": "Or",
+            "type": "Or", // NikkeAdvise 选项开关直接覆盖本节点的 enabled（Yes=true / No=false），改名或删节点会让老配置失配
             "param": {
                 "any_of": [
                     "AdviseMainPageEntered",

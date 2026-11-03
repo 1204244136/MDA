@@ -25,11 +25,7 @@
                     "Shop/BodyLabelShop/BodyLabelShopNotSelected.png",
                     "Shop/BodyLabelShop/BodyLabelShopSelected.png"
                 ],
-                // 侧边栏六个页签图形高度相似，默认阈值会互相误命中，必须显式收紧。实测：
-                // 本页签自身 1.000000（未选中态）/ 0.999998（选中态）；其他商店页签在本页最高
-                // 0.999939（UnionShopNotSelected），其余 0.997227 / 0.992896 / 0.992417。
-                // 阈值取 0.999：放过自己、挡住其他页签（误点其他页签亦无害，下一轮会点回本页签）。
-                "threshold": 0.999
+                "threshold": 0.999 // 六个页签图形高度相似，默认阈值会互相误命中：实测自身 1.000、其他页签最高 0.999939，取 0.999 放过自己挡住其他页签（误点无害，下轮会点回本页签）
             }
         },
         "action": {
@@ -60,13 +56,9 @@
     "BodyLabelShopPurchaseDiscountedItem": {
         "desc": "购买打折商品",
         "enabled": false,
-        "max_hit": 1,
-        // 该商店商品都是无限量供应，只有 1 号位是「限量 + 打折」的商品，且每天轮换，
-        // 因此不认商品本身，只认卡片上的打折标识（黄底白字）。整块商品区 ROI + expected
-        // 过滤后 filtered 只剩打折标识那一框（实测「40% SALE」[105,466,44,14]，其余 27 框被过滤），
-        // target_offset 把点击从标识抬到卡片中部；max_hit 1 保证一轮只买 1 份。
+        "max_hit": 1, // 一轮只买 1 份
         "recognition": {
-            "type": "OCR",
+            "type": "OCR", // 商品无限量供应，只有 1 号位是「限量 + 打折」且每天轮换，所以只认卡片上的打折标识（黄底白字）；整块商品区 ROI 过滤后只剩标识一框，target_offset 把点击抬到卡片中部
             "param": {
                 "roi": [
                     58,

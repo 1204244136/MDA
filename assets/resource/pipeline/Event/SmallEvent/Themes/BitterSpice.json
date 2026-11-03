@@ -1,6 +1,6 @@
 {
     "SmallEventBitterSpiceClickStageRepeatable": {
-        "desc": "BitterSpice 可扫荡关卡点击",
+        "desc": "点击扫荡关卡",
         "recognition": {
             "type": "TemplateMatch",
             "param": {

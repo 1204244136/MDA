@@ -1,6 +1,6 @@
 {
     "EquipmentRerollMain": {
-        "desc": "洗词条任务入口：从详情资讯页面开始，先识别四件装备，再按自定义配额执行效果变更",
+        "desc": "洗词条任务主入口", // 洗词条任务的入口：从详情资讯页开始，先识别四件装备，再按自定义配额执行效果变更。入口动作 RuntimeQuotaCheck 先检查运行额度，未通过不会进入 EquipmentRerollFlow
         "action": {
             "type": "Custom",
             "param": {
@@ -12,10 +12,10 @@
         ]
     },
     "EquipmentRerollEnd": {
-        "desc": "洗词条结束：四件装备均已满足自定义配额目标，或操作次数预算耗尽"
+        "desc": "洗词条收尾" // 四件装备均已满足自定义配额目标，或操作次数预算耗尽时走到这里
     },
     "EquipmentRerollFinalSummary": {
-        "desc": "结束前通过 focus 输出人类可读摘要（装备详情含档位 + 库存）",
+        "desc": "结束前输出摘要", // 结束前通过 focus 输出人类可读摘要（装备详情含档位 + 库存）。独立检测入口只补库存：四件详情已在各部位完成时实时播报，避免重复整份快照
         "recognition": {
             "type": "DirectHit"
         },
@@ -31,7 +31,7 @@
         ]
     },
     "EquipmentRerollFlow": {
-        "desc": "共用编排：校验大类与模式，扫描角色四件或选定单件，再分发效果/数值决策",
+        "desc": "洗词条总编排", // 共用编排：校验大类与模式，扫描角色四件或选定单件，再分发效果/数值决策。大类（效果/数值）与模式（角色/单件）由承载点 attach 决定，这里只做拦截与起步
         "action": {
             "type": "Custom",
             "param": {
@@ -43,7 +43,7 @@
         ]
     },
     "EquipmentRerollSingleScanRoute": {
-        "desc": "单件模式扫描起点（Go）：跳过其余三件，直接打开 attach.part 选定的那一件装备详情",
+        "desc": "单件模式扫描起点", // 单件模式跳过其余三件，直接打开 attach.part 选定的那一件装备详情
         "recognition": {
             "type": "DirectHit"
         },
@@ -58,7 +58,7 @@
         ]
     },
     "EquipmentRerollDecide": {
-        "desc": "决策分发：设锚点到锁定检查，先判断全部完成，再通过全局有限步前瞻选择收益最高的部位（自定义配额）",
+        "desc": "角色模式决策分发", // 先判断全部完成，再通过全局 1 步前瞻选择收益最高的部位（自定义配额）。四个 AfterOpen<部位> 锚点都指回 LockGate：打开任一部位详情后统一先过锁定检查
         "anchor": {
             "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
             "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
@@ -72,7 +72,7 @@
         ]
     },
     "EquipmentRerollChoosePart": {
-        "desc": "全局有限步前瞻：从四件装备中选择期望收益最高的部位并直接打开对应详情页",
+        "desc": "选期望收益最高部位", // 全局 1 步前瞻：从四件装备中选择期望收益最高的部位并直接打开对应详情页。部位到详情页的节点映射写在 Go 里（头部/臂部/身躯/腿部），改节点名要同步
         "recognition": {
             "type": "DirectHit"
         },
@@ -106,13 +106,13 @@
         ]
     },
     "EquipmentRerollLockGate": {
-        "desc": "锁定检查入口：蓝 i 锚定后按自定义配额策略判定是否需锁定 2/3号槽位",
+        "desc": "锁定检查入口", // 先由蓝 i 锚点确认在装备详情页，再按自定义配额判定是否需锁定 2/3 号槽位
         "next": [
             "__EquipmentRerollLockLocateFlag"
         ]
     },
     "__EquipmentRerollLockLocateFlag": {
-        "desc": "洗练锁定前 Flag 锚点定位（HSV 蓝 i 判据，对确认页后重入偏暗免疫：V 下限 60，实测 55% 亮度计数不变）",
+        "desc": "锁定前蓝 i 定位", // HSV 蓝 i 判据：对确认页后重入偏暗免疫，V 下限压到 60，实测 55% 亮度下计数不变
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -137,7 +137,7 @@
                         255
                     ]
                 ],
-                "count": 80
+                "count": 80 // 28×70 框内蓝 i 的像素数；V 下限决定亮度容忍，count 决定面积容忍，两者分开调
             }
         },
         "anchor": "EquipmentRerollInspectFlag",
@@ -147,7 +147,7 @@
         ]
     },
     "EquipmentRerollLockBranch": {
-        "desc": "锁定分支：优先尝试锁定 2/3号，不需锁定则直接效果变更",
+        "desc": "优先锁定再洗", // 优先尝试锁定 2/3 号槽；不需要锁定时由 LockNeed 未命中自然落到效果变更
         "recognition": {
             "type": "DirectHit"
         },
@@ -157,14 +157,14 @@
         ]
     },
     "EquipmentRerollLockNeed": {
-        "desc": "配置承载点 + 锁定判定：全部任务选项写在本节点 attach 顶层键（mode/part/wantN/slotN/quota_<效果名>，attach 按 key 合并互不覆盖）；命中→锁定流程",
+        "desc": "任务选项承载与锁定判定", // 全部选项写 attach 顶层键：attach 按 key 浅合并，custom_recognition_param 是整体替换，所以只能走 attach；命中即该部位需先锁定
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollLockCheckRecognition",
                 "custom_recognition_param": {
                     "global_quota": {
-                        "优越代码伤害增加": 4
+                        "优越代码伤害增加": 4 // 只是默认值：用户没配任何配额时才回落到它，改这里不会覆盖用户配置
                     }
                 }
             }
@@ -175,7 +175,7 @@
         ]
     },
     "EquipmentRerollLockRouteSlot": {
-        "desc": "锁定路由（Go）：新版客户端装备详情页词条行已不可点击，统一改走「点效果变更 → 确认页」，再由确认页的 KeepLock 分支完成锁定",
+        "desc": "锁定统一走确认页", // 新版客户端装备详情页的词条行已不可点击，旧路径会一直点不动而卡死。因此锁定统一改走「点效果变更 → 确认页」，再由确认页的 KeepLock 分支完成锁定。目标槽位已锁时这里会改道效果变更，不重复上锁
         "recognition": {
             "type": "DirectHit"
         },
@@ -191,7 +191,7 @@
         ]
     },
     "EquipmentRerollLockPageEntered": {
-        "desc": "原子节点：确认进入效果锁定页（复用 __EquipmentRerollLockTitle，ROI 单点维护）",
+        "desc": "效果锁定页哨兵", // 复用 __EquipmentRerollLockTitle 判断已进入效果锁定页，标题框只在这一处维护
         "recognition": {
             "type": "Or",
             "param": {
@@ -206,7 +206,7 @@
         ]
     },
     "EquipmentRerollMaterialCheck": {
-        "desc": "进入效果锁定页时顺便读一次材料持有量初始化库存余额（读不到则跳过初始化，不阻断锁定流程）",
+        "desc": "进锁定时顺便读库存", // 进入锁定页时顺手读一次材料持有量初始化库存；读不到就跳过，不阻断锁定。读数复用 __EquipmentRerollLockModuleHeld / __EquipmentRerollLockKeyHeld
         "recognition": {
             "type": "Custom",
             "param": {
@@ -222,7 +222,7 @@
         ]
     },
     "EquipmentRerollLockAbort": {
-        "desc": "放弃锁定：先清理待锁状态并关闭效果锁定页，再按实际返回页面继续",
+        "desc": "放弃锁定并善后", // 先清理待锁状态并关闭效果锁定页，再按实际返回页面继续。放弃锁定的动作会 resetTaskRetryGates，避免闸门计数残留影响下一轮
         "recognition": {
             "type": "DirectHit"
         },
@@ -241,10 +241,10 @@
         ]
     },
     "EquipmentRerollLockAbortAfterClose": {
-        "desc": "关闭锁定页后的页面分流：确认页直接读取费用，详情页重新进入效果变更",
+        "desc": "关页后的页面分流", // 关闭锁定页后按返回位置分流：确认页直接读取费用，详情页重新进入效果变更
         "pre_delay": 0,
         "post_delay": 0,
-        "timeout": 5000,
+        "timeout": 5000, // 5 秒内认不出页面就交给 LockAbortFailed 显式失败，避免停在未知页面继续点
         "rate_limit": 100,
         "next": [
             "EquipmentRerollLockAbortOnConfirmPage",
@@ -255,7 +255,7 @@
         ]
     },
     "EquipmentRerollLockAbortOnConfirmPage": {
-        "desc": "放弃锁定后返回效果变更确认页，不再重复锁定，直接读取本轮费用",
+        "desc": "回确认页直接读费用", // 放弃锁定后返回效果变更确认页，不再重复锁定，直接读取本轮费用
         "recognition": {
             "type": "Or",
             "param": {
@@ -272,7 +272,7 @@
         ]
     },
     "EquipmentRerollLockAbortOnDetailsPage": {
-        "desc": "兼容旧页面层级：放弃锁定后若返回装备详情页，则重新进入效果变更",
+        "desc": "兼容旧层级回详情页", // 兼容旧页面层级：放弃锁定后若返回装备详情页，则重新进入效果变更。蓝 i 判据与锁定前定位、锁后详情页判定完全相同，改一处要同步
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -323,7 +323,7 @@
         }
     },
     "EquipmentRerollAfterMaterialCheck": {
-        "desc": "四件扫描完成（详情页已关闭）后路由（Go）：独立检测→结束；角色→Decide；单件→SingleDecide",
+        "desc": "四件扫描后的路由", // 四件扫描完成后按入口与模式路由：独立检测→结束；角色→Decide；单件→SingleDecide。模式只认 attach.mode，别用目标是否为空反推，否则非法单件配置会静默退化成角色模式
         "recognition": {
             "type": "DirectHit"
         },
@@ -338,7 +338,7 @@
         "rate_limit": 100
     },
     "EquipmentRerollLockSelectMaterial": {
-        "desc": "选择锁定材料：自订密钥优先，不够用订制模块（Go决策）",
+        "desc": "锁定材料选型", // 自订密钥优先（获取成本 0），不够才用订制模块；决策在 Go，点击坐标留在 Pipeline
         "recognition": {
             "type": "Custom",
             "param": {
@@ -412,16 +412,15 @@
         ]
     },
     "EquipmentRerollLockConfirm": {
-        "desc": "点击锁定页底部“确认”（启用前灰色，SELECT后变蓝）",
+        "desc": "锁定页底部确认", // 确认按钮启用前是灰色、SELECT 后变蓝，所以要同时校验标题、按钮颜色和文本；文本框放首位，点击才落在按钮文字上
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
+                    "__EquipmentRerollLockConfirmText",
                     "__EquipmentRerollLockTitle",
-                    "__EquipmentRerollLockConfirmEnabled",
-                    "__EquipmentRerollLockConfirmText"
-                ],
-                "box_index": 2
+                    "__EquipmentRerollLockConfirmEnabled"
+                ]
             }
         },
         "pre_delay": 0,
@@ -436,7 +435,7 @@
         ]
     },
     "EquipmentRerollLockComplete": {
-        "desc": "锁定确认后的哨兵：确认已回到详情页或效果变更确认页后，才同步锁定状态",
+        "desc": "锁定完成哨兵", // 确认已回到详情页或效果变更确认页后，才同步锁定状态
         "recognition": {
             "type": "Or",
             "param": {
@@ -452,7 +451,7 @@
         ]
     },
     "EquipmentRerollLockDone": {
-        "desc": "上锁完成（同步快照+清理 pending），分流到详情页或确认页继续刷新",
+        "desc": "上锁完成同步快照", // 同步快照并清理 pending，再分流到详情页或确认页继续刷新。第二个待锁槽位由这里写入 pending，LockAfterRoute 只负责按页面选路
         "recognition": {
             "type": "DirectHit"
         },
@@ -468,14 +467,14 @@
         ]
     },
     "EquipmentRerollLockAfterRoute": {
-        "desc": "锁定完成分流：确认页特征优先，避免详情页蓝 i 判据在确认页误命中；确认页流程回确认页刷新，详情页流程回详情页刷新",
+        "desc": "锁定完成后的页面分流", // 确认页特征优先，避免详情页蓝 i 判据在确认页误命中；确认页流程回确认页刷新，详情页流程回详情页刷新；顺序不能反：确认页也可能命中蓝 i 判据，先判确认页大标题再判详情页
         "next": [
             "EquipmentRerollLockAfterIsConfirm",
             "EquipmentRerollLockAfterIsDetail"
         ]
     },
     "EquipmentRerollLockAfterIsDetail": {
-        "desc": "详情页特征：改造装备效果行的蓝色信息图标（详情页有、确认页无）",
+        "desc": "详情页蓝 i 特征", // 改造装备效果行的蓝色信息图标：详情页有、确认页无。同一组蓝 i 判据在本文件里出现多处，改 HSV 范围或 count 时要逐处同步
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -509,7 +508,7 @@
         ]
     },
     "EquipmentRerollLockAfterIsConfirm": {
-        "desc": "确认页特征：顶部蓝底白字的效果变更大标题（限制顶部 ROI）",
+        "desc": "确认页大标题特征", // 顶部蓝底白字的效果变更大标题，判定框收在顶部，避免把下方同名按钮也算进来
         "recognition": {
             "type": "Or",
             "param": {
@@ -555,7 +554,7 @@
         ]
     },
     "EquipmentRerollClickChangeEffectRetry": {
-        "desc": "详情页点击未切换时的哨兵兜底：仅确认仍处于详情页（蓝色信息图标）才重试效果变更",
+        "desc": "点效果变更的重试兜底", // 详情页点击未切换时的哨兵兜底：仅确认仍处于详情页（蓝色信息图标）才重试效果变更。重试次数由闸门 __EquipmentRerollRetryGateClickChangeEffectRetry 限制，不做无上限自环
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -601,7 +600,7 @@
         ]
     },
     "EquipmentRerollChangeEffectPageEntered": {
-        "desc": "效果变更点击后的确认页哨兵：确认页面已切换后才读取并校验消耗",
+        "desc": "确认页切换哨兵", // 效果变更点击后确认页面已切换，才读取并校验消耗
         "recognition": {
             "type": "Or",
             "param": {
@@ -616,7 +615,7 @@
         ]
     },
     "EquipmentRerollPrepareRerollCost": {
-        "desc": "确认页读取本轮模组/密钥总费用并校验库存，暂存但不扣费",
+        "desc": "读本轮费用并校验库存", // 确认页读取本轮模组/密钥总费用并校验库存，暂存但不扣费。真正扣账在结果页出现后由 RecordRerollCost 做，且只记一次
         "recognition": {
             "type": "Custom",
             "param": {
@@ -638,7 +637,7 @@
         ]
     },
     "__EquipmentRerollRetryGateCostUnreadable": {
-        "desc": "重试闸门：确认页消耗读数失败时有界重试，超限后显式失败",
+        "desc": "读费用失败的重试闸门", // 确认页消耗读数失败时有界重试，超限后由 CostUnreadableFailed 显式失败
         "recognition": {
             "type": "DirectHit"
         },
@@ -650,7 +649,7 @@
                     "key": "cost_unreadable",
                     "retry": "EquipmentRerollPrepareRerollCost",
                     "give_up": "EquipmentRerollCostUnreadableFailed",
-                    "limit": 5,
+                    "limit": 5, // / window_ms 8000：8 秒内连续命中超过 5 次才判定原地打转；正常重试间隔远大于此
                     "window_ms": 8000,
                     "next": [
                         "EquipmentRerollPrepareRerollCost",
@@ -679,7 +678,7 @@
         }
     },
     "EquipmentRerollRecordRerollCost": {
-        "desc": "结果页已出现后同时扣记本轮模组和密钥，仅记账一次；等待窗口内结果页始终不可读时显式失败并保留现场",
+        "desc": "结果页扣记本轮费用", // 结果页已出现后同时扣记本轮模组和密钥，仅记账一次。等待窗口内结果页始终不可读时显式失败并保留现场
         "recognition": {
             "type": "And",
             "param": {
@@ -705,16 +704,15 @@
         ]
     },
     "EquipmentRerollConfirmChangeEffect": {
-        "desc": "确认页点击后等待局部动画稳定及结果页哨兵；仅等待超时才允许有界重试，避免过渡帧重复点击",
+        "desc": "确认变更并等待结果页", // 确认页点击后等待局部动画稳定及结果页哨兵；仅等待超时才允许有界重试，避免过渡帧重复点击
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
+                    "__EquipmentRerollChangeEffectButton",
                     "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollPreviousLockSettings",
-                    "__EquipmentRerollChangeEffectButton"
-                ],
-                "box_index": 2
+                    "__EquipmentRerollPreviousLockSettings"
+                ]
             }
         },
         "pre_delay": 0,
@@ -722,7 +720,7 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 300,
+            "time": 300, // 冻结检测只取画面中部 300ms 稳定 + 4s 超时：整屏动画会拖长等待，局部稳定就够
             "target": [
                 460,
                 180,
@@ -743,7 +741,7 @@
         ]
     },
     "EquipmentRerollResultPage": {
-        "desc": "结果页决策：读变更效果并路由到维持/接受（自定义配额）",
+        "desc": "结果页去留决策", // 读变更效果并路由到维持/接受（自定义配额）
         "recognition": {
             "type": "Custom",
             "param": {
@@ -770,7 +768,7 @@
         ]
     },
     "EquipmentRerollResultClickKeep": {
-        "desc": "决策页点击左下角效果维持（放弃本次变更），回到确认页重洗同件（自身兜底，等待动画稳定后再判断是否重试），需与详情页蓝 i 判据区分",
+        "desc": "决策页点效果维持", // 点击左下角效果维持（放弃本次变更），回到确认页重洗同件。自身做兜底重试：先等动画稳定再判断是否重试，避免过渡帧连点。判据用按钮文本，和详情页蓝 i 判据区分，不要合并
         "recognition": {
             "type": "OCR",
             "param": {
@@ -800,7 +798,7 @@
         ]
     },
     "EquipmentRerollKeepLockGate": {
-        "desc": "结果页维持后的确认页哨兵：OCR 限定顶部大标题，排除下方同名操作按钮",
+        "desc": "维持后的确认页哨兵", // 结果页维持后的确认页哨兵：标题文字限定在顶部，排除下方同名操作按钮
         "recognition": {
             "type": "Or",
             "param": {
@@ -818,7 +816,7 @@
         ]
     },
     "EquipmentRerollSyncInventory": {
-        "desc": "确认页兜底同步材料持有量（Go）：本轮无需锁定时流程不经过效果锁定页，靠这里补齐库存。必须挂在确认页哨兵之后（页面归属由挂载点保证）；识别到持有量才命中，未命中时由哨兵直接进入确认页分支",
+        "desc": "确认页兜底同步库存", // 确认页兜底同步材料持有量：本轮无需锁定时流程不经过效果锁定页，靠这里补齐库存。必须挂在确认页哨兵之后，页面归属由挂载点保证。识别到持有量才命中；未命中时由哨兵直接进入 ConfirmPageBranch
         "recognition": {
             "type": "Custom",
             "param": {
@@ -834,7 +832,7 @@
         ]
     },
     "EquipmentRerollConfirmPageBranch": {
-        "desc": "确认页处理链入口：载入历史锁 → 锁定判定 → 读取本轮费用。确认页后续链只在这里维护一处",
+        "desc": "确认页处理链入口", // 载入历史锁 → 锁定判定 → 读取本轮费用。确认页后续链只在这里维护一处，别在别的节点重复拼
         "recognition": {
             "type": "DirectHit"
         },
@@ -848,7 +846,7 @@
         ]
     },
     "EquipmentRerollKeepLockCheck": {
-        "desc": "确认页锁定判定：复用 LockCheck 按自定义配额判定 2/3 号槽是否需锁",
+        "desc": "确认页锁定判定", // 复用 LockCheck，按自定义配额判定 2/3 号槽是否需锁
         "recognition": {
             "type": "Custom",
             "param": {
@@ -868,7 +866,7 @@
         ]
     },
     "EquipmentRerollKeepLockRoute": {
-        "desc": "按待锁槽位路由到确认页槽位点击；无需锁定则确认页直接刷新（next 由 KeepLockRouteSlotAction 覆写）",
+        "desc": "按待锁槽位路由", // 按待锁槽位路由到确认页槽位点击；无需锁定则直接刷新本轮费用。next 由 EquipmentRerollKeepLockRouteSlotAction 覆写，这里保留完整候选即可，别写死槽位顺序
         "recognition": {
             "type": "DirectHit"
         },
@@ -889,15 +887,14 @@
         ]
     },
     "EquipmentRerollKeepClickSlot2": {
-        "desc": "效果变更确认页点击 2号槽进入锁定页（顶部大标题定位，相对槽位坐标）",
+        "desc": "确认页点 2 号槽", // 效果变更确认页点击 2 号槽进入锁定页；用顶部大标题定位，点击取槽位框的相对偏移；target_offset 以槽位识别框为基准做偏移：右 30、下 4、宽 -60、高 -8
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollChangeEffectSlot2"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollChangeEffectSlot2",
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
             }
         },
         "pre_delay": 0,
@@ -923,15 +920,14 @@
         ]
     },
     "EquipmentRerollKeepClickSlot3": {
-        "desc": "效果变更确认页点击 3号槽进入锁定页（顶部大标题定位，相对槽位坐标）",
+        "desc": "确认页点 3 号槽", // 效果变更确认页点击 3 号槽进入锁定页；用顶部大标题定位，点击取槽位框的相对偏移；target_offset 以槽位识别框为基准做偏移：右 30、下 4、宽 -60、高 -8
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollChangeEffectSlot3"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollChangeEffectSlot3",
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
             }
         },
         "pre_delay": 0,
@@ -957,7 +953,7 @@
         ]
     },
     "EquipmentRerollResultClickAccept": {
-        "desc": "决策页点击右下角效果变更（接受本次变更），自身兜底重试；成功后由 AfterAccept 分流：当前部位仍缺词条则留在详情页继续，已达标才回人物页重调度",
+        "desc": "决策页接受本次变更", // 点击右下角效果变更（接受本次变更），自身做兜底重试。成功后由 AfterAccept 分流：当前部位仍缺词条就留在详情页继续，已达标才回人物页重调度
         "recognition": {
             "type": "OCR",
             "param": {
@@ -987,7 +983,7 @@
         ]
     },
     "EquipmentRerollLossMaxTierWarning": {
-        "desc": "效果变更后的最高阶段效果警告；任务目标是词条效果，按正常流程确认继续",
+        "desc": "丧失最高阶段的警告", // 效果变更后的最高阶段效果警告；任务目标是词条效果，按正常流程确认继续
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1012,10 +1008,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "EquipmentRerollLossMaxTierWarning",
-                    "__EquipmentRerollLossMaxTierConfirmButton"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollLossMaxTierConfirmButton",
+                    "EquipmentRerollLossMaxTierWarning"
+                ]
             }
         },
         "action": {
@@ -1046,7 +1041,7 @@
         }
     },
     "EquipmentRerollAfterAccept": {
-        "desc": "确认已回到效果变更确认页后，提交接受结果并按最新快照决定继续当前装备或返回重调度",
+        "desc": "接受后的提交与分流", // 确认已回到效果变更确认页后，提交接受结果并按最新快照决定继续当前装备或返回重调度
         "recognition": {
             "type": "Or",
             "param": {
@@ -1069,7 +1064,7 @@
         ]
     },
     "__EquipmentRerollResultButtonsVisible": {
-        "desc": "内部识别：决策页就绪信号（检测效果维持出现；ROI 需覆盖完整按钮文本，避免只识别到“效果”裁掉“维持”）",
+        "desc": "决策页就绪信号", // 检测效果维持出现即认为决策页就绪；判定框必须覆盖完整按钮文本，只识别到「效果」而裁掉「维持」时会误判未就绪
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1096,7 +1091,7 @@
         ]
     },
     "EquipmentRerollResultUnreadableFailed": {
-        "desc": "结果页槽位在等待窗口内始终无法完整识别时显式失败，保留游戏当前结果，不回点消耗确认",
+        "desc": "结果页不可读时失败", // 结果页槽位在等待窗口内始终无法完整识别时显式失败，保留游戏当前结果，不回点消耗确认
         "recognition": {
             "type": "DirectHit"
         },
@@ -1111,7 +1106,7 @@
         }
     },
     "__EquipmentRerollLocateChangedSlot1Match": {
-        "desc": "决策页模板匹配第1变更槽标记",
+        "desc": "变更槽 1 标记锚点", // 作为 __EquipmentRerollResultChangedEffectSlot1 的 roi 锚点：三槽共用 ResultSlot.png，只靠 index 区分
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1131,7 +1126,7 @@
         }
     },
     "__EquipmentRerollLocateChangedSlot2Match": {
-        "desc": "决策页模板匹配第2变更槽标记",
+        "desc": "变更槽 2 标记锚点", // 作为 __EquipmentRerollResultChangedEffectSlot2 的 roi 锚点：三槽共用 ResultSlot.png，只靠 index 区分
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1151,7 +1146,7 @@
         }
     },
     "__EquipmentRerollLocateChangedSlot3Match": {
-        "desc": "决策页模板匹配第3变更槽标记",
+        "desc": "变更槽 3 标记锚点", // 作为 __EquipmentRerollResultChangedEffectSlot3 的 roi 锚点：三槽共用 ResultSlot.png，只靠 index 区分
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1171,7 +1166,7 @@
         }
     },
     "__EquipmentRerollResultPageTitle": {
-        "desc": "内部识别：确认效果变更结果页（OPTION CHANGE 标题），仅供 Go 复用",
+        "desc": "OPTION CHANGE 标题", // 确认效果变更结果页（OPTION CHANGE 标题）；Pipeline 与 Go 都复用这个节点，改判定要两边一起看
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1188,7 +1183,7 @@
         }
     },
     "__EquipmentRerollResultChangedEffectSlot1": {
-        "desc": "内部识别：第1变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
+        "desc": "1 号变更槽词条识别", // 先在同一截图定位槽位标记，再按相对偏移框住词条行。本轮已锁槽由 Go 沿用快照，不调用本节点
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1226,7 +1221,7 @@
         }
     },
     "__EquipmentRerollResultChangedEffectSlot2": {
-        "desc": "内部识别：第2变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
+        "desc": "2 号变更槽词条识别", // 先在同一截图定位槽位标记，再按相对偏移框住词条行。本轮已锁槽由 Go 沿用快照，不调用本节点
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1264,7 +1259,7 @@
         }
     },
     "__EquipmentRerollResultChangedEffectSlot3": {
-        "desc": "内部识别：第3变更槽 OCR，先在同一截图定位标记；本轮已锁槽由 Go 沿用快照，不调用本节点",
+        "desc": "3 号变更槽词条识别", // 先在同一截图定位槽位标记，再按相对偏移框住词条行。本轮已锁槽由 Go 沿用快照，不调用本节点
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1302,7 +1297,7 @@
         }
     },
     "__EquipmentRerollRetryGateLockSelectMaterial": {
-        "desc": "重试闸门：效果锁定页没进来时本节点会被反复命中，超限后放弃锁定、退回效果变更",
+        "desc": "锁定页未进入的闸门", // 效果锁定页没进来时本节点会被反复命中，超限后放弃锁定、退回效果变更
         "recognition": {
             "type": "DirectHit"
         },
@@ -1326,7 +1321,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateLockSelectModule": {
-        "desc": "重试闸门：订制模块 SELECT 点不动时超限放弃锁定",
+        "desc": "订制模块点击重试闸门", // 订制模块 SELECT 点不动时超限放弃锁定
         "recognition": {
             "type": "DirectHit"
         },
@@ -1351,7 +1346,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateLockSelectKey": {
-        "desc": "重试闸门：自订密钥 SELECT 点不动时超限放弃锁定",
+        "desc": "自订密钥点击重试闸门", // 自订密钥 SELECT 点不动时超限放弃锁定
         "recognition": {
             "type": "DirectHit"
         },
@@ -1401,7 +1396,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateKeepClickSlot2": {
-        "desc": "重试闸门：效果变更确认页 2 号槽点不动（例如该页词条不可点击）时超限放弃锁定",
+        "desc": "确认页 2 号槽重试闸门", // 效果变更确认页 2 号槽点不动（例如该页词条不可点击）时超限放弃锁定
         "recognition": {
             "type": "DirectHit"
         },
@@ -1426,7 +1421,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateKeepClickSlot3": {
-        "desc": "重试闸门：效果变更确认页 3 号槽点不动时超限放弃锁定",
+        "desc": "确认页 3 号槽重试闸门", // 效果变更确认页 3 号槽点不动时超限放弃锁定
         "recognition": {
             "type": "DirectHit"
         },
@@ -1451,7 +1446,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateClickChangeEffectRetry": {
-        "desc": "重试闸门：详情页效果变更点不动时超限直接失败，避免无限点击",
+        "desc": "详情页点击重试闸门", // 详情页效果变更点不动时超限直接失败，避免无限点击。没有 give_up，超限就让当前节点失败，由框架判定任务失败
         "recognition": {
             "type": "DirectHit"
         },
@@ -1475,7 +1470,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateResultClickKeep": {
-        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "desc": "决策页维持重试闸门", // 等待成功页面或原按钮，连续无进展超限则失败；不能把重试耗尽视为操作成功
         "recognition": {
             "type": "DirectHit"
         },
@@ -1500,7 +1495,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateResultClickAccept": {
-        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "desc": "决策页接受重试闸门", // 等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功
         "recognition": {
             "type": "DirectHit"
         },
@@ -1525,7 +1520,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateLossMaxTierConfirm": {
-        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "desc": "警告弹窗确认重试闸门", // 等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功
         "recognition": {
             "type": "DirectHit"
         },
@@ -1549,7 +1544,7 @@
         "rate_limit": 500
     },
     "__EquipmentRerollRetryGateConfirmChangeEffect": {
-        "desc": "重试闸门：确认后未进入结果页时有界重试，耗尽后按材料不足或页面异常显式失败",
+        "desc": "确认后未进结果页闸门", // 确认后未进入结果页时有界重试，耗尽后由 ConfirmChangeEffectFailed 按材料不足或页面异常显式失败
         "recognition": {
             "type": "DirectHit"
         },
@@ -1574,7 +1569,7 @@
         "rate_limit": 500
     },
     "EquipmentRerollConfirmChangeEffectFailed": {
-        "desc": "确认效果变更后未进入结果页，清理暂存费用并显式失败",
+        "desc": "确认后未进结果页失败", // 确认效果变更后未进入结果页，清理暂存费用并显式失败
         "recognition": {
             "type": "DirectHit"
         },
@@ -1589,7 +1584,7 @@
         }
     },
     "__EquipmentRerollLockTitle": {
-        "desc": "效果锁定页标题识别（布局固定，roi 单点维护；主流程与 Go 复用同一节点）",
+        "desc": "效果锁定页标题", // 布局固定，标题框只在这一处维护；主流程与 Go 共用同一节点，改这里等于全局改判定
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1610,7 +1605,7 @@
         ]
     },
     "__EquipmentRerollLockModuleHeld": {
-        "desc": "效果锁定页模组持有量：数字过滤及千位分隔符归一化后取最右结果，排除左侧标签和图标误读",
+        "desc": "模组持有量读数", // 数字过滤及千位分隔符归一化后取最右结果，排除左侧标签和图标误读
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1635,7 +1630,7 @@
         "next": []
     },
     "__EquipmentRerollLockKeyHeld": {
-        "desc": "效果锁定页密钥持有量：数字过滤及千位分隔符归一化后取最右结果，排除左侧标签和图标误读",
+        "desc": "密钥持有量读数", // 数字过滤及千位分隔符归一化后取最右结果，排除左侧标签和图标误读
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1660,7 +1655,7 @@
         "next": []
     },
     "EquipmentRerollReturnToDecide": {
-        "desc": "一次效果变更完成：关闭页面回到人物页，基于已刷新的快照直接重新调度（不再全量扫描四件装备）",
+        "desc": "一次变更后回调度", // 一次效果变更完成：关闭页面回到人物页，基于已刷新的快照直接重新调度，不再全量扫描四件装备
         "pre_delay": 0,
         "post_delay": 0,
         "next": [
@@ -1669,7 +1664,7 @@
         ]
     },
     "EquipmentRerollSingleDecide": {
-        "desc": "单件决策：达标→摘要/结束；目标不可达→告知用户并结束；否则打开部位详情（部位与目标从承载点 attach 读取）",
+        "desc": "单件模式决策", // 达标 → 摘要/结束；目标不可达 → 告知用户并结束；否则打开部位详情。部位与目标从承载点 attach 读取，别在这里再抄一份配置
         "recognition": {
             "type": "DirectHit"
         },
@@ -1699,7 +1694,7 @@
         ]
     },
     "EquipmentRerollKeepLossMaxTierWarning": {
-        "desc": "效果维持也可能放弃候选最高阶段数值；确认后保留原效果，不提交候选快照",
+        "desc": "维持也会丢最高阶段", // 效果维持也可能放弃候选最高阶段数值；确认后保留原效果，不提交候选快照
         "recognition": {
             "type": "Or",
             "param": {
@@ -1720,10 +1715,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "EquipmentRerollLossMaxTierWarning",
-                    "__EquipmentRerollLossMaxTierConfirmButton"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollLossMaxTierConfirmButton",
+                    "EquipmentRerollLossMaxTierWarning"
+                ]
             }
         },
         "pre_delay": 0,
@@ -1739,7 +1733,7 @@
         ]
     },
     "__EquipmentRerollRetryGateKeepLossMaxTierConfirm": {
-        "desc": "等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功",
+        "desc": "维持警告确认重试闸门", // 等待成功页面或原按钮，连续无进展超限则失败，不能把重试耗尽视为操作成功
         "recognition": {
             "type": "DirectHit"
         },

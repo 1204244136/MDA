@@ -1,12 +1,12 @@
 {
     "EquipmentRerollValuePrepare": {
-        "desc": "冻结数值锁方案并逐步核验；timeout 约束等待 next 核验完成",
+        "desc": "冻结数值锁方案", // PrepareAction 会按方案覆盖 next（先释放多余锁、再按顺序上锁、无需变更则直接读费用），ValueVerifyReady 只是默认出口
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "EquipmentRerollValueLocksVerifyRecognition",
                 "custom_recognition_param": {
-                    "initial": true
+                    "initial": true // initial=true 表示本轮首拍：Go 在此冻结整轮方案，后续 VerifyReady / VerifyChange 只做比对，不再重新规划
                 }
             }
         },
@@ -18,7 +18,7 @@
             }
         },
         "post_delay": 0,
-        "timeout": 5000,
+        "timeout": 5000, // 5000 是等 next 核验完成的预算；超时进 ValuePlanFailed，不带着未核验的锁继续洗
         "rate_limit": 200,
         "next": [
             "EquipmentRerollValueVerifyReady"
@@ -126,22 +126,21 @@
         }
     },
     "EquipmentRerollValueUnlockConfirm": {
-        "desc": "免费解除锁；只在解锁标题、说明及确认同时匹配后点击",
+        "desc": "免费解锁确认",
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
+                    "__EquipmentRerollUnlockConfirmText", // 放首位：点击落在「确认」上；标题与说明只负责确认这是免费解锁弹窗
                     "__EquipmentRerollUnlockTitle",
-                    "__EquipmentRerollUnlockMessage",
-                    "__EquipmentRerollUnlockConfirmText"
-                ],
-                "box_index": 2
+                    "__EquipmentRerollUnlockMessage"
+                ]
             }
         },
         "action": {
             "type": "Click"
         },
-        "timeout": 5000,
+        "timeout": 5000, // 5000 覆盖解锁弹窗的出现等待；超时即 ValuePlanFailed，绝不盲点
         "next": [
             "EquipmentRerollValueVerifyChange"
         ],
@@ -155,10 +154,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollChangeEffectSlot1"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollChangeEffectSlot1",
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
             }
         },
         "action": {
@@ -186,10 +184,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollChangeEffectSlot2"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollChangeEffectSlot2",
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
             }
         },
         "action": {
@@ -217,10 +214,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollChangeEffectSlot3"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollChangeEffectSlot3",
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
             }
         },
         "action": {

@@ -13,9 +13,9 @@
         ]
     },
     "CashShopResumeFlow": {
-        "desc": "仅在付费商店标题和普通礼包页签均可见时复用当前页面，避免把百货商店误当付费商店",
+        "desc": "复用当前商店页面",
         "recognition": {
-            "type": "And",
+            "type": "And", // 标题和「普通礼包」页签同时可见才算已在付费商店，避免把百货商店误认成付费商店继续推进
             "param": {
                 "all_of": [
                     "CashShopMainPageEntered",
@@ -88,9 +88,9 @@
         }
     },
     "CashShopNetworkErrorFlow": {
-        "desc": "网络异常时等待商店页面，避免反复点击弹窗后的商店入口；重试由选项控制",
+        "desc": "网络异常后等页面",
         "recognition": {
-            "type": "And",
+            "type": "And", // 弹窗出现后别再点商店入口（会点在弹窗后面的页面上空转），在这里等页面自己恢复
             "param": {
                 "all_of": [
                     "CashShopNetworkErrorVisible"
@@ -105,17 +105,16 @@
         ]
     },
     "CashShopRetryNetworkError": {
-        "desc": "付费商店网络异常仅重试一次，随后等待商店页面，仍未进入则超时熔断",
-        "enabled": true,
-        "max_hit": 1,
+        "desc": "网络异常重试一次",
+        "enabled": true, // 由选项 CashShopNetworkRetry 覆盖（默认 Yes），关掉后本节点整体不生效
+        "max_hit": 1, // 只点一次「重新再试」，再等不到商店页就交给后续超时收尾，不无限重试
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "CashShopNetworkErrorVisible",
-                    "CashShopNetworkRetryButtonVisible"
-                ],
-                "box_index": 1
+                    "CashShopNetworkRetryButtonVisible",
+                    "CashShopNetworkErrorVisible"
+                ]
             }
         },
         "action": {

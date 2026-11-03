@@ -55,7 +55,7 @@
         }
     },
     "EquipmentRerollValueDecide": {
-        "desc": "数值重洗角色/单件共用决策：达标走摘要，否则打开选定部位进入共用锁定及重洗链",
+        "desc": "数值重洗决策分发", // 达标直接进摘要；未达标由 ValueDecideAction 打开选定部位详情，回来后经上方锚点进锁定链
         "action": {
             "type": "Custom",
             "param": {
@@ -63,7 +63,7 @@
             }
         },
         "anchor": {
-            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate",
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollLockGate", // 四个部位打开详情后统一进共用锁定链：这里把 AfterOpen* 锚点指到 EquipmentRerollLockGate
             "EquipmentRerollAfterOpenArms": "EquipmentRerollLockGate",
             "EquipmentRerollAfterOpenTorso": "EquipmentRerollLockGate",
             "EquipmentRerollAfterOpenLegs": "EquipmentRerollLockGate"
@@ -73,7 +73,7 @@
         ]
     },
     "EquipmentRerollValueReturnToDecide": {
-        "desc": "数值重洗完成：关闭页面回人物页，基于已提交快照重新调度",
+        "desc": "回人物页重新调度", // 先 [JumpBack] 关页面回人物页，再回决策节点按已提交快照重算下一步；关不掉时直接重调度
         "pre_delay": 0,
         "post_delay": 0,
         "next": [
@@ -82,15 +82,14 @@
         ]
     },
     "EquipmentRerollKeepClickSlot1": {
-        "desc": "共用确认页第1槽锁定入口，效果策略不选择本槽，数值策略可保护已达标高值",
+        "desc": "1 号槽锁定入口", // 效果策略只锁 2/3 号槽，1 号槽只在数值策略里用来保护已达标的高值词条；识别框是整条词条行（361×102）：点击框向内收 30/60/4/8，落在行内热区而不是行边缘
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollChangeEffectSlot1"
-                ],
-                "box_index": 1
+                    "__EquipmentRerollChangeEffectSlot1",
+                    "__EquipmentRerollChangeEffectTitle"
+                ]
             }
         },
         "pre_delay": 0,
@@ -106,7 +105,7 @@
             }
         },
         "post_wait_freezes": {
-            "time": 150
+            "time": 150 // 等 150ms 让确认页切到锁定页，避免拿旧帧去判
         },
         "post_delay": 0,
         "rate_limit": 100,
@@ -130,14 +129,14 @@
         }
     },
     "__EquipmentRerollRetryGateKeepClickSlot1": {
-        "desc": "共用第1槽锁定有界重试；超限放弃锁定",
+        "desc": "锁定点击重试闸门",
         "recognition": {
             "type": "DirectHit"
         },
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action": "EquipmentRerollRetryGateAction", // 同其它闸门：按 5s 窗口计连续命中，超限转 EquipmentRerollLockAbort 放弃锁定，不在确认页原地连点
                 "custom_action_param": {
                     "key": "keep_click_slot1",
                     "retry": "EquipmentRerollKeepClickSlot1",

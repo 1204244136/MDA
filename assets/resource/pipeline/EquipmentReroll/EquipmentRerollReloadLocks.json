@@ -1,16 +1,15 @@
 {
     "EquipmentRerollReloadLocks": {
-        "desc": "完整历史锁计划与本轮策略一致且库存已知足够时，才点击亮蓝的加载按钮",
+        "desc": "复用历史锁方案",
         "recognition": {
-            "type": "And",
+            "type": "And", // 三条同时成立才点：完整计划一致 + 确认页标题在场 + 加载按钮亮蓝。库存不足时按钮是灰的；单槽相同不算一致，Go 侧比的是完整锁计划
             "param": {
                 "all_of": [
+                    "__EquipmentRerollPreviousLockSettings", // 放首位：点击落在「加载先前的锁定设置」文字上
                     "__EquipmentRerollReloadLocksPlan",
                     "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollPreviousLockSettings",
                     "__EquipmentRerollReloadLocksBlue"
-                ],
-                "box_index": 2
+                ]
             }
         },
         "pre_delay": 0,
@@ -25,9 +24,9 @@
         ]
     },
     "EquipmentRerollReloadLocksDone": {
-        "desc": "确认实际三槽锁状态与计划一致后同步快照，再读取本轮总费用",
+        "desc": "核验锁位并同步快照",
         "recognition": {
-            "type": "Custom",
+            "type": "Custom", // 要等实测三槽锁色与计划一致才写快照：加载有过渡帧，中途写会存下错的锁位
             "param": {
                 "custom_recognition": "EquipmentRerollReloadLocksVerifyRecognition"
             }
@@ -52,11 +51,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectTitle",
                     "__EquipmentRerollPreviousLockSettings",
+                    "__EquipmentRerollChangeEffectTitle",
                     "__EquipmentRerollReloadLocksBlue"
-                ],
-                "box_index": 1
+                ]
             }
         }
     },
@@ -89,14 +87,14 @@
         }
     },
     "__EquipmentRerollRetryGateReloadLocksDone": {
-        "desc": "重试闸门：加载历史锁后有界等待实际锁位与计划一致，耗尽后显式失败",
+        "desc": "加载锁重试闸门",
         "recognition": {
             "type": "DirectHit"
         },
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "EquipmentRerollRetryGateAction",
+                "custom_action": "EquipmentRerollRetryGateAction", // 按时间窗口计连续命中（默认 5s 内 3 次）判断原地打转，超限才转 Failed。不能用 max_hit：它是任务级累计，反复加载会误伤
                 "custom_action_param": {
                     "key": "reload_locks_done",
                     "retry": "EquipmentRerollReloadLocksDone",
@@ -108,19 +106,19 @@
                 }
             }
         },
-        "post_delay": 300,
+        "post_delay": 300, // 留 300ms 给加载反馈，避免拿同一帧连判
         "timeout": 5000,
         "rate_limit": 500
     },
     "EquipmentRerollReloadLocksFailed": {
-        "desc": "历史锁加载后无法验证实际锁位，停止任务避免未知状态下继续消耗",
+        "desc": "锁位核验失败中止",
         "recognition": {
             "type": "DirectHit"
         },
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "EquipmentRerollFailAction",
+                "custom_action": "EquipmentRerollFailAction", // reason 决定 i18n 文案；失败前清掉待锁与未提交的费用，避免在未知锁状态下继续消耗
                 "custom_action_param": {
                     "reason": "reload_locks_verify_failed"
                 }
@@ -353,7 +351,7 @@
         }
     },
     "__EquipmentRerollConfirmSlot1Empty": {
-        "desc": "空词条槽不显示锁图标，明确识别未获得效果才视作未锁定",
+        "desc": "1 号槽空槽确认", // 与确认页词条行同高：三槽行距 27px（236/263/290）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -363,12 +361,12 @@
                     205,
                     27
                 ],
-                "expected": "未获得效果"
+                "expected": "未获得效果" // 空槽不画锁图标，三种锁色必然全不命中；但识别失败不能当成未锁，必须先认出「未获得效果」
             }
         }
     },
     "__EquipmentRerollConfirmSlot2Empty": {
-        "desc": "空词条槽不显示锁图标，明确识别未获得效果才视作未锁定",
+        "desc": "2 号槽空槽确认", // 与确认页词条行同高：三槽行距 27px（236/263/290）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -378,12 +376,12 @@
                     205,
                     27
                 ],
-                "expected": "未获得效果"
+                "expected": "未获得效果" // 空槽不画锁图标，三种锁色必然全不命中；但识别失败不能当成未锁，必须先认出「未获得效果」
             }
         }
     },
     "__EquipmentRerollConfirmSlot3Empty": {
-        "desc": "空词条槽不显示锁图标，明确识别未获得效果才视作未锁定",
+        "desc": "3 号槽空槽确认", // 与确认页词条行同高：三槽行距 27px（236/263/290）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -393,7 +391,7 @@
                     205,
                     27
                 ],
-                "expected": "未获得效果"
+                "expected": "未获得效果" // 空槽不画锁图标，三种锁色必然全不命中；但识别失败不能当成未锁，必须先认出「未获得效果」
             }
         }
     }

@@ -8,7 +8,7 @@
         ]
     },
     "EquipmentRerollScanDetailsPageEntered": {
-        "desc": "确认处于详情资讯页面，并把打开详情页的路由锚点指向检查词条的处理入口",
+        "desc": "详情资讯页已就绪",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -25,7 +25,7 @@
         },
         "pre_delay": 0,
         "anchor": {
-            "EquipmentRerollAfterOpenHead": "EquipmentRerollScanBeginHead",
+            "EquipmentRerollAfterOpenHead": "EquipmentRerollScanBeginHead", // 四个部位打开详情后的锚点统一指到扫描入口；洗词条流程由 ValueDecide 改指 LockGate
             "EquipmentRerollAfterOpenArms": "EquipmentRerollScanBeginArms",
             "EquipmentRerollAfterOpenTorso": "EquipmentRerollScanBeginTorso",
             "EquipmentRerollAfterOpenLegs": "EquipmentRerollScanBeginLegs"
@@ -117,7 +117,7 @@
         ]
     },
     "__EquipmentRerollLocateFlag": {
-        "desc": "装备详情页锚点定位：改造装备效果行的蓝色信息图标（HSV 判据，锚点框≈(491,432,16,15)/(491,449,16,15) 随布局浮动）",
+        "desc": "详情页信息图标锚点", // 蓝色信息图标在「改造装备效果」行右侧，两行布局下框位浮动，ROI 放宽到 486,400,28,70 覆盖两种布局；V 下限 60 抗确认页返回后的偏暗（实测 55% 亮度计数不变）
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -146,7 +146,7 @@
             }
         },
         "pre_delay": 0,
-        "anchor": "EquipmentRerollInspectFlag",
+        "anchor": "EquipmentRerollInspectFlag", // 本节点是锚点 EquipmentRerollInspectFlag 的持有者：槽位 OCR 与锁色识别全部以它的命中框为增量基准
         "post_delay": 0,
         "timeout": 1500,
         "next": [
@@ -157,11 +157,11 @@
         ]
     },
     "EquipmentRerollScanSlot1": {
-        "desc": "全量扫描第1栏：词条/数值/锁定（复用 Pipeline 子识别，Go 记录业务）",
+        "desc": "1 号槽词条快照",
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "EquipmentRerollScanSlotRecognition",
+                "custom_recognition": "EquipmentRerollScanSlotRecognition", // 复用本文件 __EquipmentRerollSlot1 的四个子识别：参数留在这里，Go 只解释结果并写快照
                 "custom_recognition_param": {
                     "slot": 1,
                     "is_last": false
@@ -170,7 +170,7 @@
         },
         "pre_delay": 0,
         "post_delay": 0,
-        "timeout": 1500,
+        "timeout": 1500, // 1500ms 是槽内子识别的总预算；超时进 ScanFailed，宁可失败也不提交半截快照
         "rate_limit": 100,
         "next": [
             "EquipmentRerollScanSlot2"
@@ -180,11 +180,11 @@
         ]
     },
     "EquipmentRerollScanSlot2": {
-        "desc": "全量扫描第2栏：词条/数值/锁定（复用 Pipeline 子识别，Go 记录业务）",
+        "desc": "2 号槽词条快照",
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "EquipmentRerollScanSlotRecognition",
+                "custom_recognition": "EquipmentRerollScanSlotRecognition", // 复用本文件 __EquipmentRerollSlot2 的四个子识别：参数留在这里，Go 只解释结果并写快照
                 "custom_recognition_param": {
                     "slot": 2,
                     "is_last": false
@@ -193,7 +193,7 @@
         },
         "pre_delay": 0,
         "post_delay": 0,
-        "timeout": 1500,
+        "timeout": 1500, // 1500ms 是槽内子识别的总预算；超时进 ScanFailed，宁可失败也不提交半截快照
         "rate_limit": 100,
         "next": [
             "EquipmentRerollScanSlot3"
@@ -203,11 +203,11 @@
         ]
     },
     "EquipmentRerollScanSlot3": {
-        "desc": "全量扫描第3栏：词条/数值/锁定（复用 Pipeline 子识别，Go 记录业务，完成后路由下一部位）",
+        "desc": "3 号槽词条快照",
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "EquipmentRerollScanSlotRecognition",
+                "custom_recognition": "EquipmentRerollScanSlotRecognition", // 复用本文件 __EquipmentRerollSlot3 的四个子识别：参数留在这里，Go 只解释结果并写快照
                 "custom_recognition_param": {
                     "slot": 3,
                     "is_last": true
@@ -218,7 +218,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "EquipmentRerollScanRouteAction",
+                "custom_action": "EquipmentRerollScanRouteAction", // 末槽读完由 RouteAction 收尾：先 [JumpBack] 关详情页，关不掉就直接回 EquipmentRerollDecide
                 "custom_action_param": {
                     "slot": 3,
                     "is_last": true
@@ -226,7 +226,7 @@
             }
         },
         "post_delay": 0,
-        "timeout": 1500,
+        "timeout": 1500, // 1500ms 是槽内子识别的总预算；超时进 ScanFailed，宁可失败也不提交半截快照
         "rate_limit": 100,
         "next": [
             "[JumpBack]EquipmentRerollScanCloseDetails",
@@ -234,7 +234,7 @@
         ]
     },
     "__EquipmentRerollSlot1AffixOCR": {
-        "desc": "第1槽完整行直接识别，保留完整名称和数值，避免居中文字被裁断",
+        "desc": "1 号槽词条整行", // 相对锚点框的增量：1 号槽行下移 52px、取 7px 高的文字带；三槽按 24px 行距递增（52/76/100）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -248,12 +248,12 @@
                 "expected": [
                     ".*"
                 ],
-                "only_rec": true
+                "only_rec": true // 直接吃整行文本；走 det 会被裁成居中框，把词条名和尾部数值切掉
             }
         }
     },
     "__EquipmentRerollSlot1AffixDetectedOCR": {
-        "desc": "第1槽完整行检测识别，补充直接识别的裁剪路径",
+        "desc": "1 号槽词条行复核", // det 复核路径：与 __EquipmentRerollSlot1AffixOCR 交叉校验，两路读到的词条名不一致按不可读处理（affix.go readEquipmentAffixName）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -272,7 +272,7 @@
         }
     },
     "__EquipmentRerollSlot1ValueOCR": {
-        "desc": "第1槽整行检测数值文本框，兼容不同词条长度；仅接受独立数值，避免右括号被识别为1",
+        "desc": "1 号槽数值行", // 与词条行同一个框：词条名长短不同会把数值推着左右挪，整行入镜后交给正则挑数值；整段必须刚好是两位小数（可带 % / ％）：首尾锚定可挡掉把右括号读成 1 的情况
         "recognition": {
             "type": "OCR",
             "param": {
@@ -291,7 +291,7 @@
         }
     },
     "__EquipmentRerollSlot1ValuePercentOCR": {
-        "desc": "数值复核：仅修正两位小数后百分号误读为9；Go仍须确认官方档位",
+        "desc": "1 号槽数值复核", // 只修一种误读：两位小数末尾的百分号被读成 9（0.25% 读成 0.259），其余形态原样放行；档位最终由 Go 按官方表确认
         "recognition": {
             "type": "OCR",
             "param": {
@@ -316,7 +316,7 @@
         }
     },
     "__EquipmentRerollSlot1LockBlue": {
-        "desc": "第1槽锁定按钮蓝色锁 ColorMatch（永久锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,501,26,23)",
+        "desc": "1 号槽蓝色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,501,26,23)；蓝锁=永久锁：订制模块支付，跨轮保留，只有换部位或显式解锁才会消失
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -346,7 +346,7 @@
         }
     },
     "__EquipmentRerollSlot1LockOrange": {
-        "desc": "第1槽锁定按钮橙色锁 ColorMatch（一次性锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,501,26,23)",
+        "desc": "1 号槽橙色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,501,26,23)；橙锁=一次性锁：自订密钥支付，每次效果变更后失效，下一轮要重新上锁
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -376,7 +376,7 @@
         }
     },
     "__EquipmentRerollSlot2AffixOCR": {
-        "desc": "第2槽完整行直接识别，保留完整名称和数值，避免居中文字被裁断",
+        "desc": "2 号槽词条整行", // 相对锚点框的增量：2 号槽行下移 76px、取 7px 高的文字带；三槽按 24px 行距递增（52/76/100）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -390,12 +390,12 @@
                 "expected": [
                     ".*"
                 ],
-                "only_rec": true
+                "only_rec": true // 直接吃整行文本；走 det 会被裁成居中框，把词条名和尾部数值切掉
             }
         }
     },
     "__EquipmentRerollSlot2AffixDetectedOCR": {
-        "desc": "第2槽完整行检测识别，补充直接识别的裁剪路径",
+        "desc": "2 号槽词条行复核",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -414,7 +414,7 @@
         }
     },
     "__EquipmentRerollSlot2ValueOCR": {
-        "desc": "第2槽整行检测数值文本框，兼容不同词条长度；仅接受独立数值，避免右括号被识别为1",
+        "desc": "2 号槽数值行", // 与词条行同一个框：词条名长短不同会把数值推着左右挪，整行入镜后交给正则挑数值；整段必须刚好是两位小数（可带 % / ％）：首尾锚定可挡掉把右括号读成 1 的情况
         "recognition": {
             "type": "OCR",
             "param": {
@@ -433,7 +433,7 @@
         }
     },
     "__EquipmentRerollSlot2ValuePercentOCR": {
-        "desc": "数值复核：仅修正两位小数后百分号误读为9；Go仍须确认官方档位",
+        "desc": "2 号槽数值复核", // 只修一种误读：两位小数末尾的百分号被读成 9（0.25% 读成 0.259），其余形态原样放行；档位最终由 Go 按官方表确认
         "recognition": {
             "type": "OCR",
             "param": {
@@ -458,7 +458,7 @@
         }
     },
     "__EquipmentRerollSlot2LockBlue": {
-        "desc": "第2槽锁定按钮蓝色锁 ColorMatch（永久锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,525,26,23)",
+        "desc": "2 号槽蓝色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,525,26,23)
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -488,7 +488,7 @@
         }
     },
     "__EquipmentRerollSlot2LockOrange": {
-        "desc": "第2槽锁定按钮橙色锁 ColorMatch（一次性锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,525,26,23)",
+        "desc": "2 号槽橙色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,525,26,23)
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -518,7 +518,7 @@
         }
     },
     "__EquipmentRerollSlot3AffixOCR": {
-        "desc": "第3槽完整行直接识别，保留完整名称和数值，避免居中文字被裁断",
+        "desc": "3 号槽词条整行", // 相对锚点框的增量：3 号槽行下移 100px、取 7px 高的文字带；三槽按 24px 行距递增（52/76/100）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -532,12 +532,12 @@
                 "expected": [
                     ".*"
                 ],
-                "only_rec": true
+                "only_rec": true // 直接吃整行文本；走 det 会被裁成居中框，把词条名和尾部数值切掉
             }
         }
     },
     "__EquipmentRerollSlot3AffixDetectedOCR": {
-        "desc": "第3槽完整行检测识别，补充直接识别的裁剪路径",
+        "desc": "3 号槽词条行复核",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -556,7 +556,7 @@
         }
     },
     "__EquipmentRerollSlot3ValueOCR": {
-        "desc": "第3槽整行检测数值文本框，兼容不同词条长度；仅接受独立数值，避免右括号被识别为1",
+        "desc": "3 号槽数值行", // 与词条行同一个框：词条名长短不同会把数值推着左右挪，整行入镜后交给正则挑数值；整段必须刚好是两位小数（可带 % / ％）：首尾锚定可挡掉把右括号读成 1 的情况
         "recognition": {
             "type": "OCR",
             "param": {
@@ -575,7 +575,7 @@
         }
     },
     "__EquipmentRerollSlot3ValuePercentOCR": {
-        "desc": "数值复核：仅修正两位小数后百分号误读为9；Go仍须确认官方档位",
+        "desc": "3 号槽数值复核", // 只修一种误读：两位小数末尾的百分号被读成 9（0.25% 读成 0.259），其余形态原样放行；档位最终由 Go 按官方表确认
         "recognition": {
             "type": "OCR",
             "param": {
@@ -600,7 +600,7 @@
         }
     },
     "__EquipmentRerollSlot3LockBlue": {
-        "desc": "第3槽锁定按钮蓝色锁 ColorMatch（永久锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,549,26,23)",
+        "desc": "3 号槽蓝色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,549,26,23)
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -630,7 +630,7 @@
         }
     },
     "__EquipmentRerollSlot3LockOrange": {
-        "desc": "第3槽锁定按钮橙色锁 ColorMatch（一次性锁）；roi_offset 为增量：锚点框(14x15)+该值=(768,549,26,23)",
+        "desc": "3 号槽橙色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,549,26,23)
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -693,7 +693,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "EquipmentRerollFailAction",
+                "custom_action": "EquipmentRerollFailAction", // reason 决定 i18n 文案（maafocus 大字提示），失败前会清掉待锁、待洗费用与未提交的数值方案
                 "custom_action_param": {
                     "reason": "scan_unreadable"
                 }

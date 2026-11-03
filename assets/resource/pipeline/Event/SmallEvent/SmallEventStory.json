@@ -104,8 +104,7 @@
         ]
     },
     "SmallEventEventStageQuickBattleFlow": {
-        "desc": "小活动活动关卡页面快速战斗流程",
-        // 当前活动扫荡路由：切换主题时只替换 next；模板与偏移保存在 Themes/ 的主题节点中。
+        "desc": "小活动活动关卡页面快速战斗流程", // 当前活动扫荡路由：切换主题时只替换 next；模板与偏移保存在 Themes/ 的主题节点中
         "next": [
             "SmallEventLittleWitchTrickClickStageNormalRepeatable",
             "SmallEventLittleWitchTrickClickStageHardRepeatable",

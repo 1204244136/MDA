@@ -4,8 +4,7 @@
         "max_hit": 1,
         "next": [
             "[JumpBack]ShopEnterUnionShop",
-            // 通用购买流程会点 MAX 买满：联盟商店每项一次买空 100 库存（20000 联盟晶片）
-            "[JumpBack]ShopPurchaseFlow",
+            "[JumpBack]ShopPurchaseFlow", // 通用购买流程会点 MAX 买满：联盟商店每项一次买空 100 库存（20000 联盟晶片）
             "[JumpBack]UnionShopPurchaseAssaultBattery",
             "[JumpBack]UnionShopPurchaseOnslaughtBattery",
             "[JumpBack]UnionShopPurchaseResilienceBattery",
@@ -129,10 +128,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "AssaultBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "AssaultBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -172,10 +170,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "OnslaughtBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "OnslaughtBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -215,10 +212,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "ResilienceBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "ResilienceBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -258,10 +254,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "BastionBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "BastionBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -301,10 +296,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "BoostBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "BoostBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -344,10 +338,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "AugmentationBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "AugmentationBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -387,10 +380,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "QuantumBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "QuantumBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -430,10 +422,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "VigorBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "VigorBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -473,10 +464,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "EnduranceBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "EnduranceBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -516,10 +506,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "HealingBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "HealingBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -559,10 +548,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "TemperingBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "TemperingBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -602,10 +590,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "AssistBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "AssistBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -645,10 +632,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "DestructionBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "DestructionBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -688,10 +674,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "PiercingBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "PiercingBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -731,10 +716,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "RuptureBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "RuptureBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -774,10 +758,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "StealthBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "StealthBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {
@@ -817,10 +800,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "UnionShopCubeBatteryVisible",
-                    "DiffusionBatteryColorVisible"
-                ],
-                "box_index": 1
+                    "DiffusionBatteryColorVisible",
+                    "UnionShopCubeBatteryVisible"
+                ]
             }
         },
         "action": {

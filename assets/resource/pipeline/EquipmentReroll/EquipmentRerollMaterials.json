@@ -1,6 +1,6 @@
 {
     "__EquipmentRerollLockConfirmEnabled": {
-        "desc": "已选择锁定材料时确认按钮变蓝；灰色按钮不能推进",
+        "desc": "锁定确认按钮已亮", // 确认按钮在锁定页底部，485,590 起的 70×25 区域
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -21,7 +21,7 @@
                     255,
                     255
                 ],
-                "count": 900
+                "count": 900 // 框内约一半像素变蓝才算启用；未选材料时按钮是灰的，达不到 900
             }
         }
     },
@@ -40,7 +40,7 @@
         }
     },
     "__EquipmentRerollCostModule": {
-        "desc": "只在黑色消耗汇总条找模组图标，排除下方库存和上方必要数量",
+        "desc": "消耗栏模组图标", // 只框黑色消耗汇总条那一行：上方「必要数量」行与下方库存图标外形相近，框大了会串
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -71,7 +71,7 @@
         }
     },
     "__EquipmentRerollCostModuleCount": {
-        "desc": "消耗汇总条的订制模块数量；小字必须 only_rec，走 det 只框得住数字上半部",
+        "desc": "消耗栏模组数量", // 相对模组图标右移 20px、上探 3px 取数字，高度 +6 盖住小字
         "recognition": {
             "type": "OCR",
             "param": {
@@ -83,12 +83,12 @@
                     6
                 ],
                 "expected": "^\\d+$",
-                "only_rec": true
+                "only_rec": true // 必须 only_rec：小字走 det 只能框住数字上半部，下半截丢失
             }
         }
     },
     "__EquipmentRerollCostKeyCount": {
-        "desc": "消耗汇总条的自订密钥数量（可能两位）；必须 only_rec，同模块数量",
+        "desc": "消耗栏密钥数量", // 相对密钥图标右移 24px：密钥可能两位，比模组多留 4px
         "recognition": {
             "type": "OCR",
             "param": {
@@ -99,13 +99,13 @@
                     4,
                     6
                 ],
-                "expected": "^\\d+$",
-                "only_rec": true
+                "expected": "^\\d+$", // ^\d+$ 允许两位密钥数，不强求单字符
+                "only_rec": true // 同模组数量：小字必须 only_rec
             }
         }
     },
     "__EquipmentRerollHeldLabel": {
-        "desc": "确认页「持有材料」文字，仅用于相对定位右侧持有数量",
+        "desc": "持有材料标签",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -115,12 +115,12 @@
                     240,
                     45
                 ],
-                "expected": "持有材料"
+                "expected": "持有材料" // 只当相对定位的锚点文字用，不单独判定成败
             }
         }
     },
     "__EquipmentRerollConfirmHeldModule": {
-        "desc": "持有材料标签右侧的模组库存；限定第一种材料区域，归一化千位分隔符后取最右数字，排除左侧图标误读",
+        "desc": "持有模组库存", // 相对「持有材料」右移 65px，只框第一种材料（模组）的库存区；千位分隔符三种写法（1,234 / 1.234 / 1，234）统一剥掉再转整数
         "recognition": {
             "type": "OCR",
             "param": {
@@ -138,7 +138,7 @@
                         ""
                     ]
                 ],
-                "order_by": "Horizontal",
+                "order_by": "Horizontal", // 标签右侧先出现材料图标，图标里的小数字会被误读；取最右一段才是库存
                 "index": -1
             }
         }

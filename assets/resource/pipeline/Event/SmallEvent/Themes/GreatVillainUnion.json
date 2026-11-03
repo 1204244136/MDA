@@ -1,6 +1,6 @@
 {
     "SmallEventGreatVillainUnionClickStageRepeatable": {
-        "desc": "GreatVillainUnion 可扫荡关卡点击",
+        "desc": "点击扫荡关卡", // Normal 与 Hard 的扫荡标记共用同一点击动作且不带偏移，两份模板合并在一个节点里
         "recognition": {
             "type": "TemplateMatch",
             "param": {

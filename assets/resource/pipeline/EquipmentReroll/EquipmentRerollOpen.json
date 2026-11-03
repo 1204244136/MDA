@@ -52,7 +52,7 @@
         ]
     },
     "EquipmentRerollHeadDetailsGate": {
-        "desc": "头部详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "desc": "详情已打开，按模式分流", // [Anchor] 去向由任务模式决定：扫描流程指向 ScanBegin*，洗词条流程由 EquipmentRerollValueDecide 改指 LockGate
         "recognition": {
             "type": "DirectHit"
         },
@@ -115,7 +115,7 @@
         ]
     },
     "EquipmentRerollArmsDetailsGate": {
-        "desc": "臂部详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "desc": "详情已打开，按模式分流", // 锚点去向同 EquipmentRerollHeadDetailsGate：由扫描流程或洗词条流程决定
         "recognition": {
             "type": "DirectHit"
         },
@@ -178,7 +178,7 @@
         ]
     },
     "EquipmentRerollTorsoDetailsGate": {
-        "desc": "身躯详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "desc": "详情已打开，按模式分流", // 锚点去向同 EquipmentRerollHeadDetailsGate：由扫描流程或洗词条流程决定
         "recognition": {
             "type": "DirectHit"
         },
@@ -241,7 +241,7 @@
         ]
     },
     "EquipmentRerollLegsDetailsGate": {
-        "desc": "腿部详情已打开，按锚点路由到检查词条或洗词条处理入口",
+        "desc": "详情已打开，按模式分流", // 锚点去向同 EquipmentRerollHeadDetailsGate：由扫描流程或洗词条流程决定
         "recognition": {
             "type": "DirectHit"
         },
@@ -252,14 +252,14 @@
         ]
     },
     "EquipmentRerollDetailsPageFailed": {
-        "desc": "点击装备后未进入详情页（next 超时），提示输入方式并显式失败（四个部位共用）",
+        "desc": "详情页未打开",
         "recognition": {
             "type": "DirectHit"
         },
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "EquipmentRerollFailAction",
+                "custom_action": "EquipmentRerollFailAction", // 四个部位的 Open*Details 共用本节点兜底；reason 决定 i18n 文案（会提示后台输入方式可能点不动，建议换前台方式）
                 "custom_action_param": {
                     "reason": "details_page_not_opened"
                 }

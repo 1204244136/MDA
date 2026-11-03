@@ -14,7 +14,7 @@
         ]
     },
     "ArenaPrepareEntry": {
-        "desc": "任务入场先恢复方舟再回到Main领奖，避免纯场景导航直接进入竞技场后漏领奖励",
+        "desc": "入场前先回方舟", // 直接场景导航进竞技场会漏掉累积奖励，所以先回方舟再回 Main 领奖
         "max_hit": 1,
         "recognition": {
             "type": "Or",
@@ -25,14 +25,14 @@
                 ]
             }
         },
-        "inverse": true,
+        "inverse": true, // 已在方舟或竞技场首页时不走这条，避免无谓绕路
         "next": [
             "SceneEnterArk"
         ]
     },
     "ArenaClaimSpecialReward": {
-        "desc": "领取累积奖励；每次任务只打开一次，避免官方领奖状态未刷新时重复进入",
-        "max_hit": 1,
+        "desc": "领取累积奖励",
+        "max_hit": 1, // 每次任务只打开一次；官方领奖状态未刷新时重复进入只会白跑一趟
         "recognition": {
             "type": "OCR",
             "param": {
@@ -59,8 +59,8 @@
         ]
     },
     "ArenaConfirmSpecialReward": {
-        "desc": "确认领取累积奖励；最多点击一次，空奖励时直接进入后续关闭流程",
-        "max_hit": 1,
+        "desc": "领奖确认按钮",
+        "max_hit": 1, // 最多点一次；没有奖励时确认按钮不出现，本节点不命中，由 ArenaClaimSpecialReward 的 next 继续走关闭流程
         "recognition": {
             "type": "And",
             "param": {
@@ -195,11 +195,10 @@
             "type": "And",
             "param": {
                 "all_of": [
+                    "BattleMainVisible", // 放首位：命中框就是「进入战斗」按钮，点击不会落到面板外同区域的对手列表行
                     "ArenaFreeBattleVisible",
-                    "BattleMainVisible",
                     "BattleAvailable"
-                ],
-                "box_index": 1 //取“进入战斗”的识别框，避免点到面板外同区域内的对手列表行
+                ]
             }
         },
         "action": {

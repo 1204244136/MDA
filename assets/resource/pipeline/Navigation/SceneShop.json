@@ -15,10 +15,9 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "CommonArkVisible",
-                    "HallEnterShop"
-                ],
-                "box_index": 1
+                    "HallEnterShop",
+                    "CommonArkVisible"
+                ]
             }
         },
         "action": {
@@ -31,7 +30,7 @@
         ]
     },
     "__ScenePrivateRecoverHallForShop": {
-        "desc": "仅不在父页面时恢复；父页入口缺失时等待超时，不反复空转",
+        "desc": "不在商店时回大厅",
         "recognition": {
             "type": "And",
             "param": {
@@ -40,7 +39,7 @@
                 ]
             }
         },
-        "inverse": true,
+        "inverse": true, // CommonArkVisible 不命中时才回大厅；父页入口缺失就让外层等到超时，不反复空转
         "next": [
             "SceneEnterHall"
         ]
