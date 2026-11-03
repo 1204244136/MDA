@@ -9,6 +9,7 @@ on:
       - "assets/**"
       - "tools/schema/**"
       - "scripts/check-theme-sync.mjs"
+      - "scripts/check-desc.mjs"
       - "package.json"
       - "package-lock.json"
       - "maatools.config.mts"
@@ -23,6 +24,7 @@ on:
       - "assets/**"
       - "tools/schema/**"
       - "scripts/check-theme-sync.mjs"
+      - "scripts/check-desc.mjs"
       - "package.json"
       - "package-lock.json"
       - "maatools.config.mts"
@@ -54,6 +56,9 @@ jobs:
         run: |
           npm run test:theme
           npm run check:theme
+
+      - name: Check pipeline desc style
+        run: npm run check:desc
 
       - name: Setup Python
         uses: actions/setup-python@v6

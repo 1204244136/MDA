@@ -4,6 +4,8 @@
 
 Pipeline 节点名是 JSON 根对象中的 key，会被 `next`、`on_error`、`target`、`anchor`、`And` / `Or` 识别条件、`pipeline_override` 等字段引用。因此，节点名应保持稳定、明确，并能表达节点在流程中的职责。
 
+节点语义说明（`desc`）与 `//` 注释的分工边界见 [Pipeline `desc` 与 `//` 注释规范](pipeline-desc-and-comments.md)：`desc` 只写一句话名片，解释性内容写进注释。
+
 ## 总体原则
 
 节点名必须使用 **PascalCase**，推荐格式为：

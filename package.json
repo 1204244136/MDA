@@ -5,6 +5,7 @@
         "format:aggressive": "prettier --print-width 20 --write \"assets/resource/pipeline/**/*.json\" \"assets/tasks/**/*.json\" && prettier --write \"assets/resource/pipeline/**/*.json\" \"assets/tasks/**/*.json\"",
         "format:check": "prettier --check \"**/*.{json,yml,yaml,md}\"",
         "check:theme": "node scripts/check-theme-sync.mjs",
+        "check:desc": "node scripts/check-desc.mjs",
         "test:theme": "node --test scripts/check-theme-sync.test.mjs"
     },
     "devDependencies": {

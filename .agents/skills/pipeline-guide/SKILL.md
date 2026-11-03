@@ -24,6 +24,16 @@ description: MaaFramework Pipeline JSON 编写指南。用于编写、修改或�
 - 页面或 UI 状态节点使用 `On<Page>Page`、`Visible`、`Available`、`Selected`、`Completed`、`Exhausted` 等能表达业务语义的后缀。
 - 不要使用 `_Start`、`Node1`、`clickReward`、`shop_enter`、`FlagInX`、`RewardConfirm`、`RewardClaim`、`GemPurchase`、`PageClose` 这类不稳定、语序不一致或不表达职责的名称。
 
+## `desc` 与注释
+
+- `desc` 是节点名片，会显示在 `next` 补全详情与 hover 提示里：只写一句话（≤ 24 字、单句、无 `。` `；`、逗号不超过 1 个），写“这是什么”。
+- 不写识别/动作类型（面板已显示 Reco/Act）、不写 ROI/阈值/坐标/字段名、不写 `Go`/`attach`/`pipeline_override`、不复述节点名；没有补充价值就省略，`desc` 是可选字段。
+- “为什么这么写 / 数字从哪来 / 和谁耦合 / 踩过什么坑 / TODO”一律写成 `//` 注释，**写在被说明那一行的行尾（同一行），不另起一行**。Pipeline JSON 是 JSONC，注释合法；排序插件会带着键一起移动。
+- 注释开头不要重复键名或键值：写 `"max_hit": 1, // 只点一次…`，不要写 `// max_hit 1：只点一次…`。
+- 对象/数组整体说明写到容器内第一条可挂注释的行尾，数组整体说明写到该节点 `desc` 行尾——`"next": [ // …` 这种容器行尾注释会被 Prettier 抬成独立行。
+- 用户可见文案属于 `assets/tasks/*.json` 的 `description`（配合 locale），不要写进 pipeline `desc`。
+- 规范全文：`docs/pipeline-desc-and-comments.md`；护栏：`npm run check:desc`。
+
 ## Pipeline v2 推荐格式
 
 ```jsonc
@@ -103,8 +113,7 @@ description: MaaFramework Pipeline JSON 编写指南。用于编写、修改或�
 "recognition": {
     "type": "And",
     "param": {
-        "all_of": ["NodeA", "NodeB"],
-        "box_index": 0
+        "all_of": ["NodeA", "NodeB"]
     }
 }
 ```
@@ -120,6 +129,7 @@ description: MaaFramework Pipeline JSON 编写指南。用于编写、修改或�
 
 - 只有组合条件会被多个节点复用，或确实需要组合识别时，才拆出独立子节点。
 - 不要为了“看起来清楚”把单次使用的 `Visible` 节点过度拆分。
+- **`box_index` 通常不需要**：`And` 默认取 `all_of[0]` 的识别框，要取哪个子识别的框就把它放到首位；只有确实需要非首项框、又不便调整顺序时才写 `box_index`。
 
 ### Custom
 

@@ -47,6 +47,7 @@
 - 大活动和小活动的主题 i18n 显示名统一使用全大写；新增或调整主题时，同时检查 `LargeEventTheme` 和 `SmallEventTheme` 的往期主题是否保持一致。
 - Go 测试从仓库根目录运行；Go module 位于 `agent\go-service`。
 - 若本次修改涉及 Go 相关代码，则在会话收尾时自动重新构建 Go（`agent\go-service`），确保改动后的 Go Agent 已编译可用；未改动 Go 代码时不构建。
+- `And` 的 `box_index` 通常不需要：默认取 `all_of[0]` 的识别框，要取哪个子识别的框就把它放到首位；只有确实需要非首项框、又不便调整顺序时才写 `box_index`。
 - 审查 pipeline 名称时，要检查每个节点的实际职责，不只根据后缀判断。
 - 对 OCR 添加 `threshold` 没有意义：OCR 节点不要写 `threshold`，阈值只对模板匹配 / 颜色匹配等识别有效。
 - `on_error` 只用于明确失败后的处置，不能当作 `next` 的 else 分支。框架只在「命中节点动作失败」或「当前节点 `next` 列表整体超时」后才进入 `on_error`，进入即产生失败事件和 `on_error` 截图；正常分派、可选功能、常态重试应写进 `next`（顺序候选、自环 + `max_hit`）或 `[JumpBack]`。
@@ -73,6 +74,14 @@
     - 审查 Go 代码时，若发现识别参数写在 Go 里，优先考虑挪回 Pipeline。
     - 审查 Pipeline 时，若发现复杂业务逻辑（状态机、决策、计算、跨节点聚合）硬写在 JSON，优先考虑挪到 Go。
     - 判断一个环节归属时，问“这是‘看到了什么/在哪里’，还是‘看到之后要做什么/怎么算’”：前者给 Pipeline，后者给 Go。
+
+## Pipeline `desc` 与注释
+
+- `desc` 是节点名片：只写一句话（≤ 24 字、单句、无 `。` `；`、逗号不超过 1 个），写“这是什么”；不写识别/动作类型、不写 ROI/阈值/坐标/字段名、不复述节点名。没有补充价值就省略，`desc` 是可选字段。
+- 解释“为什么这么写 / 数字从哪来 / 和谁耦合 / 踩过什么坑”一律用 `//` 注释，**写在被说明那一行的行尾（同一行），不另起一行**；开头不要重复键名或键值（写 `"max_hit": 1, // 只点一次…`，不要写 `// max_hit 1：只点一次…`）。
+- 对象/数组整体说明写到容器内第一条可挂注释的行尾，数组整体说明写到该节点 `desc` 行尾——`"next": [ // …` 这种容器行尾注释会被 Prettier 抬成独立行。
+- 用户可见文案写在 `assets/tasks/*.json` 的 `description`（配合 locale），不要用 pipeline `desc` 承担；PI 层不使用 `desc`。
+- 规范全文见 [docs/pipeline-desc-and-comments.md](docs/pipeline-desc-and-comments.md)，护栏 `npm run check:desc`。
 
 ## 活动主题「当前活动」路由
 
