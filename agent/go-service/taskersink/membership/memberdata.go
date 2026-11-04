@@ -117,6 +117,7 @@ type MembershipStatus struct {
 	UnlimitedRuntime            bool
 	IsMember                    bool
 	VerificationUnavailable     bool
+	UsingPersistentCache        bool
 	UpdateRequired              bool
 	UpdateMessage               string
 	MinimumSupportedVersion     string

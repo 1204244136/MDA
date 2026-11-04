@@ -192,7 +192,7 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 
 	status := GetMembershipStatus()
 	if status.VerificationUnavailable {
-		printMembershipVerificationUnavailable()
+		printMembershipVerificationUnavailable(status)
 	}
 	route := quotaRouteForEntry(detail.Entry)
 	snapshot, ok, err := EnsureQuotaRouteAvailable(status, route, detail.Entry)
@@ -428,6 +428,6 @@ func printRegularQuota5x() {
 	maafocus.PrintLargeContentTrimNewline(i18n.T("tasker.membership_check.regular_quota_5x_multiplier"))
 }
 
-func printMembershipVerificationUnavailable() {
-	maafocus.PrintLargeContentTrimNewline(formatMembershipVerificationUnavailableMessage())
+func printMembershipVerificationUnavailable(status *MembershipStatus) {
+	maafocus.PrintLargeContentTrimNewline(formatMembershipVerificationUnavailableMessage(status))
 }

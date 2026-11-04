@@ -34,9 +34,7 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute, entries ...string)
 	}
 
 	status := GetMembershipStatus()
-	if status.VerificationUnavailable {
-		maafocus.Print(ctx, formatMembershipVerificationUnavailableMessage())
-	}
+	// 普通任务的校验不可用提示由 RuntimeTracker 输出，避免 stdout 与 focus 重复显示。
 	if status.UpdateRequired {
 		if status.UpdateMessage != "" {
 			maafocus.Print(ctx, status.UpdateMessage)
@@ -97,7 +95,14 @@ func runRuntimeQuotaCheck(ctx *maa.Context, route quotaRoute, entries ...string)
 	return false
 }
 
-func formatMembershipVerificationUnavailableMessage() string {
+func formatMembershipVerificationUnavailableMessage(status *MembershipStatus) string {
+	if status != nil && status.UsingPersistentCache {
+		tier := status.TierName
+		if tier == "" {
+			tier = status.Tier
+		}
+		return fmt.Sprintf(i18n.T("tasker.membership_check.service_unavailable_cached"), tier)
+	}
 	return i18n.T("tasker.membership_check.service_unavailable")
 }
 

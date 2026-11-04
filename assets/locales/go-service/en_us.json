@@ -109,6 +109,7 @@
     "tasker.membership_check.regular_quota_5x_multiplier": "🍊 Advanced task: regular quota is charged at 5x, while special and event quota are charged at actual runtime.",
     "tasker.membership_check.renewal_reminder": "🍊 Your membership has %d day(s) remaining and expires on %s. Device binding/renewal URL: %s",
     "tasker.membership_check.service_unavailable": "🍊 Membership verification service is temporarily unavailable. Continuing with Orange Free quota.",
+    "tasker.membership_check.service_unavailable_cached": "🍊 Membership verification service is temporarily unavailable. Continuing with the most recently cached %s membership quota.",
     "tasker.membership_check.sponsor": "🍊 Device binding/subscription URL: %s",
     "tasker.membership_check.update_required": "🍊 This MDA version is no longer supported. Please update to %s or later before running tasks.",
     "tasker.membership_check.verified_event": "🎁 About %d minutes of event quota remain, consumed in expiry order.",

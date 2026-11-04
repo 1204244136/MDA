@@ -96,15 +96,38 @@ func TestQuotaRouteForRuntimeQuotaCheckEntry(t *testing.T) {
 	}
 }
 
-func TestFormatMembershipVerificationUnavailableMessage(t *testing.T) {
+func TestFormatMembershipVerificationUnavailableMessageUsesFreeFallback(t *testing.T) {
 	initTestI18n()
-	message := formatMembershipVerificationUnavailableMessage()
+	message := formatMembershipVerificationUnavailableMessage(&MembershipStatus{
+		VerificationUnavailable: true,
+		TierName:                "Orange Free",
+	})
 
 	if !strings.Contains(message, "会员校验服务暂不可用") && !strings.Contains(message, "temporarily unavailable") {
 		t.Fatalf("message does not mention membership verification service unavailable: %s", message)
 	}
+	if !strings.Contains(message, "Orange Free") {
+		t.Fatalf("free fallback message does not mention Orange Free: %s", message)
+	}
 	if strings.Contains(message, "任务已停止") || strings.Contains(message, "Task stopped") {
 		t.Fatalf("message should not say task stopped: %s", message)
+	}
+}
+
+func TestFormatMembershipVerificationUnavailableMessageUsesCachedTier(t *testing.T) {
+	initTestI18n()
+	message := formatMembershipVerificationUnavailableMessage(&MembershipStatus{
+		IsMember:                true,
+		TierName:                "Orange Plus",
+		VerificationUnavailable: true,
+		UsingPersistentCache:    true,
+	})
+
+	if !strings.Contains(message, "Orange Plus") {
+		t.Fatalf("message does not mention cached membership tier: %s", message)
+	}
+	if strings.Contains(message, "Orange Free") {
+		t.Fatalf("cached membership message incorrectly mentions Orange Free: %s", message)
 	}
 }
 

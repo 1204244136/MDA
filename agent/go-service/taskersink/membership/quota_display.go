@@ -17,7 +17,7 @@ var _ maa.CustomActionRunner = &QuotaDisplayAction{}
 func (a *QuotaDisplayAction) Run(ctx *maa.Context, _ *maa.CustomActionArg) bool {
 	status := GetMembershipStatus()
 	if status.VerificationUnavailable {
-		maafocus.Print(ctx, formatMembershipVerificationUnavailableMessage())
+		maafocus.Print(ctx, formatMembershipVerificationUnavailableMessage(status))
 	}
 
 	snapshot, err := GetQuotaSnapshot(status, quotaPoolRegularDaily)

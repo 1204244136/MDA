@@ -2,6 +2,7 @@ package membership
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -109,6 +110,9 @@ func TestCheckMembershipUnavailableFallsBackToFreeStatus(t *testing.T) {
 	if status.IsMember {
 		t.Fatalf("IsMember = true, want false")
 	}
+	if status.UsingPersistentCache {
+		t.Fatalf("UsingPersistentCache = true, want false for Orange Free fallback")
+	}
 	if status.TierCode != "orange_free" {
 		t.Fatalf("TierCode = %q, want orange_free", status.TierCode)
 	}
@@ -117,6 +121,47 @@ func TestCheckMembershipUnavailableFallsBackToFreeStatus(t *testing.T) {
 	}
 	if status.DeviceCode.CPUHash != "cpu-hash" {
 		t.Fatalf("DeviceCode.CPUHash = %q, want cpu-hash", status.DeviceCode.CPUHash)
+	}
+}
+
+func TestCheckMembershipUnavailableUsesCachedMemberNotice(t *testing.T) {
+	resetMembershipTestGlobals(t)
+	isolateQuotaState(t)
+	initTestI18n()
+	appVersion = "1.0.0"
+	clientName = "MXU"
+	device := DeviceCodeV7{
+		CPUHash:   "cached-cpu",
+		UUIDHash:  "cached-uuid",
+		BIOSHash:  "cached-bios",
+		BoardHash: "cached-board",
+		DiskHash:  "cached-disk",
+		GUIDHash:  "cached-guid",
+	}
+	generateDeviceCodeV7 = func() DeviceCodeV7 { return device }
+	fetchMemberStatusFn = func(DeviceCodeV7) (*MemberStatusResponse, error) {
+		return nil, errors.New("temporary service failure")
+	}
+	savePersistentMemberStatus(device, &MemberStatusResponse{
+		Matched:                     true,
+		IsMember:                    true,
+		TierCode:                    "orange_plus",
+		TierName:                    "Orange Plus",
+		RegularDailyRuntimeMinutes:  30,
+		SpecialPeriodRuntimeMinutes: 120,
+		ExpiresOn:                   time.Now().In(beijingLocation).AddDate(0, 1, 0).Format("20060102"),
+	})
+
+	status := GetMembershipStatus()
+	if !status.VerificationUnavailable || !status.UsingPersistentCache || !status.IsMember {
+		t.Fatalf("expected cached membership after verification failure, got %+v", status)
+	}
+	if status.RegularDailyRuntimeMinutes != 30 {
+		t.Fatalf("cached regular quota = %d minutes, want 30", status.RegularDailyRuntimeMinutes)
+	}
+	message := formatMembershipVerificationUnavailableMessage(status)
+	if !strings.Contains(message, "Orange Plus") || strings.Contains(message, "Orange Free") {
+		t.Fatalf("cached membership notice does not match the actual quota tier: %s", message)
 	}
 }
 

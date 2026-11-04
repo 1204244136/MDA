@@ -138,5 +138,6 @@ func loadPersistentMemberStatus(currentDeviceCode DeviceCodeV7) (*MembershipStat
 
 	status := statusFromResponse(&record.Response, currentDeviceCode)
 	status.VerificationUnavailable = true
+	status.UsingPersistentCache = true
 	return status, true
 }

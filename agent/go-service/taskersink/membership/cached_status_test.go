@@ -52,6 +52,9 @@ func TestPersistentMemberStatusSaveAndLoad(t *testing.T) {
 	if !loaded.VerificationUnavailable {
 		t.Errorf("loaded.VerificationUnavailable = false, want true")
 	}
+	if !loaded.UsingPersistentCache {
+		t.Errorf("loaded.UsingPersistentCache = false, want true")
+	}
 
 	// 测试设备码不匹配
 	differentDevice := DeviceCodeV7{
