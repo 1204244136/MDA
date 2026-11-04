@@ -41,7 +41,7 @@
         ]
     },
     "DailyRewardsMissionFlow": {
-        "desc": "任务页面流程：有红点就循环领取，红点清空后收尾",
+        "desc": "任务页面领取流程",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -57,13 +57,14 @@
             }
         },
         "next": [
-            "[JumpBack]DailyRewardsClickMissionRedDot",
-            "DailyRewardsMissionClaimedVisible",
-            "CommonClosePage"
+            "[JumpBack]DailyRewardsMissionClickRedDot", // 只有出现红点的页签才需要领，逐个点过去
+            "CommonClosePage",
+            "CommonEndTask"
         ]
     },
-    "DailyRewardsClickMissionRedDot": {
-        "desc": "点击任务红点",
+    "DailyRewardsMissionClickRedDot": {
+        "desc": "点击任务页签红点",
+        "max_hit": 6, // 四个页签各点一次，红点不消失时也不无限重试
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -86,17 +87,28 @@
                     10,
                     0,
                     0
-                ]
+                ] // 红点贴在页签右上角，往左下偏到页签本体上才会切页签
             }
         },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [
+                0,
+                0,
+                0,
+                0
+            ]
+        }, // 整屏稳定 800ms 再判按钮，避免切页签后内容还没渲染完
         "next": [
-            "DailyRewardsMissionClaimAll"
+            "DailyRewardsMissionClaimAll",
+            "CommonEndTask"
         ]
     },
     "DailyRewardsMissionClaimAll": {
         "desc": "任务奖励领取",
+        "max_hit": 6, // 蓝态重试上限，点击不生效时不再无限自环
         "recognition": {
-            "type": "OCR",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
                     707,
@@ -104,21 +116,64 @@
                     108,
                     35
                 ],
-                "expected": [
-                    ".*全部.*"
-                ]
+                "lower": [
+                    0,
+                    150,
+                    230
+                ], // 可领取时按钮为亮蓝底，实测主色 (0,168,248)
+                "upper": [
+                    60,
+                    210,
+                    255
+                ],
+                "count": 800
             }
         },
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [
+                0,
+                0,
+                0,
+                0
+            ]
+        }, // 整屏稳定 800ms 才算动作结束，避开变暗与「正在领取」动画
+        "timeout": 30000, // 点完要依次走完变暗、正在领取、奖励弹窗，等 next 的时间给足
         "next": [
-            "CommonConfirmReward",
-            "DailyRewardsMissionClaimAll" //兜底
+            "DailyRewardsMissionConfirmReward",
+            "DailyRewardsMissionClaimedVisible",
+            "DailyRewardsMissionClaimAll"
         ]
     },
+    "DailyRewardsMissionConfirmReward": {
+        "desc": "领取奖励弹窗",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonConfirmReward"
+                ]
+            }
+        },
+        "pre_wait_freezes": 500, // 与共享节点保持一致，等弹窗滑入动画停稳再点
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                0,
+                0,
+                0,
+                0
+            ]
+        } // 点完领取会先变暗再出「正在领取」，等整屏稳定 1s 才算领完，避免提前跳流程
+    },
     "DailyRewardsMissionClaimedVisible": {
-        "desc": "任务奖励已领取，全部领取按钮变灰",
+        "desc": "全部领取按钮已置灰",
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -132,17 +187,14 @@
                     100,
                     100,
                     100
-                ],
+                ], // 领取完成后按钮转灰底 (120,120,120)，这是本页签领完的信号
                 "upper": [
                     180,
                     180,
                     180
                 ],
-                "count": 200
+                "count": 800
             }
-        },
-        "next": [
-            "CommonClosePage"
-        ]
+        }
     }
 }
