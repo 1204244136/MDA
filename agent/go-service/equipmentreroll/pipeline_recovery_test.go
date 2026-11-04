@@ -1,7 +1,6 @@
 package equipmentreroll
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,7 +30,7 @@ func loadRecoveryPipeline(t *testing.T, name string) map[string]recoveryPipeline
 		t.Fatal(err)
 	}
 	var nodes map[string]recoveryPipelineNode
-	if err := json.Unmarshal(data, &nodes); err != nil {
+	if err := unmarshalJSONC(data, &nodes); err != nil {
 		t.Fatal(err)
 	}
 	return nodes

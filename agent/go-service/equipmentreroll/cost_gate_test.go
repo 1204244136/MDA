@@ -45,7 +45,7 @@ func loadPipelineNodes(t *testing.T, path string) map[string]pipelineNode {
 		t.Fatal(err)
 	}
 	var nodes map[string]pipelineNode
-	if err := json.Unmarshal(raw, &nodes); err != nil {
+	if err := unmarshalJSONC(raw, &nodes); err != nil {
 		t.Fatalf("%s: %v", path, err)
 	}
 	return nodes

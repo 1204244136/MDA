@@ -33,7 +33,7 @@ func TestValueOptionsReachCarrier(t *testing.T) {
 			Override map[string]json.RawMessage `json:"pipeline_override"`
 		} `json:"option"`
 	}
-	if err := json.Unmarshal(data, &task); err != nil {
+	if err := unmarshalJSONC(data, &task); err != nil {
 		t.Fatal(err)
 	}
 	if len(task.Task) != 1 || len(task.Task[0].Option) != 1 || task.Task[0].Option[0] != "EquipmentRerollOperation" {
@@ -129,7 +129,7 @@ func loadValueOptionOverrides(t *testing.T) map[string]json.RawMessage {
 			} `json:"cases"`
 		} `json:"option"`
 	}
-	if err := json.Unmarshal(data, &task); err != nil {
+	if err := unmarshalJSONC(data, &task); err != nil {
 		t.Fatal(err)
 	}
 	for _, choice := range task.Option["EquipmentRerollOperation"].Cases {

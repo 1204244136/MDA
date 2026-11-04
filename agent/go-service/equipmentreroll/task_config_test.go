@@ -32,7 +32,7 @@ func TestTaskConfigAllSatisfiedKeepsPartAll(t *testing.T) {
 			} `json:"recognition"`
 		} `json:"EquipmentRerollAllSatisfied"`
 	}
-	if err := json.Unmarshal(data, &pipeline); err != nil {
+	if err := unmarshalJSONC(data, &pipeline); err != nil {
 		t.Fatalf("failed to parse pipeline config: %v", err)
 	}
 	if pipeline.EquipmentRerollAllSatisfied.Recognition.Param.CustomRecognitionParam.Part != "all" {
@@ -68,7 +68,7 @@ func TestTaskConfigCarrierAttachOverrides(t *testing.T) {
 			} `json:"cases"`
 		} `json:"option"`
 	}
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := unmarshalJSONC(data, &cfg); err != nil {
 		t.Fatalf("failed to parse task config: %v", err)
 	}
 
@@ -290,7 +290,7 @@ func TestPipelineNodeReferencesResolve(t *testing.T) {
 		var nodes map[string]struct {
 			Next []string `json:"next"`
 		}
-		if err := json.Unmarshal(raw, &nodes); err != nil {
+		if err := unmarshalJSONC(raw, &nodes); err != nil {
 			t.Fatalf("failed to parse %s: %v", entry.Name(), err)
 		}
 		for name, node := range nodes {
@@ -315,7 +315,7 @@ func TestPipelineNodeReferencesResolve(t *testing.T) {
 			} `json:"cases"`
 		} `json:"option"`
 	}
-	if err := json.Unmarshal(taskRaw, &task); err != nil {
+	if err := unmarshalJSONC(taskRaw, &task); err != nil {
 		t.Fatalf("failed to parse task config: %v", err)
 	}
 	for optName, opt := range task.Option {
@@ -396,7 +396,7 @@ func TestValueModeResultUnreadableRouteIsExplicit(t *testing.T) {
 			} `json:"cases"`
 		} `json:"option"`
 	}
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := unmarshalJSONC(data, &cfg); err != nil {
 		t.Fatalf("failed to parse task config: %v", err)
 	}
 	const costNode = "EquipmentRerollRecordRerollCost"

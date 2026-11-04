@@ -1,7 +1,6 @@
 package equipmentreroll
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,7 +26,7 @@ func TestLockInventoryOCRFiltersSplitLabel(t *testing.T) {
 			} `json:"param"`
 		} `json:"recognition"`
 	}
-	if err := json.Unmarshal(raw, &nodes); err != nil {
+	if err := unmarshalJSONC(raw, &nodes); err != nil {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ node, text, want string }{
@@ -123,7 +122,7 @@ func TestConfirmHeldModulePipelineROI(t *testing.T) {
 			} `json:"param"`
 		} `json:"recognition"`
 	}
-	if err := json.Unmarshal(raw, &nodes); err != nil {
+	if err := unmarshalJSONC(raw, &nodes); err != nil {
 		t.Fatal(err)
 	}
 	node, ok := nodes["__EquipmentRerollConfirmHeldModule"]

@@ -1,7 +1,6 @@
 package equipmentreroll
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,7 +29,7 @@ func TestScanSlotLockPipelineROI(t *testing.T) {
 			} `json:"param"`
 		} `json:"recognition"`
 	}
-	if err := json.Unmarshal(raw, &nodes); err != nil {
+	if err := unmarshalJSONC(raw, &nodes); err != nil {
 		t.Fatal(err)
 	}
 

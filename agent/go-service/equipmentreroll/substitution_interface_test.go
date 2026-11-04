@@ -31,7 +31,7 @@ func TestSubstitutionInterfaceCarrierContract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := json.Unmarshal(raw, &cfg); err != nil {
+	if err := unmarshalJSONC(raw, &cfg); err != nil {
 		t.Fatal(err)
 	}
 	findCase := func(name, caseName string) optionCase {

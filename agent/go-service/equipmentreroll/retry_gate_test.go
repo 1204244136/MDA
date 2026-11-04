@@ -1,7 +1,6 @@
 package equipmentreroll
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,7 +23,7 @@ func TestResultTransitionsRetainSuccessWhileWaiting(t *testing.T) {
 			} `json:"param"`
 		} `json:"action"`
 	}
-	if err := json.Unmarshal(data, &nodes); err != nil {
+	if err := unmarshalJSONC(data, &nodes); err != nil {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ click, success, gate string }{

@@ -1,7 +1,6 @@
 package equipmentreroll
 
 import (
-	"encoding/json"
 	"image"
 	_ "image/png"
 	"os"
@@ -27,7 +26,7 @@ func TestConsumableCostCountOnlyRec(t *testing.T) {
 			} `json:"param"`
 		} `json:"recognition"`
 	}
-	if err := json.Unmarshal(raw, &nodes); err != nil {
+	if err := unmarshalJSONC(raw, &nodes); err != nil {
 		t.Fatal(err)
 	}
 
