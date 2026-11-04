@@ -51,7 +51,8 @@
             }
         },
         "next": [
-            "RedDotClearCashShopFlow"
+            "RedDotClearCashShopFlow",
+            "RedDotClearCashShopClickEntry" // 没进付费商店就再点一次
         ]
     },
     "RedDotClearCashShopFlow": {
