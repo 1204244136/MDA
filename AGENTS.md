@@ -83,6 +83,18 @@
 - 用户可见文案写在 `assets/tasks/*.json` 的 `description`（配合 locale），不要用 pipeline `desc` 承担；PI 层不使用 `desc`。
 - 规范全文见 [docs/pipeline-desc-and-comments.md](docs/pipeline-desc-and-comments.md)，护栏 `npm run check:desc`。
 
+## Pipeline 实测、识别与稳定性
+
+- **不尝试控制游戏**：目标进程若提权（`OpenProcess(PROCESS_QUERY_INFORMATION)` 被拒绝即属此类），普通会话的合成点击/按键不会生效，换控制器重试也没用。此时只做观测与离线实测（截图、`reco`、`crop`、`color`、OCR）；需要某个界面状态时请用户点一下，自己抓帧留证。
+- **识别方式按优先级选**：有文字的按钮用 OCR（如「全部使用」白/蓝两态都能识别，点文字有效）；通用图标先查 `Common/` 是否已有模板可复用（如 `Common/ConfirmWithFilledCircle.png`）；只有纯形状才做模板。
+- **模板只裁元素本身**：分类图标只裁字形（如 24×20 白色字形），不要把角标红点、数量文字等动态覆盖裁进去——带角标的版本实机匹配只有 0.5 左右。单帧自匹配 1.0 不代表跨位置稳，同一模板换一列可能只剩 0.9，必须跨帧、跨位置、跨状态实测。
+- **是否区分选中/未选中，先问它是否改变动作**：点击幂等就不需要状态分支；同一张未选中模板在选中态通常仍有 0.75 左右，高于默认阈值 0.7。阈值取实测区间中部，并把实测分数写进行尾注释。
+- **延迟出现的界面用 `wait_freezes` 桥接**：`next` 每轮把每个候选各识别一次（间隔 `rate_limit`，默认 1s；总预算为当前节点 `timeout`，默认 20s），全部未命中按节点失败处理；因此每个 `next` 都需要一个必然命中的终止节点（`CommonEndTask`）。但 `DirectHit` 终止节点会**抢跑**：弹框/结算晚出现一次就被兜底拦走。凡是「点击后过一会儿才出现」的界面，都在点击节点上挂 `post_wait_freezes`（`time` 是要静止多久，`rate_limit` 是采样间隔，建议 200ms 以捕捉过渡帧）。实测：点「使用」→ 弹框约 0.3s；点弹框「使用」→ REWARD 约 1.1s；只等 200ms 会在过渡静止帧上提前返回。`wait_freezes` 失败不阻断流程（框架忽略返回值）。
+- **页面遍历用 `[JumpBack]`**：照 `DailyRewards` 的形态——分发节点的 `next` 写 `[JumpBack]各页`，页入口节点 `max_hit: 1`，末尾 `CommonEndTask`。不要造「长链 + 指向下一分类的兜底」，也不要给每页加只做转发的包装节点；弹窗式流程（如领奖）放在产生它的节点 `next` 里，不在每页开头重复兜底。
+- **调试看命中序列，不看任务成功**：`Tasker.Task.Succeeded` 只代表流程跑完。核对 `recognize_list reco hit` / `PipelineTask node done` 判断分支与跳过；`debug/vision/*_<reco_id>.jpg` 是识别失败帧，与 `debug/maafw.log` 时间戳对齐即可量出「点击 → 画面变化」的延迟。
+- **方案整体作废时先回滚**：`git checkout` + `git rm` 回到干净起点再重写，别在旧结构上叠补丁；提交信息正文写实测数据与日志时间点作为证据（提交格式、scope、push 约定见「项目约定」）。
+- `npx maa-tools check` 偶发要 1~2 分钟，放后台跑；改动后必过 `prettier --check` 与 `npm run check:desc`。
+
 ## 活动主题「当前活动」路由
 
 ### 机制
