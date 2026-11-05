@@ -56,7 +56,7 @@
         ]
     },
     "LuckyBoxOpeningEnterFlow": {
-        "desc": "宝箱开启进入流程",
+        "desc": "宝箱开启进入流程", //每类一个自足子流程，跑完回本节点接着下一个
         "recognition": {
             "type": "And",
             "param": {
@@ -66,12 +66,11 @@
             }
         },
         "next": [
-            "[JumpBack]LuckyBoxOpeningEnterRecruitmentRelatedPage",
-            "[JumpBack]LuckyBoxOpeningEnterEquipmentRelatedPage",
-            "[JumpBack]LuckyBoxOpeningEnterCollectionRelatedPage",
-            "[JumpBack]LuckyBoxOpeningEnterUpgradingRelatedPage",
-            "[JumpBack]LuckyBoxOpeningEnterSkillsRelatedPage",
-            "[JumpBack]LuckyBoxOpeningEnterOthersRelatedPage",
+            "[JumpBack]LuckyBoxOpeningSelectRecruitmentCategory",
+            "[JumpBack]LuckyBoxOpeningSelectEquipmentCategory",
+            "[JumpBack]LuckyBoxOpeningSelectCollectionCategory",
+            "[JumpBack]LuckyBoxOpeningSelectUpgradingCategory",
+            "[JumpBack]LuckyBoxOpeningSelectSkillsCategory",
             "CommonEndTask"
         ]
     },
@@ -92,118 +91,271 @@
             }
         }
     },
-    "LuckyBoxOpeningClickRedDot": {
-        "desc": "点击红点",
+    "LuckyBoxOpeningSelectRecruitmentCategory": {
+        "desc": "选中招募相关分类",
+        "max_hit": 1,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    61,
-                    173,
-                    1170,
-                    447
+                    10,
+                    140,
+                    60,
+                    340
                 ],
-                "template": [
-                    "Common/RedDot.png"
+                "template": "LuckyBoxOpening/Recruitment.png" //选中态（蓝）实测仍有 0.762，过默认阈值，不必单独做选中模板
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickUseAll",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningSelectEquipmentCategory": {
+        "desc": "选中装备相关分类",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    140,
+                    60,
+                    340
                 ],
+                "template": "LuckyBoxOpening/Equipment.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickUseAll",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningSelectCollectionCategory": {
+        "desc": "选中收藏品相关分类",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    140,
+                    60,
+                    340
+                ],
+                "template": "LuckyBoxOpening/Collection.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickUseAll",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningSelectUpgradingCategory": {
+        "desc": "选中升级相关分类",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    140,
+                    60,
+                    340
+                ],
+                "template": "LuckyBoxOpening/Upgrading.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickUseAll",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningSelectSkillsCategory": {
+        "desc": "选中技能相关分类",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    140,
+                    60,
+                    340
+                ],
+                "template": "LuckyBoxOpening/Skills.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickUseAll",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningClickUseAll": {
+        "desc": "点击全部使用", //白/蓝两态都可识别；切分类会重置为白态，所以每次点一下就是全选
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1150,
+                    135,
+                    140,
+                    40
+                ],
+                "expected": [
+                    "全部使用"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                1131,
+                577,
+                122,
+                39
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickUse",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningClickUse": {
+        "desc": "点击使用", //蓝色=可点；灰色=该类没有可用的随机宝箱/捆包，直接结束本类
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    1131,
+                    577,
+                    122,
+                    39
+                ],
+                "lower": [
+                    0,
+                    140,
+                    190
+                ],
+                "upper": [
+                    80,
+                    215,
+                    255
+                ],
+                "count": 800
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                460,
+                86,
+                360,
+                512
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningConfirmUse",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningConfirmUse": {
+        "desc": "确认使用", //弹框高度随道具行数变化，复用 Common 的圆勾图标在弹框下半区搜索
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    400,
+                    500,
+                    480,
+                    200
+                ],
+                "template": "Common/ConfirmWithFilledCircle.png",
                 "threshold": 0.8
             }
         },
         "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -20,
-                    20,
-                    0,
-                    0
-                ]
-            }
-        },
-        "next": [
-            "LuckyBoxOpeningClickMax",
-            "LuckyBoxOpeningClickConfirm"
-        ]
-    },
-    "LuckyBoxOpeningClickMax": {
-        "desc": "点击max",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "LuckyBoxOpeningClickMaxVisible",
-                    "LuckyBoxOpeningClickMaxAvailable"
-                ]
-            }
-        },
-        "action": {
             "type": "Click"
         },
-        "next": [
-            "LuckyBoxOpeningClickConfirm"
-        ]
-    },
-    "LuckyBoxOpeningClickMaxVisible": {
-        "desc": "max可见",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    743,
-                    425,
-                    66,
-                    184
-                ],
-                "template": [
-                    "Common/MAX.png"
-                ]
-            }
-        }
-    },
-    "LuckyBoxOpeningClickMaxAvailable": {
-        "desc": "max可点击",
-        "recognition": {
-            "type": "ColorMatch",
-            "param": {
-                "roi": "LuckyBoxOpeningClickMaxVisible",
-                "lower": [
-                    140,
-                    140,
-                    140
-                ],
-                "upper": [
-                    255,
-                    255,
-                    255
-                ],
-                "count": 50
-            }
-        }
-    },
-    "LuckyBoxOpeningClickConfirm": {
-        "desc": "点击确认",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    479,
-                    508,
-                    323,
-                    183
-                ],
-                "template": [
-                    "Common/ConfirmWithFilledCircle.png"
-                ]
-            }
+        "post_wait_freezes": {
+            "time": 1000,
+            "rate_limit": 200, //细粒度采样，避免过渡黑屏被当成"已稳定"
+            "target": [
+                400,
+                240,
+                480,
+                220
+            ]
         },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500,
         "next": [
-            "DailyRewardsConfirmRecruit",
-            "CommonConfirmReward",
-            "LuckyBoxOpeningClickConfirm" //兜底
+            "[JumpBack]CommonConfirmReward",
+            "CommonEndTask"
         ]
     }
 }
