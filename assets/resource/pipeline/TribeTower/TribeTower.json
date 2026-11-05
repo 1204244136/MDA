@@ -42,7 +42,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "TribeTowerMainPageEntered"
+                    "TribeTowerSelectPageEntered"
                 ]
             }
         },
@@ -254,8 +254,8 @@
             "TribeTowerChooseStage"
         ]
     },
-    "TribeTowerMainPageEntered": {
-        "desc": "处于无限之塔1级页面",
+    "TribeTowerSelectPageEntered": {
+        "desc": "处于无限之塔选塔页",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -264,7 +264,7 @@
                     293,
                     51,
                     21
-                ],
+                ], // 只能看选塔页的内容条目：顶栏在选塔页与塔内都是「无限之塔」区分不出塔内，从塔内返回后还会退化成单字「塔」
                 "expected": [
                     ".*塔.*" //无限之塔
                 ]

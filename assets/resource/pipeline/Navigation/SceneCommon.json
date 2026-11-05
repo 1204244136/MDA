@@ -28,6 +28,7 @@
         "next": [
             "CommonArkEntered",
             "__ScenePrivateClickArk",
+            "[JumpBack]__SceneArkEscapeSubPage", // 方舟子页先点返回，别绕大厅
             "[JumpBack]__ScenePrivateRecoverHallForArk"
         ]
     },
@@ -45,6 +46,7 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": 1000, // 方舟首页有入场动画，不等静止会连点第二次
         "timeout": 10000,
         "next": [
             "CommonArkEntered",

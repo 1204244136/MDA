@@ -202,10 +202,11 @@ class NavigationRun:
             "RookieArenaMainPageEntered": {"arena_sub"},
             "SpecialArenaMainPageEntered": {"arena_sub"},
             "ChampionArenaMainPageEntered": {"arena_sub"},
-            "CommonGoBack": {"arena_sub"},
+            # 各子页左下角都有返回键：竞技场子页退回竞技场首页，其他方舟子页直接退回方舟。
+            "CommonGoBack": {"arena_sub", "interception", "simulation", "tower"},
             "InterceptionMainPageEntered": {"interception"},
             "SimulationRoomMainPageEntered": {"simulation"},
-            "TribeTowerMainPageEntered": {"tower"},
+            "TribeTowerSelectPageEntered": {"tower"},
             "CommonClickHomeButton": {"unknown", "outpost", "arena", "interception", "simulation", "tower"},
             "CommonClickHall": {"unknown", "outpost", "arena", "interception", "simulation", "tower"},
             "CommonClickFreeState": {"hall"},
@@ -252,13 +253,16 @@ class NavigationRun:
                 "CommonClickArk": "ark",
                 "__ScenePrivateClickArk": "ark",
                 "__ScenePrivateClickOutpost": "outpost", "__SceneArkClickArena": "arena",
-                "CommonGoBack": "arena",
                 "__SceneArkClickInterception": "interception",
                 "__SceneArkClickSimulationRoom": "simulation", "__SceneArkClickTribeTower": "tower",
                 "__ScenePrivateClickShop": "shop", "__ScenePrivateClickFriend": "friend",
                 "AdviseClickAdvisePage": "advise",
             }
-            if node == "CommonClosePage" and self.page == "arena_reward_info":
+            if node == "CommonGoBack":
+                # 子页返回：竞技场子页退到竞技场首页，其他方舟子页直接退回方舟。
+                if not self.frozen:
+                    self.page = "arena" if self.page == "arena_sub" else "ark"
+            elif node == "CommonClosePage" and self.page == "arena_reward_info":
                 self.page = "ark"
             elif node in targets:
                 if not self.frozen:
@@ -355,9 +359,18 @@ def check_behaviors(run):
     # 逃生路径，子页上所有首页识别必然失败，整条任务会等到导航超时才判失败。
     assert run.run("SceneEnterArena", "arena_sub") == SUCCEEDED, (run.completed, run.actions)
     assert run.page == "arena" and run.actions == ["CommonGoBack"], run.actions
-    assert "__SceneArkEscapeArenaSubPage" in run.completed, run.completed
+    assert "__SceneArkEscapeSubPage" in run.completed, run.completed
     count += 1
     print("[PASS] 误入竞技场子页时点返回回到竞技场首页，不再以超时判失败")
+
+    # 模拟室/拦截战/无限之塔同样在方舟层级下，返回键直达方舟；缺这条逃生路径
+    # 就会绕回大厅跑完整登录恢复链（实测单次多耗 17~36 秒）。
+    for page in ("simulation", "interception", "tower"):
+        assert run.run("SceneEnterArk", page) == SUCCEEDED, (page, run.completed, run.actions)
+        assert run.page == "ark" and run.actions == ["CommonGoBack"], (page, run.actions)
+        assert "__SceneArkEscapeSubPage" in run.completed, (page, run.completed)
+        count += 1
+    print("[PASS] 方舟子页经返回键退回方舟，不再绕大厅")
 
     assert run.run("SceneEnterInterception", "ark", missing={"ArkEnterInterception"}) == FAILED
     assert not run.actions and run.recognition_count < 50000

@@ -1,21 +1,24 @@
 {
     "SceneEnterArena": {
-        "desc": "纯导航，不执行竞技场任务", // 命中首页哨兵即返回调用方；误入新人/特殊/冠军子页由 __SceneArkEscapeArenaSubPage 拉回
+        "desc": "纯导航，不执行竞技场任务", // 命中首页哨兵即返回调用方；误入新人/特殊/冠军子页由 __SceneArkEscapeSubPage 拉回
         "timeout": 10000,
         "next": [
             "ArenaMainPageEntered",
             "__SceneArkClickArena",
-            "[JumpBack]__SceneArkEscapeArenaSubPage",
+            "[JumpBack]__SceneArkEscapeSubPage",
             "[JumpBack]__SceneArkRecoverForArena"
         ]
     },
-    "__SceneArkEscapeArenaSubPage": {
-        "desc": "误入子页时退回首页", // 新人/特殊/冠军三个子页都可能被误入，点返回就能回到竞技场首页；不拉回则整条导航要等到外层超时才判失败
-        "max_hit": 2, // 最多拉回两次，仍进子页就交给外层超时
+    "__SceneArkEscapeSubPage": {
+        "desc": "方舟子页退回上一级", // 各子页左下角都有返回；竞技场子页要先退到竞技场首页再退方舟，故留两次预算
+        "max_hit": 2, // 最多退两次，仍退不回去就交给外层（回大厅兜底或超时）
         "recognition": {
             "type": "Or",
             "param": {
                 "any_of": [
+                    "SimulationRoomMainPageEntered",
+                    "InterceptionMainPageEntered",
+                    "TribeTowerSelectPageEntered",
                     "RookieArenaMainPageEntered",
                     "SpecialArenaMainPageEntered",
                     "ChampionArenaMainPageEntered"
@@ -185,7 +188,7 @@
         "desc": "纯导航，不选塔或关卡", // 命中无限之塔首页即返回；不选塔也不进关卡
         "timeout": 10000,
         "next": [
-            "TribeTowerMainPageEntered",
+            "TribeTowerSelectPageEntered",
             "__SceneArkClickTribeTower",
             "[JumpBack]__SceneArkRecoverForTribeTower"
         ]
@@ -208,7 +211,7 @@
         "post_wait_freezes": 1000,
         "timeout": 10000,
         "next": [
-            "TribeTowerMainPageEntered",
+            "TribeTowerSelectPageEntered",
             "__SceneArkClickTribeTower"
         ]
     },
