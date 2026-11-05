@@ -10,7 +10,6 @@
     },
     "__ScenePrivateClickShop": {
         "desc": "从大厅点击商店，复用既有入口识别",
-        "max_hit": 3,
         "recognition": {
             "type": "And",
             "param": {
