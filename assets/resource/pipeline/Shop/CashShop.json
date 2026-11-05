@@ -258,6 +258,7 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": 1000, //点完礼包标签会有点击特效和切页动画，不等它散干净兜底识别会掉到 0.6 直接判失败
         "next": [
             "[JumpBack]CashShopClickRedDot",
             "[JumpBack]CommonConfirmReward",
