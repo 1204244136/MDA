@@ -202,8 +202,9 @@ class NavigationRun:
             "RookieArenaMainPageEntered": {"arena_sub"},
             "SpecialArenaMainPageEntered": {"arena_sub"},
             "ChampionArenaMainPageEntered": {"arena_sub"},
-            # 各子页左下角都有返回键：竞技场子页退回竞技场首页，其他方舟子页直接退回方舟。
-            "CommonGoBack": {"arena_sub", "interception", "simulation", "tower"},
+            # 各子页左下角都有返回键：竞技场子页退回竞技场首页，其他方舟子页直接退回方舟；
+            # 竞技场首页自己也有返回到方舟（顶栏只写「竞技场」，只能由 ArenaMainPageEntered 认出来）。
+            "CommonGoBack": {"arena", "arena_sub", "interception", "simulation", "tower"},
             "InterceptionMainPageEntered": {"interception"},
             "SimulationRoomMainPageEntered": {"simulation"},
             "TribeTowerSelectPageEntered": {"tower"},
@@ -371,6 +372,14 @@ def check_behaviors(run):
         assert "__SceneArkEscapeSubPage" in run.completed, (page, run.completed)
         count += 1
     print("[PASS] 方舟子页经返回键退回方舟，不再绕大厅")
+
+    # 竞技场首页顶栏只写「竞技场」，子页哨兵认不出；漏了 ArenaMainPageEntered 就会
+    # 退回大厅（实测 16:51 那次多耗 17 秒）。
+    assert run.run("SceneEnterArk", "arena") == SUCCEEDED, (run.completed, run.actions)
+    assert run.page == "ark" and run.actions == ["CommonGoBack"], run.actions
+    assert "__SceneArkEscapeSubPage" in run.completed, run.completed
+    count += 1
+    print("[PASS] 竞技场首页经返回键退回方舟，不再绕大厅")
 
     assert run.run("SceneEnterInterception", "ark", missing={"ArkEnterInterception"}) == FAILED
     assert not run.actions and run.recognition_count < 50000

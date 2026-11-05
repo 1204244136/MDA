@@ -16,12 +16,13 @@
             "type": "Or",
             "param": {
                 "any_of": [
-                    "SimulationRoomMainPageEntered",
-                    "InterceptionMainPageEntered",
-                    "TribeTowerSelectPageEntered",
+                    "ArenaMainPageEntered", // 竞技场首页顶栏只写「竞技场」，子页哨兵认不出，必须单独列
                     "RookieArenaMainPageEntered",
                     "SpecialArenaMainPageEntered",
-                    "ChampionArenaMainPageEntered"
+                    "ChampionArenaMainPageEntered",
+                    "SimulationRoomMainPageEntered",
+                    "InterceptionMainPageEntered",
+                    "TribeTowerSelectPageEntered"
                 ]
             }
         },
