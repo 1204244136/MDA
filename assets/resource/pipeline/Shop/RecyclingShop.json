@@ -22,18 +22,13 @@
     },
     "ShopEnterRecyclingShop": {
         "desc": "进入废铁商店",
-        "max_hit": 3,
+        "max_hit": 3, // 点不进去时重试的预算
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "And",
             "param": {
-                "roi": [
-                    0,
-                    255,
-                    55,
-                    390
-                ],
-                "template": [
-                    "Shop/RecyclingShop/RecyclingShop.png"
+                "all_of": [
+                    "ShopRecyclingShopTab", // 放在首位以取页签框作为点击目标
+                    "ShopRecyclingShopTabUnselected"
                 ]
             }
         },
@@ -46,6 +41,48 @@
             "ShopRecyclingShopEntered",
             "ShopEnterRecyclingShop"
         ]
+    },
+    "ShopRecyclingShopTab": {
+        "desc": "废铁商店侧栏页签",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    539,
+                    56,
+                    55
+                ],
+                "template": [
+                    "Shop/RecyclingShop/RecyclingShop.png"
+                ]
+            }
+        }
+    },
+    "ShopRecyclingShopTabUnselected": {
+        "desc": "废铁商店页签未选中",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    0,
+                    539,
+                    56,
+                    55
+                ], // 选中时整行铺橙底(≈248,156,43)，未选中是深灰，故命中深色即未选中
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    140,
+                    140,
+                    140
+                ],
+                "count": 800
+            }
+        }
     },
     "ShopRecyclingShopEntered": {
         "desc": "处于废铁商店",

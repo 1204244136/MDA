@@ -13,19 +13,12 @@
         "desc": "进入躯体标签商店",
         "max_hit": 1,
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "And",
             "param": {
-                "roi": [
-                    0,
-                    255,
-                    55,
-                    390
-                ],
-                "template": [
-                    "Shop/BodyLabelShop/BodyLabelShopNotSelected.png",
-                    "Shop/BodyLabelShop/BodyLabelShopSelected.png"
-                ],
-                "threshold": 0.999 // 六个页签图形高度相似，默认阈值会互相误命中：实测自身 1.000、其他页签最高 0.999939，取 0.999 放过自己挡住其他页签（误点无害，下轮会点回本页签）
+                "all_of": [
+                    "ShopBodyLabelShopTab", // 放在首位以取页签框作为点击目标
+                    "ShopBodyLabelShopTabUnselected"
+                ]
             }
         },
         "action": {
@@ -35,6 +28,50 @@
             "ShopBodyLabelShopEntered",
             "ShopEnterBodyLabelShop"
         ]
+    },
+    "ShopBodyLabelShopTab": {
+        "desc": "躯体标签商店侧栏页签",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    368,
+                    56,
+                    55
+                ],
+                "template": [
+                    "Shop/BodyLabelShop/BodyLabelShopNotSelected.png",
+                    "Shop/BodyLabelShop/BodyLabelShopSelected.png"
+                ],
+                "threshold": 0.8 // 收窄到本行后不会再跨页签误命中，无需为区分同形页签卡到 0.999
+            }
+        }
+    },
+    "ShopBodyLabelShopTabUnselected": {
+        "desc": "躯体标签商店页签未选中",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    0,
+                    368,
+                    56,
+                    55
+                ], // 选中时整行铺橙底(≈248,156,43)，未选中是深灰，故命中深色即未选中
+                "lower": [
+                    0,
+                    0,
+                    0
+                ],
+                "upper": [
+                    140,
+                    140,
+                    140
+                ],
+                "count": 800
+            }
+        }
     },
     "ShopBodyLabelShopEntered": {
         "desc": "处于躯体标签商店",
