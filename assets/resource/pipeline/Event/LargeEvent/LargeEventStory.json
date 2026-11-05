@@ -308,8 +308,9 @@
                     604
                 ],
                 "template": [
-                    "LargeEvent/MARIAn/MARIAnStory1Stage.png", //当前活动，随最新主题更新（story2 未开放）；右列卡片样式
-                    "LargeEvent/MARIAn/MARIAnStory1StageLeft.png" //左列卡片样式，两列 Event 外观不同，需两张模板一起覆盖
+                    "LargeEvent/MARIAn/MARIAnStory1Stage.png", //剧情1右列卡片样式，剧情2未解锁时回退到该页
+                    "LargeEvent/MARIAn/MARIAnStory1StageLeft.png", //剧情1左列卡片样式，两列 Event 外观不同，需两张模板一起覆盖
+                    "LargeEvent/MARIAn/MARIAnStory2StageNormal.png" //当前活动，随最新主题更新；剧情2普通难度为深底金字 EVENT
                 ],
                 "order_by": "Vertical",
                 "index": -1
@@ -336,8 +337,9 @@
                     604
                 ],
                 "template": [
-                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png", //当前活动，随最新主题更新（story2 未开放）；右列卡片样式
-                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatableLeft.png" //左列卡片样式，两列 Repeat 外观不同，需两张模板一起覆盖
+                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png", //剧情1右列卡片样式，剧情2未解锁时回退到该页
+                    "LargeEvent/MARIAn/MARIAnStory1StageRepeatableLeft.png", //剧情1左列卡片样式，两列 Repeat 外观不同，需两张模板一起覆盖
+                    "LargeEvent/MARIAn/MARIAnStory2StageNormalRepeatable.png" //当前活动，随最新主题更新；剧情2普通难度扫荡图标
                 ],
                 "order_by": "Vertical",
                 "index": -1

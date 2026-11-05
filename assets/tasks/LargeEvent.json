@@ -283,7 +283,8 @@
                                 "param": {
                                     "template": [
                                         "LargeEvent/MARIAn/MARIAnStory1Stage.png",
-                                        "LargeEvent/MARIAn/MARIAnStory1StageLeft.png"
+                                        "LargeEvent/MARIAn/MARIAnStory1StageLeft.png",
+                                        "LargeEvent/MARIAn/MARIAnStory2StageNormal.png"
                                     ]
                                 }
                             }
@@ -293,7 +294,8 @@
                                 "param": {
                                     "template": [
                                         "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png",
-                                        "LargeEvent/MARIAn/MARIAnStory1StageRepeatableLeft.png"
+                                        "LargeEvent/MARIAn/MARIAnStory1StageRepeatableLeft.png",
+                                        "LargeEvent/MARIAn/MARIAnStory2StageNormalRepeatable.png"
                                     ]
                                 }
                             }
