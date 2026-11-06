@@ -277,6 +277,24 @@
         },
         "post_wait_freezes": 20
     },
+    "CommonSwipeBanner": {
+        "desc": "滑动左上角横幅", // 每次滑一屏；滑满 10 次仍未命中入口，交给调用方的 CommonEndTask 收尾
+        "max_hit": 10,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    20,
+                    80
+                ],
+                "end": [
+                    160,
+                    80
+                ],
+                "end_hold": 300
+            }
+        }
+    },
     "CommonBellIconVisible": {
         "desc": "右上角铃铛图标可见",
         "recognition": {

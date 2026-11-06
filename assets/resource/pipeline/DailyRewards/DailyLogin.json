@@ -19,7 +19,7 @@
         },
         "next": [
             "DailyLoginClickEntry",
-            "[JumpBack]CoordinatedOperationsSlideBanner",
+            "[JumpBack]CommonSwipeBanner",
             "CommonEndTask"
         ]
     },

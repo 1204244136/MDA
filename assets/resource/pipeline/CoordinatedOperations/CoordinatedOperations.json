@@ -264,23 +264,5 @@
                 ]
             }
         }
-    },
-    "CoordinatedOperationsSlideBanner": {
-        "desc": "滑动横幅",
-        "max_hit": 10,
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "begin": [
-                    20,
-                    80
-                ],
-                "end": [
-                    160,
-                    80
-                ],
-                "end_hold": 300
-            }
-        }
     }
 }
