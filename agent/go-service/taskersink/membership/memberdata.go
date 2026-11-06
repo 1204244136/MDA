@@ -2,6 +2,7 @@ package membership
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -137,9 +138,11 @@ var (
 )
 
 const (
-	cacheExpiry      = 1 * time.Hour
-	httpTimeout      = 15 * time.Second
-	maxFetchAttempts = 3
+	cacheExpiry         = 1 * time.Hour
+	memberFetchTimeout  = 8 * time.Second // 请求和重试等待共用预算，避免每次进入任务都长时间阻塞
+	httpTimeout         = 4 * time.Second
+	tlsHandshakeTimeout = 3 * time.Second
+	maxFetchAttempts    = 3
 )
 
 var (
@@ -369,8 +372,15 @@ func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
 	transport := &http.Transport{
 		Proxy:               resolveSystemProxy,
 		ForceAttemptHTTP2:   true,
-		TLSHandshakeTimeout: 10 * time.Second,
+		TLSHandshakeTimeout: tlsHandshakeTimeout,
 	}
+	return fetchMemberStatusFrom(context.Background(), deviceCode, MemberStatusURL, transport)
+}
+
+func fetchMemberStatusFrom(parent context.Context, deviceCode DeviceCodeV7, endpoint string, transport *http.Transport) (*MemberStatusResponse, error) {
+	ctx, cancel := context.WithTimeout(parent, memberFetchTimeout)
+	defer cancel()
+	defer transport.CloseIdleConnections()
 	client := &http.Client{
 		Transport: transport,
 		Timeout:   httpTimeout,
@@ -383,8 +393,12 @@ func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
 	var lastErr error
 	fallbackTried := false
 	for attempt := 1; attempt <= maxFetchAttempts; attempt++ {
+		if err := ctx.Err(); err != nil {
+			lastErr = err
+			break
+		}
 		startedAt := time.Now()
-		status, statusCode, err := fetchMemberStatusOnce(client, payload)
+		status, statusCode, err := fetchMemberStatusOnce(ctx, client, payload, endpoint)
 		duration := time.Since(startedAt)
 		if err == nil {
 			log.Info().
@@ -405,12 +419,16 @@ func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
 			Err(err).
 			Msg("Failed to fetch membership status")
 
+		if err := ctx.Err(); err != nil {
+			lastErr = err
+			break
+		}
 		if !shouldRetryFetch(statusCode, err) || attempt == maxFetchAttempts {
 			break
 		}
 
 		if !fallbackTried {
-			req, _ := http.NewRequest("POST", MemberStatusURL, nil)
+			req, _ := http.NewRequestWithContext(ctx, "POST", endpoint, nil)
 			if fallbackProxy := detectFallbackProxy(req); fallbackProxy != nil {
 				log.Info().
 					Str("fallback_proxy", fallbackProxy.String()).
@@ -420,14 +438,20 @@ func fetchMemberStatus(deviceCode DeviceCodeV7) (*MemberStatusResponse, error) {
 			}
 		}
 
-		time.Sleep(time.Duration(attempt*300) * time.Millisecond)
+		timer := time.NewTimer(time.Duration(attempt*300) * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, fmt.Errorf("failed to fetch membership status: %w", ctx.Err())
+		case <-timer.C:
+		}
 	}
 
 	return nil, fmt.Errorf("failed to fetch membership status: %w", lastErr)
 }
 
-func fetchMemberStatusOnce(client *http.Client, payload []byte) (*MemberStatusResponse, int, error) {
-	req, err := http.NewRequest("POST", MemberStatusURL, bytes.NewReader(payload))
+func fetchMemberStatusOnce(ctx context.Context, client *http.Client, payload []byte, endpoint string) (*MemberStatusResponse, int, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(payload))
 	if err != nil {
 		return nil, 0, err
 	}

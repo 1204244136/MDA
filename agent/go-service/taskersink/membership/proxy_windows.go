@@ -171,7 +171,8 @@ func detectFallbackProxy(req *http.Request) *url.URL {
 			continue
 		}
 		// 快速探测该本地端口是否处于监听状态
-		conn, err := net.DialTimeout("tcp", hostPort, 120*time.Millisecond)
+		dialer := net.Dialer{Timeout: 120 * time.Millisecond}
+		conn, err := dialer.DialContext(req.Context(), "tcp", hostPort)
 		if err == nil {
 			conn.Close()
 			return proxyURL
@@ -180,4 +181,3 @@ func detectFallbackProxy(req *http.Request) *url.URL {
 
 	return nil
 }
-
