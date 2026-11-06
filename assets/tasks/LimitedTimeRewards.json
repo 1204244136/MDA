@@ -9,7 +9,8 @@
                 "periodic"
             ],
             "option": [
-                "LimitedTimeRewardsFreeRecruit"
+                "LimitedTimeRewardsFreeRecruit",
+                "LimitedTimeRewardsVoltTrip"
             ]
         }
     ],
@@ -30,6 +31,28 @@
                     "name": "No",
                     "pipeline_override": {
                         "LimitedTimeRewardsFreeRecruitMain": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "LimitedTimeRewardsVoltTrip": {
+            "type": "switch",
+            "label": "$option.LimitedTimeRewardsVoltTrip.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LimitedTimeRewardsVoltTripMain": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "LimitedTimeRewardsVoltTripMain": {
                             "enabled": false
                         }
                     }

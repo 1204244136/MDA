@@ -1,0 +1,469 @@
+{
+    "LimitedTimeRewardsVoltTripMain": {
+        "desc": "VOLT TRIP 入口",
+        "max_hit": 1,
+        "next": [
+            "LimitedTimeRewardsVoltTripEntryFlow",
+            "[JumpBack]SceneEnterHall"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripEntryFlow": {
+        "desc": "VOLT TRIP 横幅入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "LimitedTimeRewardsClickVoltTripBanner",
+            "[JumpBack]CommonSwipeBanner",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsClickVoltTripBanner": {
+        "desc": "点击 VOLT TRIP 横幅",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    9,
+                    60,
+                    151,
+                    52
+                ],
+                "template": [
+                    "LimitedTimeRewards/VoltTrip/VoltTrip.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 2000,
+        "next": [
+            "[JumpBack]LimitedTimeRewardsVoltTripFlow",
+            "CommonEndTask" // 未进入时收尾，不重复点横幅；进入后由 Flow 的列表逐步处理活动页
+        ]
+    },
+    "LimitedTimeRewardsVoltTripEntered": {
+        "desc": "已进入 VOLT TRIP 活动页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    556,
+                    92,
+                    90,
+                    32
+                ],
+                "expected": [
+                    ".*剩余时间.*" // ROI 贴到箭头时 OCR 会读成「剩余时间→」，正则兼容两种结果
+                ]
+            }
+        }
+    },
+    "LimitedTimeRewardsVoltTripFlow": {
+        "desc": "VOLT TRIP 活动页处理",
+        "max_hit": 1, // 只进一次：列表按 [JumpBack] 逐步收敛，返回后若再命中会重跑整页流程
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripEntered"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]LimitedTimeRewardsClickVoltTripSkipAnimOff",
+            "[JumpBack]LimitedTimeRewardsClickVoltTripTaskRedDot",
+            "[JumpBack]LimitedTimeRewardsVoltTripDiceFlow",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsClickVoltTripSkipAnimOff": {
+        "desc": "开启跳过动画",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    775,
+                    96,
+                    60,
+                    24
+                ],
+                "expected": [
+                    "OFF"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
+    "LimitedTimeRewardsClickVoltTripTaskRedDot": {
+        "desc": "点击任务红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    530,
+                    585,
+                    40,
+                    32
+                ],
+                "template": [
+                    "Common/RedDot9x9.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "LimitedTimeRewardsVoltTripClaimAll",
+            "CommonEndTask" // 没开出任务页时直接结束，回到活动页列表继续
+        ]
+    },
+    "LimitedTimeRewardsVoltTripClaimAll": {
+        "desc": "领取全部任务奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    595,
+                    110,
+                    40
+                ],
+                "expected": [
+                    "全部领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "LimitedTimeRewardsVoltTripClaimReward"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripClaimReward": {
+        "desc": "领取任务奖励结算",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    450,
+                    120,
+                    26
+                ],
+                "expected": [
+                    ".*点击领取奖励.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 800,
+        "next": [
+            "LimitedTimeRewardsVoltTripCloseTaskPage"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripCloseTaskPage": {
+        "desc": "关闭任务页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    782,
+                    85,
+                    32,
+                    26
+                ],
+                "template": [
+                    "Common/CloseButton7.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000
+    },
+    "LimitedTimeRewardsVoltTripDiceFlow": {
+        "desc": "摇骰子入口",
+        "max_hit": 1, // 只进一次，之后交给回合节点循环
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripEntered"
+                ]
+            }
+        },
+        "next": [
+            "LimitedTimeRewardsVoltTripDiceRound",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripDiceRound": {
+        "desc": "摇骰子回合",
+        "max_hit": 30, // 兜底重试上限
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripRollButtonVisible"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]LimitedTimeRewardsVoltTripRollReward",
+            "[JumpBack]LimitedTimeRewardsVoltTripNotEnoughSeen",
+            "[JumpBack]LimitedTimeRewardsVoltTripClickRoll",
+            "LimitedTimeRewardsVoltTripDiceRound", // 兜底重试
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripClickRoll": {
+        "desc": "点 ROLL 摇一次", // 点完不等待：提示条出现后等静止就等于等它消失
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripRollButtonVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                660,
+                560,
+                110,
+                90
+            ],
+            "rate_limit": 200
+        },
+        "next": [
+            "[JumpBack]LimitedTimeRewardsVoltTripNotEnoughSeen",
+            "[JumpBack]LimitedTimeRewardsVoltTripRollReward",
+            "LimitedTimeRewardsVoltTripClickBlackDiceSix",
+            "LimitedTimeRewardsVoltTripDiceRound",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripDiceNotEnoughVisible": {
+        "desc": "骰子不足提示",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    350,
+                    120,
+                    26
+                ],
+                "expected": [
+                    ".*持有的骰子不足.*"
+                ],
+                "only_rec": true // 一次性提示条，单独识别更稳
+            }
+        }
+    },
+    "LimitedTimeRewardsVoltTripNotEnoughSeen": {
+        "desc": "发现不足并等提示散场",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripDiceNotEnoughVisible"
+                ]
+            }
+        },
+        "post_wait_freezes": 500, // 等提示条消失、按钮恢复常态，再按模板定位切换箭头
+        "next": [
+            "LimitedTimeRewardsVoltTripNotEnoughSwitch",
+            "LimitedTimeRewardsVoltTripNotEnoughClose",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripNotEnoughSwitch": {
+        "desc": "骰子不足时切一次骰子",
+        "max_hit": 1, // 只切一次：再出现不足就走关闭流程
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripRollButtonVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    97,
+                    -25,
+                    -71,
+                    -26
+                ] // 模板框先收敛到中心再偏移，落点即切换箭头
+            }
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "LimitedTimeRewardsVoltTripClickRoll",
+            "CommonEndTask" // 切完再点 ROLL 才会弹点数选择
+        ]
+    },
+    "LimitedTimeRewardsVoltTripNotEnoughClose": {
+        "desc": "仍不足时关闭活动页",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LimitedTimeRewardsVoltTripEventCloseVisible",
+                    "LimitedTimeRewardsVoltTripRollButtonVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "LimitedTimeRewardsVoltTripRollReward": {
+        "desc": "结算摇骰奖励",
+        "max_hit": 200,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    450,
+                    120,
+                    26
+                ],
+                "expected": [
+                    ".*点击领取奖励.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "rate_limit": 200
+        }
+    },
+    "LimitedTimeRewardsVoltTripRollButtonVisible": {
+        "desc": "ROLL 按钮可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    580,
+                    590,
+                    140,
+                    60
+                ],
+                "template": [
+                    "LimitedTimeRewards/VoltTrip/Roll.png"
+                ],
+                "threshold": 0.8 // 按钮置灰时约 0.88，留出余量
+            }
+        }
+    },
+    "LimitedTimeRewardsVoltTripClickBlackDiceSix": {
+        "desc": "自选黑骰点数为 6",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    660,
+                    560,
+                    110,
+                    90
+                ],
+                "template": [
+                    "LimitedTimeRewards/VoltTrip/BlackDiceSix.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "LimitedTimeRewardsVoltTripClickSelectDice",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripClickSelectDice": {
+        "desc": "确认自选点数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    660,
+                    645,
+                    130,
+                    40
+                ],
+                "expected": [
+                    "选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                455,
+                58,
+                370,
+                600
+            ],
+            "rate_limit": 200
+        },
+        "next": [
+            "[JumpBack]LimitedTimeRewardsVoltTripRollReward",
+            "LimitedTimeRewardsVoltTripDiceRound",
+            "CommonEndTask"
+        ]
+    },
+    "LimitedTimeRewardsVoltTripEventCloseVisible": {
+        "desc": "活动页关闭按钮可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    788,
+                    54,
+                    34,
+                    32
+                ],
+                "template": [
+                    "Common/CloseButton8.png"
+                ],
+                "threshold": 0.85
+            }
+        }
+    }
+}

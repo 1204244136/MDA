@@ -9,7 +9,7 @@
         },
         "next": [
             "LimitedTimeRewardsEntryFlow",
-            "[JumpBack]CommonReturnHall"
+            "[JumpBack]SceneEnterHall"
         ]
     },
     "LimitedTimeRewardsEntryFlow": {
@@ -24,6 +24,7 @@
         },
         "next": [
             "[JumpBack]LimitedTimeRewardsFreeRecruitMain",
+            "[JumpBack]LimitedTimeRewardsVoltTripMain",
             "CommonEndTask"
         ]
     }
