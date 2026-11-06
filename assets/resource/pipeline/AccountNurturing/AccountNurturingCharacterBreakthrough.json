@@ -51,7 +51,8 @@
             }
         },
         "next": [
-            "AccountNurturingCharacterBreakthroughFlow"
+            "AccountNurturingCharacterBreakthroughFlow",
+            "AccountNurturingCharacterBreakthroughClickRedDot" //兜底：点击未生效时重试
         ]
     },
     "AccountNurturingCharacterBreakthroughFlow": {
