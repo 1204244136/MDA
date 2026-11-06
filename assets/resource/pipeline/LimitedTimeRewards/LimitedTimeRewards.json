@@ -1,0 +1,30 @@
+{
+    "LimitedTimeRewardsMain": {
+        "desc": "限时奖励入口",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "RuntimeQuotaCheck"
+            }
+        },
+        "next": [
+            "LimitedTimeRewardsEntryFlow",
+            "[JumpBack]CommonReturnHall"
+        ]
+    },
+    "LimitedTimeRewardsEntryFlow": {
+        "desc": "限时奖励", // 新增限时奖励项时，把它的页面入口按 [JumpBack] 追加到 next，末尾保留 CommonEndTask
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]LimitedTimeRewardsFreeRecruitMain",
+            "CommonEndTask"
+        ]
+    }
+}

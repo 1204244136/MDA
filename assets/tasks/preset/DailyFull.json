@@ -46,6 +46,9 @@
                 },
                 {
                     "name": "LargeEvent"
+                },
+                {
+                    "name": "LimitedTimeRewards"
                 }
             ]
         }

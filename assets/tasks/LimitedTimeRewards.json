@@ -1,0 +1,40 @@
+{
+    "task": [
+        {
+            "name": "LimitedTimeRewards",
+            "label": "$task.LimitedTimeRewards.label",
+            "entry": "LimitedTimeRewardsMain",
+            "description": "$task.LimitedTimeRewards.description",
+            "group": [
+                "periodic"
+            ],
+            "option": [
+                "LimitedTimeRewardsFreeRecruit"
+            ]
+        }
+    ],
+    "option": {
+        "LimitedTimeRewardsFreeRecruit": {
+            "type": "switch",
+            "label": "$option.LimitedTimeRewardsFreeRecruit.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LimitedTimeRewardsFreeRecruitMain": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "LimitedTimeRewardsFreeRecruitMain": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

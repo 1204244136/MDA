@@ -1,13 +1,13 @@
 {
-    "DailyRewardsFreeRecruitMain": {
+    "LimitedTimeRewardsFreeRecruitMain": {
         "desc": "免费招募入口",
         "max_hit": 1,
         "next": [
-            "DailyRewardsFreeRecruitEntry",
+            "LimitedTimeRewardsFreeRecruitEntry",
             "[JumpBack]CommonReturnHall"
         ]
     },
-    "DailyRewardsFreeRecruitEntry": {
+    "LimitedTimeRewardsFreeRecruitEntry": {
         "desc": "在大厅寻找免费招募入口",
         "recognition": {
             "type": "And",
@@ -18,17 +18,17 @@
             }
         },
         "next": [
-            "DailyRewardsEnterFreeRecruit",
+            "LimitedTimeRewardsEnterFreeRecruit",
             "CommonEndTask"
         ]
     },
-    "DailyRewardsEnterFreeRecruit": {
+    "LimitedTimeRewardsEnterFreeRecruit": {
         "desc": "免费招募",
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "DailyRewardsFreeRecruitVisible"
+                    "LimitedTimeRewardsFreeRecruitVisible"
                 ]
             }
         },
@@ -37,38 +37,38 @@
         },
         "post_wait_freezes": 1000,
         "next": [
-            "[JumpBack]DailyRewardsFreeRecruitFlow",
+            "[JumpBack]LimitedTimeRewardsFreeRecruitFlow",
             "CommonReturnHall"
         ]
     },
-    "DailyRewardsFreeRecruitAvailable": {
+    "LimitedTimeRewardsFreeRecruitAvailable": {
         "desc": "可以免费招募",
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "DailyRewardsFreeRecruitVisible"
+                    "LimitedTimeRewardsFreeRecruitVisible"
                 ]
             }
         }
     },
-    "DailyRewardsFreeRecruitFlow": {
+    "LimitedTimeRewardsFreeRecruitFlow": {
         "desc": "处理免费招募可用",
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "DailyRewardsFreeRecruitAvailable"
+                    "LimitedTimeRewardsFreeRecruitAvailable"
                 ]
             }
         },
         "next": [
-            "DailyRewardsClickFreeRecruit",
-            "DailyRewardsFreeRecruitClickNextRecruit",
-            "DailyRewardsFreeRecruitFlow" //兜底
+            "LimitedTimeRewardsClickFreeRecruit",
+            "LimitedTimeRewardsFreeRecruitClickNextRecruit",
+            "LimitedTimeRewardsFreeRecruitFlow" //兜底
         ]
     },
-    "DailyRewardsClickFreeRecruit": {
+    "LimitedTimeRewardsClickFreeRecruit": {
         "desc": "点击免费招募",
         "recognition": {
             "type": "OCR",
@@ -89,12 +89,12 @@
         },
         "next": [
             "[JumpBack]CommonSkipPlot",
-            "DailyRewardsConfirmRecruit",
+            "LimitedTimeRewardsConfirmRecruit",
             "[JumpBack]CommonClickBlank"
         ]
     },
-    "DailyRewardsConfirmRecruit": {
-        "desc": "招募确认",
+    "LimitedTimeRewardsConfirmRecruit": {
+        "desc": "招募确认", // 大活动签到的领奖确认弹窗同样命中该按钮，改名时同步 LargeEventLoginStamp
         "recognition": {
             "type": "OCR",
             "param": {
@@ -114,7 +114,7 @@
         },
         "post_wait_freezes": 1000
     },
-    "DailyRewardsFreeRecruitVisible": {
+    "LimitedTimeRewardsFreeRecruitVisible": {
         "desc": "免费招募的标识",
         "recognition": {
             "type": "TemplateMatch",
@@ -126,12 +126,12 @@
                     22
                 ],
                 "template": [
-                    "DailyRewards/FreeRecruit/FreeRecruit.png"
+                    "LimitedTimeRewards/FreeRecruit/FreeRecruit.png"
                 ]
             }
         }
     },
-    "DailyRewardsFreeRecruitClickNextRecruit": {
+    "LimitedTimeRewardsFreeRecruitClickNextRecruit": {
         "desc": "下一个招募",
         "recognition": {
             "type": "TemplateMatch",
@@ -143,7 +143,7 @@
                     54
                 ],
                 "template": [
-                    "DailyRewards/FreeRecruit/NextRecruit.png"
+                    "LimitedTimeRewards/FreeRecruit/NextRecruit.png"
                 ]
             }
         },

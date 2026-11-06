@@ -85,6 +85,7 @@ MDA Pipeline 当前常见业务域包括：
 | `DailyRewards`          | 日常奖励               |
 | `Event`                 | 活动通用域             |
 | `Interception`          | 拦截战                 |
+| `LimitedTimeRewards`    | 限时奖励               |
 | `Login`                 | 登录流程               |
 | `MapPushing`            | 推图                   |
 | `Navigation`            | 导航和回到主界面       |

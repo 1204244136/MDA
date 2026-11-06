@@ -58,6 +58,9 @@
                     "name": "LargeEvent"
                 },
                 {
+                    "name": "LimitedTimeRewards"
+                },
+                {
                     "name": "RedDotClear"
                 },
                 {

@@ -47,7 +47,7 @@
         "next": [
             "[JumpBack]CommonConfirmReward",
             "[JumpBack]CommonSkipPlot",
-            "[JumpBack]DailyRewardsConfirmRecruit",
+            "[JumpBack]LimitedTimeRewardsConfirmRecruit", // 签到奖励的确认弹窗与免费招募结果页共用同一个确认按钮
             "LargeEventGoBack"
         ]
     }

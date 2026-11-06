@@ -14,8 +14,7 @@
                 "DailyRewardsRankingRewards",
                 "DailyRewardsMission",
                 "DailyRewardsPassMain",
-                "DailyRewardsDailyLogin",
-                "DailyRewardsFreeRecruit"
+                "DailyRewardsDailyLogin"
             ]
         }
     ],
@@ -155,28 +154,6 @@
                     "name": "No",
                     "pipeline_override": {
                         "DailyRewardsDailyLogin": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
-        },
-        "DailyRewardsFreeRecruit": {
-            "type": "switch",
-            "label": "$option.DailyRewardsFreeRecruit.label",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "DailyRewardsFreeRecruitMain": {
-                            "enabled": true
-                        }
-                    }
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "DailyRewardsFreeRecruitMain": {
                             "enabled": false
                         }
                     }

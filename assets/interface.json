@@ -129,6 +129,7 @@
         "tasks/Outpost.json",
         "tasks/Advise.json",
         "tasks/DailyRewards.json",
+        "tasks/LimitedTimeRewards.json",
         "tasks/SmallEvent.json",
         "tasks/LargeEvent.json",
         "tasks/CoordinatedOperations.json",
