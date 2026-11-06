@@ -345,13 +345,13 @@
         },
         "post_wait_freezes": {
             "time": 1000,
-            "rate_limit": 200, //细粒度采样，避免过渡黑屏被当成"已稳定"
             "target": [
                 400,
                 240,
                 480,
                 220
-            ]
+            ],
+            "rate_limit": 200 //细粒度采样，避免过渡黑屏被当成"已稳定"
         },
         "next": [
             "[JumpBack]CommonConfirmReward",
