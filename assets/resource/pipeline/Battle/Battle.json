@@ -520,7 +520,7 @@
             "type": "Or",
             "param": {
                 "any_of": [
-                    "BattleSettlementEscVisible"
+                    "BattleSettlementContinueVisible"
                 ]
             }
         },
@@ -548,8 +548,8 @@
             "BattleOperationFailed"
         ]
     },
-    "BattleSettlementEscVisible": {
-        "desc": "战斗结算 ESC 可见",
+    "BattleSettlementContinueVisible": {
+        "desc": "战斗结算继续提示",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -560,7 +560,8 @@
                     90
                 ],
                 "expected": [
-                    "ESC"
+                    "ESC",
+                    "点击任意处进行下一步"
                 ]
             }
         }
@@ -626,7 +627,7 @@
                     "BattleCombatHudVisible",
                     "BattleBossCutsceneVisible",
                     "DialoguesMainVisible",
-                    "BattleSettlementEscVisible",
+                    "BattleSettlementContinueVisible",
                     "BattleFailedVisible"
                 ]
             }

@@ -472,10 +472,10 @@
     "CustomBurstCheckSettle": {
         "desc": "战斗结束判定",
         "recognition": {
-            "type": "Or", // 与主战斗流程同一套判据（结算 ESC / 战败），命中即结束任务并 focus 输出 settled 提示
+            "type": "Or", // 与主战斗流程同一套判据，命中即结束任务并 focus 输出 settled 提示
             "param": {
                 "any_of": [
-                    "BattleSettlementEscVisible",
+                    "BattleSettlementContinueVisible",
                     "BattleFailedVisible"
                 ]
             }
