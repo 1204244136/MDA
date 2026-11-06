@@ -665,40 +665,14 @@
         }
     },
     "BattleMobileCombatHudVisible": {
-        "desc": "手机战斗界面的暂停按钮与倒计时同时可见",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "BattleMobilePauseVisible",
-                    "BattleMobileTimerVisible"
-                ]
-            }
-        }
-    },
-    "BattleMobilePauseVisible": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1230,
-                    5,
-                    50,
-                    55
-                ],
-                "template": "Battle/MobilePause.png",
-                "threshold": 0.85
-            }
-        }
-    },
-    "BattleMobileTimerVisible": {
+        "desc": "手机战斗倒计时可见",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
                     1145,
                     10,
-                    90,
+                    105, // 右边界延至 1250，避免秒数末位被截断
                     45
                 ],
                 "expected": [

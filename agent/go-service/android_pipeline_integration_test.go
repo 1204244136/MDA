@@ -86,13 +86,11 @@ func TestAndroidPipelineReplay(t *testing.T) {
 			hit  bool
 		}{
 			{"BattleDesktopCombatHudVisible", battle, false},
-			{"BattleMobilePauseVisible", battle, true},
-			{"BattleMobileTimerVisible", battle, true},
 			{"BattleMobileCombatHudVisible", battle, true},
 			{"BattleEntered", battle, true},
 			{"BattleMobileCombatHudVisible", shop, false},
-			{"BattleMobileCombatHudVisible", without(image.Rect(1230, 5, 1280, 60)), false},
-			{"BattleMobileCombatHudVisible", without(image.Rect(1145, 10, 1235, 55)), false},
+			{"BattleMobileCombatHudVisible", without(image.Rect(1250, 5, 1280, 60)), true},
+			{"BattleMobileCombatHudVisible", without(image.Rect(1145, 10, 1250, 55)), false},
 		}
 		for _, test := range cases {
 			detail, err := ctx.RunRecognition(test.name, test.img, nil)
