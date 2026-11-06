@@ -97,7 +97,7 @@
     "option.BurstRoundCount.label": "Round count",
     "option.BurstStage.none.label": "None",
     "option.CashShopFreePackage.label": "Claim Free Package",
-    "option.CashShopNetworkRetry.description": "If a network error appears when entering the cash shop, click Retry once and wait up to 30 seconds. When disabled, leave the dialog untouched and let the task time out.",
+    "option.CashShopNetworkRetry.description": "If a network error appears when entering the cash shop, click Retry automatically (up to twice) and wait up to 60 seconds each time. When disabled, leave the dialog untouched and let the task time out.",
     "option.CashShopNetworkRetry.label": "Auto Retry on Network Error",
     "option.CommonShop.label": "Common Shop",
     "option.CommonShopItemList.CoreDustCase": "Core Dust Case",

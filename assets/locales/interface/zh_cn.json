@@ -97,7 +97,7 @@
     "option.BurstRoundCount.label": "使用轮数",
     "option.BurstStage.none.label": "不指定",
     "option.CashShopFreePackage.label": "领取免费礼包",
-    "option.CashShopNetworkRetry.description": "进入付费商店遇到网络异常时，自动点击一次“重新再试”，最多等待 30 秒；关闭后不处理，等待任务自行熔断。",
+    "option.CashShopNetworkRetry.description": "进入付费商店遇到网络异常时，自动点击“重新再试”（最多两次），每次最多等待 60 秒；关闭后不处理，等待任务自行熔断。",
     "option.CashShopNetworkRetry.label": "网络异常自动重试",
     "option.CommonShop.label": "普通商店",
     "option.CommonShopItemList.CoreDustCase": "芯尘盒",

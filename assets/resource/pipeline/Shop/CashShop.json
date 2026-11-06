@@ -29,6 +29,7 @@
     },
     "HallEnterCashShop": {
         "desc": "进入付费商店",
+        "max_hit": 8, // 商店请求挂起时入口会一直停在原位，点满 8 次（约 13s）后只再等一次 next 超时，避免无上限盲点
         "recognition": {
             "type": "OCR",
             "param": {
@@ -46,6 +47,7 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 1500, // 点完先给商店请求留出返回时间，正常一次就进店，异常时也能等到网络异常弹窗再重试
         "next": [
             "[JumpBack]CashShopConsumeLimitFlow", //日服进入付费商店会弹出消费限制弹窗，先处理再确认是否已进入商店
             "CashShopCornerFlow",
@@ -105,9 +107,9 @@
         ]
     },
     "CashShopRetryNetworkError": {
-        "desc": "网络异常重试一次",
+        "desc": "重试网络异常弹窗",
         "enabled": true, // 由选项 CashShopNetworkRetry 覆盖（默认 Yes），关掉后本节点整体不生效
-        "max_hit": 1, // 只点一次「重新再试」，再等不到商店页就交给后续超时收尾，不无限重试
+        "max_hit": 2, // 最多点两次「重新再试」，第二次只用于重试后再次弹窗的情况，不会无限重试
         "recognition": {
             "type": "And",
             "param": {
@@ -120,8 +122,10 @@
         "action": {
             "type": "Click"
         },
-        "timeout": 30000,
+        "post_delay": 1000, // 点完等弹窗散掉再判 next，免得第二次重试被浪费在正在淡出的弹窗上
+        "timeout": 60000,
         "next": [
+            "CashShopNetworkErrorFlow", //重试后又弹网络异常时再点一次，次数仍受 max_hit 限制
             "[JumpBack]CashShopConsumeLimitFlow",
             "CashShopCornerFlow"
         ]
