@@ -9,7 +9,7 @@
         "test:theme": "node --test scripts/check-theme-sync.test.mjs"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.6.4",
+        "@biomejs/biome": "2.6.5",
         "@nekosu/maa-tools": "1.3.0",
         "@nekosu/prettier-plugin-maafw-sort": "1.1.0",
         "prettier": "3.9.10",
