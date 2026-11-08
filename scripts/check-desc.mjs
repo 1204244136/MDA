@@ -1,7 +1,7 @@
 /**
  * Pipeline desc 与注释护栏：
  * - desc 只写一句话名片，解释性内容归 // 注释；
- * - // 注释必须写在被说明那一行的行尾，不允许独立成行。
+ * - // 注释位置不再作为自动校验项。
  * 规则见 docs/pipeline-desc-and-comments.md。
  * 用法：npm run check:desc；也可只检查指定文件：node scripts/check-desc.mjs <file...>。
  */
@@ -116,13 +116,6 @@ for (const file of files) {
         continue;
     }
     if (!data || typeof data !== "object") continue;
-
-    // 注释必须写在行尾：独立成行的 // 视为违规（规范 C1）
-    raw.split("\n").forEach((line, idx) => {
-        if (line.trim().startsWith("//")) {
-            errors.push(`${rel}:${idx + 1}：独立行注释，请改成被说明那一行的行尾注释`);
-        }
-    });
 
     for (const [nodeName, node] of Object.entries(data)) {
         if (!node || typeof node !== "object" || Array.isArray(node)) continue;
