@@ -50,12 +50,12 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
+        "post_wait_freezes": 2000,
         "next": [
             "[JumpBack]CommonConfirmReward",
             "[JumpBack]ArenaConfirmSpecialReward",
-            "CommonClosePage",
-            "CommonEndTask"
+            "CommonClosePage"
+            //不允许CommonEndTask，会跳流程
         ]
     },
     "ArenaConfirmSpecialReward": {
