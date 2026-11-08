@@ -161,7 +161,7 @@
                     81
                 ],
                 "template": [
-                    "Common/New.png"
+                    "Common/New11×11.png"
                 ],
                 "order_by": "Vertical", //从下往上找
                 "index": -1
