@@ -51,7 +51,8 @@
             }
         },
         "next": [
-            "RedDotClearProfilePageFlow"
+            "RedDotClearProfilePageFlow",
+            "RedDotClearProfilePageClickEntry" //兜底
         ]
     },
     "RedDotClearProfilePageFlow": {
