@@ -138,6 +138,9 @@ class NavigationRun:
         self.refs, self.completed, self.actions, self.errors = [], [], [], []
         self.failed_nodes = []
         self.page, self.reward, self.missing = "unknown", False, set()
+        self.reward_progress = 0
+        self.reward_open = "info"
+        self.reward_delay = 0
         self.frozen, self.extra_visible = False, set()
         self.recognition_count = 0
         self.controller = self.tasker = None
@@ -182,7 +185,7 @@ class NavigationRun:
         if name in self.extra_visible:
             return True
         pages = {
-            "CommonArkEntered": {"ark"},
+            "CommonArkEntered": {"ark", "arena_reward_info"},
             "CommonArkCornerVisible": {"arena", "interception", "simulation", "tower"},
             "CommonArkVisible": {"hall"},
             "CommonBellIconVisible": {"hall"},
@@ -215,6 +218,9 @@ class NavigationRun:
             "CommonClosePage": {"hall_notice", "arena_reward_info"},
             "CommonConfirmAction": {"arena_reward_info"},
             "CommonConfirmReward": {"arena_reward_popup"},
+            "ArenaSpecialRewardInfoVisible": {"arena_reward_info"},
+            "ArenaSpecialRewardResultVisible": {"arena_reward_popup"},
+            "ArenaSpecialRewardArkTitleBright": {"ark"},
             "ShopMainPageEntered": {"shop"},
             "HallEnterShop": {"hall"},
             "FriendManagementOnFriendPage": {"friend"},
@@ -229,8 +235,8 @@ class NavigationRun:
             "SynchroDeviceEntered": {"synchro"},
             "RecycleRoomEntered": {"recycle"},
         }
-        if name == "ArenaClaimSpecialReward":
-            return self.page == "ark"  # 领取后外层百分比仍然存在。
+        if name == "ArenaSpecialRewardBadgeVisible":
+            return self.page == "ark" and self.reward_progress >= 50
         return self.page in pages.get(name, set())
 
     def recognize(self, context, task_id, name, custom, params, image, roi, trans, out_box, out_detail):
@@ -263,19 +269,23 @@ class NavigationRun:
                 # 子页返回：竞技场子页退到竞技场首页，其他方舟子页直接退回方舟。
                 if not self.frozen:
                     self.page = "arena" if self.page == "arena_sub" else "ark"
-            elif node == "CommonClosePage" and self.page == "arena_reward_info":
+            elif node == "ArenaCloseSpecialRewardInfo":
                 self.page = "ark"
             elif node in targets:
                 if not self.frozen:
                     self.page = targets[node]
             elif node == "ArenaClaimSpecialReward":
-                self.page = "arena_reward_info"
+                if self.reward_open == "info":
+                    self.page = "arena_reward_info"
+                elif self.reward_open in {"slow", "expired"}:
+                    self.reward_progress = 49  # 点击闪光也会暂时遮住徽章。
             elif node == "ArenaConfirmSpecialReward":
                 if self.reward:
                     self.reward = False
-                    self.page = "arena_reward_popup"
-            elif node == "CommonConfirmReward":
-                self.page = "arena_reward_info"
+                    if not self.reward_delay:
+                        self.page = "arena_reward_popup"
+            elif node == "ArenaDismissSpecialReward":
+                self.page = "ark"  # 结算后直接回方舟，外层百分比暂未刷新。
             elif node == "CommonConfirmAction":
                 pass  # 独立公共确认动作，用于核实其预算未被 And 引用消耗。
             elif node == "CommonClickBlank":
@@ -291,12 +301,23 @@ class NavigationRun:
 
     def event(self, handle, message, details, trans):
         if message == b"Node.PipelineNode.Succeeded":
-            self.completed.append(json.loads(details)["node_details"]["name"])
+            node = json.loads(details)["node_details"]["name"]
+            self.completed.append(node)
+            if node == "ArenaWaitSpecialRewardInfo" and self.reward_open == "slow":
+                if self.completed.count(node) == 2:
+                    self.page = "arena_reward_info"
+                    self.reward_progress = 100
+            elif node == "ArenaWaitSpecialRewardResult" and self.reward_delay:
+                self.reward_delay -= 1
+                if self.reward_delay == 0:
+                    self.page = "arena_reward_popup"
         elif message == b"Node.PipelineNode.Failed":
             self.failed_nodes.append(json.loads(details)["name"])
 
-    def run(self, entry, page, *, missing=(), reward=False, extra=None, frozen=False, visible=()):
+    def run(self, entry, page, *, missing=(), reward=False, extra=None, frozen=False, visible=(),
+            reward_progress=100, reward_open="info", reward_delay=0):
         self.page, self.reward, self.missing = page, reward, set(missing)
+        self.reward_progress, self.reward_open, self.reward_delay = reward_progress, reward_open, reward_delay
         self.frozen, self.extra_visible = frozen, set(visible)
         self.completed.clear()
         self.actions.clear()
@@ -412,37 +433,50 @@ def check_behaviors(run):
     count += 1
     print("[PASS] Main跨场景恢复后额度动作只执行一次")
 
-    # 累积奖励徽章只写 ^[0-9] 时，竞技场首页同一 ROI 的「剩余…小时」倒计时也会
-    # 命中并把流程点进竞技场子页；这里静态守住「只认百分比」。
-    claim_expected = run.nodes["ArenaClaimSpecialReward"]["recognition"]["param"]["expected"]
+    claim_expected = run.nodes["ArenaSpecialRewardBadgeVisible"]["recognition"]["param"]["expected"]
     claim_pattern = re.compile("|".join(claim_expected))
-    assert claim_pattern.search("94%") and claim_pattern.search("100％"), claim_expected
-    assert not claim_pattern.search("17小时"), claim_expected
+    assert all(claim_pattern.fullmatch(text) for text in ("50%", "94%", "100％")), claim_expected
+    assert not any(claim_pattern.search(text) for text in ("0%", "49%", "101%", "17小时")), claim_expected
     count += 1
-    print("[PASS] 竞技场累积奖励只认百分比，赛季倒计时不再命中")
+    print("[PASS] 竞技场累积奖励只接受 50%–100%，排除赛季倒计时")
 
     disabled = option_overrides("Arena.json", ArenaEnterRookieArena="No", ArenaEnterSpecialArena="No",
                                 ArenaEnterChampionArena="No")
-    assert run.run("ArenaMain", "hall", reward=True, extra=disabled) == SUCCEEDED, (run.completed, run.actions)
-    assert run.actions.count("ArenaMain") == 1
-    reward = run.actions.index("ArenaClaimSpecialReward")
-    enter = run.actions.index("__SceneArkClickArena")
-    assert reward < enter, run.actions
-    assert run.actions.count("ArenaClaimSpecialReward") == 1, run.actions
-    assert run.actions.count("ArenaConfirmSpecialReward") == 1, run.actions
-    assert run.actions.count("CommonConfirmReward") == 1, run.actions
-    assert run.actions.count("CommonClosePage") >= 1, run.actions
+    assert run.run("ArenaMain", "hall", reward=True, reward_progress=50,
+                   reward_open="slow", reward_delay=7, extra=disabled) == SUCCEEDED, run.completed
+    assert run.actions == ["ArenaMain", "__ScenePrivateClickArk", "ArenaClaimSpecialReward", "ArenaConfirmSpecialReward",
+                           "ArenaDismissSpecialReward", "__SceneArkClickArena"], run.actions
+    assert run.completed.count("ArenaWaitSpecialRewardInfo") == 2, run.completed
+    assert run.completed.count("ArenaWaitSpecialRewardResult") == 7, run.completed
     assert not any(n in run.completed for n in disabled), run.completed
-    assert run.page == "arena"
+    assert run.page == "arena" and "ArenaCornerFlow" in run.completed
     count += 1
-    print("[PASS] Arena从大厅先到方舟领奖再进入竞技场，可选关闭保持关闭")
+    print("[PASS] 达到 50% 后等待慢开窗和迟到的结算，回方舟后继续进场")
 
     assert run.run("ArenaMain", "ark", extra=disabled) == SUCCEEDED, run.completed
     assert run.page == "arena"
     assert run.actions == ["ArenaMain", "ArenaClaimSpecialReward", "ArenaConfirmSpecialReward",
-                           "CommonClosePage", "__SceneArkClickArena"], run.actions
+                           "ArenaCloseSpecialRewardInfo", "__SceneArkClickArena"], run.actions
+    assert run.completed.count("ArenaWaitSpecialRewardResult") == 7, run.completed
     count += 1
-    print("[PASS] 无累积奖励时只开窗和领取各一次，随后关闭详情继续进入竞技场")
+    print("[PASS] 空奖详情保留领取按钮时只点一次，等完结算窗口再关闭")
+
+    assert run.run("ArenaMain", "ark", reward_progress=49, extra=disabled) == SUCCEEDED, run.completed
+    assert run.actions == ["ArenaMain", "__SceneArkClickArena"], run.actions
+    count += 1
+    print("[PASS] 低于 50% 时直接进场")
+
+    assert run.run("ArenaMain", "ark", reward_open="expired", extra=disabled) == SUCCEEDED, run.completed
+    assert run.actions == ["ArenaMain", "ArenaClaimSpecialReward", "__SceneArkClickArena"], run.actions
+    assert "ArenaSpecialRewardBadgeGone" in run.completed, run.completed
+    count += 1
+    print("[PASS] 点击时领取资格已失效，在方舟正常跳过")
+
+    assert run.run("ArenaMain", "ark", reward_open="blocked", extra=disabled) == FAILED, run.completed
+    assert run.actions == ["ArenaMain", "ArenaClaimSpecialReward"], run.actions
+    assert run.failed_nodes == ["ArenaClaimSpecialReward"], run.failed_nodes
+    count += 1
+    print("[PASS] 徽章持续可领且始终没开窗时报告失败，开窗只点一次")
 
     reward_disabled = {**disabled, **option_overrides("Arena.json", SpecialReward="No")}
     assert run.run("ArenaMain", "ark", reward=True, extra=reward_disabled) == SUCCEEDED
@@ -451,13 +485,13 @@ def check_behaviors(run):
     count += 1
     print("[PASS] 关闭累积奖励选项时直接进入竞技场，不开窗、不领取")
 
-    budget = {"CommonClosePage": {"next": ["CommonConfirmAction"]},
+    budget = {"ArenaSpecialRewardArkVisible": {"next": ["CommonConfirmAction"]},
               "CommonConfirmAction": {"max_hit": 1, "next": []}}
     assert run.run("ArenaClaimSpecialReward", "ark", reward=True, extra=budget,
                    visible={"CommonConfirmAction"}) == SUCCEEDED, run.completed
-    assert run.page == "ark" and run.visible("ArenaClaimSpecialReward")
-    assert run.actions == ["ArenaClaimSpecialReward", "ArenaConfirmSpecialReward", "CommonConfirmReward",
-                           "CommonClosePage", "CommonConfirmAction"], run.actions
+    assert run.page == "ark" and run.visible("ArenaSpecialRewardBadgeVisible")
+    assert run.actions == ["ArenaClaimSpecialReward", "ArenaConfirmSpecialReward",
+                           "ArenaDismissSpecialReward", "CommonConfirmAction"], run.actions
     count += 1
     print("[PASS] 领奖后百分比仍可见；专属确认只借用识别，不占用公共确认动作预算")
 
