@@ -57,7 +57,7 @@ func (a *ScanBeginAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
 func scanNextItems(part string, single bool) ([]maa.NextItem, bool) {
 	if single || part == "腿部" {
 		return []maa.NextItem{
-			{Name: "[JumpBack]EquipmentRerollScanCloseDetails"},
+			{Name: "[JumpBack]CommonClosePage"},
 			{Name: "EquipmentRerollAfterMaterialCheck"},
 		}, true
 	}
@@ -71,7 +71,7 @@ func scanNextItems(part string, single bool) ([]maa.NextItem, bool) {
 		return nil, false
 	}
 	return []maa.NextItem{
-		{Name: "[JumpBack]EquipmentRerollScanCloseDetails"},
+		{Name: "[JumpBack]CommonClosePage"},
 		{Name: next},
 	}, true
 }

@@ -115,10 +115,10 @@ func TestScanNextItems(t *testing.T) {
 		wantFirst  string
 		wantSecond string
 	}{
-		{name: "head", part: "头部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenArmsDetails"},
-		{name: "arm", part: "臂部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenTorsoDetails"},
-		{name: "body", part: "身躯", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollOpenLegsDetails"},
-		{name: "leg closes details then routes", part: "腿部", wantCount: 2, wantFirst: "[JumpBack]EquipmentRerollScanCloseDetails", wantSecond: "EquipmentRerollAfterMaterialCheck"},
+		{name: "head", part: "头部", wantCount: 2, wantFirst: "[JumpBack]CommonClosePage", wantSecond: "EquipmentRerollOpenArmsDetails"},
+		{name: "arm", part: "臂部", wantCount: 2, wantFirst: "[JumpBack]CommonClosePage", wantSecond: "EquipmentRerollOpenTorsoDetails"},
+		{name: "body", part: "身躯", wantCount: 2, wantFirst: "[JumpBack]CommonClosePage", wantSecond: "EquipmentRerollOpenLegsDetails"},
+		{name: "leg closes details then routes", part: "腿部", wantCount: 2, wantFirst: "[JumpBack]CommonClosePage", wantSecond: "EquipmentRerollAfterMaterialCheck"},
 		{name: "unknown part", part: "未知", wantCount: 0},
 	}
 

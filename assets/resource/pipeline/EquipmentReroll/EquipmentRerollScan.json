@@ -229,7 +229,7 @@
         "timeout": 1500, // 1500ms 是槽内子识别的总预算；超时进 ScanFailed，宁可失败也不提交半截快照
         "rate_limit": 100,
         "next": [
-            "[JumpBack]EquipmentRerollScanCloseDetails",
+            "[JumpBack]CommonClosePage",
             "EquipmentRerollDecide"
         ]
     },
@@ -658,35 +658,6 @@
                 "count": 20
             }
         }
-    },
-    "EquipmentRerollScanCloseDetails": {
-        "desc": "初始化扫描专用：关闭装备详情页",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    775,
-                    31,
-                    52,
-                    311
-                ],
-                "template": [
-                    "Common/CloseButton1.png",
-                    "Common/CloseButton2.png",
-                    "Common/CloseButton3.png",
-                    "Common/CloseButton4.png",
-                    "Common/CloseButton5.png",
-                    "Common/CloseButton6.png"
-                ],
-                "green_mask": true
-            }
-        },
-        "pre_delay": 0,
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 0,
-        "rate_limit": 100
     },
     "EquipmentRerollScanFailed": {
         "desc": "无法确认词条或页面已失效时停止，不提交不完整快照",

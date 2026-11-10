@@ -155,14 +155,14 @@ func TestScanNextItemsSingleModeStopsAfterSelectedPart(t *testing.T) {
 		if !ok {
 			t.Fatalf("scanNextItems(%q, false) not ok", part)
 		}
-		if len(items) != 2 || items[0].Name != "[JumpBack]EquipmentRerollScanCloseDetails" || items[1].Name != wantNext {
+		if len(items) != 2 || items[0].Name != "[JumpBack]CommonClosePage" || items[1].Name != wantNext {
 			t.Fatalf("scanNextItems(%q, false) = %+v, want close + %s", part, items, wantNext)
 		}
 	}
 	// 材料库存改为进入效果锁定页时顺便读取，扫描末尾不再跑独立的“物资检测”，
 	// 腿部扫完直接关闭详情页并进入决策分流。
 	items, ok := scanNextItems("腿部", false)
-	if !ok || len(items) != 2 || items[0].Name != "[JumpBack]EquipmentRerollScanCloseDetails" || items[1].Name != "EquipmentRerollAfterMaterialCheck" {
+	if !ok || len(items) != 2 || items[0].Name != "[JumpBack]CommonClosePage" || items[1].Name != "EquipmentRerollAfterMaterialCheck" {
 		t.Fatalf("character mode legs route = %+v", items)
 	}
 
@@ -172,7 +172,7 @@ func TestScanNextItemsSingleModeStopsAfterSelectedPart(t *testing.T) {
 		if !ok {
 			t.Fatalf("scanNextItems(%q, true) not ok", part)
 		}
-		if len(items) != 2 || items[0].Name != "[JumpBack]EquipmentRerollScanCloseDetails" || items[1].Name != "EquipmentRerollAfterMaterialCheck" {
+		if len(items) != 2 || items[0].Name != "[JumpBack]CommonClosePage" || items[1].Name != "EquipmentRerollAfterMaterialCheck" {
 			t.Fatalf("single mode %q route = %+v, want close + after material check", part, items)
 		}
 	}
