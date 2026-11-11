@@ -129,7 +129,7 @@
     },
     "ArenaWaitSpecialRewardResult": {
         "desc": "累积奖励结算观察窗口",
-        "max_hit": 7, // 11 月 8 日点领取后约 6.4 秒才首次识别到结算
+        "max_hit": 7, // 点领取后约 6.4 秒才首次识别到结算，留足观察窗口
         "pre_delay": 0,
         "post_delay": 1000
     },

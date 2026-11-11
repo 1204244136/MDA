@@ -1,6 +1,7 @@
 /**
  * Pipeline desc 与注释护栏：
  * - desc 只写一句话名片，解释性内容归 // 注释；
+ * - // 注释不许用日期给实测结论背书（规范 C6）；
  * - // 注释位置不再作为自动校验项。
  * 规则见 docs/pipeline-desc-and-comments.md。
  * 用法：npm run check:desc；也可只检查指定文件：node scripts/check-desc.mjs <file...>。
@@ -21,6 +22,52 @@ const MAX_LEN = 24;
 /** desc 中不应出现的实现细节词。命中只提示，不阻断，除非 --strict。 */
 const IMPL_PATTERN =
     /ROI|roi|阈值|坐标|像素|模板|偏移|attach|pipeline_override|override|Custom|OCR|TemplateMatch|ColorMatch|\bGo\b|\bAgent\b/;
+
+/** 注释中的日期时间锚点。命中只提示，不阻断，除非 --strict（规范 C6）。 */
+const DATE_PATTERN = /\d{1,2}\s*月\s*\d{1,2}\s*日|(?:19|20)\d{2}\s*[-/.年]\s*\d{1,2}/;
+
+/** 收集 JSONC 注释及所在行号，用于注释类校验；字符串内部的 // 不算注释。 */
+function collectComments(text) {
+    const out = [];
+    let inBlock = false;
+    for (const [index, line] of text.split("\n").entries()) {
+        let buffer = "";
+        let inString = false;
+        let escaped = false;
+        for (let i = 0; i < line.length; i += 1) {
+            const ch = line[i];
+            if (inBlock) {
+                if (ch === "*" && line[i + 1] === "/") {
+                    inBlock = false;
+                    i += 1;
+                } else {
+                    buffer += ch;
+                }
+                continue;
+            }
+            if (inString) {
+                if (escaped) escaped = false;
+                else if (ch === "\\") escaped = true;
+                else if (ch === '"') inString = false;
+                continue;
+            }
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+            if (ch === "/" && line[i + 1] === "/") {
+                buffer += line.slice(i + 2);
+                break;
+            }
+            if (ch === "/" && line[i + 1] === "*") {
+                inBlock = true;
+                i += 1;
+            }
+        }
+        if (buffer.trim()) out.push({line: index + 1, text: buffer.trim()});
+    }
+    return out;
+}
 
 /** 剥掉 JSONC 注释，保留偏移与换行，便于 JSON.parse。 */
 function stripComments(text) {
@@ -116,6 +163,13 @@ for (const file of files) {
         continue;
     }
     if (!data || typeof data !== "object") continue;
+
+    for (const comment of collectComments(raw)) {
+        if (!DATE_PATTERN.test(comment.text)) continue;
+        warnings.push(
+            `${rel}:${comment.line}：注释含日期，按 C6 只写结论与数值（${comment.text.slice(0, 30)}）`,
+        );
+    }
 
     for (const [nodeName, node] of Object.entries(data)) {
         if (!node || typeof node !== "object" || Array.isArray(node)) continue;
