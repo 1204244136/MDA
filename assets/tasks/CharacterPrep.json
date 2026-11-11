@@ -20,6 +20,7 @@
         "CharacterPrepEquipment": {
             "type": "switch",
             "label": "$option.CharacterPrepEquipment.label",
+            "description": "$option.CharacterPrepEquipment.description",
             "cases": [
                 {
                     "name": "Yes",
@@ -46,6 +47,7 @@
         "CharacterPrepSkill": {
             "type": "switch",
             "label": "$option.CharacterPrepSkill.label",
+            "description": "$option.CharacterPrepSkill.description",
             "cases": [
                 {
                     "name": "Yes",
@@ -69,6 +71,7 @@
         "CharacterPrepCube": {
             "type": "switch",
             "label": "$option.CharacterPrepCube.label",
+            "description": "$option.CharacterPrepCube.description",
             "cases": [
                 {
                     "name": "Yes",
@@ -92,6 +95,7 @@
         "CharacterPrepCollectible": {
             "type": "switch",
             "label": "$option.CharacterPrepCollectible.label",
+            "description": "$option.CharacterPrepCollectible.description",
             "cases": [
                 {
                     "name": "Yes",
@@ -115,6 +119,7 @@
         "CharacterPrepT10Upgrade": {
             "type": "select",
             "label": "$option.CharacterPrepT10Upgrade.label",
+            "description": "$option.CharacterPrepT10Upgrade.description",
             "cases": [
                 {
                     "name": "None",
