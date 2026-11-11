@@ -130,7 +130,8 @@
         },
         "next": [
             "ArenaClickCheerUp",
-            "[JumpBack]ArenaConfirmCheerResult"
+            "[JumpBack]ArenaConfirmCheerResult",
+            "ChampionArenaCheerUpDisabled" // 应援灰化时直接收手，否则会把父流程空转到超时
         ]
     },
     "ArenaConfirmCheerResult": {
@@ -155,7 +156,7 @@
     },
     "ArenaClickCheerUp": {
         "desc": "应援",
-        "max_hit": 3,
+        "max_hit": 2, // 禁用态连点三次画面毫无变化，两次只用于补偶发丢点击
         "recognition": {
             "type": "OCR",
             "param": {
@@ -178,8 +179,66 @@
             "ChampionArenaCheerUpAvailableFlow",
             "ChampionArenaClickCheerUpRight",
             "ChampionArenaCloseCheerUpPage",
-            "ArenaClickCheerUp" //兜底，点击后仍停留在比赛页时重试
+            "ArenaClickCheerUp", //点击后画面未变时补点，次数由 max_hit 限制
+            "ChampionArenaCheerUpDisabled" //补点后仍停在比赛页就放弃本轮，别等超时
         ]
+    },
+    "ChampionArenaCheerUpDisabled": {
+        "desc": "应援按钮处于禁用态", // 编队阶段或本轮已应援，灰化后点击无效
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "ChampionArenaCheerUpLabelVisible",
+                    "ChampionArenaCheerUpPlateGray"
+                ]
+            }
+        },
+        "next": [
+            "CommonGoBack" //退出争霸赛页并结束任务，本轮没有可应援的比赛
+        ]
+    },
+    "ChampionArenaCheerUpLabelVisible": {
+        "desc": "应援按钮文字可见",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    571,
+                    630,
+                    141,
+                    32
+                ],
+                "expected": [
+                    ".*应.*" //应援
+                ]
+            }
+        }
+    },
+    "ChampionArenaCheerUpPlateGray": {
+        "desc": "应援按钮底板是灰的",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    571,
+                    630,
+                    141,
+                    32
+                ],
+                "lower": [
+                    90,
+                    90,
+                    90
+                ],
+                "upper": [
+                    125,
+                    125,
+                    125
+                ],
+                "count": 3000 // 禁用态该区域约 4000 个近中性灰像素，可点按钮带彩色高光
+            }
+        }
     },
     "ChampionArenaCloseCheerUpPage": {
         "desc": "关闭应援页面", //通常情况下是因为错过了上次应援
