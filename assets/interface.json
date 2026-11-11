@@ -137,6 +137,7 @@
         "tasks/CustomBurst.json",
         "tasks/LuckyBoxOpening.json",
         "tasks/AccountNurturing.json",
+        "tasks/CharacterPrep.json",
         "tasks/EquipmentReroll.json",
         "tasks/MapPushing.json",
         "tasks/RedDotClear.json",

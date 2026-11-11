@@ -1,0 +1,213 @@
+{
+    "task": [
+        {
+            "name": "CharacterPrep",
+            "label": "$task.CharacterPrep.label",
+            "entry": "CharacterPrepMain",
+            "description": "$task.CharacterPrep.description",
+            "group": [
+                "utility"
+            ],
+            "option": [
+                "CharacterPrepEquipment",
+                "CharacterPrepSkill",
+                "CharacterPrepCube",
+                "CharacterPrepCollectible"
+            ]
+        }
+    ],
+    "option": {
+        "CharacterPrepEquipment": {
+            "type": "switch",
+            "label": "$option.CharacterPrepEquipment.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "CharacterPrepT10Upgrade"
+                    ],
+                    "pipeline_override": {
+                        "CharacterPrepEquipmentFlow": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CharacterPrepEquipmentFlow": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "Yes"
+        },
+        "CharacterPrepSkill": {
+            "type": "switch",
+            "label": "$option.CharacterPrepSkill.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CharacterPrepSkillFlow": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CharacterPrepSkillFlow": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "Yes"
+        },
+        "CharacterPrepCube": {
+            "type": "switch",
+            "label": "$option.CharacterPrepCube.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CharacterPrepCubeFlow": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CharacterPrepCubeFlow": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "Yes"
+        },
+        "CharacterPrepCollectible": {
+            "type": "switch",
+            "label": "$option.CharacterPrepCollectible.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CharacterPrepCollectibleFlow": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CharacterPrepCollectibleFlow": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "Yes"
+        },
+        "CharacterPrepT10Upgrade": {
+            "type": "select",
+            "label": "$option.CharacterPrepT10Upgrade.label",
+            "cases": [
+                {
+                    "name": "None",
+                    "label": "$option.CharacterPrepT10Upgrade.cases.None.label",
+                    "pipeline_override": {
+                        "CharacterPrepOpenHeadDetailsT10": {
+                            "enabled": false
+                        },
+                        "CharacterPrepOpenArmsDetailsT10": {
+                            "enabled": false
+                        },
+                        "CharacterPrepOpenTorsoDetailsT10": {
+                            "enabled": false
+                        },
+                        "CharacterPrepOpenLegsDetailsT10": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Head",
+                    "label": "$option.CharacterPrepT10Upgrade.cases.Head.label",
+                    "pipeline_override": {
+                        "CharacterPrepOpenHeadDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenArmsDetailsT10": {
+                            "enabled": false
+                        },
+                        "CharacterPrepOpenTorsoDetailsT10": {
+                            "enabled": false
+                        },
+                        "CharacterPrepOpenLegsDetailsT10": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "HeadArms",
+                    "label": "$option.CharacterPrepT10Upgrade.cases.HeadArms.label",
+                    "pipeline_override": {
+                        "CharacterPrepOpenHeadDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenArmsDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenTorsoDetailsT10": {
+                            "enabled": false
+                        },
+                        "CharacterPrepOpenLegsDetailsT10": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "HeadArmsTorso",
+                    "label": "$option.CharacterPrepT10Upgrade.cases.HeadArmsTorso.label",
+                    "pipeline_override": {
+                        "CharacterPrepOpenHeadDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenArmsDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenTorsoDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenLegsDetailsT10": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "HeadArmsTorsoLegs",
+                    "label": "$option.CharacterPrepT10Upgrade.cases.HeadArmsTorsoLegs.label",
+                    "pipeline_override": {
+                        "CharacterPrepOpenHeadDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenArmsDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenTorsoDetailsT10": {
+                            "enabled": true
+                        },
+                        "CharacterPrepOpenLegsDetailsT10": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "default_case": "HeadArmsTorso"
+        }
+    }
+}
