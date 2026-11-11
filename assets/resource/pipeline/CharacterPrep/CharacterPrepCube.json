@@ -1,0 +1,153 @@
+{
+    "CharacterPrepCubeFlow": {
+        "desc": "魔方预热",
+        "max_hit": 1, // 只跑一次，[JumpBack] 回来不再重复进入
+        "recognition": {
+            "type": "OCR", // 角色详情页哨兵，与装备/技能预热共用同一个入口条件
+            "param": {
+                "roi": [
+                    0,
+                    12,
+                    80,
+                    28
+                ],
+                "expected": ["详情资讯"]
+            }
+        },
+        "next": ["CharacterPrepClickCubeTab"]
+    },
+    "CharacterPrepClickCubeTab": {
+        "desc": "点击魔方页签",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1020,
+                    570,
+                    48,
+                    30
+                ],
+                "expected": ["魔方"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300, // 页签切换后面板才浮出来，只等面板区域
+            "target": [
+                1062,
+                458,
+                190,
+                190
+            ]
+        },
+        "next": ["CharacterPrepCubePanelVisible"]
+    },
+    "CharacterPrepCubePanelVisible": {
+        "desc": "处于魔方页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1066,
+                    462,
+                    160,
+                    28
+                ],
+                "expected": ["HARMONY CUBE"]
+            }
+        },
+        "next": ["CharacterPrepClickCubeSlot"]
+    },
+    "CharacterPrepClickCubeSlot": {
+        "desc": "点击魔方空槽",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1066,
+                    470,
+                    180,
+                    120
+                ],
+                "template": "CharacterPrep/Cube/CubeSlotPlus.png", // 加号是用户提供的专用模板：本页命中 1.0，次优 0.62
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300, // 魔方管理是弹窗，只等弹窗区域
+            "target": [
+                450,
+                50,
+                380,
+                610
+            ]
+        },
+        "next": ["CharacterPrepCubeManageEntered"] // 点开后是「魔方管理」弹窗
+    },
+    "CharacterPrepCubeManageEntered": {
+        "desc": "魔方管理页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    52,
+                    300,
+                    36
+                ],
+                "expected": ["魔方管理"]
+            }
+        },
+        "next": [
+            "CharacterPrepClickCubeEquip" // 右侧那排「穿戴」逐个点，不挑魔方
+        ]
+    },
+    "CharacterPrepClickCubeEquip": {
+        "desc": "点击穿戴", // 点一个可能进二级穿戴页：同一节点的识别+点击流程再跑一遍，直到列表里没有「穿戴」
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    765,
+                    275,
+                    60,
+                    385
+                ], // 覆盖列表右侧整列「穿戴」按钮
+                "expected": ["穿戴"],
+                "order_by": "Vertical" // 从上往下取第一个，点哪个都行
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 500, // 等列表/二级页刷新
+        "timeout": 90000, // 多个魔方逐个穿戴 + 二次确认，给足总预算
+        "next": [
+            "CharacterPrepClickCubeEquip", // 自环：还有「穿戴」就继续点
+            "CharacterPrepCubeEquipped" // 一个都不剩 → 收尾
+        ]
+    },
+    "CharacterPrepCubeEquipped": {
+        "desc": "魔方已穿戴", // 空槽的加号位置换成魔方图标，左下角那个等级数字就是完成信号
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1123,
+                    522,
+                    15,
+                    18
+                ],
+                "expected": ["\\d+"]
+            }
+        },
+        "next": [
+            "CharacterPrepExitFlow" // 穿完就在角色详情页，统一出口确认一下再结束
+        ]
+    }
+}

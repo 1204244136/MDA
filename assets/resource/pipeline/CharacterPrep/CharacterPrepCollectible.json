@@ -1,0 +1,1672 @@
+{
+    "CharacterPrepCollectibleFlow": {
+        "desc": "收藏品预热",
+        "max_hit": 1,
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "__CharacterPrepCollectibleOnDetail",
+                    "__CharacterPrepCollectibleOnPage"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleEntry"
+        ]
+    },
+    "CharacterPrepClickCollectiblePlus": {
+        "desc": "点击收藏品加号",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    90,
+                    110
+                ],
+                "template": "CharacterPrep/Collectible/CollectiblePlus.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                300,
+                60,
+                680,
+                600
+            ]
+        },
+        "next": [
+            "CharacterPrepCollectiblePageEntered",
+            "CharacterPrepClickCollectiblePlus"
+        ]
+    },
+    "CharacterPrepCollectiblePageEntered": {
+        "desc": "收藏品页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    8,
+                    90,
+                    28
+                ],
+                "expected": [
+                    "收藏品"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickCollectibleCard",
+            "CharacterPrepCollectiblePageEntered" //兜底
+        ]
+    },
+    "CharacterPrepClickCollectibleCard": {
+        "desc": "点击收藏品展示位",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    530,
+                    360,
+                    80
+                ],
+                "expected": [
+                    "装备并.*保养收藏品"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    48,
+                    -260,
+                    -111,
+                    -11
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleSelectEntered",
+            "CharacterPrepClickCollectibleCard" //兜底
+        ]
+    },
+    "CharacterPrepCollectibleSelectEntered": {
+        "desc": "选择收藏品页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    32,
+                    220,
+                    40
+                ],
+                "expected": [
+                    "选择收藏品"
+                ]
+            }
+        },
+        "timeout": 8000, // 给持有数读数留几轮；两个判据都读不到就按节点失败处理，不做兜底
+        "next": [
+            // 只认「持有数 > 0」和「持有数 = 0」两种明确判据；读不出来就让它自己报错
+            "CharacterPrepCollectibleHasSR",
+            "CharacterPrepCollectibleSRCountZero"
+        ]
+    },
+    "CharacterPrepCollectibleSRCountZero": {
+        "desc": "SR持有数为零",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "CharacterPrepCollectibleSRBadge",
+                "roi_offset": [
+                    96,
+                    18,
+                    58,
+                    9
+                ],
+                "expected": [
+                    "持有数[:：]?\\s*0"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleNoSRCard"
+        ]
+    },
+    "CharacterPrepCollectibleSRBadge": {
+        "desc": "SR稀有度徽章",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    440,
+                    168,
+                    380,
+                    28
+                ],
+                "expected": [
+                    "SR"
+                ]
+            }
+        }
+    },
+    "CharacterPrepCollectibleRBadge": {
+        "desc": "R稀有度徽章",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    440,
+                    168,
+                    380,
+                    28
+                ],
+                "expected": [
+                    "^R$"
+                ]
+            }
+        }
+    },
+    "CharacterPrepCollectibleHasSR": {
+        "desc": "SR持有数大于0",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CharacterPrepCollectibleSRBadge",
+                    "CharacterPrepCollectibleSRCount"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleHasR",
+            "CharacterPrepClickCollectibleSR"
+        ]
+    },
+    "CharacterPrepCollectibleHasR": {
+        "desc": "R持有数大于0",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CharacterPrepCollectibleRBadge",
+                    "CharacterPrepCollectibleRCount"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickCollectibleR"
+        ]
+    },
+    "CharacterPrepClickCollectibleR": {
+        "desc": "选中R收藏品",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    440,
+                    168,
+                    380,
+                    28
+                ],
+                "expected": [
+                    "^R$"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    92,
+                    166,
+                    -6,
+                    -6
+                ]
+            }
+        },
+        "post_delay": 500,
+        "next": [
+            // 点空了或「使用」还没亮就重点一次自己
+            "CharacterPrepCollectibleUseEnabled",
+            "CharacterPrepClickCollectibleR"
+        ]
+    },
+    "CharacterPrepClickCollectibleSR": {
+        "desc": "选中SR收藏品",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    440,
+                    168,
+                    380,
+                    28
+                ],
+                "expected": [
+                    "SR"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    76,
+                    188,
+                    -16,
+                    -9
+                ]
+            }
+        },
+        "post_delay": 500,
+        "next": [
+            "CharacterPrepCollectibleUseEnabled",
+            "CharacterPrepClickCollectibleSR"
+        ]
+    },
+    "CharacterPrepCollectibleUseEnabled": {
+        "desc": "使用按钮可用",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    660,
+                    655,
+                    110,
+                    33
+                ],
+                "lower": [
+                    230,
+                    230,
+                    230
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 40
+            }
+        },
+        "next": [
+            "CharacterPrepClickCollectibleUse"
+        ]
+    },
+    "CharacterPrepClickCollectibleUse": {
+        "desc": "点击使用",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    590,
+                    650,
+                    230,
+                    45
+                ],
+                "expected": [
+                    "使用"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CommonConfirmAction",
+            "CharacterPrepCollectibleAfterUse"
+        ]
+    },
+    "CharacterPrepCollectibleNoSRCard": {
+        "desc": "没有SR藏品可升级",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow"
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.CollectibleNoSRCard.Succeeded"
+        }
+    },
+    "CharacterPrepCollectibleOutOfBox": {
+        "desc": "三档工具箱都不足",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow"
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.CollectibleOutOfBox.Succeeded"
+        }
+    },
+    "CharacterPrepCollectibleSRCount": {
+        "desc": "SR卡持有数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "CharacterPrepCollectibleSRBadge",
+                "roi_offset": [
+                    96,
+                    18,
+                    58,
+                    9
+                ],
+                "expected": [
+                    "持有数[:：]?\\s*[1-9]\\d*"
+                ]
+            }
+        }
+    },
+    "CharacterPrepCollectibleRCount": {
+        "desc": "R卡持有数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "CharacterPrepCollectibleRBadge",
+                "roi_offset": [
+                    96,
+                    18,
+                    68,
+                    12
+                ],
+                "expected": [
+                    "持有数[:：]?\\s*[1-9]\\d*"
+                ]
+            }
+        }
+    },
+    "CharacterPrepCollectibleAfterUse": {
+        "desc": "收藏品页（使用后）",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepCollectibleGradeR",
+            "CharacterPrepCollectibleGradeSR",
+            "CharacterPrepExitFlow"
+        ]
+    },
+    "CharacterPrepCollectibleGradeR": {
+        "desc": "R级收藏品",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    270,
+                    120,
+                    28
+                ],
+                "expected": [
+                    "[^S]R$"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleSetGradeR"
+        ]
+    },
+    "CharacterPrepCollectibleGradeSR": {
+        "desc": "SR级收藏品",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    270,
+                    120,
+                    28
+                ],
+                "expected": [
+                    "SR$"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleSetGradeSR"
+        ]
+    },
+    "CharacterPrepCollectibleSetGradeR": {
+        "desc": "记录R级",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CharacterPrepCollectibleSetGrade",
+                "custom_action_param": {
+                    "grade": "R"
+                }
+            }
+        },
+        "next": [
+            "CharacterPrepMaintainPanelVisible", // 面板已经开着就别再点保养
+            "CharacterPrepClickMaintainPage",
+            "CharacterPrepClickChangeButton",
+            "CharacterPrepCollectibleEntryReread",
+            "CharacterPrepExitFlow"
+        ]
+    },
+    "CharacterPrepCollectibleSetGradeSR": {
+        "desc": "记录SR级",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CharacterPrepCollectibleSetGrade",
+                "custom_action_param": {
+                    "grade": "SR"
+                }
+            }
+        },
+        "next": [
+            "CharacterPrepMaintainPanelVisible", // 面板已经开着就别再点保养
+            "CharacterPrepClickMaintainPage",
+            "CharacterPrepClickChangeButton",
+            "CharacterPrepCollectibleEntryReread",
+            "CharacterPrepExitFlow"
+        ]
+    },
+    "CharacterPrepClickMaintainPage": {
+        "desc": "点击保养",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    620,
+                    650,
+                    220,
+                    56
+                ], // 保养文字会随页面状态左右移动，ROI 必须覆盖整条按钮带；面板上的「保养」也在这条带里，属可接受的兜底
+                "expected": [
+                    "保养"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                470,
+                240,
+                330,
+                470
+            ]
+        },
+        "next": [
+            "CharacterPrepMaintainPanelVisible",
+            "CharacterPrepCancelStaleDialog", // 点在面板上时这一下会开出对话框：认得出来就点取消，别让自环去瞎点第二次
+            "CharacterPrepClickMaintainPage"
+        ]
+    },
+    "CharacterPrepMaintainPanelVisible": {
+        "desc": "保养面板已展开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    680,
+                    245,
+                    170,
+                    30
+                ],
+                "expected": [
+                    "非常成功机率"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleStep" // 面板已在就直接决策下一步保养
+        ]
+    },
+    "CharacterPrepCollectibleStep": {
+        "desc": "收藏品保养决策",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    488,
+                    110,
+                    32
+                ],
+                "expected": [
+                    "\\d+阶段"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CharacterPrepCollectibleDecide",
+                "custom_action_param": {
+                    "nodes": {
+                        "stage_node": "__CharacterPrepCollectibleStage",
+                        "exp_node": "__CharacterPrepCollectibleExp",
+                        "held_nodes": {
+                            "R": "__CharacterPrepCollectibleHeldR",
+                            "SR": "__CharacterPrepCollectibleHeldSR",
+                            "SSR": "__CharacterPrepCollectibleHeldSSR"
+                        },
+                        "selected_nodes": {
+                            "R": "__CharacterPrepSelectedR",
+                            "SR": "__CharacterPrepSelectedSR",
+                            "SSR": "__CharacterPrepSelectedSSR"
+                        },
+                        "pick_nodes": {
+                            "R": "CharacterPrepCollectiblePickR",
+                            "SR": "CharacterPrepCollectiblePickSR",
+                            "SSR": "CharacterPrepCollectiblePickSSR"
+                        }
+                    },
+                    "maxed_node": "CharacterPrepCollectibleMaxed",
+                    "no_material_node": "CharacterPrepCollectibleOutOfBox"
+                }
+            }
+        },
+        "next": [
+            // 动作正常时总会改写下一步；这里只是别让节点没有 next
+            "CharacterPrepMaintainPanelVisible"
+        ]
+    },
+    "CharacterPrepCollectiblePickR": {
+        "desc": "选中初级保养工具箱",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    468,
+                    388,
+                    116,
+                    30
+                ],
+                "expected": [
+                    "初学者保养"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepClickMaintainPanel"
+        ]
+    },
+    "CharacterPrepCollectiblePickSR": {
+        "desc": "选中中级保养工具箱",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    590,
+                    388,
+                    100,
+                    30
+                ],
+                "expected": [
+                    "中级保养"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepClickMaintainPanel"
+        ]
+    },
+    "CharacterPrepCollectiblePickSSR": {
+        "desc": "选中高级保养工具箱",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    705,
+                    390,
+                    100,
+                    28
+                ],
+                "expected": [
+                    "高级保养"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepClickMaintainPanel"
+        ]
+    },
+    "CharacterPrepClickMaintainPanel": {
+        "desc": "打开保养对话框",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    660,
+                    660,
+                    80,
+                    40
+                ],
+                "expected": [
+                    "保养"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                460,
+                120,
+                360,
+                510
+            ]
+        },
+        "next": [
+            "CharacterPrepMaintainDialog",
+            "CharacterPrepClickMaintainPanel"
+        ]
+    },
+    "CharacterPrepMaintainDialog": {
+        "desc": "保养对话框已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    130,
+                    150,
+                    30
+                ],
+                "expected": [
+                    "收藏品保养"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepMaintainSkipChecked",
+            "CharacterPrepMaintainSkipUnchecked"
+        ]
+    },
+    "CharacterPrepClickMaxRepeat": {
+        "desc": "重复次数拉满",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    752,
+                    488,
+                    40,
+                    32
+                ],
+                "expected": [
+                    "MAX"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    4,
+                    4,
+                    -8,
+                    -8
+                ] // 同上：点击点收束到 MAX 文字中心
+            }
+        },
+        "post_delay": 300,
+        "next": [
+            "CharacterPrepSetRepeat"
+        ]
+    },
+    "CharacterPrepConfirmMaintain": {
+        "desc": "确认保养",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    595,
+                    582,
+                    215,
+                    46
+                ],
+                "expected": [
+                    "保养"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 400,
+        "timeout": 60000, // 点完保养到动画播完要几秒到十几秒，默认 20s 预算不够会中途判失败
+        "next": [
+            "[JumpBack]CharacterPrepMaintainNotice", // 确认保养后可能弹区间提示（MAX 跨区间时），点掉它再回到本列表继续
+            // 关掉对话框后三卡面板会先亮一下（材质还没扣），这里不认面板，只认保养真正开跑/跑完的信号
+            "CharacterPrepMaintainMinigame",
+            "CharacterPrepMaintainAnimContinue",
+            "CharacterPrepMaintainDone",
+            "CharacterPrepConfirmMaintain"
+        ]
+    },
+    "CharacterPrepMaintainNotice": {
+        "desc": "保养区间提示",
+        "recognition": {
+            "type": "And",
+            "param": {
+                // 确认按钮放首位：点击框取 all_of[0]，点「确认」而不是文案
+                "all_of": [
+                    "__CharacterPrepNoticeConfirmButton",
+                    "__CharacterPrepNoticeText"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+        // 故意不写 next：它只作为调用者的 [JumpBack] 目标，点完确认即结束、自然回到调用者的列表
+    },
+    "__CharacterPrepNoticeText": {
+        "desc": "区间提示文案",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    300,
+                    290,
+                    44
+                ],
+                "expected": [
+                    "无法保留超出的经验值"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepNoticeConfirmButton": {
+        "desc": "区间提示确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    660,
+                    420,
+                    150,
+                    50
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        }
+    },
+    "CharacterPrepMaintainAnimContinue": {
+        "desc": "跳过保养动画",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    555,
+                    618,
+                    200,
+                    74
+                ],
+                "expected": [
+                    "点击任意处进行下一步"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepMaintainDone",
+            "CharacterPrepMaintainPanelVisible",
+            "CharacterPrepCollectiblePageAfterMaintain",
+            "CharacterPrepMaintainAnimContinue"
+        ]
+    },
+    "CharacterPrepMaintainDone": {
+        "desc": "保养完成通知",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    250,
+                    170,
+                    30
+                ],
+                "expected": [
+                    "收藏品保养完成"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]CommonConfirmAction",
+            "CharacterPrepMaintainPanelVisible",
+            "CharacterPrepCollectiblePageAfterMaintain"
+        ]
+    },
+    "CharacterPrepCancelStaleDialog": {
+        "desc": "计划外对话框点取消",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__CharacterPrepDialogCancelButton", // 放首位：And 默认取 all_of[0] 的框当点击目标
+                    "CharacterPrepMaintainDialog"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepMaintainPanelVisible"
+        ]
+    },
+    "__CharacterPrepDialogCancelButton": {
+        "desc": "对话框取消按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    655,
+                    140,
+                    45
+                ],
+                "expected": [
+                    "取消"
+                ]
+            }
+        }
+    },
+    "CharacterPrepCollectibleMaxed": {
+        "desc": "收藏品已满级",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepCollectibleGradeIsR",
+            "CharacterPrepExitFlow"
+        ]
+    },
+    "CharacterPrepCollectibleGradeIsR": {
+        "desc": "满级的是R级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    270,
+                    120,
+                    28
+                ],
+                "expected": [
+                    "[^S]R$"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickChangeButton"
+        ]
+    },
+    "CharacterPrepClickChangeButton": {
+        "desc": "点击更换",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    620,
+                    650,
+                    220,
+                    56
+                ], // 同「点击保养」：更换文字也会随页面状态左右移动
+                "expected": [
+                    "更换"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                440,
+                20,
+                400,
+                660
+            ]
+        },
+        "next": [
+            "CharacterPrepChangePageEntered"
+        ]
+    },
+    "CharacterPrepChangePageEntered": {
+        "desc": "更换收藏品页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    20,
+                    180,
+                    40
+                ],
+                "expected": [
+                    "更换收藏品"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepConfirmChange"
+        ]
+    },
+    "CharacterPrepConfirmChange": {
+        "desc": "确认更换",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    640,
+                    140,
+                    44
+                ],
+                "expected": [
+                    "更换"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]CommonConfirmAction",
+            "CharacterPrepChangeDone"
+        ]
+    },
+    "CharacterPrepChangeDone": {
+        "desc": "替换完毕",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    40,
+                    180,
+                    40
+                ],
+                "expected": [
+                    "替换完毕"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickAnywhereNext"
+        ]
+    },
+    "CharacterPrepClickAnywhereNext": {
+        "desc": "点击任意处继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    555,
+                    618,
+                    200,
+                    74
+                ],
+                "expected": [
+                    "点击任意处进行下一步"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepCollectibleSetGradeSR"
+        ]
+    },
+    "__CharacterPrepCollectibleOnDetail": {
+        "desc": "在角色详情页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    12,
+                    80,
+                    28
+                ],
+                "expected": [
+                    "详情资讯"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepCollectibleOnPage": {
+        "desc": "在收藏品页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    8,
+                    90,
+                    28
+                ],
+                "expected": [
+                    "收藏品"
+                ]
+            }
+        }
+    },
+    "CharacterPrepCollectibleEntry": {
+        "desc": "收藏品预热入口",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepCollectibleOnPageCheck",
+            "CharacterPrepClickCollectiblePlus"
+        ]
+    },
+    "CharacterPrepCollectibleOnPageCheck": {
+        "desc": "已在收藏品页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    8,
+                    90,
+                    28
+                ],
+                "expected": [
+                    "收藏品"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepCollectibleGradeR",
+            "CharacterPrepCollectibleGradeSR",
+            "CharacterPrepClickCollectibleCard"
+        ]
+    },
+    "__CharacterPrepCollectibleStage": {
+        "desc": "收藏品当前阶段",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    488,
+                    110,
+                    32
+                ],
+                "expected": [
+                    "\\d+阶段"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepCollectibleExp": {
+        "desc": "收藏品当前经验",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    525,
+                    110,
+                    28
+                ],
+                "expected": [
+                    "\\d+/\\d+"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepCollectibleHeldR": {
+        "desc": "初级工具箱持有",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    495,
+                    436,
+                    80,
+                    24
+                ],
+                "expected": [
+                    "\\d+"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepCollectibleHeldSR": {
+        "desc": "中级工具箱持有",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    605,
+                    436,
+                    80,
+                    24
+                ],
+                "expected": [
+                    "\\d+"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepCollectibleHeldSSR": {
+        "desc": "高级工具箱持有",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    715,
+                    436,
+                    80,
+                    24
+                ],
+                "expected": [
+                    "\\d+"
+                ]
+            }
+        }
+    },
+
+    "CharacterPrepMaintainSkipChecked": {
+        "desc": "已勾选跳过动画",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__CharacterPrepSkipText",
+                    "__CharacterPrepSkipBlue"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepMaintainTierCheck"
+        ]
+    },
+    "CharacterPrepMaintainSkipUnchecked": {
+        "desc": "勾选跳过保养动画",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "__CharacterPrepSkipGray",
+                    "__CharacterPrepSkipText"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepMaintainTierCheck"
+        ]
+    },
+    "CharacterPrepMaintainMinigame": {
+        "desc": "摩擦画面保养",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "__CharacterPrepMinigameHint",
+                    "__CharacterPrepMinigameRunning"
+                ]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    740,
+                    350
+                ],
+                "end": [
+                    [
+                        555,
+                        350
+                    ],
+                    [
+                        740,
+                        350
+                    ]
+                ],
+                "duration": [
+                    150,
+                    150
+                ]
+            }
+        },
+        "repeat": 10,
+        "repeat_delay": 200,
+        "timeout": 60000, // 小游戏要蹭到进度满，可能反复进出本节点
+        "next": [
+            // 摩擦结束同样先看到三卡面板过渡帧，不认面板，只等结算/完成通知
+            "CharacterPrepMaintainAnimContinue",
+            "CharacterPrepMaintainDone",
+            "CharacterPrepMaintainMinigame"
+        ]
+    },
+    "__CharacterPrepSkipText": {
+        "desc": "跳过动画文本",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    536,
+                    140,
+                    30
+                ],
+                "expected": [
+                    "跳过保养动画"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepSkipGray": {
+        "desc": "跳过动画未勾选",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    474,
+                    540,
+                    26,
+                    22
+                ],
+                "lower": [
+                    140,
+                    140,
+                    140
+                ],
+                "upper": [
+                    225,
+                    225,
+                    230
+                ],
+                "count": 60
+            }
+        }
+    },
+    "__CharacterPrepSkipBlue": {
+        "desc": "跳过动画已勾选",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    474,
+                    540,
+                    26,
+                    22
+                ],
+                "lower": [
+                    0,
+                    140,
+                    200
+                ],
+                "upper": [
+                    90,
+                    205,
+                    255
+                ],
+                "count": 60
+            }
+        }
+    },
+    "CharacterPrepCollectiblePageAfterMaintain": {
+        "desc": "保养后回收藏品页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    8,
+                    90,
+                    28
+                ],
+                "expected": [
+                    "收藏品"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepMaintainPanelVisible", // 保养后游戏会自己把面板开回来：面板已在就先采/决策，别去点保养（那会开出计划外对话框）
+            "CharacterPrepClickChangeButton",
+            "CharacterPrepClickMaintainPage",
+            "CharacterPrepCollectiblePageReread", // ExitFlow 是 DirectHit，按钮没渲染好时会被它抢跑，所以先留一个有界的「重读」候选
+            "CharacterPrepExitFlow"
+        ]
+    },
+    "CharacterPrepCollectiblePageReread": {
+        "desc": "稍后重读页面按钮",
+        "max_hit": 3, // 任务内最多重读 3 次，用完后框架跳过本节点、落到 ExitFlow
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 1000, // 刚保养完时按钮可能还在渲染，等一下再看一遍
+        "next": [
+            "CharacterPrepCollectiblePageAfterMaintain"
+        ]
+    },
+    "CharacterPrepCollectibleEntryReread": {
+        "desc": "稍后重读入口按钮",
+        "max_hit": 3,
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "pre_delay": 1000,
+        "next": [
+            "CharacterPrepCollectibleOnPageCheck"
+        ]
+    },
+    "__CharacterPrepRepeatCount": {
+        "desc": "重复次数显示",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    628,
+                    486,
+                    44,
+                    28
+                ],
+                "expected": [
+                    "\\d+/\\d+"
+                ]
+            }
+        }
+    },
+    "CharacterPrepClickPlusRepeat": {
+        "desc": "增加重复次数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    712,
+                    486,
+                    36,
+                    30
+                ],
+                "expected": [
+                    "\\+"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    6,
+                    6,
+                    -12,
+                    -12
+                ] // OCR 框几乎等于 ROI、比加号按钮还大，点击点在框内随机取点会打空：先向中心收束
+            }
+        },
+        "post_delay": 300,
+        "next": [
+            "CharacterPrepSetRepeat"
+        ]
+    },
+    "CharacterPrepSetRepeat": {
+        "desc": "设置保养次数",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CharacterPrepCollectibleSetRepeat",
+                "custom_action_param": {
+                    "nodes": {
+                        "repeat_node": "__CharacterPrepRepeatCount"
+                    },
+                    "plus_node": "CharacterPrepClickPlusRepeat",
+                    "max_node": "CharacterPrepClickMaxRepeat",
+                    "next": [
+                        "[JumpBack]CharacterPrepMaintainNotice", // MAX 跨区间时会先弹提示，点掉再确认
+                        "CharacterPrepConfirmMaintain"
+                    ]
+                }
+            }
+        },
+        "next": [
+            "[JumpBack]CharacterPrepMaintainNotice", // 同动作参数：MAX 跨区间时的提示
+            "CharacterPrepConfirmMaintain"
+        ]
+    },
+    "__CharacterPrepDialogTierR": {
+        "desc": "对话框档位R",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    296,
+                    150,
+                    30
+                ],
+                "expected": [
+                    "初学者保养"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepDialogTierSR": {
+        "desc": "对话框档位SR",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    296,
+                    150,
+                    30
+                ],
+                "expected": [
+                    "中级保养"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepDialogTierSSR": {
+        "desc": "对话框档位SSR",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    296,
+                    150,
+                    30
+                ],
+                "expected": [
+                    "高级保养"
+                ]
+            }
+        }
+    },
+    "CharacterPrepMaintainTierCheck": {
+        "desc": "核对保养档位",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CharacterPrepCollectibleTierCheck",
+                "custom_action_param": {
+                    "nodes": {
+                        "dialog_nodes": {
+                            "R": "__CharacterPrepDialogTierR",
+                            "SR": "__CharacterPrepDialogTierSR",
+                            "SSR": "__CharacterPrepDialogTierSSR"
+                        }
+                    },
+                    "ok_node": "CharacterPrepSetRepeat",
+                    "mismatch_node": "CharacterPrepMaintainTierMismatch"
+                }
+            }
+        },
+        "next": [
+            "CharacterPrepSetRepeat"
+        ]
+    },
+    "CharacterPrepMaintainTierMismatch": {
+        "desc": "档位不符重选",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "[JumpBack]CommonClosePage",
+            "CharacterPrepCollectibleStep"
+        ]
+    },
+    "__CharacterPrepSelectedR": {
+        "desc": "初级箱已选中",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    476,
+                    308,
+                    110,
+                    18
+                ],
+                "lower": [
+                    30,
+                    160,
+                    225
+                ],
+                "upper": [
+                    90,
+                    210,
+                    255
+                ],
+                "count": 400
+            }
+        }
+    },
+    "__CharacterPrepSelectedSR": {
+        "desc": "中级箱已选中",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    588,
+                    308,
+                    104,
+                    18
+                ],
+                "lower": [
+                    30,
+                    160,
+                    225
+                ],
+                "upper": [
+                    90,
+                    210,
+                    255
+                ],
+                "count": 400
+            }
+        }
+    },
+    "__CharacterPrepSelectedSSR": {
+        "desc": "高级箱已选中",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    700,
+                    308,
+                    104,
+                    18
+                ],
+                "lower": [
+                    30,
+                    160,
+                    225
+                ],
+                "upper": [
+                    90,
+                    210,
+                    255
+                ],
+                "count": 400
+            }
+        }
+    },
+    "__CharacterPrepMinigameHint": {
+        "desc": "摩擦提示文案",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    556,
+                    68,
+                    170,
+                    28
+                ],
+                "expected": [
+                    "摩擦画面"
+                ]
+            }
+        }
+    },
+    "__CharacterPrepMinigameRunning": {
+        "desc": "保养中进度",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    596,
+                    536,
+                    110,
+                    66
+                ],
+                "expected": [
+                    "保养中|\\d+(\\.\\d+)?%"
+                ]
+            }
+        }
+    }
+}

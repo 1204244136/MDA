@@ -1,0 +1,1030 @@
+{
+    "CharacterPrepEquipmentFlow": {
+        "desc": "装备预热",
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    12,
+                    80,
+                    28
+                ],
+                "expected": [
+                    "详情资讯"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickEquipmentTab"
+        ]
+    },
+    "CharacterPrepClickEquipmentTab": {
+        "desc": "点击装备页签",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1024,
+                    486,
+                    36,
+                    20
+                ],
+                "expected": [
+                    "装备"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                1060,
+                455,
+                220,
+                190
+            ]
+        },
+        "next": [
+            "CharacterPrepEquipmentPageVisible"
+        ]
+    },
+    "CharacterPrepEquipmentPageVisible": {
+        "desc": "处于装备页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1065,
+                    458,
+                    110,
+                    28
+                ],
+                "expected": [
+                    "EQUIPMENT"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickQuickEquip"
+        ]
+    },
+    "CharacterPrepClickQuickEquip": {
+        "desc": "点击快捷佩戴",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1070,
+                    628,
+                    60,
+                    28
+                ],
+                "expected": [
+                    "快捷"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                1062,
+                480,
+                180,
+                130
+            ]
+        },
+        "next": [
+            "CharacterPrepOpenHeadDetails", // 头部卡位有 T9/T10 模板才算这件装备可用，其余部位由锚点顺序推进
+            "CharacterPrepEquipmentTierOrEmpty" // 头部都找不到模板说明未装备或等级不符
+        ]
+    },
+    "CharacterPrepOpenHeadDetails": {
+        "desc": "打开头部装备详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Head_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Head_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Head_Defender_T9.png",
+                    "CharacterPrep/Equipment/Head_Defender_T10.png",
+                    "CharacterPrep/Equipment/Head_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Head_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepOpenArmsDetails" // 部位顺序：头部→臂部→身躯→腿部，腿部走完进阶段四
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepEquipmentOverload", // 弹窗顶部 OVERLOAD 标题＝T10，已绑定角色
+            "CharacterPrepEquipmentTierNine", // 弹窗顶部红色 9＝T9，需要过企业校验
+            "CharacterPrepEquipmentTierOrEmpty" // 两个档位图标都不在：未装备或等级不符
+        ]
+    },
+    "CharacterPrepOpenArmsDetails": {
+        "desc": "打开臂部装备详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Arms_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Arms_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Arms_Defender_T9.png",
+                    "CharacterPrep/Equipment/Arms_Defender_T10.png",
+                    "CharacterPrep/Equipment/Arms_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Arms_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepOpenTorsoDetails"
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepEquipmentOverload", // 弹窗顶部 OVERLOAD 标题＝T10，已绑定角色
+            "CharacterPrepEquipmentTierNine", // 弹窗顶部红色 9＝T9，需要过企业校验
+            "CharacterPrepEquipmentTierOrEmpty" // 两个档位图标都不在：未装备或等级不符
+        ]
+    },
+    "CharacterPrepOpenTorsoDetails": {
+        "desc": "打开身躯装备详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Torso_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Torso_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Torso_Defender_T9.png",
+                    "CharacterPrep/Equipment/Torso_Defender_T10.png",
+                    "CharacterPrep/Equipment/Torso_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Torso_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepOpenLegsDetails"
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepEquipmentOverload", // 弹窗顶部 OVERLOAD 标题＝T10，已绑定角色
+            "CharacterPrepEquipmentTierNine", // 弹窗顶部红色 9＝T9，需要过企业校验
+            "CharacterPrepEquipmentTierOrEmpty" // 两个档位图标都不在：未装备或等级不符
+        ]
+    },
+    "CharacterPrepOpenLegsDetails": {
+        "desc": "打开腿部装备详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Legs_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Legs_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Legs_Defender_T9.png",
+                    "CharacterPrep/Equipment/Legs_Defender_T10.png",
+                    "CharacterPrep/Equipment/Legs_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Legs_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepPhaseFourStart" // 四件都走完阶段二/三后进入阶段四，由入口按选项分发
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepEquipmentOverload", // 弹窗顶部 OVERLOAD 标题＝T10，已绑定角色
+            "CharacterPrepEquipmentTierNine", // 弹窗顶部红色 9＝T9，需要过企业校验
+            "CharacterPrepEquipmentTierOrEmpty" // 两个档位图标都不在：未装备或等级不符
+        ]
+    },
+    "CharacterPrepOpenHeadDetailsT10": {
+        "desc": "打开头部详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Head_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Head_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Head_Defender_T9.png",
+                    "CharacterPrep/Equipment/Head_Defender_T10.png",
+                    "CharacterPrep/Equipment/Head_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Head_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepNextAfterHeadT10" // 部位顺序：头部→臂部→身躯→腿部
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepOverloadUpgrade", // 阶段四只处理 T10：认档位后直接升级，再由选项决定做哪几个部位
+            "[JumpBack]CommonClosePage", // 不是 T10 或已满级：把详情页关掉再走下一部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepOpenArmsDetailsT10": {
+        "desc": "打开臂部详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Arms_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Arms_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Arms_Defender_T9.png",
+                    "CharacterPrep/Equipment/Arms_Defender_T10.png",
+                    "CharacterPrep/Equipment/Arms_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Arms_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepNextAfterArmsT10"
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepOverloadUpgrade", // 阶段四只处理 T10：认档位后直接升级，再由选项决定做哪几个部位
+            "[JumpBack]CommonClosePage", // 不是 T10 或已满级：把详情页关掉再走下一部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepOpenTorsoDetailsT10": {
+        "desc": "打开身躯详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Torso_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Torso_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Torso_Defender_T9.png",
+                    "CharacterPrep/Equipment/Torso_Defender_T10.png",
+                    "CharacterPrep/Equipment/Torso_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Torso_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepNextAfterTorsoDetailsT10"
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepOverloadUpgrade", // 阶段四只处理 T10：认档位后直接升级，再由选项决定做哪几个部位
+            "[JumpBack]CommonClosePage", // 不是 T10 或已满级：把详情页关掉再走下一部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepOpenLegsDetailsT10": {
+        "desc": "打开腿部详情",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    445,
+                    235,
+                    265
+                ],
+                "template": [
+                    "CharacterPrep/Equipment/Legs_Attacker_T9.png",
+                    "CharacterPrep/Equipment/Legs_Attacker_T10.png",
+                    "CharacterPrep/Equipment/Legs_Defender_T9.png",
+                    "CharacterPrep/Equipment/Legs_Defender_T10.png",
+                    "CharacterPrep/Equipment/Legs_Supporter_T9.png",
+                    "CharacterPrep/Equipment/Legs_Supporter_T10.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "anchor": {
+            "CharacterPrepAfterMatched": "CharacterPrepEquipmentFinish" // 阶段四收尾
+        },
+        "post_wait_freezes": {
+            "time": 1000, // 点开详情后等弹窗稳定 1s 再跑识别；target 只框弹窗面板，背景人物立绘一直在动
+            "target": [
+                470,
+                76,
+                340,
+                505
+            ],
+            "rate_limit": 200 // 200ms 采样才抓得到 0.5s 级的淡入过渡帧
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 升级结算可能留下奖励领取页，先领掉
+            "CharacterPrepOverloadUpgrade", // 阶段四只处理 T10：认档位后直接升级，再由选项决定做哪几个部位
+            "[JumpBack]CommonClosePage", // 不是 T10 或已满级：把详情页关掉再走下一部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepPhaseFourStart": {
+        "desc": "阶段四入口", // 按选项禁用的部位会被跳过
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepOpenHeadDetailsT10",
+            "CharacterPrepOpenArmsDetailsT10",
+            "CharacterPrepOpenTorsoDetailsT10",
+            "CharacterPrepOpenLegsDetailsT10",
+            "CharacterPrepEquipmentFinish"
+        ]
+    },
+    "CharacterPrepNextAfterHeadT10": {
+        "desc": "头部之后下一件",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepOpenArmsDetailsT10",
+            "CharacterPrepOpenTorsoDetailsT10",
+            "CharacterPrepOpenLegsDetailsT10",
+            "CharacterPrepEquipmentFinish"
+        ]
+    },
+    "CharacterPrepNextAfterArmsT10": {
+        "desc": "臂部之后下一件",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepOpenTorsoDetailsT10",
+            "CharacterPrepOpenLegsDetailsT10",
+            "CharacterPrepEquipmentFinish"
+        ]
+    },
+    "CharacterPrepNextAfterTorsoDetailsT10": {
+        "desc": "身躯之后下一件",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepOpenLegsDetailsT10",
+            "CharacterPrepEquipmentFinish"
+        ]
+    },
+    "CharacterPrepEquipmentOverload": {
+        "desc": "T10装备",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    555,
+                    25,
+                    230,
+                    100
+                ], // 弹窗顶部会随内容高度上下浮动约 17px，四周留余量
+                "template": "CharacterPrep/OverloadTitle.png"
+            }
+        },
+        "next": [
+            "[JumpBack]CommonClosePage", // T10 只在这里认档位：升级统一放到阶段四，由「T10 升级」选项决定升哪几个部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepOverloadUpgrade": {
+        "desc": "T10装备升级", // 只给阶段四用：是否处理这个部位由「T10 升级」选项控制
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    555,
+                    25,
+                    230,
+                    100
+                ], // 弹窗顶部会随内容高度上下浮动约 17px，四周留余量
+                "template": "CharacterPrep/OverloadTitle.png"
+            }
+        },
+        "next": [
+            "CharacterPrepClickUpgrade", // T10 已与角色绑定，只需要升到满级
+            "[JumpBack]CommonClosePage", // 已满级没有升级按钮：关掉详情弹窗再走下一部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepEquipmentTierNine": {
+        "desc": "T9装备",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    610,
+                    35,
+                    90,
+                    100
+                ], // 同上留浮动余量；T10 页 OVERLOAD 的字母会误命中（约 0.76），靠阈值滤掉
+                "template": "CharacterPrep/Tier9Mark.png",
+                "threshold": 0.9 // 9 的字形会误命中 OVERLOAD 里的字母（约 0.75），抬阈值过滤
+            }
+        },
+        "next": [
+            "CharacterPrepEnterpriseMatched", // T9 才有企业专属效果：标题＋徽标亮蓝＝企业相符
+            "CharacterPrepEnterpriseMismatch"
+        ]
+    },
+    "CharacterPrepEquipmentTierOrEmpty": {
+        "desc": "装备等级不符或未装备", // 卡位没有 T9/T10 模板：可能空槽，也可能是 T1~T8
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow" // 门禁只记日志，改走统一出口：干净退回角色页再结束本段
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.TierOrEmpty.Succeeded"
+        }
+    },
+    "CharacterPrepEnterpriseMatched": {
+        "desc": "装备企业相符",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    560,
+                    420,
+                    240,
+                    100
+                ], // 企业区块在「装备能力值」下方，随描述行数上下浮动，放宽到 100px 兜住
+                "lower": [
+                    0,
+                    120,
+                    200
+                ],
+                "upper": [
+                    200,
+                    255,
+                    255
+                ],
+                "count": 300 // 相符时标题＋徽标是亮蓝，蓝像素上千；不符时基本为 0
+            }
+        },
+        "next": [
+            "CharacterPrepClickUpgrade",
+            "CharacterPrepClickBreakthrough", // 已满级时没有升级按钮，直接走突破改造
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepEnterpriseMismatch": {
+        "desc": "装备企业不符",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    560,
+                    420,
+                    240,
+                    100
+                ], // 企业区块在「装备能力值」下方，随描述行数上下浮动，放宽到 100px 兜住
+                "lower": [
+                    0,
+                    120,
+                    200
+                ],
+                "upper": [
+                    200,
+                    255,
+                    255
+                ],
+                "count": 300
+            }
+        },
+        "inverse": true,
+        "next": [
+            "CharacterPrepExitFlow" // 门禁只记日志，改走统一出口：干净退回角色页再结束本段
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.EnterpriseMismatch.Succeeded"
+        }
+    },
+    "CharacterPrepClickUpgrade": {
+        "desc": "点击装备升级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    525,
+                    340,
+                    165
+                ], // 按钮行随版式浮动：T9 在 544~578，T10 的「升级」在 614~647，且随「改造装备效果」行数上下移，按弹窗整幅留容差
+                "expected": [
+                    "升级"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepUpgradeDialogEntered"
+        ]
+    },
+    "CharacterPrepUpgradeDialogEntered": {
+        "desc": "装备升级页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    612,
+                    84,
+                    90,
+                    30
+                ],
+                "expected": [
+                    "装备升级"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepUpgradeLoop"
+        ]
+    },
+    "CharacterPrepUpgradeLoop": {
+        "desc": "升级循环",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepUpgradeReachedFive", // 先识别右侧目标等级
+            "[JumpBack]CharacterPrepUpgradeAutoSelect" // 不是 5 级就点自动选择，回跳后重新判定
+        ],
+        "on_error": [
+            "CharacterPrepUpgradeInsufficient"
+        ]
+    },
+    "CharacterPrepUpgradeAutoSelect": {
+        "desc": "自动选择升级材料",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    530,
+                    586,
+                    120,
+                    38
+                ],
+                "expected": [
+                    "自动选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 600 // 等目标等级刷新后再回跳判定
+    },
+    "CharacterPrepUpgradeReachedFive": {
+        "desc": "目标等级已到5级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    722,
+                    148,
+                    66,
+                    30
+                ],
+                "expected": [
+                    "LV\\.05"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickUpgradeConfirm"
+        ]
+    },
+    "CharacterPrepClickUpgradeConfirm": {
+        "desc": "确认升级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    650,
+                    586,
+                    110,
+                    38
+                ],
+                "expected": [
+                    "升级"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300, // 只等点击生效；结算动画与浮层交给后面的 ENHANCE SUCCEED 判定处理
+            "target": [
+                360,
+                240,
+                560,
+                250
+            ]
+        },
+        "next": [
+            "[JumpBack]CommonConfirmAction",
+            "CharacterPrepEnhanceSucceed"
+        ]
+    },
+    "CharacterPrepEnhanceSucceed": {
+        "desc": "升级成功提示",
+        "recognition": {
+            "type": "OCR", // 结算浮层的大字；浮层不点就一直停着，轮询一定能命中，比弹窗里的 LV.05 稳
+            "param": {
+                "roi": [
+                    540,
+                    320,
+                    210,
+                    34
+                ],
+                "expected": [
+                    "ENHANCE"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepUpgradeSettled", // 点过空白回到这里时，先确认浮层已经收起，避免连着点
+            "[JumpBack]CommonClickBlank" // 浮层还在就点空白收起：点 ENHANCE SUCCEED 那几个字收不掉
+        ]
+    },
+    "CharacterPrepUpgradeSettled": {
+        "desc": "升级结算已结束",
+        "recognition": {
+            "type": "OCR", // 反相判定：ENHANCE SUCCEED 消失＝浮层收起
+            "param": {
+                "roi": [
+                    540,
+                    320,
+                    210,
+                    34
+                ],
+                "expected": [
+                    "ENHANCE"
+                ]
+            }
+        },
+        "inverse": true,
+        "post_wait_freezes": {
+            "time": 500, // 浮层退回弹窗还有一小段过渡
+            "target": [
+                455,
+                45,
+                370,
+                670
+            ]
+        },
+        "next": [
+            "[JumpBack]CommonConfirmReward", // 溢出返还：先把奖励领掉
+            "CharacterPrepClickBreakthrough", // 关掉升级弹窗后，T9 详情页还有「装备改造」按钮
+            "[JumpBack]CommonClosePage", // T10 页没有改造入口，关掉弹窗进下一部位
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepEquipmentFinish": {
+        "desc": "装备预热收尾",
+        "recognition": {
+            "type": "Or", // 两个弹窗都关掉才算收尾完成
+            "param": {
+                "any_of": [
+                    "CharacterPrepUpgradeDialogEntered",
+                    "CharacterPrepEquipmentOverload",
+                    "CharacterPrepEquipmentTierNine"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "CharacterPrepExitFlow" // 收尾也走统一出口：确认回到角色页再结束
+        ]
+    },
+    "CharacterPrepClickBreakthrough": {
+        "desc": "点击装备改造",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    525,
+                    340,
+                    165
+                ], // 与「升级」同一行，同样随描述/效果行数上下浮动，按弹窗整幅留容差
+                "expected": [
+                    "装备改造"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [
+                455,
+                45,
+                370,
+                670
+            ]
+        }, // 等改造页渲染完，避免按钮颜色还没出来就判材料不足
+        "next": [
+            "CharacterPrepBreakthroughPageEntered"
+        ]
+    },
+    "CharacterPrepBreakthroughPageEntered": {
+        "desc": "装备改造页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    55,
+                    120,
+                    30
+                ],
+                "expected": [
+                    "装备改造"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepBreakthroughButtonEnabled",
+            "CharacterPrepBreakthroughMaterialsInsufficient"
+        ]
+    },
+    "CharacterPrepBreakthroughButtonEnabled": {
+        "desc": "改造材料足够", // 底部大按钮是亮蓝色才可点，材料不足会变灰
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    500,
+                    650,
+                    260,
+                    35
+                ],
+                "lower": [
+                    0,
+                    140,
+                    220
+                ],
+                "upper": [
+                    120,
+                    255,
+                    255
+                ],
+                "count": 500
+            }
+        },
+        "next": [
+            "CharacterPrepClickBreakthroughConfirm"
+        ]
+    },
+    "CharacterPrepBreakthroughMaterialsInsufficient": {
+        "desc": "改造材料不足",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow" // 门禁只记日志，改走统一出口：干净退回角色页再结束本段
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.BreakthroughMaterialsInsufficient.Succeeded"
+        }
+    },
+    "CharacterPrepClickBreakthroughConfirm": {
+        "desc": "确认装备改造",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    640,
+                    330,
+                    55
+                ],
+                "expected": [
+                    "装备改造"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepBreakthroughResultVisible"
+        ]
+    },
+    "CharacterPrepBreakthroughResultVisible": {
+        "desc": "改造结算已出现",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    170,
+                    270,
+                    55
+                ],
+                "expected": [
+                    ".*TUNING.*"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepConfirmBreakthroughResult"
+        ]
+    },
+    "CharacterPrepConfirmBreakthroughResult": {
+        "desc": "确认改造结果",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    460,
+                    200,
+                    50
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepBreakthroughFinished",
+            "CharacterPrepConfirmBreakthroughResult" //兜底
+        ]
+    },
+    "CharacterPrepBreakthroughFinished": {
+        "desc": "改造完成回到角色页",
+        "recognition": {
+            "type": "Or", // 升级弹窗、详情弹窗、改造结算都不在了才算收尾
+            "param": {
+                "any_of": [
+                    "CharacterPrepUpgradeDialogEntered",
+                    "CharacterPrepEquipmentOverload",
+                    "CharacterPrepEquipmentTierNine",
+                    "CharacterPrepBreakthroughResultVisible"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "[Anchor]CharacterPrepAfterMatched"
+        ]
+    },
+    "CharacterPrepUpgradeInsufficient": {
+        "desc": "升级材料不足",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow" // 门禁只记日志，改走统一出口：干净退回角色页再结束本段
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.UpgradeMaterialsInsufficient.Succeeded"
+        }
+    }
+}

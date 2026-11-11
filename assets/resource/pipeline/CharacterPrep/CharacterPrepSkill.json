@@ -1,0 +1,490 @@
+{
+    "CharacterPrepSkillFlow": {
+        "desc": "技能预热",
+        "max_hit": 1, // 只跑一次，[JumpBack] 回来不再重复进入
+        "recognition": {
+            "type": "OCR", // 角色详情页哨兵，与装备预热共用同一个入口条件
+            "param": {
+                "roi": [
+                    0,
+                    12,
+                    80,
+                    28
+                ],
+                "expected": [
+                    "详情资讯"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickSkillTab"
+        ]
+    },
+    "CharacterPrepClickSkillTab": {
+        "desc": "点击技能页签",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1020,
+                    526,
+                    46,
+                    30
+                ],
+                "expected": [
+                    "技能"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300, // 页签切换后面板才浮出来，只等面板区域
+            "target": [
+                1062,
+                458,
+                190,
+                190
+            ]
+        },
+        "next": [
+            "CharacterPrepSkillPanelVisible"
+        ]
+    },
+    "CharacterPrepSkillPanelVisible": {
+        "desc": "处于技能页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1070,
+                    458,
+                    90,
+                    28
+                ],
+                "expected": [
+                    "SKILL"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepSkillAllUpgradable", // 任务是升满 3 个技能：三个图标各要一个红点
+            "CharacterPrepSkillMaterialsInsufficient"
+        ]
+    },
+    "CharacterPrepSkill1Upgradable": {
+        "desc": "技能面板技能1可升级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1106,
+                    496,
+                    32,
+                    32
+                ],
+                "template": "Common/RedDotEllipse.png",
+                "threshold": 0.75 // 三处红点匹配分 0.81~0.93，阈值统一取 0.75
+            }
+        }
+    },
+    "CharacterPrepSkill2Upgradable": {
+        "desc": "技能面板技能2可升级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1106,
+                    549,
+                    32,
+                    32
+                ],
+                "template": "Common/RedDotEllipse.png",
+                "threshold": 0.75
+            }
+        }
+    },
+    "CharacterPrepBurstUpgradable": {
+        "desc": "技能面板爆裂可升级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1198,
+                    521,
+                    32,
+                    32
+                ],
+                "template": "Common/RedDotEllipse.png",
+                "threshold": 0.75
+            }
+        }
+    },
+    "CharacterPrepSkillAllUpgradable": {
+        "desc": "三个技能都可升级", // 三处红点全在才算能升满；少一个就跳过技能预热（满级或材料不足都可能没有红点）
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CharacterPrepSkill1Upgradable",
+                    "CharacterPrepSkill2Upgradable",
+                    "CharacterPrepBurstUpgradable"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickSkillIcon" // 点任意一个红点左下角的图标本体，都进同一个技能资讯页
+        ]
+    },
+    "CharacterPrepClickSkillIcon": {
+        "desc": "点击技能图标",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1106,
+                    496,
+                    32,
+                    32
+                ],
+                "template": "Common/RedDotEllipse.png",
+                "threshold": 0.75
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    // 红点落在图标右上角，左移下移落到图标本体，顺手把框收敛成 4×4
+                    -16,
+                    17,
+                    -6,
+                    -5
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300, // 技能资讯是弹窗，只等弹窗区域
+            "target": [
+                465,
+                96,
+                345,
+                540
+            ]
+        },
+        "next": [
+            "CharacterPrepSkillInfoEntered"
+        ]
+    },
+    "CharacterPrepSkillInfoEntered": {
+        "desc": "技能资讯页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    96,
+                    260,
+                    34
+                ],
+                "expected": [
+                    "技能资讯"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]CharacterPrepSkillUpgrade1", // 技能1：升级流程待接入
+            "[JumpBack]CharacterPrepSkillUpgrade2", // 技能2：升级流程待接入
+            "[JumpBack]CharacterPrepBurstUpgrade", // 爆裂技能：升级流程待接入
+            "CharacterPrepExitFlow" // 三段都跑完：关掉技能资讯弹窗、退回角色页再结束
+        ]
+    },
+    "CharacterPrepSkillUpgrade1": {
+        "desc": "升级技能1",
+        "max_hit": 1, // 每个技能只处理一次，回跳后不再进入
+        "next": [
+            "CharacterPrepSkill1RowUpgradable", // 资讯页里技能1那行还有红点才能升
+            "CharacterPrepSkillMaterialShortage"
+        ]
+    },
+    "CharacterPrepSkillUpgrade2": {
+        "desc": "升级技能2",
+        "max_hit": 1,
+        "next": [
+            "CharacterPrepSkill2RowUpgradable", // 技能1/2 共用材料：升完技能1后技能2的红点可能就没了
+            "CharacterPrepSkillMaterialShortage"
+        ]
+    },
+    "CharacterPrepBurstUpgrade": {
+        "desc": "升级爆裂技能",
+        "max_hit": 1,
+        "next": [
+            "CharacterPrepBurstRowUpgradable",
+            "CharacterPrepSkillMaterialShortage"
+        ]
+    },
+    "CharacterPrepSkill1RowUpgradable": {
+        "desc": "资讯页技能1可升级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    792,
+                    133,
+                    22,
+                    22
+                ],
+                "template": "Common/RedDot.png",
+                "threshold": 0.75
+            }
+        },
+        "action": {
+            "type": "Click" // 点这行的红点进技能升级页
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                450,
+                60,
+                380,
+                600
+            ]
+        },
+        "next": [
+            "CharacterPrepSkillUpgradePageEntered"
+        ]
+    },
+    "CharacterPrepSkill2RowUpgradable": {
+        "desc": "资讯页技能2可升级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    792,
+                    293,
+                    22,
+                    22
+                ],
+                "template": "Common/RedDot.png",
+                "threshold": 0.75
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                450,
+                60,
+                380,
+                600
+            ]
+        },
+        "next": [
+            "CharacterPrepSkillUpgradePageEntered"
+        ]
+    },
+    "CharacterPrepBurstRowUpgradable": {
+        "desc": "资讯页爆裂可升级",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    792,
+                    454,
+                    22,
+                    22
+                ],
+                "template": "Common/RedDot.png",
+                "threshold": 0.75
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                450,
+                60,
+                380,
+                600
+            ]
+        },
+        "next": [
+            "CharacterPrepSkillUpgradePageEntered"
+        ]
+    },
+    "CharacterPrepSkillUpgradePageEntered": {
+        "desc": "技能升级页已打开",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    80,
+                    260,
+                    34
+                ],
+                "expected": [
+                    "技能升级"
+                ]
+            }
+        },
+        "next": [
+            "CharacterPrepClickMaxLevel"
+        ]
+    },
+    "CharacterPrepClickMaxLevel": {
+        "desc": "选择升到 LV.10",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    730,
+                    545,
+                    80,
+                    32
+                ],
+                "expected": [
+                    "LV\\.10"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300, // 选完等级后材料栏与按钮要重算
+            "target": [
+                440,
+                590,
+                400,
+                95
+            ]
+        },
+        "next": [
+            "CharacterPrepSkillUpgradeEnabled", // 升级按钮文字是白色＝材料够
+            "CharacterPrepSkillLevelTenInsufficient" // 灰色＝材料不够升到 10 级
+        ]
+    },
+    "CharacterPrepSkillUpgradeEnabled": {
+        "desc": "升级按钮可用", // 「升级」按钮亮蓝＋白字才可点，不可点时整块变灰、字也变灰
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    650,
+                    606,
+                    110,
+                    36
+                ],
+                "lower": [
+                    210,
+                    210,
+                    210
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 40
+            }
+        },
+        "next": [
+            "CharacterPrepClickSkillUpgrade"
+        ]
+    },
+    "CharacterPrepClickSkillUpgrade": {
+        "desc": "点击技能升级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    600,
+                    230,
+                    50
+                ],
+                "expected": [
+                    "升级"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CharacterPrepSkillUpgradeDone" // 升级成功后会自动回到技能资讯页，不用点关闭
+        ]
+    },
+    "CharacterPrepSkillUpgradeDone": {
+        "desc": "升级后回到资讯页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    96,
+                    260,
+                    34
+                ],
+                "expected": [
+                    "技能资讯"
+                ]
+            }
+        },
+        "next": [
+            "CommonEndTask" // 本段到此结束，回跳后由列表接着做下一个技能
+        ]
+    },
+    "CharacterPrepSkillLevelTenInsufficient": {
+        "desc": "材料不足按钮变灰", // 有红点才进得来，灰按钮只可能是材料不足以升到 10 级
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepSkillUpgradePageExit" // 没升级就不会自动返回，得自己关掉升级页
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.SkillLevelTenInsufficient.Succeeded"
+        }
+    },
+    "CharacterPrepSkillUpgradePageExit": {
+        "desc": "关闭技能升级页",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "[JumpBack]CommonClosePage", // 点掉技能升级页的 X，回到技能资讯页
+            "CommonEndTask"
+        ]
+    },
+    "CharacterPrepSkillMaterialShortage": {
+        "desc": "材料不足红点消失", // 有红点才点得进来，红点消失只可能是材料被前面的技能吃掉（技能1/2 共用）
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow" // 门禁只记日志，改走统一出口：干净退回角色页再结束本段
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.SkillMaterialShortage.Succeeded"
+        }
+    },
+    "CharacterPrepSkillMaterialsInsufficient": {
+        "desc": "技能红点不足三个",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "CharacterPrepExitFlow"
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "$focus.CharacterPrep.SkillMaterialsInsufficient.Succeeded"
+        }
+    }
+}

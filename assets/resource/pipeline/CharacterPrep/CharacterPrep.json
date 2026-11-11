@@ -1,0 +1,57 @@
+{
+    "CharacterPrepMain": {
+        "desc": "角色预热入口",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "RuntimeQuotaCheck"
+            }
+        },
+        "next": [
+            "CharacterPrepEntryFlow"
+        ]
+    },
+    "CharacterPrepEntryFlow": {
+        "desc": "按选项依次执行四项预热",
+        "next": [
+            "[JumpBack]CharacterPrepEquipmentFlow",
+            "[JumpBack]CharacterPrepSkillFlow",
+            "[JumpBack]CharacterPrepCubeFlow",
+            "[JumpBack]CharacterPrepCollectibleFlow",
+            "CommonEndTask"
+        ]
+    },
+    "CharacterPrepExitFlow": {
+        "desc": "预热收尾回角色页", // 所有门禁终止都走这里：先把残留页面收干净，再结束当前这段预热
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "timeout": 30000, // 最多折腾 30 秒，退不回去就放弃，别把任务挂住
+        "next": [
+            "CharacterPrepCharacterPageVisible", // 已经在角色详情页就没什么可收的
+            "[JumpBack]CommonClosePage", // 还压着弹窗（装备详情/升级弹窗/技能资讯）先点掉
+            "[JumpBack]CommonGoBack", // 没有关闭按钮的整页（如装备改造页）用「返回」退
+            "CommonEndTask" // 都点不动就结束，别卡在这
+        ]
+    },
+    "CharacterPrepCharacterPageVisible": {
+        "desc": "已回到角色页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    12,
+                    80,
+                    28
+                ],
+                "expected": [
+                    "详情资讯"
+                ]
+            }
+        },
+        "next": [
+            "CommonEndTask"
+        ]
+    }
+}
