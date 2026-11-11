@@ -35,6 +35,13 @@
 | `sed`       | `-replace` 运算符或 `ForEach-Object`           |
 | `awk`       | `ConvertFrom-Csv`、`Select-Object` 或 `-split` |
 
+## 文件检索与命令开销（硬性）
+
+- **禁止 `Get-ChildItem -Recurse -Include <多个扩展名>`**：`-Include` 会先把每个目录的全部条目枚举出来，再逐项做通配匹配，在文件多的仓库里会慢到不可用；改用 `-Filter` 后是量级差异。
+- **检索顺序**：① 先收窄到具体子目录（如 `assets\resource\image`、`debug\character-prep`）；② 用 `-Filter`（单个 pattern，直接下推到文件系统层）；③ 确实需要全仓库时才全扫，且仍然只用 `-Filter`。
+- **排除目录靠 `-Path`，不靠事后过滤**：不要先把 `.cache`、`debug`、`node_modules` 枚举出来再用 `Where-Object { $_.FullName -notmatch ... }` 丢掉——那时开销已经付完了。
+- **合并调用**：每次 `pwsh` 工具调用都是新进程，多个小检查应写进同一次命令；需要多次 `maafw-live` 实测时用 `maafw-live repl` 连一次复用，不要发 N 条一次性命令（每条都要重新起 node 并重连设备）。
+
 ## 项目约定
 
 - 与用户对话、生成文件内容、生成 commit 信息时优先使用中文。
