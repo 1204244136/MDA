@@ -284,7 +284,9 @@
                                     "template": [
                                         "LargeEvent/MARIAn/MARIAnStory1Stage.png",
                                         "LargeEvent/MARIAn/MARIAnStory1StageLeft.png",
-                                        "LargeEvent/MARIAn/MARIAnStory2StageNormal.png"
+                                        "LargeEvent/MARIAn/MARIAnStory2StageNormal.png",
+                                        "LargeEvent/MARIAn/MARIAnStory2StageHard.png",
+                                        "LargeEvent/MARIAn/MARIAnStory2StageHardLeft.png"
                                     ]
                                 }
                             }
@@ -295,7 +297,9 @@
                                     "template": [
                                         "LargeEvent/MARIAn/MARIAnStory1StageRepeatable.png",
                                         "LargeEvent/MARIAn/MARIAnStory1StageRepeatableLeft.png",
-                                        "LargeEvent/MARIAn/MARIAnStory2StageNormalRepeatable.png"
+                                        "LargeEvent/MARIAn/MARIAnStory2StageNormalRepeatable.png",
+                                        "LargeEvent/MARIAn/MARIAnStory2StageHardRepeatable.png",
+                                        "LargeEvent/MARIAn/MARIAnStory2StageHardRepeatableLeft.png"
                                     ]
                                 }
                             }
