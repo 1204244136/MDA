@@ -51,7 +51,8 @@
             }
         },
         "next": [
-            "RedDotClearSubMenuFlow"
+            "RedDotClearSubMenuFlow",
+            "RedDotClearSubMenuClickEntry" //兜底
         ]
     },
     "RedDotClearSubMenuFlow": {
