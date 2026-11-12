@@ -11,10 +11,14 @@
                     80,
                     28
                 ],
-                "expected": ["详情资讯"]
+                "expected": [
+                    "详情资讯"
+                ]
             }
         },
-        "next": ["CharacterPrepClickCubeTab"]
+        "next": [
+            "CharacterPrepClickCubeTab"
+        ]
     },
     "CharacterPrepClickCubeTab": {
         "desc": "点击魔方页签",
@@ -27,7 +31,9 @@
                     48,
                     30
                 ],
-                "expected": ["魔方"]
+                "expected": [
+                    "魔方"
+                ]
             }
         },
         "action": {
@@ -42,7 +48,9 @@
                 190
             ]
         },
-        "next": ["CharacterPrepCubePanelVisible"]
+        "next": [
+            "CharacterPrepCubePanelVisible"
+        ]
     },
     "CharacterPrepCubePanelVisible": {
         "desc": "处于魔方页",
@@ -55,10 +63,14 @@
                     160,
                     28
                 ],
-                "expected": ["HARMONY CUBE"]
+                "expected": [
+                    "HARMONY CUBE"
+                ]
             }
         },
-        "next": ["CharacterPrepClickCubeSlot"]
+        "next": [
+            "CharacterPrepClickCubeSlot"
+        ]
     },
     "CharacterPrepClickCubeSlot": {
         "desc": "点击魔方空槽",
@@ -87,7 +99,9 @@
                 610
             ]
         },
-        "next": ["CharacterPrepCubeManageEntered"] // 点开后是「魔方管理」弹窗
+        "next": [
+            "CharacterPrepCubeManageEntered"
+        ] // 点开后是「魔方管理」弹窗
     },
     "CharacterPrepCubeManageEntered": {
         "desc": "魔方管理页已打开",
@@ -100,7 +114,9 @@
                     300,
                     36
                 ],
-                "expected": ["魔方管理"]
+                "expected": [
+                    "魔方管理"
+                ]
             }
         },
         "next": [
@@ -118,7 +134,9 @@
                     60,
                     385
                 ], // 覆盖列表右侧整列「穿戴」按钮
-                "expected": ["穿戴"],
+                "expected": [
+                    "穿戴"
+                ],
                 "order_by": "Vertical" // 从上往下取第一个，点哪个都行
             }
         },
@@ -143,7 +161,9 @@
                     15,
                     18
                 ],
-                "expected": ["\\d+"]
+                "expected": [
+                    "\\d+"
+                ]
             }
         },
         "next": [
