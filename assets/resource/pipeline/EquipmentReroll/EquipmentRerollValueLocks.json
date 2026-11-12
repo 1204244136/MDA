@@ -154,9 +154,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectSlot1",
-                    "__EquipmentRerollChangeEffectTitle"
-                ]
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot1"
+                ],
+                "box_index": 1 // 取槽位框：槽位以标题框为 ROI 基准，标题必须先跑
             }
         },
         "action": {
@@ -184,9 +185,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectSlot2",
-                    "__EquipmentRerollChangeEffectTitle"
-                ]
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot2"
+                ],
+                "box_index": 1 // 取槽位框：槽位以标题框为 ROI 基准，标题必须先跑
             }
         },
         "action": {
@@ -214,9 +216,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectSlot3",
-                    "__EquipmentRerollChangeEffectTitle"
-                ]
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot3"
+                ],
+                "box_index": 1 // 取槽位框：槽位以标题框为 ROI 基准，标题必须先跑
             }
         },
         "action": {

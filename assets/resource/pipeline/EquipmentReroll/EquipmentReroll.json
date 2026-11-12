@@ -709,10 +709,11 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectButton",
                     "__EquipmentRerollChangeEffectTitle",
-                    "__EquipmentRerollPreviousLockSettings"
-                ]
+                    "__EquipmentRerollPreviousLockSettings",
+                    "__EquipmentRerollChangeEffectButton"
+                ],
+                "box_index": 2 // 取按钮框：按钮以历史锁设置文字为 ROI 基准，标题与设置都要先跑，故显式指定取框序号
             }
         },
         "pre_delay": 0,
@@ -892,9 +893,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectSlot2",
-                    "__EquipmentRerollChangeEffectTitle"
-                ]
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot2"
+                ],
+                "box_index": 1 // 取槽位框：槽位以标题框为 ROI 基准，标题必须先跑
             }
         },
         "pre_delay": 0,
@@ -925,9 +927,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "__EquipmentRerollChangeEffectSlot3",
-                    "__EquipmentRerollChangeEffectTitle"
-                ]
+                    "__EquipmentRerollChangeEffectTitle",
+                    "__EquipmentRerollChangeEffectSlot3"
+                ],
+                "box_index": 1 // 取槽位框：槽位以标题框为 ROI 基准，标题必须先跑
             }
         },
         "pre_delay": 0,

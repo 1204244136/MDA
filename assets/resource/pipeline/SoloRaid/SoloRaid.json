@@ -133,9 +133,10 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "SoloRaidSelectLevelAvailable",
-                    "SoloRaidSelectLevelVisible"
-                ]
+                    "SoloRaidSelectLevelVisible",
+                    "SoloRaidSelectLevelAvailable"
+                ],
+                "box_index": 1 // 取已开放关卡的色块框：色块识别拿模板框当 ROI，只能排第二，故必须显式指定取框序号
             }
         },
         "action": {

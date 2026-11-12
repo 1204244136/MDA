@@ -60,6 +60,11 @@ jobs:
       - name: Check pipeline desc style
         run: npm run check:desc
 
+      - name: Check And box_index order
+        run: |
+          npm run test:and
+          npm run check:and
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
