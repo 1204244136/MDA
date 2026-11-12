@@ -321,7 +321,15 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
+        "post_wait_freezes": {
+            "time": 500, //等下方详情面板；默认取识别框 33×12，实测卡 0.84 到 20s 超时
+            "target": [
+                494,
+                505,
+                294,
+                131
+            ]
+        },
         "next": [
             "LargeEventEventStageBattlePage",
             "LargeEventEventStageQuickBattleFlow"
@@ -352,7 +360,15 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
+        "post_wait_freezes": {
+            "time": 500, //扫荡图标同为小框，一并改等详情面板
+            "target": [
+                494,
+                505,
+                294,
+                131
+            ]
+        },
         "next": [
             "LargeEventEventStageBattlePage",
             "LargeEventGoBack"
