@@ -8,7 +8,7 @@
         ]
     },
     "RedDotClearNoticeEnterHall": {
-        "desc": "公告入口",
+        "desc": "公告入口确认",
         "recognition": {
             "type": "And",
             "param": {
@@ -23,7 +23,7 @@
         ]
     },
     "RedDotClearNoticeClickEntry": {
-        "desc": "点击公告红点",
+        "desc": "公告按钮红点",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -54,7 +54,7 @@
         ]
     },
     "RedDotClearNoticeFlow": {
-        "desc": "公告流程",
+        "desc": "公告分类调度",
         "recognition": {
             "type": "And",
             "param": {
@@ -63,14 +63,303 @@
                 ]
             }
         },
+        "post_wait_freezes": {
+            "time": 300, // 等弹窗淡入稳定后再检测页签红点
+            "rate_limit": 150,
+            "target": [
+                464,
+                106,
+                353,
+                518
+            ]
+        },
         "next": [
-            "[JumpBack]RedDotClearNoticeRedDotClickBottom",
-            "[JumpBack]RedDotClearNoticeRedDotClickTop",
+            "[JumpBack]RedDotClearNoticeEventTab",
+            "[JumpBack]RedDotClearNoticeSystemTab",
+            "CommonClosePage",
             "CommonEndTask"
         ]
     },
-    "RedDotClearNoticeRedDotClickBottom": {
-        "desc": "公告底部点击红点",
+    "RedDotClearNoticeEventTab": {
+        "desc": "活动公告分页",
+        "max_hit": 1, // 每个分页每轮最多处理一次，避免异常红点死循环
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearNoticeEventTabDot"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]RedDotClearNoticeSelectEventTab",
+            "RedDotClearNoticeScanUp"
+        ]
+    },
+    "RedDotClearNoticeSystemTab": {
+        "desc": "系统公告分页",
+        "max_hit": 1, // 每个分页每轮最多处理一次，避免异常红点死循环
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearNoticeSystemTabDot"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]RedDotClearNoticeSelectSystemTab",
+            "RedDotClearNoticeScanUp"
+        ]
+    },
+    "RedDotClearNoticeEventTabDot": {
+        "desc": "活动分页红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    605,
+                    98,
+                    35,
+                    30
+                ], // 限定左页签角标区域，避免混入右页签或触发水波纹遮挡
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearNoticeSystemTabDot": {
+        "desc": "系统分页红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    780,
+                    98,
+                    35,
+                    30
+                ], // 限定右页签角标区域，避免与左页签互相干扰
+                "template": [
+                    "Common/RedDot.png"
+                ]
+            }
+        }
+    },
+    "RedDotClearNoticeEventTabActive": {
+        "desc": "活动分页激活态",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    480,
+                    112,
+                    40,
+                    16
+                ],
+                "lower": [
+                    220,
+                    220,
+                    220
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 400
+            }
+        }
+    },
+    "RedDotClearNoticeSystemTabActive": {
+        "desc": "系统分页激活态",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    650,
+                    112,
+                    40,
+                    16
+                ],
+                "lower": [
+                    220,
+                    220,
+                    220
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 400
+            }
+        }
+    },
+    "RedDotClearNoticeSelectEventTab": {
+        "desc": "活动分页未选中态",
+        "max_hit": 2,
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    480,
+                    112,
+                    40,
+                    16
+                ], // 点页签左侧纯色区切换，避开右上角红点水波纹干扰
+                "lower": [
+                    0,
+                    90,
+                    190
+                ],
+                "upper": [
+                    45,
+                    155,
+                    255
+                ],
+                "count": 400
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 400, // 等分页切换完成并稳定，避免直接扫到旧列表
+            "rate_limit": 150,
+            "target": [
+                464,
+                106,
+                353,
+                518
+            ]
+        }
+    },
+    "RedDotClearNoticeSelectSystemTab": {
+        "desc": "系统分页未选中态",
+        "max_hit": 2,
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    650,
+                    112,
+                    40,
+                    16
+                ], // 点页签左侧纯色区切换，避开右上角红点水波纹干扰
+                "lower": [
+                    0,
+                    90,
+                    190
+                ],
+                "upper": [
+                    45,
+                    155,
+                    255
+                ],
+                "count": 400
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 400, // 等分页切换完成并稳定，确保先清顶部初始红点
+            "rate_limit": 150,
+            "target": [
+                464,
+                106,
+                353,
+                518
+            ]
+        }
+    },
+    "RedDotClearNoticeScanUp": {
+        "desc": "先清红点再向上扫描",
+        "next": [
+            "[JumpBack]RedDotClearNoticeClickItem",
+            "[JumpBack]RedDotClearNoticeEventScrollUp",
+            "[JumpBack]RedDotClearNoticeSystemScrollUp",
+            "RedDotClearNoticeScanDown",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearNoticeScanDown": {
+        "desc": "回顶方向补扫",
+        "next": [
+            "[JumpBack]RedDotClearNoticeClickItem",
+            "[JumpBack]RedDotClearNoticeEventScrollDown",
+            "[JumpBack]RedDotClearNoticeSystemScrollDown",
+            "CommonEndTask"
+        ]
+    },
+    "RedDotClearNoticeEventScrollUp": {
+        "desc": "活动页待清触发上滑",
+        "max_hit": 10, // 上滑次数封顶，防异常红点无限滚动
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearNoticeEventTabActive",
+                    "RedDotClearNoticeEventTabDot"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearNoticeSwipeUp"
+        ]
+    },
+    "RedDotClearNoticeSystemScrollUp": {
+        "desc": "系统页待清触发上滑",
+        "max_hit": 10, // 上滑次数封顶，且与活动页独立计数互不挤占
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearNoticeSystemTabActive",
+                    "RedDotClearNoticeSystemTabDot"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearNoticeSwipeUp"
+        ]
+    },
+    "RedDotClearNoticeEventScrollDown": {
+        "desc": "活动页待清触发下滑",
+        "max_hit": 10,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearNoticeEventTabActive",
+                    "RedDotClearNoticeEventTabDot"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearNoticeSwipeDown"
+        ]
+    },
+    "RedDotClearNoticeSystemScrollDown": {
+        "desc": "系统页待清触发下滑",
+        "max_hit": 10,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RedDotClearNoticeSystemTabActive",
+                    "RedDotClearNoticeSystemTabDot"
+                ]
+            }
+        },
+        "next": [
+            "RedDotClearNoticeSwipeDown"
+        ]
+    },
+    "RedDotClearNoticeClickItem": {
+        "desc": "公告列表条目红点",
+        "max_hit": 50, // 兜底防单个无法消除的条目红点反复死点
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -79,11 +368,12 @@
                     133,
                     46,
                     489
-                ], //太长会导致点击卡片边缘失效
+                ], // 太长会导致点击卡片边缘失效
                 "template": [
                     "Common/RedDot.png"
                 ],
-                "threshold": 0.8
+                "threshold": 0.75, // 实测真红点 0.800~0.957，插画误匹配最高 0.575
+                "order_by": "Vertical"
             }
         },
         "action": {
@@ -99,6 +389,7 @@
         },
         "post_wait_freezes": {
             "time": 500,
+            "rate_limit": 200,
             "target": [
                 464,
                 34,
@@ -110,39 +401,8 @@
             "RedDotClearNoticeClickBlank"
         ]
     },
-    "RedDotClearNoticeRedDotClickTop": {
-        "desc": "公告顶部点击红点",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    460,
-                    84,
-                    362,
-                    50
-                ],
-                "template": [
-                    "Common/RedDot.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -10,
-                    10,
-                    0,
-                    0
-                ]
-            }
-        },
-        "next": [
-            "RedDotClearNoticeScrollUp"
-        ]
-    },
     "RedDotClearNoticeClickBlank": {
-        "desc": "公告点击空白",
+        "desc": "详情弹窗外空白处",
         "action": {
             "type": "Click",
             "param": {
@@ -154,6 +414,7 @@
         },
         "post_wait_freezes": {
             "time": 500,
+            "rate_limit": 200,
             "target": [
                 464,
                 134,
@@ -162,22 +423,8 @@
             ]
         }
     },
-    "RedDotClearNoticeScrollUp": {
-        "desc": "向上滑动",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    460,
-                    84,
-                    362,
-                    50
-                ],
-                "template": [
-                    "Common/RedDot.png"
-                ]
-            }
-        },
+    "RedDotClearNoticeSwipeUp": {
+        "desc": "列表向上滚动",
         "action": {
             "type": "Swipe",
             "param": {
@@ -192,6 +439,42 @@
                 "end_hold": 300
             }
         },
-        "post_wait_freezes": 20
+        "post_wait_freezes": {
+            "time": 300, // 仅等列表区惯性停稳，避开背景 Live2D 动态干扰
+            "rate_limit": 150,
+            "target": [
+                464,
+                134,
+                353,
+                490
+            ]
+        }
+    },
+    "RedDotClearNoticeSwipeDown": {
+        "desc": "列表向下滚动",
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    627,
+                    238
+                ],
+                "end": [
+                    627,
+                    528
+                ],
+                "end_hold": 300
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300, // 仅等列表区惯性停稳，避开背景 Live2D 动态干扰
+            "rate_limit": 150,
+            "target": [
+                464,
+                134,
+                353,
+                490
+            ]
+        }
     }
 }
