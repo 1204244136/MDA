@@ -65,13 +65,13 @@
         },
         "post_wait_freezes": {
             "time": 300, // 等弹窗淡入稳定后再检测页签红点
-            "rate_limit": 150,
             "target": [
                 464,
                 106,
                 353,
                 518
-            ]
+            ],
+            "rate_limit": 150
         },
         "next": [
             "[JumpBack]RedDotClearNoticeEventTab",
@@ -226,13 +226,13 @@
         },
         "post_wait_freezes": {
             "time": 400, // 等分页切换完成并稳定，避免直接扫到旧列表
-            "rate_limit": 150,
             "target": [
                 464,
                 106,
                 353,
                 518
-            ]
+            ],
+            "rate_limit": 150
         }
     },
     "RedDotClearNoticeSelectSystemTab": {
@@ -265,13 +265,13 @@
         },
         "post_wait_freezes": {
             "time": 400, // 等分页切换完成并稳定，确保先清顶部初始红点
-            "rate_limit": 150,
             "target": [
                 464,
                 106,
                 353,
                 518
-            ]
+            ],
+            "rate_limit": 150
         }
     },
     "RedDotClearNoticeScanUp": {
@@ -389,13 +389,13 @@
         },
         "post_wait_freezes": {
             "time": 500,
-            "rate_limit": 200,
             "target": [
                 464,
                 34,
                 353,
                 625
-            ]
+            ],
+            "rate_limit": 200
         },
         "next": [
             "RedDotClearNoticeClickBlank"
@@ -414,13 +414,13 @@
         },
         "post_wait_freezes": {
             "time": 500,
-            "rate_limit": 200,
             "target": [
                 464,
                 134,
                 353,
                 464
-            ]
+            ],
+            "rate_limit": 200
         }
     },
     "RedDotClearNoticeSwipeUp": {
@@ -441,13 +441,13 @@
         },
         "post_wait_freezes": {
             "time": 300, // 仅等列表区惯性停稳，避开背景 Live2D 动态干扰
-            "rate_limit": 150,
             "target": [
                 464,
                 134,
                 353,
                 490
-            ]
+            ],
+            "rate_limit": 150
         }
     },
     "RedDotClearNoticeSwipeDown": {
@@ -468,13 +468,13 @@
         },
         "post_wait_freezes": {
             "time": 300, // 仅等列表区惯性停稳，避开背景 Live2D 动态干扰
-            "rate_limit": 150,
             "target": [
                 464,
                 134,
                 353,
                 490
-            ]
+            ],
+            "rate_limit": 150
         }
     }
 }
