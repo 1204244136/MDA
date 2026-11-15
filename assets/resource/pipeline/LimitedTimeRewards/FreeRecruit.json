@@ -90,6 +90,7 @@
         "next": [
             "[JumpBack]CommonSkipPlot",
             "LimitedTimeRewardsConfirmRecruit",
+            "LimitedTimeRewardsClickFreeRecruit", //兜底
             "[JumpBack]CommonClickBlank"
         ]
     },
