@@ -9,7 +9,7 @@
         "next": [
             "CashShopResumeFlow",
             "HallEnterCashShop",
-            "[JumpBack]SceneEnterHall"
+            "[JumpBack]CashShopRecoverHall"
         ]
     },
     "CashShopResumeFlow": {
@@ -48,11 +48,36 @@
             "type": "Click"
         },
         "post_delay": 1500, // 点完先给商店请求留出返回时间，正常一次就进店，异常时也能等到网络异常弹窗再重试
+        "timeout": 30000, // 留足加载等待与 SceneEnterHall 清理弹窗后返回重试的时间预算
         "next": [
             "[JumpBack]CashShopConsumeLimitFlow", //日服进入付费商店会弹出消费限制弹窗，先处理再确认是否已进入商店
             "CashShopCornerFlow",
             "CashShopNetworkErrorFlow",
-            "HallEnterCashShop"
+            "HallEnterCashShop",
+            "[JumpBack]CommonConfirmReward", // 每日探索奖励弹窗覆盖屏幕时先点领取，免去等加载或完整回大厅的开销
+            "[JumpBack]CashShopWaitEntry",
+            "[JumpBack]CashShopRecoverHall"
+        ]
+    },
+    "CashShopWaitEntry": {
+        "desc": "等待商店加载画面",
+        "max_hit": 4, // 黑屏加载期大厅与商店均暂不可见，先轮询等待约 4 秒再回大厅，避免被 Home 退回
+        "pre_delay": 0,
+        "post_delay": 1000
+    },
+    "CashShopRecoverHall": {
+        "desc": "不在大厅时回大厅",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "inverse": true, // 已在大厅时不触发回大厅，防止入口缺失或点满次数后反复空转
+        "next": [
+            "SceneEnterHall"
         ]
     },
     "CashShopNetworkErrorVisible": {

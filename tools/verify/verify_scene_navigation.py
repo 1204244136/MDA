@@ -141,6 +141,9 @@ class NavigationRun:
         self.reward_progress = 0
         self.reward_open = "info"
         self.reward_delay = 0
+        self.cashshop_intercept = None
+        self.cashshop_loading_steps = 0
+        self.cashshop_retry_to = "cashshop"
         self.frozen, self.extra_visible = False, set()
         self.recognition_count = 0
         self.controller = self.tasker = None
@@ -187,10 +190,10 @@ class NavigationRun:
         pages = {
             "CommonArkEntered": {"ark", "arena_reward_info"},
             "CommonArkCornerVisible": {"arena", "interception", "simulation", "tower"},
-            "CommonArkVisible": {"hall"},
-            "CommonBellIconVisible": {"hall"},
-            "CommonMailIconVisible": {"hall"},
-            "CommonFreeStateVisible": {"hall"},
+            "CommonArkVisible": {"hall", "hall_dimmed"},
+            "CommonBellIconVisible": {"hall", "hall_dimmed"},
+            "CommonMailIconVisible": {"hall", "hall_dimmed"},
+            "CommonFreeStateVisible": {"hall", "hall_dimmed"},
             "CommonEnterOutpost": {"hall"},
             "OutpostMainPageEntered": {"outpost"},
             "ArkEnterArena": {"ark"},
@@ -211,18 +214,19 @@ class NavigationRun:
             "InterceptionMainPageEntered": {"interception"},
             "SimulationRoomMainPageEntered": {"simulation"},
             "TribeTowerSelectPageEntered": {"tower"},
-            "CommonClickHomeButton": {"unknown", "outpost", "arena", "interception", "simulation", "tower"},
+            "CommonClickHomeButton": {"unknown", "outpost", "arena", "interception", "simulation", "tower", "shop"},
             "CommonClickHall": {"unknown", "outpost", "arena", "interception", "simulation", "tower"},
             "CommonClickFreeState": {"hall"},
             "CommonNoticeVisible": {"hall_notice"},
-            "CommonClosePage": {"hall_notice", "arena_reward_info"},
+            "CommonClosePage": {"hall_notice", "arena_reward_info", "hall_dimmed"},
             "CommonConfirmAction": {"arena_reward_info"},
-            "CommonConfirmReward": {"arena_reward_popup"},
+            "CommonConfirmReward": {"arena_reward_popup", "hall_reward"},
             "ArenaSpecialRewardInfoVisible": {"arena_reward_info"},
             "ArenaSpecialRewardResultVisible": {"arena_reward_popup"},
             "ArenaSpecialRewardArkTitleBright": {"ark"},
             "ShopMainPageEntered": {"shop"},
             "HallEnterShop": {"hall"},
+            "HallEnterCashShop": {"hall", "hall_dimmed"},
             "FriendManagementOnFriendPage": {"friend"},
             "FriendManagementClickFriendEntry": {"hall"},
             "AdviseMainPageEntered": {"advise"},
@@ -232,6 +236,8 @@ class NavigationRun:
             # shop has the ordinary package tab required by ResumeFlow.
             "CashShopMainPageEntered": {"shop", "cashshop"},
             "ShopChooseOrdinaryPackage": {"cashshop"},
+            "CashShopNetworkErrorVisible": {"cashshop_network_error"},
+            "CashShopNetworkRetryButtonVisible": {"cashshop_network_error"},
             "SynchroDeviceEntered": {"synchro"},
             "RecycleRoomEntered": {"recycle"},
         }
@@ -288,6 +294,21 @@ class NavigationRun:
                 self.page = "ark"  # 结算后直接回方舟，外层百分比暂未刷新。
             elif node == "CommonConfirmAction":
                 pass  # 独立公共确认动作，用于核实其预算未被 And 引用消耗。
+            elif node == "CommonConfirmReward":
+                if self.page == "hall_reward":
+                    self.page = "hall_dimmed"
+            elif node == "HallEnterCashShop":
+                if not self.frozen:
+                    if self.cashshop_intercept:
+                        self.page, self.cashshop_intercept = self.cashshop_intercept, None
+                    elif self.page == "hall_dimmed":
+                        # 压暗态下入口仍命中：点一次退出 VOLT TRIP 回大厅，下一轮再点即进店
+                        self.page = "hall"
+                    else:
+                        self.page = "cashshop"
+            elif node == "CashShopRetryNetworkError":
+                if not self.frozen:
+                    self.page = self.cashshop_retry_to
             elif node == "CommonClickBlank":
                 pass  # Existing interception entry popup dismissal.
             elif node in {"ArenaMain", "OutpostMain", "InterceptionMain", "SimulationRoomMain", "TribeTowerMain",
@@ -311,13 +332,21 @@ class NavigationRun:
                 self.reward_delay -= 1
                 if self.reward_delay == 0:
                     self.page = "arena_reward_popup"
+            elif node == "CashShopWaitEntry" and self.cashshop_loading_steps:
+                self.cashshop_loading_steps -= 1
+                if self.cashshop_loading_steps == 0 and self.page == "loading":
+                    self.page = "cashshop"
         elif message == b"Node.PipelineNode.Failed":
             self.failed_nodes.append(json.loads(details)["name"])
 
     def run(self, entry, page, *, missing=(), reward=False, extra=None, frozen=False, visible=(),
-            reward_progress=100, reward_open="info", reward_delay=0):
+            reward_progress=100, reward_open="info", reward_delay=0,
+            cashshop_intercept=None, cashshop_loading_steps=0, cashshop_retry_to="cashshop"):
         self.page, self.reward, self.missing = page, reward, set(missing)
         self.reward_progress, self.reward_open, self.reward_delay = reward_progress, reward_open, reward_delay
+        self.cashshop_intercept = cashshop_intercept
+        self.cashshop_loading_steps = cashshop_loading_steps
+        self.cashshop_retry_to = cashshop_retry_to
         self.frozen, self.extra_visible = frozen, set(visible)
         self.completed.clear()
         self.actions.clear()
@@ -519,6 +548,67 @@ def check_behaviors(run):
     assert "CashShopCornerFlow" in run.completed and not run.actions
     count += 1
     print("[PASS] 付费商店复用同时要求标题与普通礼包，百货标题单独命中不放行")
+
+    cash_main_boundary = cash_boundary
+    assert run.run("CashShopMain", "hall_dimmed", extra=cash_main_boundary) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop", "HallEnterCashShop"], run.actions
+    assert "SceneEnterHall" not in run.completed
+    count += 1
+    print("[PASS] VOLT TRIP 压暗大厅时连点付费商店先退弹窗再进店，无需额外遮暗节点")
+
+    assert run.run("CashShopMain", "hall", cashshop_intercept="hall_reward", extra=cash_main_boundary) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop", "CommonConfirmReward",
+                           "HallEnterCashShop", "HallEnterCashShop"], run.actions
+    assert "CashShopWaitEntry" not in run.completed
+    count += 1
+    assert run.run("CashShopMain", "hall_reward", extra=cash_main_boundary) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "CommonConfirmReward", "CommonClosePage", "CommonClickFreeState",
+                           "CommonClosePage", "HallEnterCashShop"], run.actions
+    count += 1
+    print("[PASS] 每日探索奖励弹窗出现时可立即领取恢复，入口前后触发均可继续进店")
+
+    assert run.run("CashShopMain", "hall", cashshop_intercept="loading", cashshop_loading_steps=2,
+                   extra=cash_main_boundary) == SUCCEEDED, run.completed
+    assert run.page == "cashshop" and run.actions == ["CashShopMain", "HallEnterCashShop"], run.actions
+    assert run.completed.count("CashShopWaitEntry") == 2
+    assert "SceneEnterHall" not in run.completed, run.completed
+    count += 1
+    print("[PASS] 正常黑屏加载期通过 CashShopWaitEntry 等待进店，不会被 SceneEnterHall 误退出")
+
+    assert run.run("CashShopMain", "hall", cashshop_intercept="unknown", extra=cash_main_boundary) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.completed.count("CashShopWaitEntry") == 4
+    assert run.actions == ["CashShopMain", "HallEnterCashShop", "CommonClickHomeButton", "CommonClickFreeState",
+                           "CommonClosePage", "HallEnterCashShop"], run.actions
+    count += 1
+    print("[PASS] 误入未知页面超过加载等待预算后经 CashShopRecoverHall 回大厅重进")
+
+    assert run.run("CashShopMain", "shop", extra=cash_main_boundary) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "CommonClickHomeButton", "CommonClickFreeState", "CommonClosePage",
+                           "HallEnterCashShop"], run.actions
+    count += 1
+    assert run.run("CashShopMain", "hall", missing={"HallEnterCashShop"}, extra=cash_main_boundary) == FAILED
+    assert run.actions == ["CashShopMain"] and run.recognition_count < 50000, (run.actions, run.recognition_count)
+    assert "SceneEnterHall" not in run.completed
+    count += 1
+    print("[PASS] 在百货商店时不误认并可回大厅进付费商店；大厅缺失付费商店入口时有界失败不空转")
+
+    retry_no = {**cash_main_boundary, **option_overrides("CashShop.json", CashShopNetworkRetry="No")}
+    assert run.run("CashShopMain", "hall", cashshop_intercept="cashshop_network_error", extra=retry_no) == FAILED
+    assert run.page == "cashshop_network_error"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop"], run.actions
+    assert "CashShopRetryNetworkError" not in run.completed and "SceneEnterHall" not in run.completed
+    count += 1
+    retry_yes = {**cash_main_boundary, **option_overrides("CashShop.json", CashShopNetworkRetry="Yes")}
+    assert run.run("CashShopMain", "hall", cashshop_intercept="cashshop_network_error", extra=retry_yes) == SUCCEEDED
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop", "CashShopRetryNetworkError"], run.actions
+    count += 1
+    print("[PASS] 付费商店网络异常重试开关按预期生效，关闭时等待熔断且不绕回大厅")
 
     outpost_disabled = option_overrides("Outpost.json", DefenseRewards="No", BulletinBoard="No", BriefEncounter="No")
     # These leaf probes would match if the declared options did not disable the
