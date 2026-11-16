@@ -497,7 +497,8 @@
             "[JumpBack]DailyLoginRewardsFlow", //登录后的签到页可能晚于铃铛图标加载完成
             "CommonFreeStateFlow",
             "CommonClickFreeState", //兜底
-            "[JumpBack]CommonCloseSale"
+            "[JumpBack]CommonCloseSale",
+            "[JumpBack]CommonConfirmReward" //每日探索奖励等结算弹窗可能晚于铃铛出现，先领取再让后续流程清理底层窗口
         ]
     },
     "CommonClickHall": {

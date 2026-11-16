@@ -144,6 +144,10 @@ class NavigationRun:
         self.cashshop_intercept = None
         self.cashshop_loading_steps = 0
         self.cashshop_retry_to = "cashshop"
+        self.cashshop_retry_plans = None
+        self.cashshop_retry_spinner_steps = 0
+        self.cashshop_post_retry_delay_polls = 0
+        self.free_state_intercept = None
         self.frozen, self.extra_visible = False, set()
         self.recognition_count = 0
         self.controller = self.tasker = None
@@ -243,6 +247,16 @@ class NavigationRun:
         }
         if name == "ArenaSpecialRewardBadgeVisible":
             return self.page == "ark" and self.reward_progress >= 50
+        if name == "CashShopLoadingSpinnerVisible":
+            if self.cashshop_retry_spinner_steps > 0:
+                self.cashshop_retry_spinner_steps -= 1
+                return True
+            return False
+        if name == "CashShopMainPageEntered" and self.page == "cashshop_post_retry_loading":
+            if self.cashshop_post_retry_delay_polls > 0:
+                self.cashshop_post_retry_delay_polls -= 1
+                return False
+            self.page = "cashshop"
         return self.page in pages.get(name, set())
 
     def recognize(self, context, task_id, name, custom, params, image, roi, trans, out_box, out_detail):
@@ -279,7 +293,10 @@ class NavigationRun:
                 self.page = "ark"
             elif node in targets:
                 if not self.frozen:
-                    self.page = targets[node]
+                    if node == "CommonClickFreeState" and self.free_state_intercept:
+                        self.page, self.free_state_intercept = self.free_state_intercept, None
+                    else:
+                        self.page = targets[node]
             elif node == "ArenaClaimSpecialReward":
                 if self.reward_open == "info":
                     self.page = "arena_reward_info"
@@ -308,7 +325,10 @@ class NavigationRun:
                         self.page = "cashshop"
             elif node == "CashShopRetryNetworkError":
                 if not self.frozen:
-                    self.page = self.cashshop_retry_to
+                    if self.cashshop_retry_plans:
+                        self.page, self.cashshop_retry_spinner_steps = self.cashshop_retry_plans.pop(0)
+                    else:
+                        self.page = self.cashshop_retry_to
             elif node == "CommonClickBlank":
                 pass  # Existing interception entry popup dismissal.
             elif node in {"ArenaMain", "OutpostMain", "InterceptionMain", "SimulationRoomMain", "TribeTowerMain",
@@ -341,12 +361,18 @@ class NavigationRun:
 
     def run(self, entry, page, *, missing=(), reward=False, extra=None, frozen=False, visible=(),
             reward_progress=100, reward_open="info", reward_delay=0,
-            cashshop_intercept=None, cashshop_loading_steps=0, cashshop_retry_to="cashshop"):
+            cashshop_intercept=None, cashshop_loading_steps=0, cashshop_retry_to="cashshop",
+            cashshop_retry_plans=None, cashshop_post_retry_delay_polls=0,
+            free_state_intercept=None):
         self.page, self.reward, self.missing = page, reward, set(missing)
         self.reward_progress, self.reward_open, self.reward_delay = reward_progress, reward_open, reward_delay
         self.cashshop_intercept = cashshop_intercept
         self.cashshop_loading_steps = cashshop_loading_steps
         self.cashshop_retry_to = cashshop_retry_to
+        self.cashshop_retry_plans = list(cashshop_retry_plans) if cashshop_retry_plans else None
+        self.cashshop_retry_spinner_steps = 0
+        self.cashshop_post_retry_delay_polls = cashshop_post_retry_delay_polls
+        self.free_state_intercept = free_state_intercept
         self.frozen, self.extra_visible = frozen, set(visible)
         self.completed.clear()
         self.actions.clear()
@@ -608,7 +634,37 @@ def check_behaviors(run):
     assert run.page == "cashshop"
     assert run.actions == ["CashShopMain", "HallEnterCashShop", "CashShopRetryNetworkError"], run.actions
     count += 1
-    print("[PASS] 付费商店网络异常重试开关按预期生效，关闭时等待熔断且不绕回大厅")
+    assert run.run("CashShopMain", "hall", cashshop_intercept="cashshop_network_error",
+                   cashshop_retry_plans=[("cashshop_network_error", 3), ("cashshop", 0)],
+                   extra=retry_yes) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop",
+                           "CashShopRetryNetworkError", "CashShopRetryNetworkError"], run.actions
+    assert run.cashshop_retry_spinner_steps == 0
+    assert "CashShopNetworkErrorRetrySettled" in run.completed
+    count += 1
+    assert run.run("CashShopMain", "hall", cashshop_intercept="cashshop_network_error",
+                   cashshop_retry_to="cashshop_post_retry_loading",
+                   cashshop_post_retry_delay_polls=2,
+                   extra=retry_yes) == SUCCEEDED, run.completed
+    assert run.page == "cashshop"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop", "CashShopRetryNetworkError"], run.actions
+    assert "CashShopNetworkErrorRetrySettled" in run.completed
+    count += 1
+    assert run.run("CashShopMain", "hall", cashshop_intercept="cashshop_network_error",
+                   cashshop_retry_plans=[("cashshop_network_error", 2), ("cashshop_network_error", 2)],
+                   extra=retry_yes) == FAILED
+    assert run.page == "cashshop_network_error"
+    assert run.actions == ["CashShopMain", "HallEnterCashShop",
+                           "CashShopRetryNetworkError", "CashShopRetryNetworkError"], run.actions
+    count += 1
+    print("[PASS] 付费商店网络异常重试开关按预期生效，加载转圈期间不耗尽第二次重试，持续失败最多重试2次后熔断")
+
+    assert run.run("CommonReturnHall", "hall", free_state_intercept="hall_reward") == SUCCEEDED, run.completed
+    assert run.page == "hall"
+    assert run.actions == ["CommonClickFreeState", "CommonConfirmReward", "CommonClosePage"], run.actions
+    count += 1
+    print("[PASS] 进入大厅点击自由状态后遇到迟到的每日探索奖励弹窗可先领奖再关闭底层窗口")
 
     outpost_disabled = option_overrides("Outpost.json", DefenseRewards="No", BulletinBoard="No", BriefEncounter="No")
     # These leaf probes would match if the declared options did not disable the
