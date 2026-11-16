@@ -539,7 +539,8 @@
                 ],
                 "expected": [
                     "方舟"
-                ]
+                ],
+                "only_rec": true // 避免与其他 OCR 合批形成扁长 union ROI 时截断小字
             }
         }
     },
@@ -637,7 +638,8 @@
                 ],
                 "expected": [
                     "方舟"
-                ]
+                ],
+                "only_rec": true // 避免与其他 OCR 合批时截断小字
             }
         }
     }
