@@ -42,15 +42,16 @@ func valueScopeCurrentPercent(parts map[string]partScan, cfg carrierConfig, effe
 
 // buildValueProgressMessage 生成数值目标的进度摘要，供 focus 输出。
 //
-// 每行一个目标效果：条目数、当前合计档位与实际百分比、目标合计档位与对应百分比，
-// 以及「还差几档 / 已达标」。目标是硬下限，所以这里只陈述现状，不做估计。
+// 每个目标拆为两行，避免窄日志栏中途折行：
+// 首行给出效果名、条目数与「差N档 / 已达标」；
+// 次行缩进给出「当前/目标档（当前% / ≈目标%）」。
 // 目标不可达等配置问题由调用方走错误路径，本函数返回空串。
 func buildValueProgressMessage(parts map[string]partScan, cfg carrierConfig) string {
 	progress, err := evaluateValueScope(parts, cfg)
 	if err != nil {
 		return ""
 	}
-	lines := make([]string, 0, len(cfg.ValueTargets))
+	lines := make([]string, 0, len(cfg.ValueTargets)*2)
 	for _, effect := range officialEffects {
 		target, ok := cfg.ValueTargets[effect]
 		if !ok || target <= 0 {
@@ -58,20 +59,24 @@ func buildValueProgressMessage(parts map[string]partScan, cfg carrierConfig) str
 		}
 		count := progress.Minimum[effect]
 		current := progress.Totals[effect]
-		line := fmt.Sprintf("%s：%d 条，当前 %d 档", effect, count, current)
-		if pct, ok := valueScopeCurrentPercent(parts, cfg, effect); ok {
-			line += fmt.Sprintf("（%.1f%%）", pct)
+		status := "已达标"
+		if current < target {
+			status = fmt.Sprintf("差%d档", target-current)
 		}
-		line += fmt.Sprintf("，目标 %d 档", target)
-		if pct, ok := valueEffectPercent(effect, count, target); ok {
-			line += fmt.Sprintf("（≈%.1f%%）", pct)
+		header := fmt.Sprintf("%s（%d条）%s", effect, count, status)
+
+		detail := fmt.Sprintf("  %d/%d档", current, target)
+		curPct, curOK := valueScopeCurrentPercent(parts, cfg, effect)
+		tgtPct, tgtOK := valueEffectPercent(effect, count, target)
+		switch {
+		case curOK && tgtOK:
+			detail += fmt.Sprintf("（%.1f%% / ≈%.1f%%）", curPct, tgtPct)
+		case curOK:
+			detail += fmt.Sprintf("（%.1f%%）", curPct)
+		case tgtOK:
+			detail += fmt.Sprintf("（≈%.1f%%）", tgtPct)
 		}
-		if current >= target {
-			line += "，已达标"
-		} else {
-			line += fmt.Sprintf("，还差 %d 档", target-current)
-		}
-		lines = append(lines, line)
+		lines = append(lines, header, detail)
 	}
 	if len(lines) == 0 {
 		return ""

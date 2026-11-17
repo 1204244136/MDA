@@ -93,7 +93,7 @@
     "tasker.equipment_reroll.substitution_invalid": "洗词条效果：可替换词条配置无效，任务已停止。开启「允许词条替换」后，请选择两项不同且有效的词条；两项都选择后才生效。",
     "tasker.equipment_reroll.value_invalid": "无法生成数值重洗计划：%s。已停止后续重洗，请检查词条、数值、锁定状态及目标设置。",
     "tasker.equipment_reroll.value_lock_plan_failed": "数值重洗的锁方案、材料预算或锁状态核验失败，已停止本轮消耗。请检查当前界面和材料后重新运行。",
-    "tasker.equipment_reroll.value_pending": "还有 %d 项数值目标未达标，本轮重洗%s。",
+    "tasker.equipment_reroll.value_pending": "还有 %d 项未达标，重洗%s",
     "tasker.equipment_reroll.value_satisfied": "选定范围内的目标词条数值均已达标，无需重洗。",
     "tasker.equipment_reroll.value_scan_failed": "限定时间内未能确认装备词条数值，任务已停止，未开始重洗。请检查当前装备详情页；失败部位、槽位及原始识别文本已记录在日志中。",
     "tasker.hdr_warning.desc": "💡 HDR 可能导致图像识别异常",

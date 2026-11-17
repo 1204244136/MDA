@@ -93,7 +93,7 @@
     "tasker.equipment_reroll.substitution_invalid": "Effect reroll: the substitution pair is invalid. Task stopped. With \"Allow Affix Substitution\" enabled, choose two different valid affixes; substitution applies only after both are selected.",
     "tasker.equipment_reroll.value_invalid": "Cannot plan value reroll: %s. Further rerolls have stopped. Check the effects, values, locks and target settings.",
     "tasker.equipment_reroll.value_lock_plan_failed": "Value reroll lock plan, budget, or lock verification failed. This round was stopped before consumption. Check the current screen and materials before restarting.",
-    "tasker.equipment_reroll.value_pending": "%d target slots remain below their minimum tiers. Rerolling %s this round.",
+    "tasker.equipment_reroll.value_pending": "%d pending, rerolling %s",
     "tasker.equipment_reroll.value_satisfied": "All selected value targets within the scope are satisfied. No reroll needed.",
     "tasker.equipment_reroll.value_scan_failed": "Equipment values could not be verified within the retry time limit. The task stopped before rerolling. Check the current equipment details page; the failed part, slot, and original OCR text are recorded in the logs.",
     "tasker.hdr_warning.desc": "💡 HDR may cause issues with image recognition.",

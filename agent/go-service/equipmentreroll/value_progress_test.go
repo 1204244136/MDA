@@ -34,28 +34,97 @@ func TestBuildValueProgressMessage(t *testing.T) {
 		parts[part] = partScan{Slots: [maxSlot]slotScanData{valueTestSlot("优越代码伤害增加", 11, LockNone)}}
 	}
 	msg := buildValueProgressMessage(parts, cfg)
-	for _, want := range []string{
+	wantSatisfied := strings.Join([]string{
 		"【数值目标】",
-		"优越代码伤害增加：4 条",
-		"当前 44 档（94.2%）",
-		"目标 34 档（≈80.2%）",
-		"已达标",
+		"优越代码伤害增加（4条）已达标",
+		"  44/34档（94.2% / ≈80.2%）",
+	}, "\n")
+	if msg != wantSatisfied {
+		t.Fatalf("进度摘要不匹配：\ngot:\n%s\nwant:\n%s", msg, wantSatisfied)
+	}
+
+	// 目标高于当前：给出还差多少档，且单行宽度保持紧凑避免窄日志栏中途折行。
+	cfg.ValueTargets["优越代码伤害增加"] = 60
+	wantPending := strings.Join([]string{
+		"【数值目标】",
+		"优越代码伤害增加（4条）差16档",
+		"  44/60档（94.2% / ≈116.6%）",
+	}, "\n")
+	if msg := buildValueProgressMessage(parts, cfg); msg != wantPending {
+		t.Fatalf("未达标时进度摘要不匹配：\ngot:\n%s\nwant:\n%s", msg, wantPending)
+	}
+
+	// 多项目标时按官方顺序分行展示，每行不超过窄日志栏安全宽度（30 等宽列）。
+	for i, part := range equipmentParts {
+		p := parts[part]
+		if i == 0 {
+			p.Slots[1] = valueTestSlot("最大装弹数增加", 3, LockNone)
+		}
+		p.Slots[2] = valueTestSlot("攻击力增加", 6, LockNone) // 4 条合计 24 档
+		parts[part] = p
+	}
+	leg := parts["腿部"]
+	leg.Slots[2] = valueTestSlot("攻击力增加", 7, LockNone) // 6+6+6+7 = 25 档（33.9%）
+	parts["腿部"] = leg
+	cfg.ValueTargets = valueTarget{
+		"优越代码伤害增加": 36,
+		"最大装弹数增加":  3,
+		"攻击力增加":    36,
+	}
+	multiMsg := buildValueProgressMessage(parts, cfg)
+	for _, want := range []string{
+		"优越代码伤害增加（4条）已达标",
+		"  44/36档（94.2% / ≈83.0%）",
+		"最大装弹数增加（1条）已达标",
+		"  3/3档（36.1% / ≈36.1%）",
+		"攻击力增加（4条）差11档",
+		"  25/36档（33.9% / ≈41.6%）",
 	} {
-		if !strings.Contains(msg, want) {
-			t.Fatalf("进度摘要缺少 %q：\n%s", want, msg)
+		if !strings.Contains(multiMsg, want) {
+			t.Fatalf("多项目标缺少 %q：\n%s", want, multiMsg)
+		}
+	}
+	for _, line := range strings.Split(multiMsg, "\n") {
+		if cols := displayWidth(line); cols > 30 {
+			t.Fatalf("日志行过长（%d 列 > 30）：%q", cols, line)
 		}
 	}
 
-	// 目标高于当前：给出还差多少档。
-	cfg.ValueTargets["优越代码伤害增加"] = 60
-	if msg := buildValueProgressMessage(parts, cfg); !strings.Contains(msg, "还差 16 档") {
-		t.Fatalf("未达标时应给出差距：\n%s", msg)
+	// 单件模式同样按两行输出且宽度安全。
+	singleCfg := carrierConfig{
+		Operation:    rerollOperationValue,
+		Mode:         rerollModeSingle,
+		Part:         "头部",
+		ValueTargets: valueTarget{"优越代码伤害增加": 13, "攻击力增加": 6},
+	}
+	singleMsg := buildValueProgressMessage(parts, singleCfg)
+	wantSingle := strings.Join([]string{
+		"【数值目标】",
+		"优越代码伤害增加（1条）差2档",
+		"  11/13档（23.6% / ≈26.4%）",
+		"攻击力增加（1条）已达标",
+		"  6/6档（8.3% / ≈8.3%）",
+	}, "\n")
+	if singleMsg != wantSingle {
+		t.Fatalf("单件模式进度摘要不匹配：\ngot:\n%s\nwant:\n%s", singleMsg, wantSingle)
 	}
 
 	// 目标超过可达上限（条目数不足）时不输出进度，交由错误路径提示。
 	parts["腿部"] = partScan{}
-	cfg.ValueTargets["优越代码伤害增加"] = 50
+	cfg.ValueTargets = valueTarget{"优越代码伤害增加": 50}
 	if msg := buildValueProgressMessage(parts, cfg); msg != "" {
 		t.Fatalf("不可达目标不应输出进度：\n%s", msg)
 	}
+}
+
+func displayWidth(s string) int {
+	cols := 0
+	for _, r := range s {
+		if r <= 0x7f {
+			cols++
+		} else {
+			cols += 2
+		}
+	}
+	return cols
 }
