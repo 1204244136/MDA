@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// DeviceCodeV7 保留原有六字段传输格式，Android 在客户端映射为兼容哈希。
+// DeviceCodeV7 保留原有六字段传输格式，Android 和 macOS 在客户端映射为兼容哈希。
 type DeviceCodeV7 struct {
 	CPUHash   string `json:"cpu_hash"`
 	UUIDHash  string `json:"uuid_hash"`
@@ -72,8 +72,11 @@ function Get-MachineGuid {
 
 // GenerateDeviceCodeV7 generates a V7 device code by querying hardware identifiers.
 func GenerateDeviceCodeV7() DeviceCodeV7 {
-	if runtime.GOOS == "android" {
+	switch runtime.GOOS {
+	case "android":
 		return androidDeviceCodeFromJSON(os.Getenv("MDA_ANDROID_IDENTITY_JSON"))
+	case "darwin":
+		return generateMacOSDeviceCodeV7()
 	}
 	started := time.Now()
 	values, err := queryDeviceIdentifiers()
