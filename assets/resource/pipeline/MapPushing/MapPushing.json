@@ -1,6 +1,6 @@
 {
     "MapPushingFlow": {
-        "desc": "推图流程",
+        "desc": "推图流程", // 先清理战斗/剧情/大地图弹窗并优先处理可见目标，最后才展开收起的小地图，避免加载过渡帧抢跑误点
         "action": {
             "type": "Custom",
             "param": {
@@ -10,9 +10,10 @@
         "next": [
             "[JumpBack]BattleEntryFlow",
             "[JumpBack]CommonSkipPlot",
-            "[JumpBack]MapPushingOpenMinimap",
+            "[JumpBack]MapPushingCloseMinimapPopup",
             "[JumpBack]MapPushingClickPlate",
-            "[JumpBack]MapPushingClickMonster"
+            "[JumpBack]MapPushingClickMonster",
+            "[JumpBack]MapPushingOpenMinimap"
         ],
         "focus": {
             "Node.Action.Succeeded": "$focus.MapPushingFlow.Action.Succeeded"
@@ -189,9 +190,9 @@
         }
     },
     "MapPushingOpenMinimap": {
-        "desc": "展开收起的小地图",
+        "desc": "展开收起的小地图", // 点开后若弹出中央大地图则先关闭再验证；5 秒内未展开则超时退出
         "recognition": {
-            "type": "TemplateMatch", // 点开后必须确认 MapPushingMinimapVisible 展开成功再往下走，否则后续选怪/机关会对着收起的小地图找不到目标；5 秒内没展开就失败退出
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     13,
@@ -201,7 +202,8 @@
                 ],
                 "template": [
                     "MapPushing/MinimapCollapsed.png"
-                ]
+                ],
+                "threshold": 0.85 // 展开态约 0.48、加载过渡误触曾达 0.714，实拍收起态 0.99+，取中间值防误点
             }
         },
         "action": {
@@ -209,6 +211,7 @@
         },
         "timeout": 5000,
         "next": [
+            "[JumpBack]MapPushingCloseMinimapPopup",
             "MapPushingMinimapVisible"
         ]
     },
@@ -228,5 +231,36 @@
                 ]
             }
         }
+    },
+    "MapPushingCloseMinimapPopup": {
+        "desc": "关闭误开的大地图弹窗",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonClosePage", // 放首位：命中框即弹窗右上角关闭按钮，直接点击该框
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch", // 弹窗左上角缩小镜只出现在大地图弹窗内，防止误关战斗页或场景杂物
+                            "param": {
+                                "roi": [
+                                    450,
+                                    170,
+                                    50,
+                                    50
+                                ],
+                                "template": [
+                                    "MapPushing/MinimapEnlarged.png"
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 500 // 留出弹窗淡出关闭时间，避免 JumpBack 下一轮连点关闭按钮后方区域
     }
 }
