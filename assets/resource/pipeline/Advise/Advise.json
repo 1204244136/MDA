@@ -119,9 +119,116 @@
         },
         "next": [
             "[JumpBack]AdviseEpisodeViewingEntry",
+            "[JumpBack]AdviseOpenFilterPopup",
             "AdviseChooseNikke",
             "AdviseMainPageEntered",
             "AdviseEnterAdvisePage"
+        ]
+    },
+    "AdviseOpenFilterPopup": {
+        "desc": "打开筛选菜单",
+        "max_hit": 1, // 筛选后按钮文字不变，限流防止 [JumpBack] 回跳死循环
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    724,
+                    140,
+                    70, // 只框住按钮文字区，避开左侧漏斗图标与右侧排序箭头
+                    28
+                ],
+                "expected": [
+                    "追踪妮姬",
+                    "全新花絮",
+                    "好感度"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]AdviseClickUpgradable",
+            "AdviseCloseFilterPopup"
+        ]
+    },
+    "AdviseClickUpgradable": {
+        "desc": "筛选可升级",
+        "max_hit": 2, // 最多点两次，防止状态未变蓝时在 [JumpBack] 中无限重试
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "AdviseUpgradableVisible", // 放首位以取文字框作为点击目标
+                    "AdviseUpgradableUnselected"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AdviseUpgradableVisible": {
+        "desc": "可升级选项",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    552,
+                    298,
+                    78,
+                    42
+                ],
+                "expected": [
+                    "可升级"
+                ]
+            }
+        }
+    },
+    "AdviseUpgradableUnselected": {
+        "desc": "可升级未选中",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "AdviseUpgradableVisible",
+                "roi_offset": [
+                    -11, // 从文字框外扩到深灰按钮背景，蓝色选中态在此区间无命中
+                    -6,
+                    24,
+                    13
+                ],
+                "lower": [
+                    20,
+                    20,
+                    20
+                ],
+                "upper": [
+                    100,
+                    100,
+                    100
+                ],
+                "count": 600 // 实测未选中灰底约 1558 像素，蓝色选中态为 0
+            }
+        }
+    },
+    "AdviseCloseFilterPopup": {
+        "desc": "关闭筛选弹窗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    552,
+                    178,
+                    50,
+                    28
+                ],
+                "expected": [
+                    "排序"
+                ]
+            }
+        },
+        "next": [
+            "CommonClickBlank"
         ]
     },
     "AdviseChooseNikke": {
