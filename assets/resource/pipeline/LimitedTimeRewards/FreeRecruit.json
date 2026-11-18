@@ -64,7 +64,7 @@
         },
         "next": [
             "LimitedTimeRewardsClickFreeRecruit",
-            "LimitedTimeRewardsFreeRecruitClickNextRecruit",
+            "CommonClickNextRecruit",
             "LimitedTimeRewardsFreeRecruitFlow" //兜底
         ]
     },
@@ -88,32 +88,10 @@
             "type": "Click"
         },
         "next": [
-            "[JumpBack]CommonSkipPlot",
-            "LimitedTimeRewardsConfirmRecruit",
             "LimitedTimeRewardsClickFreeRecruit", //兜底
-            "[JumpBack]CommonClickBlank"
+            "[JumpBack]CommonSettleRecruit",
+            "CommonConfirmRecruit"
         ]
-    },
-    "LimitedTimeRewardsConfirmRecruit": {
-        "desc": "招募确认", // 大活动签到的领奖确认弹窗同样命中该按钮，改名时同步 LargeEventLoginStamp
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    485,
-                    633,
-                    228,
-                    34
-                ],
-                "expected": [
-                    "确认"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 1000
     },
     "LimitedTimeRewardsFreeRecruitVisible": {
         "desc": "免费招募的标识",
@@ -131,26 +109,5 @@
                 ]
             }
         }
-    },
-    "LimitedTimeRewardsFreeRecruitClickNextRecruit": {
-        "desc": "下一个招募",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1232,
-                    349,
-                    46,
-                    54
-                ],
-                "template": [
-                    "LimitedTimeRewards/FreeRecruit/NextRecruit.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 1000
     }
 }

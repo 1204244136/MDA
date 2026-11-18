@@ -20,6 +20,77 @@
             "type": "Click"
         }
     },
+    "CommonConfirmRecruitVisible": {
+        "desc": "招募结果页确认按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    485,
+                    633,
+                    228,
+                    34
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        }
+    },
+    "CommonConfirmRecruit": {
+        "desc": "点击招募结果确认", // 大活动签到与开宝箱铸模结果页同样复用该确认按钮
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonConfirmRecruitVisible"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000
+    },
+    "CommonSettleRecruit": {
+        "desc": "推进招募演出至结果页", // 未出现结果页确认按钮时持续跳过剧情或点击空白
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonConfirmRecruitVisible"
+                ]
+            }
+        },
+        "inverse": true,
+        "next": [
+            "CommonConfirmRecruitVisible",
+            "[JumpBack]CommonSkipPlot",
+            "[JumpBack]CommonClickBlank"
+        ]
+    },
+    "CommonClickNextRecruit": {
+        "desc": "切换下一个招募卡池",
+        "max_hit": 15,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1232,
+                    349,
+                    46,
+                    54
+                ],
+                "template": [
+                    "Common/NextRecruit.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000
+    },
     "CommonConfirmAction": {
         "desc": "操作确认",
         "max_hit": 20,

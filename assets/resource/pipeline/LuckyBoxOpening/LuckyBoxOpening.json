@@ -512,7 +512,7 @@
         },
         "post_wait_freezes": 500,
         "next": [
-            "LimitedTimeRewardsConfirmRecruit",
+            "CommonConfirmRecruit",
             "CommonConfirmReward",
             "LuckyBoxOpeningClickConfirm" //兜底
         ]
