@@ -527,8 +527,26 @@
             "SceneEnterArk"
         ]
     },
-    "CommonArkEntered": {
-        "desc": "处于方舟内部",
+    "__CommonArkTitleTight": {
+        "desc": "左上角方舟标准位",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    15,
+                    17,
+                    30,
+                    19
+                ],
+                "expected": [
+                    "方舟"
+                ],
+                "only_rec": true // 紧贴文字本体跳过文本检测，避免扁长合批截断与棋盘格背景误识
+            }
+        }
+    },
+    "__CommonArkTitleWide": {
+        "desc": "左上角方舟宽区兜底", // 宽区留白多不宜跳过检测，供安全区偏移设备自适应框选
         "recognition": {
             "type": "OCR",
             "param": {
@@ -540,8 +558,19 @@
                 ],
                 "expected": [
                     "方舟"
-                ],
-                "only_rec": true // 避免与其他 OCR 合批形成扁长 union ROI 时截断小字
+                ]
+            }
+        }
+    },
+    "CommonArkEntered": {
+        "desc": "处于方舟内部", // 优先紧框直识隔离合批截断，未命中再回退宽区检测
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "__CommonArkTitleTight",
+                    "__CommonArkTitleWide"
+                ]
             }
         }
     },
@@ -627,20 +656,13 @@
         "action": "StopTask"
     },
     "CommonArkCornerVisible": {
-        "desc": "左上角的方舟可见",
+        "desc": "左上角的方舟可见", // 复用 CommonArkEntered，避免重复维护同一标题识别
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    17,
-                    16,
-                    50,
-                    20
-                ],
-                "expected": [
-                    "方舟"
-                ],
-                "only_rec": true // 避免与其他 OCR 合批时截断小字
+                "any_of": [
+                    "CommonArkEntered"
+                ]
             }
         }
     }

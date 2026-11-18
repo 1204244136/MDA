@@ -193,6 +193,8 @@ class NavigationRun:
             return True
         pages = {
             "CommonArkEntered": {"ark", "arena_reward_info"},
+            "__CommonArkTitleTight": {"ark", "arena_reward_info"},
+            "__CommonArkTitleWide": {"ark", "arena_reward_info"},
             "CommonArkCornerVisible": {"arena", "interception", "simulation", "tower"},
             "CommonArkVisible": {"hall", "hall_dimmed"},
             "CommonBellIconVisible": {"hall", "hall_dimmed"},
