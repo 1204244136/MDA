@@ -23,7 +23,8 @@
                 {
                     "name": "Yes",
                     "option": [
-                        "AdviseEpisodeReward"
+                        "AdviseEpisodeReward",
+                        "AdviseFilterUpgradable"
                     ],
                     "pipeline_override": {
                         "AdviseEnterAdvisePage": {
@@ -62,6 +63,30 @@
                     }
                 }
             ]
+        },
+        "AdviseFilterUpgradable": {
+            "type": "switch",
+            "label": "$option.AdviseFilterUpgradable.label",
+            "description": "$option.AdviseFilterUpgradable.description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AdviseOpenFilterPopup": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AdviseOpenFilterPopup": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "No"
         },
         "AdviseEpisodeViewingReward": {
             "type": "switch",

@@ -127,6 +127,7 @@
     },
     "AdviseOpenFilterPopup": {
         "desc": "打开筛选菜单",
+        "enabled": false,
         "max_hit": 1, // 筛选后按钮文字不变，限流防止 [JumpBack] 回跳死循环
         "recognition": {
             "type": "OCR",

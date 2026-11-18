@@ -43,6 +43,8 @@
     "option.AccountNurturingSynchroDeviceEnhance.label": "同步器增强",
     "option.AdviseEpisodeReward.label": "领取花絮奖励",
     "option.AdviseEpisodeViewingReward.label": "领取花絮鉴赏会奖励",
+    "option.AdviseFilterUpgradable.description": "开启后会在咨询选人前打开筛选菜单并选中「可升级」，只显示好感等级未满的妮姬",
+    "option.AdviseFilterUpgradable.label": "筛选可升级妮姬",
     "option.AnomalyInterception.label": "异常拦截",
     "option.AnomalyInterceptionTarget.label": "异常拦截目标",
     "option.ArenaEnterChampionArena.label": "冠军竞技场",

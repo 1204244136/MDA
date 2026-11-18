@@ -43,6 +43,8 @@
     "option.AccountNurturingSynchroDeviceEnhance.label": "Synchro Device Enhancement",
     "option.AdviseEpisodeReward.label": "Claim Episode Reward",
     "option.AdviseEpisodeViewingReward.label": "Claim Episode Viewing Reward",
+    "option.AdviseFilterUpgradable.description": "When enabled, opens the filter menu and selects Upgradable before choosing a Nikke, showing only Nikkes whose bond level is not maxed",
+    "option.AdviseFilterUpgradable.label": "Filter Upgradable Nikkes",
     "option.AnomalyInterception.label": "Anomaly Interception",
     "option.AnomalyInterceptionTarget.label": "Anomaly Interception Target",
     "option.ArenaEnterChampionArena.label": "Enter Champion Arena",
