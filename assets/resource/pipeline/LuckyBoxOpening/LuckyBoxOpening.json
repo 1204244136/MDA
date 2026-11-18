@@ -71,6 +71,7 @@
             "[JumpBack]LuckyBoxOpeningSelectCollectionCategory",
             "[JumpBack]LuckyBoxOpeningSelectUpgradingCategory",
             "[JumpBack]LuckyBoxOpeningSelectSkillsCategory",
+            "[JumpBack]LuckyBoxOpeningUseRecruitmentItems",
             "CommonEndTask"
         ]
     },
@@ -356,6 +357,163 @@
         "next": [
             "[JumpBack]CommonConfirmReward",
             "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningUseRecruitmentItems": {
+        "desc": "点红点使用招募道具", // 统一「全部使用」不勾选凭证与铸模，全部使用走完后再切回招募页逐个点红点开启
+        "enabled": true, // 由选项 LuckyBoxOpeningUseRecruitmentItems 控制，默认开启
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    140,
+                    60,
+                    340
+                ],
+                "template": "LuckyBoxOpening/Recruitment.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "[JumpBack]LuckyBoxOpeningClickRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningClickRedDot": {
+        "desc": "点击红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    61,
+                    173,
+                    1170,
+                    447
+                ],
+                "template": [
+                    "Common/RedDot9x9.png", // 招募页红点实测 RedDot9x9 为 0.817~0.926，旧 RedDot 仅 0.79~0.835 会漏检部分道具
+                    "Common/RedDot.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                460,
+                140,
+                360,
+                550
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickMax",
+            "LuckyBoxOpeningClickConfirm"
+        ]
+    },
+    "LuckyBoxOpeningClickMax": {
+        "desc": "点击 MAX",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "LuckyBoxOpeningClickMaxVisible",
+                    "LuckyBoxOpeningClickMaxAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LuckyBoxOpeningClickConfirm"
+        ]
+    },
+    "LuckyBoxOpeningClickMaxVisible": {
+        "desc": "MAX 可见",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    743,
+                    425,
+                    66,
+                    184
+                ],
+                "template": [
+                    "Common/MAX.png"
+                ]
+            }
+        }
+    },
+    "LuckyBoxOpeningClickMaxAvailable": {
+        "desc": "MAX 可点击",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "LuckyBoxOpeningClickMaxVisible",
+                "lower": [
+                    140,
+                    140,
+                    140
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 50
+            }
+        }
+    },
+    "LuckyBoxOpeningClickConfirm": {
+        "desc": "点击确认",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    479,
+                    508,
+                    323,
+                    183
+                ],
+                "template": [
+                    "Common/ConfirmWithFilledCircle.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "LimitedTimeRewardsConfirmRecruit",
+            "CommonConfirmReward",
+            "LuckyBoxOpeningClickConfirm" //兜底
         ]
     }
 }
