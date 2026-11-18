@@ -61,13 +61,16 @@
                     "name": "LimitedTimeRewards"
                 },
                 {
-                    "name": "RedDotClear"
-                },
-                {
                     "name": "LuckyBoxOpening"
                 },
                 {
-                    "name": "AccountNurturing"
+                    "name": "AccountNurturing",
+                    "option": {
+                        "AccountNurturingSocialPointRecruit": "Yes"
+                    }
+                },
+                {
+                    "name": "RedDotClear"
                 },
                 {
                     "name": "FriendManagement"
