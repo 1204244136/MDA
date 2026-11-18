@@ -12,7 +12,8 @@
                 "AccountNurturingCharacterBreakthrough",
                 "AccountNurturingSynchroDeviceEnhance",
                 "AccountNurturingCubeEnhancement",
-                "AccountNurturingRecycleRoomUpgrade"
+                "AccountNurturingRecycleRoomUpgrade",
+                "AccountNurturingSocialPointRecruit"
             ]
         }
     ],
@@ -113,6 +114,29 @@
                 }
             ],
             "default_case": "Yes"
+        },
+        "AccountNurturingSocialPointRecruit": {
+            "type": "switch",
+            "label": "$option.AccountNurturingSocialPointRecruit.label",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AccountNurturingSocialPointRecruit": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AccountNurturingSocialPointRecruit": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "No"
         },
         "AutoAllocation": {
             "type": "switch",

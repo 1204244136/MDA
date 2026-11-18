@@ -1,0 +1,228 @@
+{
+    "AccountNurturingSocialPointRecruit": {
+        "desc": "自动社交点数招募",
+        "enabled": false,
+        "max_hit": 1,
+        "next": [
+            "SocialPointRecruitFlow",
+            "AccountNurturingSocialPointRecruitEnterHall",
+            "[JumpBack]SceneEnterHall"
+        ]
+    },
+    "AccountNurturingSocialPointRecruitEnterHall": {
+        "desc": "社交点数招募大厅入口",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "SocialPointRecruitClickEntry",
+            "CommonEndTask"
+        ]
+    },
+    "SocialPointRecruitClickEntry": {
+        "desc": "点击大厅底部队员招募",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    745,
+                    678,
+                    72,
+                    28
+                ],
+                "expected": [
+                    "队员招募"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "SocialPointRecruitFlow",
+            "SocialPointRecruitClickEntry" // 兜底：点击未生效仍停在大厅时重试
+        ]
+    },
+    "RecruitPageEntered": {
+        "desc": "处于招募队员界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    10,
+                    62, // 仅框住左上角标题文字，避开右侧信息图标防止字形误识
+                    26
+                ],
+                "expected": [
+                    "招募队员"
+                ]
+            }
+        }
+    },
+    "SocialPointRecruitFlow": {
+        "desc": "招募队员页查找社交点数卡池",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "RecruitPageEntered"
+                ]
+            }
+        },
+        "next": [
+            "SocialPointRecruitOnTargetPool",
+            "[JumpBack]CommonClickNextRecruit",
+            "CommonEndTask"
+        ]
+    },
+    "SocialPointRecruitOnTargetPool": {
+        "desc": "当前卡池为社交点数招募",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    550,
+                    515,
+                    180,
+                    48
+                ],
+                "expected": [
+                    "社交点数招募"
+                ]
+            }
+        },
+        "next": [
+            "SocialPointRecruitClickRecruitTen",
+            "CommonEndTask"
+        ]
+    },
+    "SocialPointRecruitClickRecruitTen": {
+        "desc": "点数充足时点击十连招募",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SocialPointRecruitTenVisible", // 放首位以取十连按钮文字框作为点击目标
+                    "SocialPointRecruitTenAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000,
+        "next": [
+            "SocialPointRecruitClickRecruitTen", // 兜底：点击未生效仍停在招募页时重试
+            "[JumpBack]CommonSettleRecruit",
+            "[JumpBack]SocialPointRecruitClickRecruitAgain",
+            "CommonConfirmRecruit"
+        ]
+    },
+    "SocialPointRecruitTenVisible": {
+        "desc": "十连招募按钮文案",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    650,
+                    575,
+                    85,
+                    32
+                ],
+                "expected": [
+                    "招募10名"
+                ]
+            }
+        }
+    },
+    "SocialPointRecruitTenAvailable": {
+        "desc": "十连招募消耗文本为白色",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    764,
+                    587,
+                    34, // 仅框深色底条内的消耗数字，避开左侧爱心图标高光
+                    12
+                ],
+                "lower": [
+                    160,
+                    160,
+                    160
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 20
+            }
+        }
+    },
+    "SocialPointRecruitClickRecruitAgain": {
+        "desc": "结果页点数充足时点击再招募",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SocialPointRecruitAgainVisible", // 放首位以取再招募按钮文字框作为点击目标
+                    "SocialPointRecruitAgainAvailable"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 1000
+    },
+    "SocialPointRecruitAgainVisible": {
+        "desc": "结果页再招募按钮文案",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    653,
+                    633,
+                    142,
+                    34
+                ],
+                "expected": [
+                    "再招募"
+                ]
+            }
+        }
+    },
+    "SocialPointRecruitAgainAvailable": {
+        "desc": "结果页再招募消耗文本为白色",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    706,
+                    677,
+                    46, // 仅框深色底条内的消耗数字，避开左侧爱心高光与外部白底
+                    11
+                ],
+                "lower": [
+                    160,
+                    160,
+                    160
+                ],
+                "upper": [
+                    255,
+                    255,
+                    255
+                ],
+                "count": 40
+            }
+        }
+    }
+}
