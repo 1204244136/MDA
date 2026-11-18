@@ -12,7 +12,8 @@
                 "$task.LuckyBoxOpening.doc"
             ],
             "option": [
-                "LuckyBoxOpeningUseRecruitmentItems"
+                "LuckyBoxOpeningUseRecruitmentItems",
+                "LuckyBoxOpeningOpenProfileCustomPack"
             ]
         }
     ],
@@ -34,6 +35,30 @@
                     "name": "No",
                     "pipeline_override": {
                         "LuckyBoxOpeningUseRecruitmentItems": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "Yes"
+        },
+        "LuckyBoxOpeningOpenProfileCustomPack": {
+            "type": "switch",
+            "label": "$option.LuckyBoxOpeningOpenProfileCustomPack.label",
+            "description": "$option.LuckyBoxOpeningOpenProfileCustomPack.description",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LuckyBoxOpeningOpenProfileCustomPack": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "LuckyBoxOpeningOpenProfileCustomPack": {
                             "enabled": false
                         }
                     }

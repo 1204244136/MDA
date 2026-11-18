@@ -72,6 +72,7 @@
             "[JumpBack]LuckyBoxOpeningSelectUpgradingCategory",
             "[JumpBack]LuckyBoxOpeningSelectSkillsCategory",
             "[JumpBack]LuckyBoxOpeningUseRecruitmentItems",
+            "[JumpBack]LuckyBoxOpeningOpenProfileCustomPack",
             "CommonEndTask"
         ]
     },
@@ -514,6 +515,81 @@
             "LimitedTimeRewardsConfirmRecruit",
             "CommonConfirmReward",
             "LuckyBoxOpeningClickConfirm" //兜底
+        ]
+    },
+    "LuckyBoxOpeningOpenProfileCustomPack": {
+        "desc": "点红点开启简介个性化礼包", // 「全部使用」不会勾选简介个性化礼包，走完后切到其他分类只点第 1 格红点开启
+        "enabled": true, // 由选项 LuckyBoxOpeningOpenProfileCustomPack 控制，默认开启
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    10,
+                    398,
+                    60,
+                    50
+                ],
+                "template": "LuckyBoxOpening/Others.png" // 小模板仅框住第 6 栏区域，避免跨栏误匹配
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                61,
+                173,
+                1170,
+                447
+            ]
+        },
+        "next": [
+            "[JumpBack]LuckyBoxOpeningClickProfileCustomPackRedDot",
+            "CommonEndTask"
+        ]
+    },
+    "LuckyBoxOpeningClickProfileCustomPackRedDot": {
+        "desc": "点击简介个性化礼包红点", // 简介个性化礼包固定位于其他分类第 1 格，限定该格右上角小 ROI 避免误开后续宝箱
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    95,
+                    170,
+                    35,
+                    35
+                ],
+                "template": [
+                    "Common/RedDot9x9.png",
+                    "Common/RedDot.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                460,
+                140,
+                360,
+                550
+            ]
+        },
+        "next": [
+            "LuckyBoxOpeningClickMax",
+            "LuckyBoxOpeningClickConfirm"
         ]
     }
 }
