@@ -65,7 +65,7 @@
             "type": "Click"
         },
         "post_wait_freezes": {
-            "time": 800, // 点击后等小地图区域静止 800ms（threshold 0.98）才算走完一步，最多等 3 秒（timeout 3000）
+            "time": 800, // 点击后等小地图区域静止 800ms 才算走完一步，最多等 3 秒
             "target": [
                 20,
                 85,
@@ -203,7 +203,7 @@
                 "template": [
                     "MapPushing/MinimapCollapsed.png"
                 ],
-                "threshold": 0.85 // 展开态约 0.48、加载过渡误触曾达 0.714，实拍收起态 0.99+，取中间值防误点
+                "threshold": 0.85 // 抬高阈值以避开加载过渡帧与展开态的误匹配，防止误判为收起态
             }
         },
         "action": {

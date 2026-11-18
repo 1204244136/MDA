@@ -105,7 +105,7 @@
                     60,
                     340
                 ],
-                "template": "LuckyBoxOpening/Recruitment.png" //选中态（蓝）实测仍有 0.762，过默认阈值，不必单独做选中模板
+                "template": "LuckyBoxOpening/Recruitment.png" // 选中态（蓝）仍可稳定高于默认阈值，不必单独做选中模板
             }
         },
         "action": {
@@ -405,7 +405,7 @@
                     447
                 ],
                 "template": [
-                    "Common/RedDot9x9.png", // 招募页红点实测 RedDot9x9 为 0.817~0.926，旧 RedDot 仅 0.79~0.835 会漏检部分道具
+                    "Common/RedDot9x9.png", // 招募页红点优先用 RedDot9x9，旧 RedDot 在部分道具上匹配偏低会漏检
                     "Common/RedDot.png"
                 ],
                 "threshold": 0.8

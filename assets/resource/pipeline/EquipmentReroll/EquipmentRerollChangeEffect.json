@@ -1,6 +1,6 @@
 {
     "__EquipmentRerollChangeEffectTitle": {
-        "desc": "效果变更页标题", // 只认顶部蓝底白字大标题：底部同名按钮也在同一画面，ROI 限 y=90~190 才能排除。本节点还是 Slot1-3 与锁定判定的 ROI 基准，改 ROI 会连带挪动增量框
+        "desc": "效果变更页标题", // 只认顶部蓝底白字大标题：底部同名按钮也在同一画面，ROI 只框顶部才能排除。本节点还是 Slot1-3 与锁定判定的 ROI 基准，改 ROI 会连带挪动增量框
         "recognition": {
             "type": "OCR",
             "param": {
@@ -30,7 +30,7 @@
         }
     },
     "__EquipmentRerollChangeEffectButton": {
-        "desc": "底部效果变更按钮", // 相对「加载先前的锁定设置」下移 27px 取按钮：材料区高度会变，按钮跟着上下浮动，绝对 ROI 会失效
+        "desc": "底部效果变更按钮", // 以「加载先前的锁定设置」为基准向下偏移取按钮：材料区高度会变，按钮跟着上下浮动，绝对 ROI 会失效
         "recognition": {
             "type": "OCR",
             "param": {

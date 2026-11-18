@@ -83,8 +83,8 @@
                     180,
                     120
                 ],
-                "template": "CharacterPrep/Cube/CubeSlotPlus.png", // 加号是用户提供的专用模板：本页命中 1.0，次优 0.62
-                "threshold": 0.8
+                "template": "CharacterPrep/Cube/CubeSlotPlus.png", // 用户提供的专用空槽加号模板
+                "threshold": 0.8 // 提高阈值以过滤同区域其他魔方图标的次优误匹配
             }
         },
         "action": {

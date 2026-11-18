@@ -117,7 +117,7 @@
         ]
     },
     "__EquipmentRerollLocateFlag": {
-        "desc": "详情页信息图标锚点", // 蓝色信息图标在「改造装备效果」行右侧，两行布局下框位浮动，ROI 放宽到 486,400,28,70 覆盖两种布局；V 下限 60 抗确认页返回后的偏暗（实测 55% 亮度计数不变）
+        "desc": "详情页信息图标锚点", // 蓝色信息图标在「改造装备效果」行右侧，两行布局下框位浮动，ROI 纵向放宽以覆盖两种布局；V 下限 60 抗确认页返回后的偏暗（实测 55% 亮度计数不变）
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -234,7 +234,7 @@
         ]
     },
     "__EquipmentRerollSlot1AffixOCR": {
-        "desc": "1 号槽词条整行", // 相对锚点框的增量：1 号槽行下移 52px、取 7px 高的文字带；三槽按 24px 行距递增（52/76/100）
+        "desc": "1 号槽词条整行", // 相对锚点框下移取对应槽位的细条文字带，三槽等行距递增
         "recognition": {
             "type": "OCR",
             "param": {
@@ -316,7 +316,7 @@
         }
     },
     "__EquipmentRerollSlot1LockBlue": {
-        "desc": "1 号槽蓝色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,501,26,23)；蓝锁=永久锁：订制模块支付，跨轮保留，只有换部位或显式解锁才会消失
+        "desc": "1 号槽蓝色锁", // 相对锚点框偏移定位到锁图标；蓝锁=永久锁：订制模块支付，跨轮保留，只有换部位或显式解锁才会消失
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -346,7 +346,7 @@
         }
     },
     "__EquipmentRerollSlot1LockOrange": {
-        "desc": "1 号槽橙色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,501,26,23)；橙锁=一次性锁：自订密钥支付，每次效果变更后失效，下一轮要重新上锁
+        "desc": "1 号槽橙色锁", // 相对锚点框偏移定位到锁图标；橙锁=一次性锁：自订密钥支付，每次效果变更后失效，下一轮要重新上锁
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -376,7 +376,7 @@
         }
     },
     "__EquipmentRerollSlot2AffixOCR": {
-        "desc": "2 号槽词条整行", // 相对锚点框的增量：2 号槽行下移 76px、取 7px 高的文字带；三槽按 24px 行距递增（52/76/100）
+        "desc": "2 号槽词条整行", // 相对锚点框下移取对应槽位的细条文字带，三槽等行距递增
         "recognition": {
             "type": "OCR",
             "param": {
@@ -458,7 +458,7 @@
         }
     },
     "__EquipmentRerollSlot2LockBlue": {
-        "desc": "2 号槽蓝色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,525,26,23)
+        "desc": "2 号槽蓝色锁", // 相对锚点框偏移定位到锁图标
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -488,7 +488,7 @@
         }
     },
     "__EquipmentRerollSlot2LockOrange": {
-        "desc": "2 号槽橙色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,525,26,23)
+        "desc": "2 号槽橙色锁", // 相对锚点框偏移定位到锁图标
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -518,7 +518,7 @@
         }
     },
     "__EquipmentRerollSlot3AffixOCR": {
-        "desc": "3 号槽词条整行", // 相对锚点框的增量：3 号槽行下移 100px、取 7px 高的文字带；三槽按 24px 行距递增（52/76/100）
+        "desc": "3 号槽词条整行", // 相对锚点框下移取对应槽位的细条文字带，三槽等行距递增
         "recognition": {
             "type": "OCR",
             "param": {
@@ -600,7 +600,7 @@
         }
     },
     "__EquipmentRerollSlot3LockBlue": {
-        "desc": "3 号槽蓝色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,549,26,23)
+        "desc": "3 号槽蓝色锁", // 相对锚点框偏移定位到锁图标
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -630,7 +630,7 @@
         }
     },
     "__EquipmentRerollSlot3LockOrange": {
-        "desc": "3 号槽橙色锁", // roi_offset 是相对锚点框的增量：锚点框 + 该值 = (768,549,26,23)
+        "desc": "3 号槽橙色锁", // 相对锚点框偏移定位到锁图标
         "recognition": {
             "type": "ColorMatch",
             "param": {

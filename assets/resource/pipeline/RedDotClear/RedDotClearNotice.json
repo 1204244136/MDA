@@ -372,7 +372,7 @@
                 "template": [
                     "Common/RedDot.png"
                 ],
-                "threshold": 0.75, // 实测真红点 0.800~0.957，插画误匹配最高 0.575
+                "threshold": 0.75, // 略高于默认阈值以过滤公告插画中的红色区域误匹配
                 "order_by": "Vertical"
             }
         },

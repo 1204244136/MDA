@@ -1,6 +1,6 @@
 {
     "__EquipmentRerollLockConfirmEnabled": {
-        "desc": "锁定确认按钮已亮", // 确认按钮在锁定页底部，485,590 起的 70×25 区域
+        "desc": "锁定确认按钮已亮", // 仅框住锁定页底部的确认按钮亮蓝判定区
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -71,7 +71,7 @@
         }
     },
     "__EquipmentRerollCostModuleCount": {
-        "desc": "消耗栏模组数量", // 相对模组图标右移 20px、上探 3px 取数字，高度 +6 盖住小字
+        "desc": "消耗栏模组数量", // 相对模组图标右移并略微上下外扩取数字，确保完整盖住小字
         "recognition": {
             "type": "OCR",
             "param": {
@@ -88,7 +88,7 @@
         }
     },
     "__EquipmentRerollCostKeyCount": {
-        "desc": "消耗栏密钥数量", // 相对密钥图标右移 24px：密钥可能两位，比模组多留 4px
+        "desc": "消耗栏密钥数量", // 相对密钥图标右移取数字：密钥可能为两位数，横向比模组多留余量
         "recognition": {
             "type": "OCR",
             "param": {
@@ -120,7 +120,7 @@
         }
     },
     "__EquipmentRerollConfirmHeldModule": {
-        "desc": "持有模组库存", // 相对「持有材料」右移 65px，只框第一种材料（模组）的库存区；千位分隔符三种写法（1,234 / 1.234 / 1，234）统一剥掉再转整数
+        "desc": "持有模组库存", // 相对「持有材料」右移后只框第一种材料（模组）的库存区；千位分隔符三种写法（1,234 / 1.234 / 1，234）统一剥掉再转整数
         "recognition": {
             "type": "OCR",
             "param": {

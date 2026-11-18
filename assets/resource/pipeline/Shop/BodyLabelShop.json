@@ -44,7 +44,7 @@
                     "Shop/BodyLabelShop/BodyLabelShopNotSelected.png",
                     "Shop/BodyLabelShop/BodyLabelShopSelected.png"
                 ],
-                "threshold": 0.8 // 收窄到本行后不会再跨页签误命中，无需为区分同形页签卡到 0.999
+                "threshold": 0.8 // 收窄到本行后不会再跨页签误命中，无需为区分同形页签使用极高阈值
             }
         }
     },

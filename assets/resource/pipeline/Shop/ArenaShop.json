@@ -235,7 +235,7 @@
                     325
                 ],
                 "template": [
-                    "Shop/CommonShop/ProfileCustomPack.png" //与普通商店同一素材，竞技场商店内实测 0.9999
+                    "Shop/CommonShop/ProfileCustomPack.png" // 与普通商店同一素材，共用模板
                 ],
                 "threshold": 0.9
             }

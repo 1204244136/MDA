@@ -383,7 +383,7 @@
                 "template": [
                     "LimitedTimeRewards/VoltTrip/Roll.png"
                 ],
-                "threshold": 0.8 // 按钮置灰时约 0.88，留出余量
+                "threshold": 0.8 // 提高阈值防误命中其他区域，同时为按钮置灰态留出余量
             }
         }
     },
