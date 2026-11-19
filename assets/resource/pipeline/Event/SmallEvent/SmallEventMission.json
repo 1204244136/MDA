@@ -63,7 +63,9 @@
             "SmallEventMissionClaimedFlow",
             "[JumpBack]SmallEventMissionClaimAll",
             "[JumpBack]CommonConfirmReward",
-            "[JumpBack]CommonConfirmAction"
+            "[JumpBack]CommonConfirmAction",
+            "[JumpBack]CommonClosePage",
+            "CommonEndTask"
         ]
     },
     "SmallEventMissionClaimed": {
@@ -107,6 +109,7 @@
     },
     "SmallEventMissionClaimAll": {
         "desc": "小活动任务奖励领取",
+        "max_hit": 3, // 无可用态门控，非灰底禁用按钮仍会被 OCR 命中，限制次数避免死循环
         "recognition": {
             "type": "OCR",
             "param": {
@@ -123,6 +126,7 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "post_wait_freezes": 500
     }
 }
