@@ -185,6 +185,36 @@
                     }
                 },
                 {
+                    "name": "SkyOnTheRock",
+                    "label": "$option.SmallEventTheme.SkyOnTheRock",
+                    "pipeline_override": {
+                        "SmallEventEnterMainPage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/SkyOnTheRock/SkyOnTheRockLogo.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "SmallEventClickStage": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/SkyOnTheRock/SkyOnTheRockStageNormal.png"
+                                    ]
+                                }
+                            }
+                        },
+                        "SmallEventEventStageQuickBattleFlow": {
+                            "next": [
+                                "SmallEventSkyOnTheRockClickStageRepeatable",
+                                "SmallEventGoBack"
+                            ]
+                        }
+                    }
+                },
+                {
                     "name": "Other",
                     "label": "$option.SmallEventTheme.Other"
                 }

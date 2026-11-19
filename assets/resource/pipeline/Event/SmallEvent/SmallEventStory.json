@@ -106,8 +106,7 @@
     "SmallEventEventStageQuickBattleFlow": {
         "desc": "小活动活动关卡页面快速战斗流程", // 当前活动扫荡路由：切换主题时只替换 next；模板与偏移保存在 Themes/ 的主题节点中
         "next": [
-            "SmallEventLittleWitchTrickClickStageNormalRepeatable",
-            "SmallEventLittleWitchTrickClickStageHardRepeatable",
+            "SmallEventSkyOnTheRockClickStageRepeatable",
             "SmallEventGoBack"
         ]
     },
@@ -164,8 +163,7 @@
                     604
                 ],
                 "template": [
-                    "SmallEvent/LittleWitchTrick/LittleWitchTrickStageNormal.png", //当前活动，随最新主题更新
-                    "SmallEvent/LittleWitchTrick/LittleWitchTrickStageHard.png"
+                    "SmallEvent/SkyOnTheRock/SkyOnTheRockStageNormal.png" //当前活动，随最新主题更新
                 ],
                 "order_by": "Vertical",
                 "index": -1
