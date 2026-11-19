@@ -97,21 +97,19 @@
         }
     },
     "DailyLoginReturnHall": {
-        "desc": "全部领取按钮变灰后点击主页返回大厅",
+        "desc": "全部领取变灰后点击空白返回大厅", // 签到页不展示底部主页按钮，直接点空白关闭弹窗
         "recognition": {
             "type": "And",
             "param": {
                 "all_of": [
-                    "CommonClickHomeButton",
                     "DailyLoginClaimAllButtonVisible",
                     "DailyLoginRewardsClaimed"
                 ]
             }
         },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500
+        "next": [
+            "CommonClickBlank"
+        ]
     },
     "DailyLoginRewardsClaimed": {
         "desc": "登录奖励已领完，全部领取文字为灰色",
