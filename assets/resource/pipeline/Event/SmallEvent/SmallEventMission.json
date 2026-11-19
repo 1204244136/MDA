@@ -17,7 +17,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    8,
+                    5,
+                    -16,
+                    -10
+                ] // 向识别框中心收束点击区域，避开与下方商店边缘相邻的边界采样点
+            }
         },
         "timeout": 60000,
         "next": [

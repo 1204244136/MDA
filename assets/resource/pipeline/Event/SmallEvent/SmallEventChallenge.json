@@ -23,7 +23,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    8,
+                    5,
+                    -16,
+                    -10
+                ] // 向识别框中心收束点击区域，避开与下方记录保管所边缘相邻的边界采样点
+            }
         },
         "post_wait_freezes": 500,
         "timeout": 60000,
