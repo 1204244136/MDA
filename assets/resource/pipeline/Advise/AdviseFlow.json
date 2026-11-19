@@ -163,6 +163,20 @@
         },
         "next": [
             "[JumpBack]AdviseConfirmAction",
+            "AdviseNormalStoryFlow"
+        ]
+    },
+    "AdviseNormalStoryFlow": {
+        "desc": "普通咨询剧情与结算", // 先命中剧情标识，避免确认后加载期间被原页左上角「咨询」标题抢跑进结算
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "DialoguesMainVisible"
+                ]
+            }
+        },
+        "next": [
             "[JumpBack]AdviseStoryFlow",
             "AdviseSettlementFlow"
         ]
