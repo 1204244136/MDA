@@ -6,14 +6,14 @@
 
 小活动的 `Other` 维持无 override 的历史行为，也跟随 base；它不是一个独立主题。
 
-### 小活动：共用业务流程，主题拥有识别与点击
+### 小活动：共用业务流程，默认共用节点 + 按需特例隔离
 
-- `SmallEventEnterMainPage`、`SmallEventClickStage` 的 base 模板承载当前主题，具体主题 case 完整覆盖这两个模板节点。
-- `SmallEventEventStageQuickBattleFlow` 是无识别、无点击动作的扫荡路由。base 的 `next` 指向当前主题点击节点，最后一个候选为 `SmallEventGoBack`。具体主题 case 显式覆盖完整 `next`。
-- `assets/resource/pipeline/Event/SmallEvent/Themes/{CaseName}.json` 保存各主题扫荡模板与动作；节点名为 `SmallEvent{CaseName}ClickStage...Repeatable`。case 只切换路由，不覆盖主题点击节点的参数。
-- 点击策略相同的模板可放在同一节点。不同难度或 Story 的落点补偿不同，就拆识别/点击节点；共用战斗、体力、返回流程继续复用，不复制业务状态机。
+- `SmallEventEnterMainPage`、`SmallEventClickStage` 与共用扫荡节点 `SmallEventClickStageRepeatable` 的 base 模板承载当前主题（当最新主题为常规主题时）。具体主题 case 完整覆盖前两个模板节点，常规主题同步仅覆盖 `SmallEventClickStageRepeatable.recognition.param.template`（禁止添加 `target_offset` 等其他字段）。
+- `SmallEventEventStageQuickBattleFlow` 是无识别、无点击动作的扫荡路由，最后一个候选固定为 `SmallEventGoBack`。具体主题 case 必须显式覆盖完整 `next`（常规主题为 `["SmallEventClickStageRepeatable", "SmallEventGoBack"]`，特例主题指向 `Themes/` 节点），防止 base 切到特例主题后旧主题静默继承特例路由。
+- `assets/resource/pipeline/Event/SmallEvent/Themes/{CaseName}.json` 仅用于需要专属 `target_offset` 或需按难度/Story 拆分点击动作的特例主题，节点名为 `SmallEvent{CaseName}ClickStage...Repeatable`；无特殊参数的常规主题不得建纯样板文件。case 只切换路由，不覆盖主题点击节点的参数。
+- 点击策略相同的模板可放在同一节点。不同难度或 Story 的落点补偿不同，就拆入 `Themes/` 点击节点；共用战斗、体力、返回流程继续复用，不复制业务状态机。
 - 点击节点沿用 `Vertical`、`index: -1`、`post_wait_freezes: 500`，后续为 `SmallEventEventStageBattlePage` / `SmallEventGoBack`。不恢复历史已移除的点击 `max_hit: 1` 和 `[JumpBack]` 流程。
-- `SmallEventEnterMainPage` / `LargeEventEnterMainPage` 的 `[30, 0, 0, 0]` 属通用入口调参，保留在 base。主题专属扫荡偏移只在该主题点击节点中出现。
+- `SmallEventEnterMainPage` / `LargeEventEnterMainPage` 的 `[30, 0, 0, 0]` 属通用入口调参，保留在 base。主题专属扫荡偏移只出现在 `Themes/` 主题点击节点中，共用节点 `SmallEventClickStageRepeatable` 由护栏硬性禁止携带 `target_offset`。
 
 ### LITTLE WITCH TRICK 的 Normal / Hard
 
@@ -38,7 +38,9 @@ Hard 截图的命中框 `[596, 333, 24, 23]` 应用旧 Normal 偏移后为 `[516
 
 2026-10-13 的 `fb511cf` 给 LITTLE WITCH TRICK Normal 加偏移，同时让当时已有的其他主题显式归零，解决了跨已有主题继承。但偏移仍在共用节点上。2026-10-15 的 `9af6ce0` 为同一节点追加 Hard 模板，Hard 因而共用了 Normal 的动作参数。
 
-旧护栏只检查字段是否声明，无法证明偏移适用于哪个模板；也不能自动防止下次换 base 模板时遗留旧偏移。现在通过主题独立节点和完整路由替换保存模板与动作的归属，避免要求每个新主题记住清除旧主题的动作参数。
+旧护栏只检查字段是否声明，无法证明偏移适用于哪个模板；也不能自动防止下次换 base 模板时遗留旧偏移。2026-10-16 的 `30be861e` 通过独立节点和完整路由替换彻底解决了参数继承，但初期要求所有主题都在 `Themes/` 单独建文件，导致无特殊参数的常规主题出现纯样板复制。
+
+2026-11-19 收敛为「默认共用节点 + 仅特例进 `Themes/`」双轨方案：共用节点 `SmallEventClickStageRepeatable` 由护栏硬性禁止 `target_offset` 且限制 case 仅可覆盖 `template`，让常规主题零样板复用、公共参数保持单点维护；需要专属偏移或拆分动作的特例主题仍保留在 `Themes/`，通过完整路由与原有方案同等隔离。
 
 ## 框架依据
 
@@ -57,9 +59,9 @@ Hard 截图的命中框 `[596, 333, 24, 23]` 应用旧 Normal 偏移后为 `[516
 ## 适配新小活动
 
 1. 确认活动是否存在 Story 切换，按真实难度/Story 命名模板；没有 Story 的活动不用 Story1/Story2 前缀。
-2. 在 `Themes/{CaseName}.json` 新增主题点击节点，放入扫荡模板和该节点自己的动作参数；偏移不同则拆节点。节点必须预先声明在资源里。
-3. 新增具体主题 case：覆盖入口模板、普通关卡模板、完整扫荡路由。保留原有主题 case 和节点。
-4. 更新 base 的两个模板和完整扫荡路由指向新主题，保持 `CurrentEvent` 与 `Other` 无 override。
+2. 判断扫荡标记是否需要 `target_offset` 或按难度/Story 拆开点击策略：无特殊参数直接复用共用节点 `SmallEventClickStageRepeatable`；需要偏移或拆分时在 `Themes/{CaseName}.json` 新增主题点击节点（提前声明在资源里）。
+3. 新增具体主题 case：覆盖入口模板、普通关卡模板、完整扫荡路由（常规主题指向 `SmallEventClickStageRepeatable` 并仅覆盖其 `template`；特例主题指向 `Themes/` 节点）。保留原有主题 case 和节点。
+4. 更新 base 的入口、普通关卡模板、完整扫荡路由（以及常规主题时共用扫荡节点的模板）指向新主题，保持 `CurrentEvent` 与 `Other` 无 override。
 5. 运行护栏、schema/资源检查和相关离线回放，再验证实际点击后的页面。
 
 主题 case 的名字是用户配置契约，不为显示名调整而重命名。只有删除或重命名了旧 case，才提示受影响用户重新选择；单纯新增主题和切换 base 不需要用户重选。
@@ -71,9 +73,9 @@ Hard 截图的命中框 `[596, 333, 24, 23]` 应用旧 Normal 偏移后为 `[516
 - A：`CurrentEvent` 存在、是 default_case、无非空 override。
 - B：各具体主题完整覆盖要求的共用模板节点。小活动为两个，大活动为三个。
 - C：大活动小游戏路由对所有非 CurrentEvent case 全量覆盖。
-- D：小活动具体主题完整覆盖扫荡路由；base 路由与当前入口模板属于同一主题；主题节点及模板归属正确；case 不覆盖主题点击节点；路由无点击动作；节点接回公共后续；非零偏移的 Normal/Hard 混合模板报错。
+- D：共用扫荡节点禁止携带 `target_offset` 且只允许常规主题覆盖 `template`；`Themes/` 禁止出现与共用节点等价的纯样板单节点文件；每个小活动具体主题完整覆盖扫荡路由且不得混用共用节点与特例节点；base 路由及共用模板与当前入口模板属于同一主题；主题节点及模板归属正确；case 不覆盖主题点击节点；路由无点击动作；节点接回公共后续；非零偏移的 Normal/Hard 混合模板报错。
 
-护栏按 `Themes/{CaseName}.json` 自动发现小活动主题，无需为每次新主题维护偏移登记名单。它检查结构与归属，不能代替游戏截图和实机落点验证。
+护栏按 `Themes/{CaseName}.json` 自动发现小活动特例主题，常规主题无需建独立文件与登记名单。它检查结构与归属，不能代替游戏截图和实机落点验证。
 
 ```powershell
 npm run test:theme

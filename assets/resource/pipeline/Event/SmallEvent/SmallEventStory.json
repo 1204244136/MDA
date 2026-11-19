@@ -104,9 +104,9 @@
         ]
     },
     "SmallEventEventStageQuickBattleFlow": {
-        "desc": "小活动活动关卡页面快速战斗流程", // 当前活动扫荡路由：切换主题时只替换 next；模板与偏移保存在 Themes/ 的主题节点中
+        "desc": "小活动活动关卡页面快速战斗流程", // 当前活动扫荡路由：常规主题走共用节点，仅需专属偏移或拆分的特例主题指向 Themes/
         "next": [
-            "SmallEventSkyOnTheRockClickStageRepeatable",
+            "SmallEventClickStageRepeatable",
             "SmallEventGoBack"
         ]
     },
@@ -176,6 +176,33 @@
         "next": [
             "SmallEventEventStageBattlePage",
             "SmallEventEventStageQuickBattleFlow"
+        ]
+    },
+    "SmallEventClickStageRepeatable": {
+        "desc": "小活动扫荡关卡点击", // 共用扫荡节点禁止配置 target_offset；需要专属偏移或拆分的主题放到 Themes/
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    314,
+                    103,
+                    661,
+                    604
+                ],
+                "template": [
+                    "SmallEvent/SkyOnTheRock/SkyOnTheRockStageNormalRepeatable.png" //当前活动，随最新主题更新
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "SmallEventEventStageBattlePage",
+            "SmallEventGoBack"
         ]
     },
     "SmallEventBattleBlocked": {

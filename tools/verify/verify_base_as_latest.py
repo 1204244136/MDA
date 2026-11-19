@@ -10,7 +10,7 @@ C. 用一个「无 override 的 case」承接 CurrentEvent 语义是可行的
 D. 只覆盖部分节点时，未覆盖的节点落到 base（风险点）
 E. base 的动作参数（action.param.target_offset）同样按 prop 深合并：
    往期主题只覆盖 template 时会静默继承当前活动的点击偏移，必须显式写 [0, 0, 0, 0] 归零
-   → 这是历史共用节点方案的风险反例；生产小活动已改用主题独立扫荡节点。
+   → 这是允许在共用节点写偏移时的风险反例；生产小活动采用「共用节点禁止 target_offset + 仅特例主题放 Themes/」的路由隔离方案。
    当前路由隔离验证见 verify_small_event_routing.py。
 """
 

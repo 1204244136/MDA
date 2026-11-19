@@ -135,12 +135,14 @@
 
 - base 模板节点承载最新主题，并加注释 `//当前活动，随最新主题更新`：
     - 大活动：`LargeEventEnterMainPage`、`LargeEventClickStoryStage`、`LargeEventClickStoryStageRepeatable`。
-    - 小活动：`SmallEventEnterMainPage`、`SmallEventClickStage`。
-- **小活动扫荡按主题路由**：`SmallEventEventStageQuickBattleFlow.next` 在 base 指向当前主题的点击节点，末尾保留 `SmallEventGoBack`；每个具体主题 case 显式覆盖完整 `next`。`CurrentEvent` 和 `Other` 均无 override，保持跟随 base 的既有行为。
-- **小活动扫荡的模板与动作归主题所有**：在 `assets/resource/pipeline/Event/SmallEvent/Themes/{CaseName}.json` 声明 `SmallEvent{CaseName}ClickStage...Repeatable` 节点。模板、`target_offset`、等待和点击后续放在同一节点；case 只切换扫荡路由，不覆盖这些节点的模板或动作。
-    - 相同点击策略的模板可以合并；偏移不同就拆识别与点击节点，无需复制共用战斗/扫荡业务流程。
+    - 小活动：`SmallEventEnterMainPage`、`SmallEventClickStage`、`SmallEventClickStageRepeatable`（当最新主题复用共用扫荡节点时）。
+- **小活动扫荡按「默认共用节点 + 特例主题进 `Themes/`」双轨维护**：
+    - 常规主题（无特殊偏移或无需按难度/Story 拆分动作）：复用共用节点 `SmallEventClickStageRepeatable`（**禁止在共用节点写 `target_offset`**），主题 case 仅覆盖 `SmallEventClickStageRepeatable.recognition.param.template` 并显式声明 `SmallEventEventStageQuickBattleFlow.next` 为 `["SmallEventClickStageRepeatable", "SmallEventGoBack"]`；禁止在 `Themes/` 为常规主题新建纯样板文件。
+    - 特例主题（需要专属 `target_offset` 或按难度/Story 拆分点击动作）：在 `assets/resource/pipeline/Event/SmallEvent/Themes/{CaseName}.json` 声明 `SmallEvent{CaseName}ClickStage...Repeatable` 节点，并将 `SmallEventEventStageQuickBattleFlow.next` 完整覆盖为 `[...主题节点, "SmallEventGoBack"]`。
+    - `SmallEventEventStageQuickBattleFlow` 是无识别、无点击动作的纯路由节点，`CurrentEvent` 和 `Other` 均无 override，保持跟随 base 的既有行为。
+    - 相同点击策略的模板可以合并；偏移不同就拆入 `Themes/` 点击节点，无需复制共用战斗/扫荡业务流程。
     - `LittleWitchTrick` Normal 使用 `[-80, -30, 0, 0]`，Hard 使用独立节点的 `[-40, 45, 0, 0]`。后者根据 Hard 糖果位于南瓜右上侧的截图定位，移向左下关卡主体；截图离线回放不代替实机点击后的页面验收。
-    - 新主题只新增自己的点击节点并切换路由，旧主题节点保持原样。共用扫荡路由不承载点击动作或主题偏移，也无需给其他主题逐个写归零补丁。
+    - 新增特例主题只新增自己的点击节点并切换路由，旧主题节点与共用节点保持原样。共用扫荡路由与共用扫荡节点均不承载主题偏移，也无需给其他主题逐个写归零补丁。
     - 点击节点保留 `order_by: Vertical`、`index: -1`、`post_wait_freezes: 500`，点击后接 `SmallEventEventStageBattlePage` / `SmallEventGoBack`，不恢复历史的 `max_hit: 1` 或 `[JumpBack]` 点击流程。
 - 大活动小游戏路由 `LargeEventMiniGame` 的 base 指向最新主题小游戏入口并接 `CommonEndTask`；无小游戏时为 `["CommonEndTask"]`。
 - 识别与动作参数的 override 仍按字段继承，换模板不会自动清除偏移。`SmallEventEnterMainPage` / `LargeEventEnterMainPage` 的 `[30, 0, 0, 0]` 属全主题通用入口调参，继续保留在 base。主题专属动作配置应集中在主题节点，避免放入共用节点后要求所有主题反向归零。
@@ -151,10 +153,10 @@
 
 ### 适配新主题的操作顺序
 
-1. 为新主题写好完整 case：大活动覆盖三个模板节点与 `LargeEventMiniGame`；小活动覆盖入口/普通关卡两个模板节点，以及 `SmallEventEventStageQuickBattleFlow.next`。
-2. 更新 base 的当前主题：大活动更新三个模板及小游戏路由；小活动更新两个模板及扫荡路由。
-    - 小活动先在 `Themes/{CaseName}.json` 声明自己的扫荡点击节点，再把完整节点列表加 `SmallEventGoBack` 写入 base 路由和具体主题 case。
-    - 不同难度的识别框与点击区域不同，就拆节点并分别测量偏移；不要只向旧节点追加 Hard 模板而共用 Normal 偏移。
+1. 为新主题写好完整 case：大活动覆盖三个模板节点与 `LargeEventMiniGame`；小活动覆盖 `SmallEventEnterMainPage`、`SmallEventClickStage`，并按主题是否需要专属偏移/拆分选择扫荡接线：
+    - 常规主题：直接覆盖 `SmallEventClickStageRepeatable.recognition.param.template`，并将 `SmallEventEventStageQuickBattleFlow.next` 设为 `["SmallEventClickStageRepeatable", "SmallEventGoBack"]`，不在 `Themes/` 新建文件。
+    - 特例主题（不同难度/Story 需独立 `target_offset` 或拆分点击节点）：先在 `Themes/{CaseName}.json` 声明独立点击节点（不同难度偏移不同时拆节点分别测量），再将完整节点列表加 `SmallEventGoBack` 写入 `SmallEventEventStageQuickBattleFlow.next`。
+2. 更新 base 的当前主题：大活动更新三个模板及小游戏路由；小活动更新 `SmallEventEnterMainPage`、`SmallEventClickStage` 及 `SmallEventEventStageQuickBattleFlow.next`（当前主题为常规主题时同步更新 `SmallEventClickStageRepeatable` 的模板）。
 3. `CurrentEvent` **不动**：它没有 override，base 一改就自动跟随。
 4. 往期主题 case 的 `pipeline_override` 一律保留不动，供用户显式回选仍在开放的老活动。
 5. 跑 `npm run test:theme`、`npm run check:theme`，并执行相关框架离线回放与资源/schema 校验。
@@ -186,9 +188,9 @@
 - **断言 A**：`CurrentEvent` 不得携带非空 `pipeline_override`（否则自动跟随失效）。
 - **断言 B**：所有往期主题 case 必须逐个覆盖同一批模板类节点。漏覆盖的主题在 base 换新后会**静默继承新主题模板**，导致回选老活动时永远匹配不上且不报错——这正是护栏存在的意义。
 - **断言 C**：所有往期主题 case（含 `Other`）必须显式覆盖 `LargeEventMiniGame` 的 `next` 数组。漏覆盖的主题会**静默继承最新主题的小游戏**，导致在老活动中误识别当前小游戏。
-- **断言 D**：小活动每个具体主题必须完整声明扫荡路由；base 路由必须属于当前入口模板对应的主题；点击节点、模板和动作归同一主题，末尾连接公共后续；共用路由无识别与点击动作，case 不得覆盖主题点击节点；携带非零偏移的 Normal/Hard 混合模板会报错。
+- **断言 D**：小活动共用扫荡节点 `SmallEventClickStageRepeatable` 禁止携带 `target_offset`；每个具体主题必须完整声明扫荡路由（复用共用节点并仅覆盖其 `template`，或使用 `Themes/{CaseName}.json` 专属节点，二者不得混用）；`Themes/` 中禁止存在与共用节点等价的纯样板单节点文件；base 路由及共用模板必须与当前入口模板对应的主题一致；特例节点、模板和动作归同一主题并接回公共后续；共用路由无识别与点击动作，case 不得覆盖主题点击节点；携带非零偏移的 Normal/Hard 混合模板会报错。
 
-新增小活动主题时，按 case 名命名 `Themes/{CaseName}.json`，护栏自动发现其中节点；公共模板节点或大活动小游戏路由集合变化时，再更新脚本的对应清单。`npm run test:theme` 覆盖换主题漏改路由、跨主题引用和 Normal/Hard 偏移混用等回归。
+新增小活动特例主题时，按 case 名命名 `Themes/{CaseName}.json`，护栏自动发现其中节点；常规主题直接复用共用节点即可。公共模板节点或大活动小游戏路由集合变化时，再更新脚本的对应清单。`npm run test:theme` 覆盖换主题漏改路由、共用节点误加偏移、纯样板文件及 Normal/Hard 偏移混用等回归。
 
 ## 大型小活动适配
 
@@ -209,7 +211,7 @@
 
 - 有 Story 的活动，不适配 Story 切换按钮。Story 2 开放后，活动页面会自动切换到 Story 2，无需 Pipeline 额外点击；不要照搬 `LargeEvent` 的 Story 优先级或 Story 入口切换流程。
 - 有 Story 时，关卡模板必须按实际 Story 语义命名。Story 1 使用 `{Theme}Story1Stage.png` 和 `{Theme}Story1StageRepeatable.png`；Story 2 普通难度使用 `{Theme}Story2StageNormal.png` 和 `{Theme}Story2StageNormalRepeatable.png`。不要用 `SP` 代指 Story 2。
-- 将 Story 1、Story 2 普通关卡模板加入 `SmallEventClickStage` 的主题覆盖；扫荡模板放在对应 `Themes/{CaseName}.json` 的点击节点中。点击策略相同可以合并，不同就拆节点，由主题扫荡路由识别并接回统一流程。
+- 将 Story 1、Story 2 普通关卡模板加入 `SmallEventClickStage` 的主题覆盖；扫荡模板通常直接覆盖共用节点 `SmallEventClickStageRepeatable`，仅当点击策略或偏移不同时才拆到 `Themes/{CaseName}.json` 的主题节点中，由 `SmallEventEventStageQuickBattleFlow` 路由识别并接回统一流程。
 - Story 2 Hard 未开放时，不添加 `{Theme}Story2StageHard*` 模板或配置；开放后再根据实际素材适配。
 
 ### 关卡已全清（CLEAR）时截不到 EVENT

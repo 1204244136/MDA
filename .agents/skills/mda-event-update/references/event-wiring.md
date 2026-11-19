@@ -12,10 +12,10 @@
 ## 小活动
 
 - 先判断主页是否真有 STORY I/II 切换。有则按 Story 语义命名，没有则用 `StageNormal` / `StageHard`。两批关卡编号不代表两个 Story。
-- 普通关卡标记加入主题 case 的 `SmallEventClickStage.recognition.param.template`；扫荡标记加入 `Themes/{CaseName}.json` 中对应点击节点。
-- 每个具体主题完整覆盖 `SmallEventEnterMainPage`、`SmallEventClickStage` 及 `SmallEventEventStageQuickBattleFlow.next`；路由末尾保留 `SmallEventGoBack`。模板与非零偏移留在主题点击节点，case 只切换扫荡路由。
-- 相同点击策略可合并模板；Normal/Hard 或 Story 的偏移不同就拆点击节点。点击后复用 `SmallEventEventStageBattlePage` / `SmallEventGoBack`，保留现有顺序、等待和战斗/体力逻辑。
-- 升级当前主题时更新 base 的入口、普通关卡模板及完整扫荡路由。`CurrentEvent` 与 `Other` 均无 override，保持自动跟随。只补当前主题 Hard 时同步该主题自己的节点/路由与 base，不动其他主题。
+- 普通关卡标记加入主题 case 的 `SmallEventClickStage.recognition.param.template`；常规扫荡标记直接加入主题 case 的 `SmallEventClickStageRepeatable.recognition.param.template`（禁止添加 `target_offset`），仅需专属偏移或拆分动作的特例主题将扫荡模板和动作放入 `Themes/{CaseName}.json`。
+- 每个具体主题完整覆盖 `SmallEventEnterMainPage`、`SmallEventClickStage` 及 `SmallEventEventStageQuickBattleFlow.next`；路由末尾保留 `SmallEventGoBack`（常规主题指向 `SmallEventClickStageRepeatable`，特例主题指向 `Themes/` 节点）。模板与非零偏移留在 `Themes/` 主题点击节点，case 只切换扫荡路由。
+- 相同点击策略可合并模板；Normal/Hard 或 Story 的偏移不同就拆入 `Themes/` 点击节点。点击后复用 `SmallEventEventStageBattlePage` / `SmallEventGoBack`，保留现有顺序、等待和战斗/体力逻辑。
+- 升级当前主题时更新 base 的入口、普通关卡模板及完整扫荡路由（当前主题为常规主题时同步更新共用节点 `SmallEventClickStageRepeatable` 的模板）。`CurrentEvent` 与 `Other` 均无 override，保持自动跟随。只补当前主题 Hard 时同步该主题自己的模板或节点/路由与 base，不动其他主题。
 - Story 2 开放后页面自动切到 Story 2，无需照搬大活动的 Story 入口切换。未开放的 Story 2 Hard 不创建模板。
 
 ## 大活动

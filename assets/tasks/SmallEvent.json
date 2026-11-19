@@ -50,9 +50,20 @@
                                 }
                             }
                         },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/BitterSpice/BitterSpiceStageNormalRepeatable.png",
+                                        "SmallEvent/BitterSpice/BitterSpiceStageNormalRepeatableSP.png",
+                                        "SmallEvent/BitterSpice/BitterSpiceStageHardRepeatable.png"
+                                    ]
+                                }
+                            }
+                        },
                         "SmallEventEventStageQuickBattleFlow": {
                             "next": [
-                                "SmallEventBitterSpiceClickStageRepeatable",
+                                "SmallEventClickStageRepeatable",
                                 "SmallEventGoBack"
                             ]
                         }
@@ -81,9 +92,19 @@
                                 }
                             }
                         },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/B-SideIdol/B-SideIdolStageNormalRepeatable.png",
+                                        "SmallEvent/B-SideIdol/B-SideIdolStageHardRepeatable.png"
+                                    ]
+                                }
+                            }
+                        },
                         "SmallEventEventStageQuickBattleFlow": {
                             "next": [
-                                "SmallEventBSideIdolClickStageRepeatable",
+                                "SmallEventClickStageRepeatable",
                                 "SmallEventGoBack"
                             ]
                         }
@@ -113,9 +134,20 @@
                                 }
                             }
                         },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory1StageRepeatable.png",
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageNormalRepeatable.png",
+                                        "SmallEvent/ProjectMatis/ProjectMatisStory2StageHardRepeatable.png"
+                                    ]
+                                }
+                            }
+                        },
                         "SmallEventEventStageQuickBattleFlow": {
                             "next": [
-                                "SmallEventProjectMatisClickStageRepeatable",
+                                "SmallEventClickStageRepeatable",
                                 "SmallEventGoBack"
                             ]
                         }
@@ -144,9 +176,19 @@
                                 }
                             }
                         },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageNormalRepeatable.png",
+                                        "SmallEvent/GreatVillainUnion/GreatVillainUnionStageHardRepeatable.png"
+                                    ]
+                                }
+                            }
+                        },
                         "SmallEventEventStageQuickBattleFlow": {
                             "next": [
-                                "SmallEventGreatVillainUnionClickStageRepeatable",
+                                "SmallEventClickStageRepeatable",
                                 "SmallEventGoBack"
                             ]
                         }
@@ -206,9 +248,18 @@
                                 }
                             }
                         },
+                        "SmallEventClickStageRepeatable": {
+                            "recognition": {
+                                "param": {
+                                    "template": [
+                                        "SmallEvent/SkyOnTheRock/SkyOnTheRockStageNormalRepeatable.png"
+                                    ]
+                                }
+                            }
+                        },
                         "SmallEventEventStageQuickBattleFlow": {
                             "next": [
-                                "SmallEventSkyOnTheRockClickStageRepeatable",
+                                "SmallEventClickStageRepeatable",
                                 "SmallEventGoBack"
                             ]
                         }

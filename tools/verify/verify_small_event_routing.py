@@ -2,8 +2,8 @@
 
 import ctypes
 import json
-from pathlib import Path
 import os
+from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 from tools.validate_schema import load_jsonc
 
 ROUTE = "SmallEventEventStageQuickBattleFlow"
+SHARED = "SmallEventClickStageRepeatable"
 NORMAL = "SmallEventLittleWitchTrickClickStageNormalRepeatable"
 HARD = "SmallEventLittleWitchTrickClickStageHardRepeatable"
 
@@ -52,6 +53,7 @@ def main():
     leaves = {}
     for file in (ROOT / "assets/resource/pipeline/Event/SmallEvent/Themes").glob("*.json"):
         leaves.update(load_jsonc(file))
+    assert set(leaves.keys()) == {NORMAL, HARD}, set(leaves.keys())
 
     passed = 0
     for case in cases:
@@ -60,29 +62,46 @@ def main():
             job = maa.MaaResourcePostBundle(res, str(ROOT / "assets/resource").encode())
             assert maa.MaaResourceWait(res, job) == 3000, "实际资源加载失败"
             before = {name: node(res, name) for name in leaves}
-            override(res, case.get("pipeline_override", {}))
-            expected = case.get("pipeline_override", {}).get(ROUTE, story[ROUTE])["next"]
+            po = case.get("pipeline_override", {})
+            override(res, po)
+            expected = po.get(ROUTE, story[ROUTE])["next"]
             got = node(res, ROUTE)
             assert next_names(got) == expected, (case["name"], got)
             assert got["action"]["type"] == "DoNothing", got
             assert {name: node(res, name) for name in leaves} == before, case["name"]
             assert node(res, NORMAL)["action"]["param"]["target_offset"] == [-80, -30, 0, 0]
             assert node(res, HARD)["action"]["param"]["target_offset"] == [-40, 45, 0, 0]
-            print(f"[PASS] {case['name']}: 路由整体替换，全部主题模板/动作保持独立")
+            assert node(res, SHARED)["action"]["param"]["target_offset"] == [0, 0, 0, 0]
+            if expected[0] == SHARED:
+                expected_tpl = po.get(SHARED, story[SHARED])["recognition"]["param"]["template"]
+                assert node(res, SHARED)["recognition"]["param"]["template"] == expected_tpl, case["name"]
+            print(f"[PASS] {case['name']}: 路由整体替换，共用节点与特例节点动作保持隔离")
             passed += 1
 
             if case["name"] == "CurrentEvent":
-                old = next(c for c in cases if c["name"] == "BSideIdol")
-                # 模拟下次升级：base 当前模板/路由换为另一主题，不改任何旧主题动作。
-                override(res, old["pipeline_override"])
-                assert next_names(node(res, ROUTE)) == old["pipeline_override"][ROUTE]["next"]
-                assert {name: node(res, name) for name in leaves} == before
-                # 更新后显式回选 LittleWitchTrick，仍拿到自己的 Normal/Hard 节点与偏移。
                 witch = next(c for c in cases if c["name"] == "LittleWitchTrick")
+                old = next(c for c in cases if c["name"] == "BSideIdol")
+
+                # 模拟 base 升级为特例主题后，再显式回选旧常规主题。
+                override(res, witch["pipeline_override"])
+                assert next_names(node(res, ROUTE)) == [NORMAL, HARD, "SmallEventGoBack"]
+                assert node(res, NORMAL)["action"]["param"]["target_offset"] == [-80, -30, 0, 0]
+                assert node(res, HARD)["action"]["param"]["target_offset"] == [-40, 45, 0, 0]
+
+                override(res, old["pipeline_override"])
+                assert next_names(node(res, ROUTE)) == [SHARED, "SmallEventGoBack"]
+                assert (
+                    node(res, SHARED)["recognition"]["param"]["template"]
+                    == old["pipeline_override"][SHARED]["recognition"]["param"]["template"]
+                )
+                assert node(res, SHARED)["action"]["param"]["target_offset"] == [0, 0, 0, 0]
+                assert {name: node(res, name) for name in leaves} == before
+
+                # 再从常规主题显式回选特例主题，确认仍拿到各自偏移与路由。
                 override(res, witch["pipeline_override"])
                 assert next_names(node(res, ROUTE)) == [NORMAL, HARD, "SmallEventGoBack"]
                 assert {name: node(res, name) for name in leaves} == before
-                print("[PASS] 升级当前路由后回选旧主题：保留旧主题动作，不继承新主题参数")
+                print("[PASS] 特例/常规双向切换回选：各自保留路由与偏移，无跨主题污染")
                 passed += 1
         finally:
             maa.MaaResourceDestroy(res)

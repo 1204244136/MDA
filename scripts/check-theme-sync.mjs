@@ -1,10 +1,10 @@
 /**
  * 活动主题一致性护栏：CurrentEvent 无 override；具体主题完整覆盖模板或路由。
- * 小活动扫荡节点按主题保存模板与动作，禁止共用节点继承主题专属偏移。
+ * 小活动默认复用共用扫荡节点（禁止 target_offset），仅需专属偏移或拆分的特例主题放入 Themes/。
  * 用法：npm run check:theme；回归测试：npm run test:theme。
  */
 
-import {readFileSync, readdirSync} from "node:fs";
+import {existsSync, readFileSync, readdirSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {dirname, join, resolve} from "node:path";
 
@@ -25,6 +25,7 @@ const TARGETS = [
             "SmallEventEnterMainPage",
             "SmallEventClickStage",
         ],
+        sharedRepeatableNode: "SmallEventClickStageRepeatable",
         repeatableRoutingNode: "SmallEventEventStageQuickBattleFlow",
         themePipelineDir: "assets/resource/pipeline/Event/SmallEvent/Themes",
     },
@@ -117,31 +118,127 @@ function loadBaseNodes(target) {
     return nodes;
 }
 
-/** 检查路由的实际目标及模板归属，避免换主题时遗留旧路由或把不同难度的偏移绑在一起。 */
+function isZeroOffset(offset) {
+    return Array.isArray(offset) && offset.length === 4 && offset.every((v) => v === 0);
+}
+
+/** 归一化扫荡节点，用于判断 Themes/ 单节点文件是否等价于共用扫荡节点的纯样板复制。 */
+function normalizeRepeatableNode(node) {
+    const copy = structuredClone(node);
+    delete copy.desc;
+    if (copy.recognition?.param) {
+        delete copy.recognition.param.template;
+    }
+    if (copy.action?.param) {
+        const paramKeys = Object.keys(copy.action.param);
+        if (
+            paramKeys.length === 0 ||
+            (paramKeys.length === 1 &&
+                paramKeys[0] === "target_offset" &&
+                isZeroOffset(copy.action.param.target_offset))
+        ) {
+            delete copy.action.param;
+        }
+    }
+    return copy;
+}
+
+/** 键序无关深比较。 */
+function deepEqual(a, b) {
+    if (a === b) return true;
+    if (a === null || b === null || typeof a !== typeof b) return false;
+    if (Array.isArray(a) || Array.isArray(b)) {
+        return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v, i) => deepEqual(v, b[i]));
+    }
+    if (typeof a === "object") {
+        const keysA = Object.keys(a);
+        const keysB = Object.keys(b);
+        if (keysA.length !== keysB.length) return false;
+        return keysA.every((k) => Object.prototype.hasOwnProperty.call(b, k) && deepEqual(a[k], b[k]));
+    }
+    return false;
+}
+
+/** 检查路由的实际目标及模板归属，守住「默认共用节点 + 特例进 Themes/」双轨边界。 */
 function checkRepeatableRoutes(target, cases, baseNodes) {
     const routeName = target.repeatableRoutingNode;
+    const sharedNodeName = target.sharedRepeatableNode;
+    const sharedNode = baseNodes.get(sharedNodeName);
     const fail = (message) => errors.push(`[${target.optionName}] ${message}`);
-    const themeNodes = new Map();
-    try {
-        for (const file of readdirSync(join(REPO_ROOT, target.themePipelineDir))) {
-            if (!file.endsWith(".json")) continue;
-            const theme = file.slice(0, -5);
-            const doc = parseJsonc(readFileSync(join(REPO_ROOT, target.themePipelineDir, file), "utf8"));
-            for (const [
-                name,
-                node,
-            ] of Object.entries(doc)) {
-                if (themeNodes.has(name) || baseNodes.has(name)) fail(`扫荡节点 ${name} 重复声明。`);
-                if (!name.startsWith(`SmallEvent${theme}ClickStage`)) fail(`${file} 中的 ${name} 不属于该主题。`);
-                themeNodes.set(name, {theme, node});
-            }
+
+    if (!sharedNode) {
+        fail(`缺少共用扫荡节点 ${sharedNodeName}。`);
+    } else {
+        const sharedTemplates = sharedNode.recognition?.param?.template;
+        if (
+            sharedNode.recognition?.type !== "TemplateMatch" ||
+            !Array.isArray(sharedTemplates) ||
+            sharedTemplates.length === 0 ||
+            sharedTemplates.some((tpl) => typeof tpl !== "string")
+        ) {
+            fail(`共用扫荡节点 ${sharedNodeName} 必须是有效的 TemplateMatch 节点。`);
         }
-    } catch (err) {
-        fail(`无法读取主题扫荡节点：${err.message}`);
-        return;
+        if (
+            sharedNode.action?.type !== "Click" ||
+            sharedNode.enabled === false ||
+            sharedNode.action.param?.target === false ||
+            JSON.stringify(sharedNode.next) !==
+                JSON.stringify([
+                    "SmallEventEventStageBattlePage",
+                    "SmallEventGoBack",
+                ])
+        ) {
+            fail(`共用扫荡节点 ${sharedNodeName} 必须执行点击并接回共用战斗页面/返回流程。`);
+        }
+        if (sharedNode.action?.param?.target_offset !== undefined || sharedNode.target_offset !== undefined) {
+            fail(`共用节点 ${sharedNodeName} 不得携带 target_offset，需要偏移的主题请放入 Themes/。`);
+        }
     }
 
     const concrete = cases.filter((c) => !NON_THEME_CASES.has(c.name));
+    const concreteNames = new Set(concrete.map((c) => c.name));
+    const themeNodes = new Map();
+    const themeDir = join(REPO_ROOT, target.themePipelineDir);
+    if (existsSync(themeDir)) {
+        try {
+            for (const file of readdirSync(themeDir)) {
+                if (!file.endsWith(".json")) continue;
+                const theme = file.slice(0, -5);
+                if (!concreteNames.has(theme)) fail(`${file} 不对应任何已知具体主题 case。`);
+                const doc = parseJsonc(readFileSync(join(themeDir, file), "utf8"));
+                const entries = Object.entries(doc);
+                for (const [
+                    name,
+                    node,
+                ] of entries) {
+                    if (themeNodes.has(name) || baseNodes.has(name)) fail(`扫荡节点 ${name} 重复声明。`);
+                    if (!name.startsWith(`SmallEvent${theme}ClickStage`)) fail(`${file} 中的 ${name} 不属于该主题。`);
+                    themeNodes.set(name, {theme, node});
+                }
+                if (entries.length === 1 && sharedNode) {
+                    const [
+                        onlyName,
+                        onlyNode,
+                    ] = entries[0];
+                    const offset = onlyNode?.action?.param?.target_offset;
+                    const hasNonZeroOffset = Array.isArray(offset) && offset.some((v) => v !== 0);
+                    if (
+                        !hasNonZeroOffset &&
+                        !onlyNode?.target_offset &&
+                        deepEqual(normalizeRepeatableNode(onlyNode), normalizeRepeatableNode(sharedNode))
+                    ) {
+                        fail(
+                            `${file} 中的 ${onlyName} 与共用节点 ${sharedNodeName} 等价，无需在 Themes/ 单独建文件，请直接复用共用节点并覆写 template。`,
+                        );
+                    }
+                }
+            }
+        } catch (err) {
+            fail(`无法读取主题扫荡节点：${err.message}`);
+            return;
+        }
+    }
+
     const baseLogo = baseNodes.get("SmallEventEnterMainPage")?.recognition?.param?.template;
     const currentTheme = concrete.find(
         (c) =>
@@ -150,8 +247,21 @@ function checkRepeatableRoutes(target, cases, baseNodes) {
     );
     if (!currentTheme) fail("base 入口模板找不到对应的具体主题 case，无法确认当前扫荡路由归属。");
 
+    function checkTemplates(templates, folder, nodeLabel, themeName) {
+        if (
+            !folder ||
+            !Array.isArray(templates) ||
+            templates.length === 0 ||
+            templates.some((tpl) => typeof tpl !== "string" || !tpl.startsWith(folder) || tpl.includes(".."))
+        ) {
+            fail(`${nodeLabel} 必须使用 ${themeName} 自己的模板。`);
+            return false;
+        }
+        return true;
+    }
+
     const used = new Set();
-    function checkRoute(route, themeCase, label) {
+    function checkRoute(route, themeCase, label, {isBase = false} = {}) {
         if (!route || route.action || route.recognition || route.target_offset) {
             fail(`${label} 的 ${routeName} 必须是无识别、无点击动作的路由节点。`);
         }
@@ -163,12 +273,68 @@ function checkRepeatableRoutes(target, cases, baseNodes) {
             next.some((name) => typeof name !== "string") ||
             new Set(next).size !== next.length
         ) {
-            fail(`${label} 必须完整声明扫荡 next：主题点击节点 + SmallEventGoBack。`);
-            return;
+            fail(`${label} 必须完整声明扫荡 next：扫荡点击节点 + SmallEventGoBack。`);
+            return null;
         }
         const logo = themeCase.pipeline_override?.SmallEventEnterMainPage?.recognition?.param?.template?.[0];
         const folder = typeof logo === "string" ? logo.slice(0, logo.lastIndexOf("/") + 1) : "";
-        for (const name of next.slice(0, -1)) {
+        const targets = next.slice(0, -1);
+
+        if (targets.length === 1 && targets[0] === sharedNodeName) {
+            if (!isBase) {
+                const sharedOverride = themeCase.pipeline_override?.[sharedNodeName];
+                if (!sharedOverride || typeof sharedOverride !== "object") {
+                    fail(`${label} 复用共用扫荡节点时必须覆盖 ${sharedNodeName} 的 template。`);
+                } else {
+                    const topKeys = Object.keys(sharedOverride);
+                    const recKeys =
+                        sharedOverride.recognition && typeof sharedOverride.recognition === "object"
+                            ? Object.keys(sharedOverride.recognition)
+                            : null;
+                    const paramKeys =
+                        sharedOverride.recognition?.param && typeof sharedOverride.recognition.param === "object"
+                            ? Object.keys(sharedOverride.recognition.param)
+                            : null;
+                    const onlyTemplate =
+                        topKeys.length === 1 &&
+                        topKeys[0] === "recognition" &&
+                        recKeys?.length === 1 &&
+                        recKeys[0] === "param" &&
+                        paramKeys?.length === 1 &&
+                        paramKeys[0] === "template";
+                    if (!onlyTemplate) {
+                        fail(
+                            `${label} 覆盖 ${sharedNodeName} 只允许修改 recognition.param.template，如需定制动作或识别参数请放入 Themes/。`,
+                        );
+                    } else {
+                        checkTemplates(
+                            sharedOverride.recognition.param.template,
+                            folder,
+                            `${label} 的 ${sharedNodeName}`,
+                            themeCase.name,
+                        );
+                    }
+                }
+            } else {
+                const baseTemplates = sharedNode?.recognition?.param?.template;
+                checkTemplates(baseTemplates, folder, `${label} 的 ${sharedNodeName}`, themeCase.name);
+                const themeTemplates = themeCase.pipeline_override?.[sharedNodeName]?.recognition?.param?.template;
+                if (JSON.stringify(baseTemplates) !== JSON.stringify(themeTemplates)) {
+                    fail(`${label} 的 ${sharedNodeName} 模板必须与当前具体主题一致。`);
+                }
+            }
+            return "shared";
+        }
+
+        if (targets.includes(sharedNodeName)) {
+            fail(`${label} 不能同时混用共用扫荡节点 ${sharedNodeName} 和主题特例节点。`);
+            return null;
+        }
+        if (!isBase && themeCase.pipeline_override?.[sharedNodeName]) {
+            fail(`${label} 已使用主题扫荡路由，不应再覆盖共用节点 ${sharedNodeName}。`);
+        }
+
+        for (const name of targets) {
             const item = themeNodes.get(name);
             if (!item || item.theme !== themeCase.name) {
                 fail(`${label} 的扫荡路由 ${name} 缺失或引用了其他主题。`);
@@ -177,14 +343,10 @@ function checkRepeatableRoutes(target, cases, baseNodes) {
             used.add(name);
             const node = item.node;
             const templates = node.recognition?.param?.template;
-            if (
-                node.recognition?.type !== "TemplateMatch" ||
-                !folder ||
-                !Array.isArray(templates) ||
-                templates.length === 0 ||
-                templates.some((tpl) => typeof tpl !== "string" || !tpl.startsWith(folder) || tpl.includes(".."))
-            ) {
+            if (node.recognition?.type !== "TemplateMatch") {
                 fail(`${name} 必须使用 ${themeCase.name} 自己的模板。`);
+            } else {
+                checkTemplates(templates, folder, name, themeCase.name);
             }
             if (
                 node.action?.type !== "Click" ||
@@ -215,19 +377,24 @@ function checkRepeatableRoutes(target, cases, baseNodes) {
                 fail(`${name} 的 Normal/Hard 模板携带非零偏移，应按点击策略拆分节点。`);
             }
         }
+        return "custom";
     }
 
+    let sharedCount = 0;
+    let customThemeCount = 0;
     for (const themeCase of concrete) {
         const overrides = themeCase.pipeline_override ?? {};
-        checkRoute(overrides[routeName], themeCase, themeCase.name);
+        const mode = checkRoute(overrides[routeName], themeCase, themeCase.name);
+        if (mode === "shared") sharedCount++;
+        else if (mode === "custom") customThemeCount++;
         for (const name of Object.keys(overrides)) {
-            if (themeNodes.has(name) || name === "SmallEventClickStageRepeatable") {
+            if (themeNodes.has(name)) {
                 fail(`${themeCase.name} 不应覆盖扫荡节点 ${name} 的模板/动作，请只切换路由。`);
             }
         }
     }
     if (currentTheme) {
-        checkRoute(baseNodes.get(routeName), currentTheme, "CurrentEvent/base");
+        checkRoute(baseNodes.get(routeName), currentTheme, "CurrentEvent/base", {isBase: true});
         if (
             JSON.stringify(baseNodes.get(routeName)?.next) !==
             JSON.stringify(currentTheme.pipeline_override?.[routeName]?.next)
@@ -247,11 +414,12 @@ function checkRepeatableRoutes(target, cases, baseNodes) {
     if (other?.pipeline_override && Object.keys(other.pipeline_override).length > 0) {
         fail("Other 应保持无 override，兼容既有跟随当前活动的行为。");
     }
-    if (baseNodes.has("SmallEventClickStageRepeatable")) fail("共用 SmallEventClickStageRepeatable 应迁移到主题节点。");
     for (const name of themeNodes.keys()) {
         if (!used.has(name)) fail(`主题扫荡节点 ${name} 未被自己的主题路由引用。`);
     }
-    notes.push(`[${target.optionName}] ${concrete.length} 个主题的扫荡模板与动作按主题隔离。`);
+    notes.push(
+        `[${target.optionName}] ${concrete.length} 个主题通过扫荡路由校验（${sharedCount} 个复用共用节点，${customThemeCount} 个使用主题特例节点）。`,
+    );
 }
 
 const errors = [];
@@ -354,6 +522,7 @@ for (const target of TARGETS) {
 
     // ---- 记录：被显式覆盖但不在模板清单内的节点（属颜色/阈值特例，仅提示） ----
     const templateNodesSet = new Set(target.expectedTemplateNodes);
+    if (target.sharedRepeatableNode) templateNodesSet.add(target.sharedRepeatableNode);
     const extraCovered = new Set();
     for (const name of pastThemes) {
         const po = byName.get(name)?.pipeline_override ?? {};
