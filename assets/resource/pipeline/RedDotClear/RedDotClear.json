@@ -79,19 +79,20 @@
         }
     },
     "RedDotClearMoreRedDot": {
-        "desc": "查看更多入口有红点",
+        "desc": "查看更多入口有红点或New",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": "RedDotClearMoreVisible",
                 "roi_offset": [
-                    20,
-                    -30,
-                    20,
-                    20
-                ],
+                    15,
+                    -40,
+                    25,
+                    25
+                ], // 向上扩展以完整包住较高的 New 角标，同时避开左侧相邻图标与上方横幅
                 "template": [
-                    "Common/RedDot.png"
+                    "Common/RedDot.png",
+                    "Common/New.png"
                 ]
             }
         }

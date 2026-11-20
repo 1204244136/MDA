@@ -18,8 +18,8 @@
             }
         },
         "next": [
-            "[JumpBack]RedDotClearClickMore",
             "RedDotClearArchivesClickEntry",
+            "[JumpBack]RedDotClearClickMore",
             "CommonClickBlank"
         ]
     },

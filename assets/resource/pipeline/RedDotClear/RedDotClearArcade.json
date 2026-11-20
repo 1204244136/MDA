@@ -18,8 +18,8 @@
             }
         },
         "next": [
-            "[JumpBack]RedDotClearClickMore",
             "RedDotClearArcadeClickEntry",
+            "[JumpBack]RedDotClearClickMore",
             "CommonClickBlank"
         ]
     },

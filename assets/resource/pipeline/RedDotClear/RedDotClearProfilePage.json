@@ -70,7 +70,7 @@
             "[JumpBack]RedDotClearClickProfileTitle",
             "[JumpBack]RedDotClearClickManageProfile",
             "CommonClosePage",
-            "CommonEndTask" //关不了页面也结束任务
+            "CommonReturnHall" // 关不了页面时回大厅，避免把未关闭界面遗留给后续任务
         ]
     },
     "ProfilePageVisible": {
@@ -148,8 +148,26 @@
                 ]
             }
         },
+        "post_wait_freezes": {
+            "time": 1000, // 等页签切换与下方列表加载稳定，避开上方动态横幅，防止过早点返回被吞
+            "target": [
+                433,
+                360,
+                410,
+                220
+            ],
+            "rate_limit": 200,
+            "timeout": 3000
+        },
         "next": [
-            "CommonGoBack"
+            "RedDotClearProfileDecorationReturn"
+        ]
+    },
+    "RedDotClearProfileDecorationReturn": {
+        "desc": "从装饰页返回个人资料页",
+        "next": [
+            "ProfilePageVisible",
+            "[JumpBack]CommonGoBack"
         ]
     },
     "RedDotClearClickProfileTitle": {
