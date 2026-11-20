@@ -68,19 +68,7 @@
         }
     },
     "CostumeGachaNewOrRedDot": {
-        "desc": "时装抽取有New的图标或红点",
-        "recognition": {
-            "type": "Or",
-            "param": {
-                "any_of": [
-                    "CostumeGachaNew",
-                    "CostumeGachaRedDot"
-                ]
-            }
-        }
-    },
-    "CostumeGachaNew": {
-        "desc": "时装抽取有New的图标",
+        "desc": "时装抽取有New或红点",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -92,45 +80,14 @@
                     20
                 ],
                 "template": [
-                    "Common/New.png"
-                ]
-            }
-        }
-    },
-    "CostumeGachaRedDot": {
-        "desc": "时装抽取有红点",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": "CostumeGachaVisible",
-                "roi_offset": [
-                    10,
-                    -20,
-                    20,
-                    20
-                ],
-                "template": [
+                    "Common/New.png",
                     "Common/RedDot.png"
                 ]
             }
         }
     },
     "RedDotClearCostumeGachaFlow": {
-        "desc": "时装抽取流程", // 每次切换时装都会重入，先查当前套票券商店再进入抽取循环
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "CostumeGachaEntered"
-                ]
-            }
-        },
-        "next": [
-            "CostumeGachaEnterTicketShop"
-        ]
-    },
-    "CostumeGachaEntered": {
-        "desc": "处于时装抽取界面",
+        "desc": "时装抽取流程", // 每次切换时装重入，有票券商店红点先领免费票，无红点直接抽取
         "recognition": {
             "type": "OCR",
             "param": {
@@ -144,26 +101,38 @@
                     "时装抽取"
                 ]
             }
-        }
+        },
+        "next": [
+            "CostumeGachaEnterTicketShop",
+            "CostumeGachaClickGacha"
+        ]
     },
     "CostumeGachaEnterTicketShop": {
-        "desc": "进入时装抽取票券商店",
+        "desc": "有红点时进入票券商店",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    538,
-                    55,
-                    179,
-                    23
-                ],
-                "expected": [
-                    ".*票券商店.*"
+                    690,
+                    40,
+                    40,
+                    35
+                ], // 仅匹配按钮右上角红点，避开按钮文字随图标宽度漂移
+                "template": [
+                    "Common/RedDot9x9.png"
                 ]
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -60,
+                    12,
+                    0,
+                    0
+                ] // 从右上角红点向左下偏移到票券商店按钮内
+            }
         },
         "next": [
             "CostumeGachaPurchaseFreeTicketFlow"
@@ -242,26 +211,12 @@
             }
         },
         "next": [
-            "CostumeGachaPullFlow", // 先确认已回到时装抽取页，避免误二次点返回退回大厅
+            "CostumeGachaClickGacha", // 确认回到抽取页再开始抽，避免误二次点返回退回大厅
             "[JumpBack]CommonGoBack"
         ]
     },
-    "CostumeGachaPullFlow": {
-        "desc": "当前时装抽取流程",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "CostumeGachaEntered"
-                ]
-            }
-        },
-        "next": [
-            "CostumeGachaClickGacha"
-        ]
-    },
-    "CostumeGachaButtonVisible": {
-        "desc": "抽取按钮可见", // 抽成子节点供外层组合引用，避免与奖励确认节点合并批量识别导致浅色底误识
+    "CostumeGachaClickGacha": {
+        "desc": "点击抽取",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -275,46 +230,35 @@
                     "抽取"
                 ]
             }
-        }
-    },
-    "CostumeGachaClickGacha": {
-        "desc": "点击抽取",
-        "recognition": {
-            "type": "And",
-            "param": {
-                "all_of": [
-                    "CostumeGachaButtonVisible"
-                ]
-            }
         },
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1000,
+        "rate_limit": 300, // 去掉转盘页易卡住的冻结等待并缩短轮询，以便及时点掉 SKIP
         "next": [
             "CostumeGachaCancelShopPrompt",
             "[JumpBack]CommonSkipPlot",
-            "[JumpBack]CommonConfirmReward",
-            "CostumeGachaClickGacha" // 抽完继续抽当前套，直到票券不足弹窗出现再切下一套
+            "CostumeGachaConfirmPullReward" // 领完本次奖励再回到抽取，避免退场期重复误点 SKIP
         ]
     },
-    "CostumeGachaTicketShortageVisible": {
-        "desc": "票券不足前往商店提示可见", // 覆盖弹窗两行文案，任一行命中即成立
+    "CostumeGachaConfirmPullReward": {
+        "desc": "确认时装抽取奖励",
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "roi": [
-                    520,
-                    285,
-                    240,
-                    85
-                ],
-                "expected": [
-                    ".*票券不足.*",
-                    ".*前往商店.*"
+                "all_of": [
+                    "CommonConfirmReward"
                 ]
             }
-        }
+        },
+        "pre_wait_freezes": 500,
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CostumeGachaClickGacha",
+            "CostumeGachaConfirmPullReward" // 领奖弹窗未收起时重试，不含跳过节点以免退场期误点 SKIP
+        ]
     },
     "CostumeGachaCancelShopPrompt": {
         "desc": "取消前往票券商店弹窗",
@@ -323,8 +267,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "CommonCancelOptionVisible", // 放首位使点击落在取消按钮上
-                    "CostumeGachaTicketShortageVisible"
+                    "CommonCancelOptionVisible"
                 ]
             }
         },
