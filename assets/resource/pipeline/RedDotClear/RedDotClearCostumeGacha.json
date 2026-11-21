@@ -276,13 +276,13 @@
         },
         "post_wait_freezes": {
             "time": 500, // 仅等待静态票券商店按钮恢复高亮稳定，避开背景 Live2D 动画
-            "rate_limit": 200,
             "target": [
                 588,
                 57,
                 74,
                 19
-            ]
+            ],
+            "rate_limit": 200
         },
         "next": [
             "CostumeGachaCancelShopPrompt", // 弹窗未关闭时重点击，避免暗态下误判右箭头不可用
@@ -307,13 +307,13 @@
         },
         "post_wait_freezes": {
             "time": 500, // 仅等待静态票券商店按钮切换稳定，避开背景 Live2D 动画
-            "rate_limit": 200,
             "target": [
                 588,
                 57,
                 74,
                 19
-            ]
+            ],
+            "rate_limit": 200
         },
         "next": [
             "RedDotClearCostumeGachaFlow"
