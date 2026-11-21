@@ -59,7 +59,7 @@
         "next": [
             "[JumpBack]DailyRewardsMissionClickRedDot", // 只有出现红点的页签才需要领，逐个点过去
             "CommonClosePage",
-            "CommonEndTask"
+            "CommonReturnHall" // 关不了任务页时回大厅，避免弹窗或面板残留影响后续子流程
         ]
     },
     "DailyRewardsMissionClickRedDot": {
