@@ -697,6 +697,24 @@
             }
         }
     },
+    "CommonOutpostRedDotVisible": {
+        "desc": "大厅的前哨基地红点或New",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    434,
+                    511,
+                    28,
+                    28
+                ], // 仅框前哨基地入口右上角角标区，避开上方商店与下方防御奖励红点
+                "template": [
+                    "Common/RedDot.png",
+                    "Common/New.png"
+                ]
+            }
+        }
+    },
     "CommonClickEventChange": {
         "desc": "点击活动轮换按钮",
         "max_hit": 1,

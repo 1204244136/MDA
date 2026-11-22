@@ -1,11 +1,13 @@
 {
     "AccountNurturingSynchroDeviceEnhance": {
-        "desc": "同步器增强",
+        "desc": "同步器增强", // 大厅无前哨角标时命中 CommonArkVisible 跳过，不进前哨基地
         "max_hit": 1,
         "next": [
             "SynchroDeviceEnhanceFlow",
             "AccountNurturingSynchroDeviceEnhanceEnterFlow",
-            "[JumpBack]SceneEnterOutpost"
+            "[JumpBack]SceneEnterOutpostOnRedDot",
+            "CommonArkVisible",
+            "[JumpBack]SceneEnterHall"
         ]
     },
     "AccountNurturingSynchroDeviceEnhanceEnterFlow": {

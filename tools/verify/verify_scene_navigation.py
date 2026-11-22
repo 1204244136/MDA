@@ -246,6 +246,7 @@ class NavigationRun:
             "CashShopNetworkRetryButtonVisible": {"cashshop_network_error"},
             "SynchroDeviceEntered": {"synchro"},
             "RecycleRoomEntered": {"recycle"},
+            "CommandCenterEntered": {"command_center"},
         }
         if name == "ArenaSpecialRewardBadgeVisible":
             return self.page == "ark" and self.reward_progress >= 50
@@ -334,7 +335,7 @@ class NavigationRun:
             elif node == "CommonClickBlank":
                 pass  # Existing interception entry popup dismissal.
             elif node in {"ArenaMain", "OutpostMain", "InterceptionMain", "SimulationRoomMain", "TribeTowerMain",
-                          "AdviseMain", "CashShopMain", "AccountNurturingMain"}:
+                          "AdviseMain", "CashShopMain", "AccountNurturingMain", "RedDotClearMain"}:
                 pass  # RuntimeQuotaCheck boundary.
             else:
                 return self.unexpected(f"unexpected business action: {node}")
@@ -693,6 +694,77 @@ def check_behaviors(run):
         assert "SceneEnterHall" not in run.completed and "SceneEnterOutpost" not in run.completed
         count += 1
     print("[PASS] 同步器与循环室养成从前哨基地/目标子页直接复用，不绕大厅")
+
+    for entry in ("AccountNurturingSynchroDeviceEnhance", "AccountNurturingRecycleRoomUpgrade"):
+        assert run.run(entry, "hall") == SUCCEEDED, (entry, run.completed)
+        assert run.page == "hall" and not run.actions, (entry, run.actions)
+        assert "SceneEnterOutpost" not in run.completed, (entry, run.completed)
+        count += 1
+
+        assert run.run(entry, "hall", visible={"CommonOutpostRedDotVisible"}) == SUCCEEDED, (entry, run.completed)
+        assert run.page == "outpost" and run.actions == ["__ScenePrivateClickOutpost"], (entry, run.actions)
+        assert "SceneEnterOutpost" in run.completed, (entry, run.completed)
+        count += 1
+
+        assert run.run(entry, "unknown") == SUCCEEDED, (entry, run.completed)
+        assert run.page == "hall" and "SceneEnterOutpost" not in run.completed, (entry, run.page, run.completed)
+        count += 1
+
+        assert run.run(entry, "unknown", visible={"CommonOutpostRedDotVisible"}) == SUCCEEDED, (entry, run.completed)
+        assert run.page == "outpost" and "SceneEnterOutpost" in run.completed, (entry, run.page, run.completed)
+        count += 1
+
+    assert run.run("AccountNurturingMain", "hall") == SUCCEEDED, run.completed
+    assert run.page == "hall" and run.actions == ["AccountNurturingMain"], run.actions
+    assert "SceneEnterOutpost" not in run.completed, run.completed
+    count += 1
+
+    assert run.run("AccountNurturingMain", "hall", visible={"CommonOutpostRedDotVisible"}) == SUCCEEDED, run.completed
+    assert run.actions.count("__ScenePrivateClickOutpost") == 2, run.actions
+    assert "SceneEnterOutpostOnRedDot" in run.completed, run.completed
+    count += 1
+    print("[PASS] 同步器与循环室养成在大厅无前哨角标时不进前哨基地，有角标时才进入")
+
+    # 清除指挥中心红点：大厅前哨基地无红点/New 时直接跳过，不进入前哨基地；有角标时才进场。
+    assert run.run("RedDotClearCommandCenter", "hall") == SUCCEEDED, run.completed
+    assert run.page == "hall" and not run.actions, run.actions
+    assert "SceneEnterOutpost" not in run.completed, run.completed
+    count += 1
+
+    assert run.run("RedDotClearCommandCenter", "hall", visible={"CommonOutpostRedDotVisible"}) == SUCCEEDED, run.completed
+    assert run.page == "outpost" and run.actions == ["__ScenePrivateClickOutpost"], run.actions
+    assert "SceneEnterOutpost" in run.completed, run.completed
+    count += 1
+
+    assert run.run("RedDotClearCommandCenter", "outpost") == SUCCEEDED, run.completed
+    assert run.page == "outpost" and not run.actions, run.actions
+    assert "SceneEnterHall" not in run.completed and "SceneEnterOutpost" not in run.completed
+    count += 1
+
+    assert run.run("RedDotClearCommandCenter", "command_center",
+                   extra={"CommandCenterFlow": {"next": []}}) == SUCCEEDED, run.completed
+    assert run.page == "command_center" and not run.actions, run.actions
+    assert "SceneEnterHall" not in run.completed and "SceneEnterOutpost" not in run.completed
+    count += 1
+
+    assert run.run("RedDotClearCommandCenter", "unknown") == SUCCEEDED, run.completed
+    assert run.page == "hall" and "SceneEnterOutpost" not in run.completed, (run.page, run.completed)
+    count += 1
+
+    assert run.run("RedDotClearCommandCenter", "unknown", visible={"CommonOutpostRedDotVisible"}) == SUCCEEDED, run.completed
+    assert run.page == "outpost" and "SceneEnterOutpost" in run.completed, (run.page, run.completed)
+    count += 1
+
+    reddot_no_cc = option_overrides("RedDotClear.json", RedDotClearCommandCenter="No")
+    assert run.run("RedDotClearMain", "hall", visible={"CommonOutpostRedDotVisible"}, extra=reddot_no_cc) == SUCCEEDED, run.completed
+    assert run.page == "hall" and "SceneEnterOutpost" not in run.completed, (run.page, run.completed)
+    assert "RedDotClearCommandCenter" not in run.completed, run.completed
+    count += 1
+
+    assert run.run("RedDotClearMain", "hall") == SUCCEEDED, run.completed
+    assert run.page == "hall" and "SceneEnterOutpost" not in run.completed, (run.page, run.completed)
+    count += 1
+    print("[PASS] 清除指挥中心红点在大厅无前哨角标或选项关闭时不进前哨基地，已有前哨/指挥中心页直接复用")
     return count
 
 

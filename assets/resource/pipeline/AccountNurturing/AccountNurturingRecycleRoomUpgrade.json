@@ -1,11 +1,13 @@
 {
     "AccountNurturingRecycleRoomUpgrade": {
-        "desc": "循环室升级",
+        "desc": "循环室升级", // 大厅无前哨角标时命中 CommonArkVisible 跳过，不进前哨基地
         "max_hit": 1,
         "next": [
             "RecycleRoomUpgradeFlow",
             "AccountNurturingRecycleRoomUpgradeEnterFlow",
-            "[JumpBack]SceneEnterOutpost"
+            "[JumpBack]SceneEnterOutpostOnRedDot",
+            "CommonArkVisible",
+            "[JumpBack]SceneEnterHall"
         ]
     },
     "AccountNurturingRecycleRoomUpgradeEnterFlow": {

@@ -8,6 +8,21 @@
             "[JumpBack]__ScenePrivateRecoverHallForOutpost"
         ]
     },
+    "SceneEnterOutpostOnRedDot": {
+        "desc": "大厅前哨有角标才进入", // 仅当大厅前哨基地存在红点或New时进入前哨；无角标时调用方落到 CommonArkVisible 结束
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CommonOutpostRedDotVisible",
+                    "CommonArkVisible"
+                ]
+            }
+        },
+        "next": [
+            "SceneEnterOutpost"
+        ]
+    },
     "__ScenePrivateClickOutpost": {
         "desc": "从大厅点击前哨基地，复用既有按钮识别",
         "max_hit": 6,
