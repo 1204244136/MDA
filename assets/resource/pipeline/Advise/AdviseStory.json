@@ -13,7 +13,7 @@
             "[JumpBack]DialoguesSkipStory",
             "[JumpBack]DialoguesClickContinue",
             "[JumpBack]DialoguesClickOption",
-            "CommonEndTask"
+            "DialoguesMainHidden" // 仅在剧情标识消失时结束子流程，避免操作未命中时直接退出并与父节点 JumpBack 死循环
         ]
     }
 }

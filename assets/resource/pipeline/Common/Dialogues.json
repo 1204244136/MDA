@@ -33,7 +33,8 @@
                 ],
                 "template": [
                     "Dialogues/Continue.png"
-                ]
+                ],
+                "threshold": 0.85 // 提高阈值过滤立绘衣褶对极小三角模板的误命中
             }
         },
         "action": {
@@ -45,7 +46,7 @@
     "DialoguesClickOption": {
         "desc": "点击选项",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     452,
@@ -53,9 +54,8 @@
                     56,
                     324
                 ],
-                "expected": [
-                    "[0-9]",
-                    "[①②③④⑤⑥⑦⑧⑨]"
+                "template": [
+                    "Dialogues/Option1.png" // 模板匹配选项 1 徽章，解决亮背景单选项 OCR 漏检
                 ]
             }
         },
@@ -90,5 +90,17 @@
                 ]
             }
         }
+    },
+    "DialoguesMainHidden": {
+        "desc": "剧情界面已退出",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "DialoguesMainVisible"
+                ]
+            }
+        },
+        "inverse": true
     }
 }
