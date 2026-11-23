@@ -518,7 +518,7 @@
         ]
     },
     "LuckyBoxOpeningOpenProfileCustomPack": {
-        "desc": "点红点开启简介个性化礼包", // 「全部使用」不会勾选简介个性化礼包，走完后切到其他分类只点第 1 格红点开启
+        "desc": "点红点开启简介个性化礼包", // 「全部使用」不会勾选简介个性化礼包，走完后切到其他分类检查前 3 格红点开启
         "enabled": true, // 由选项 LuckyBoxOpeningOpenProfileCustomPack 控制，默认开启
         "max_hit": 1,
         "recognition": {
@@ -551,15 +551,15 @@
         ]
     },
     "LuckyBoxOpeningClickProfileCustomPackRedDot": {
-        "desc": "点击简介个性化礼包红点", // 简介个性化礼包固定位于其他分类第 1 格，限定该格右上角小 ROI 避免误开后续宝箱
+        "desc": "点击简介个性化礼包红点", // 限定前 3 格右上角顶部条带，兼顾前置其他未开启礼盒并避开道具主体与后续格位误开
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
                     95,
                     170,
-                    35,
-                    35
+                    165,
+                    30
                 ],
                 "template": [
                     "Common/RedDot9x9.png",
