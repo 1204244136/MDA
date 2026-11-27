@@ -11,21 +11,27 @@ import (
 )
 
 type RuntimeTracker struct {
-	mu         sync.Mutex
-	active     bool
-	taskID     uint64
-	entry      string
-	last       time.Time
-	multiplier quotaMultiplier
-	route      quotaRoute
-	status     *MembershipStatus
-	generation uint64
-	realNs     int64
-	stopCh     chan struct{}
-	stopped    bool
-	stopPosted bool
-	stopNotice string
-	lease      *runtimeTrackingLease
+	mu           sync.Mutex
+	shuttingDown bool
+	active       bool
+	taskID       uint64
+	entry        string
+	last         time.Time
+	multiplier   quotaMultiplier
+	route        quotaRoute
+	status       *MembershipStatus
+	generation   uint64
+	realNs       int64
+	stopCh       chan struct{}
+	stopped      bool
+	stopPosted   bool
+	stopNotice   string
+	lease        *runtimeTrackingLease
+}
+
+// Shutdown stops active quota tracking, flushes accrued usage, and releases any tracking lease.
+func Shutdown() {
+	runtimeTracker.shutdown()
 }
 
 var _ maa.TaskerEventSink = &RuntimeTracker{}
@@ -148,6 +154,9 @@ func (t *RuntimeTracker) requestStopWithNotice(generation uint64, notice string)
 }
 
 func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) {
+	if t.isShuttingDown() {
+		return
+	}
 	t.finish()
 	if isQuotaExemptEntry(detail.Entry) {
 		log.Info().
@@ -214,6 +223,10 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	now := time.Now()
 
 	t.mu.Lock()
+	if t.shuttingDown {
+		t.mu.Unlock()
+		return
+	}
 	t.active = true
 	t.taskID = detail.TaskID
 	t.entry = detail.Entry
@@ -260,8 +273,25 @@ func (t *RuntimeTracker) start(tasker *maa.Tasker, detail maa.TaskerTaskDetail) 
 	go t.tick(status, route, generation, quotaReserveSeconds(snapshot), stopCh)
 }
 
-func (t *RuntimeTracker) finish() {
+func (t *RuntimeTracker) isShuttingDown() bool {
 	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.shuttingDown
+}
+
+func (t *RuntimeTracker) shutdown() {
+	t.finishInternal(true)
+}
+
+func (t *RuntimeTracker) finish() {
+	t.finishInternal(false)
+}
+
+func (t *RuntimeTracker) finishInternal(markShuttingDown bool) {
+	t.mu.Lock()
+	if markShuttingDown {
+		t.shuttingDown = true
+	}
 	if !t.active {
 		t.mu.Unlock()
 		return

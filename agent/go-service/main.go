@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/1204244136/MDA/agent/go-service/pkg/i18n"
+	"github.com/1204244136/MDA/agent/go-service/pkg/parentwatch"
 	"github.com/1204244136/MDA/agent/go-service/pkg/pienv"
 	"github.com/1204244136/MDA/agent/go-service/taskersink/membership"
 	"github.com/MaaXYZ/maa-framework-go/v4"
@@ -31,6 +32,13 @@ func main() {
 	log.Info().
 		Str("version", Version).
 		Msg("MDA Agent Service")
+
+	// 宿主机崩溃或被强杀时 MaaAgentServerJoin 会持续阻塞在 IPC 上，
+	// 需要在检测到父进程退出后立刻收尾停表并终止当前进程。
+	parentwatch.Start(func() {
+		membership.Shutdown()
+		_ = logFile.Close()
+	})
 
 	pienv.Init()
 	i18n.Init()
